@@ -1,0 +1,2016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Daily Run Line's Homerun Index</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+:root {
+  --bg-main: #060c16;
+  --bg-card: rgba(16, 28, 48, 0.7);
+  --bg-dark: #091222;
+  --accent: #00ff9d;
+  --accent-glow: rgba(0, 255, 157, 0.2);
+  --text-muted: #6b7c96;
+  --border: #172a46;
+  --stadium-lights: #38bdf8;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: radial-gradient(circle at 50% 0%, #0d1f38 0%, var(--bg-main) 70%);
+  color: #f1f5f9;
+  margin: 0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  letter-spacing: -0.2px;
+}
+
+.container {
+  width: 100%;
+  max-width: 1440px;
+}
+
+.header-area {
+  background: linear-gradient(180deg, #091526 0%, rgba(6, 12, 22, 0.9) 100%);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--accent);
+  border-radius: 16px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 25px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.header-area::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+.main-logo {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--bg-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 0 25px var(--accent-glow);
+  overflow: hidden;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 25px var(--accent-glow); }
+  50% { box-shadow: 0 0 40px rgba(0, 255, 157, 0.4); }
+}
+
+.main-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+h1 { 
+  margin: 0; 
+  font-size: 36px; 
+  font-weight: 900; 
+  letter-spacing: -1px; 
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.subtitle { 
+  color: var(--stadium-lights); 
+  margin-top: 8px; 
+  font-size: 14px; 
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.spotlight-ticker {
+  background: rgba(9, 18, 34, 0.9);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--stadium-lights);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.spotlight-title {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--stadium-lights);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spotlight-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.spotlight-card {
+  background: #050b14;
+  border: 1px solid #14243b;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.spotlight-card:hover {
+  background: rgba(0, 255, 157, 0.05);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 255, 157, 0.1);
+}
+
+.upload-box {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  padding: 24px;
+  border-radius: 16px;
+  text-align: center;
+  border: 1px dashed #223e66;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  transition: all 0.3s;
+}
+
+.upload-box:hover {
+  border-color: var(--accent);
+  background: rgba(16, 28, 48, 0.9);
+}
+
+input[type="file"] {
+  background: var(--bg-dark);
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+input[type="file"]:hover {
+  border-color: #38bdf8;
+  background: #0d192e;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+@media(min-width: 1050px) {
+  .dashboard-grid {
+    grid-template-columns: 380px 1fr;
+  }
+}
+
+.panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  height: fit-content;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.02);
+  transition: all 0.3s;
+}
+
+.panel:hover {
+  border-color: var(--accent);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.02);
+}
+
+h2 { 
+  margin-top: 0; 
+  font-size: 14px; 
+  font-weight: 800; 
+  border-bottom: 1px solid var(--border); 
+  padding-bottom: 12px; 
+  color: #fff; 
+  text-transform: uppercase; 
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+h2::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--accent);
+  animation: flicker 0.6s infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.today-teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.today-team-button {
+  width: 100%;
+  min-height: 42px;
+  background: rgba(9, 18, 34, 0.85);
+  border: 1px solid var(--border);
+  color: #f1f5f9;
+  border-radius: 8px;
+  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  transition: all 0.2s;
+}
+
+.today-team-button:hover {
+  border-color: var(--accent);
+  background: rgba(16, 28, 48, 0.95);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 255, 157, 0.15);
+}
+
+.today-team-button.active-team-filter {
+  border-color: var(--accent);
+  background: rgba(0, 255, 157, 0.08);
+  box-shadow: 0 0 12px rgba(0, 255, 157, 0.16);
+}
+
+.today-team-name {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.today-team-count {
+  color: var(--text-muted);
+  font-family: monospace;
+  font-size: 11px;
+  flex: 0 0 auto;
+}
+
+.today-team-empty {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.btn-blue {
+  padding: 14px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  border: 1px solid #3b82f6;
+  border-radius: 10px;
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+  transition: all 0.2s;
+}
+
+.btn-blue:hover { 
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 6px 20px rgba(29, 78, 216, 0.5);
+  transform: translateY(-2px);
+}
+
+.controls-bar {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  padding: 18px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label { 
+  font-size: 11px; 
+  font-weight: 800; 
+  color: var(--accent); 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px; 
+}
+
+.search-input { 
+  width: 260px; 
+  background: var(--bg-dark); 
+  border: 1px solid var(--accent); 
+  color: #fff; 
+  padding: 8px 12px; 
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.search-input:focus { 
+  outline: none; 
+  box-shadow: 0 0 12px var(--accent-glow);
+  background: rgba(0, 255, 157, 0.05);
+}
+
+.select-input-sm { 
+  width: 115px; 
+  background: var(--bg-dark); 
+  border: 1px solid var(--accent); 
+  color: #fff; 
+  padding: 8px; 
+  border-radius: 6px; 
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.select-input-sm:hover, .select-input-sm:focus { 
+  outline: none;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.parlayTeamSelect {
+  background: var(--bg-dark);
+  border: 1px solid var(--accent);
+  color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.parlayTeamSelect:hover {
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  margin-bottom: 24px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  background: rgba(9, 18, 34, 0.9);
+  color: #94a3b8;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 1px;
+  border-bottom: 2px solid var(--border);
+}
+
+td {
+  font-weight: 500;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover { 
+  background: rgba(30, 41, 59, 0.6);
+  border-left: 3px solid var(--accent);
+  padding-left: 17px;
+}
+
+.metric-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-left: 4px;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+
+.badge-barrel { background: linear-gradient(135deg, #ff4500 0%, #ff8c00 100%); color: #fff; border: 1px solid rgba(255, 69, 0, 0.4); box-shadow: 0 0 6px rgba(255, 69, 0, 0.3); }
+.badge-power { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+.badge-angle { background: rgba(217, 70, 239, 0.15); color: #f5d0fe; border: 1px solid rgba(217, 70, 239, 0.3); }
+.badge-gopher { background: rgba(220, 38, 38, 0.2); color: #f87171; border: 1px solid #dc2626; font-weight: 800; animation: pulse 2s infinite; }
+.badge-meatball { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-bullpen { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); font-weight: 800; }
+.badge-wind { background: linear-gradient(135deg, #00d4ff 0%, #005f73 100%); color: #fff; border: 1px solid rgba(0, 212, 255, 0.4); }
+.badge-perfect-wind { background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%); color: #fff; border: 1px solid rgba(0, 255, 136, 0.4); box-shadow: 0 0 8px rgba(0, 255, 136, 0.4); }
+.badge-temp { background: linear-gradient(135deg, #ff8c00 0%, #eab308 100%); color: #fff; border: 1px solid rgba(252, 211, 77, 0.4); }
+.badge-bvp { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-pitch-fb { background: linear-gradient(135deg, #ff0055 0%, #990033 100%); color: #fff; border: 1px solid rgba(255, 0, 85, 0.4); }
+.badge-pitch-brk { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: 1px solid rgba(56, 189, 248, 0.4); }
+.badge-jackpot { background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: #000; font-weight: 900; border: 1px solid #facc15; box-shadow: 0 0 10px rgba(234, 179, 8, 0.5); }
+.badge-pvf { background: linear-gradient(135deg, #ff1493 0%, #ff69b4 100%); color: #fff; border: 1px solid rgba(255, 20, 147, 0.4); box-shadow: 0 0 8px rgba(255, 20, 147, 0.3); }
+.badge-sweetspot { background: linear-gradient(135deg, #00ff00 0%, #00cc00 100%); color: #fff; border: 1px solid rgba(0, 255, 0, 0.4); box-shadow: 0 0 8px rgba(0, 255, 0, 0.3); }
+.badge-diluted { background: linear-gradient(135deg, #ff6666 0%, #ff3333 100%); color: #fff; border: 1px solid rgba(255, 0, 0, 0.4); box-shadow: 0 0 8px rgba(255, 0, 0, 0.3); }
+.badge-lowvolume { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.4); }
+
+@keyframes pulse {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; box-shadow: 0 0 8px rgba(220, 38, 38, 0.5); }
+  100% { opacity: 0.8; }
+}
+
+.pf-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
+.pf-green { 
+  background: rgba(16, 185, 129, 0.15); 
+  color: #10b981; 
+  border: 1px solid rgba(16, 185, 129, 0.3); 
+}
+
+.pf-red { 
+  background: rgba(239, 68, 68, 0.15); 
+  color: #f87171; 
+  border: 1px solid rgba(239, 68, 68, 0.3); 
+}
+
+.pf-neutral { 
+  background: rgba(148, 163, 184, 0.15); 
+  color: #94a3b8; 
+  border: 1px solid rgba(148, 163, 184, 0.3); 
+}
+
+.interactive-cell {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip-box {
+  display: none;
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #0a1626 0%, #091222 100%);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 14px 16px;
+  border-top: 3px solid var(--stadium-lights);
+  font-size: 11px;
+  color: #e2e8f0;
+  text-align: left;
+  white-space: normal;
+  max-width: 280px;
+  box-shadow: 0 8px 32px rgba(0, 255, 157, 0.2), inset 0 1px 1px rgba(255,255,255,0.05);
+  z-index: 999;
+  pointer-events: none;
+  animation: tooltip-pop 0.3s ease-out;
+}
+
+@keyframes tooltip-pop {
+  0% { 
+    opacity: 0; 
+    transform: translateX(-50%) translateY(10px);
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.tooltip-box::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid var(--accent);
+}
+
+.tooltip-box b {
+  color: var(--accent);
+  display: block;
+  margin-top: 8px;
+  font-size: 10px;
+}
+
+.tooltip-box b:first-child {
+  margin-top: 0;
+}
+
+.interactive-cell:hover .tooltip-box {
+  display: block;
+}
+
+.index-score {
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--accent);
+  background: rgba(0, 255, 157, 0.07);
+  border: 2px solid rgba(0, 255, 157, 0.3);
+  padding: 6px 14px;
+  border-radius: 8px;
+  display: inline-block;
+  text-shadow: 0 0 10px var(--accent-glow);
+  min-width: 40px;
+  transition: all 0.2s;
+  box-shadow: 0 0 12px rgba(0, 255, 157, 0.15);
+}
+
+.index-score:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+  transform: scale(1.05);
+}
+
+.parlay-grid { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+}
+
+.btn-accent {
+  margin-top: 14px;
+  padding: 14px;
+  background: linear-gradient(135deg, #00ff9d 0%, #00d482 100%);
+  border: none;
+  border-radius: 10px;
+  color: #04080f;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px var(--accent-glow);
+  transition: all 0.2s;
+}
+
+.btn-accent:hover { 
+  background: linear-gradient(135deg, #33ffb1 0%, #00ff9d 100%);
+  box-shadow: 0 6px 25px rgba(0, 255, 157, 0.5);
+  transform: translateY(-2px);
+}
+
+#parlayResults, #optimalResults { 
+  margin-top: 14px; 
+  background: #050b14; 
+  padding: 14px; 
+  border-radius: 10px; 
+  font-size: 13px; 
+  color: var(--text-muted); 
+  border: 1px solid var(--border);
+  transition: all 0.3s;
+}
+
+#parlayResults:hover, #optimalResults:hover {
+  border-color: var(--accent);
+  background: rgba(0, 255, 157, 0.02);
+}
+
+.team-logo-img { 
+  width: 24px; 
+  height: 24px; 
+  object-fit: contain;
+  vertical-align: middle; 
+  margin-right: 10px; 
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  transition: all 0.2s;
+}
+
+.team-logo-img:hover {
+  filter: drop-shadow(0 4px 8px rgba(0,255,157,0.3));
+  transform: scale(1.1);
+}
+
+.btn-remove {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+
+.btn-remove:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+  transform: scale(1.05);
+}
+
+.btn-restore {
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+
+.btn-restore:hover {
+  background: #38bdf8;
+  color: #060a13;
+  border-color: #38bdf8;
+  transform: scale(1.05);
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: #1b2e4c; border-radius: 3px; transition: all 0.2s; }
+::-webkit-scrollbar-thumb:hover { background: #26416c; }
+
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.slider-header span:last-child {
+  color: var(--accent);
+  font-family: monospace;
+}
+
+.slider-control {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  outline: none;
+  cursor: pointer;
+}
+
+.slider-control::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--accent);
+  transition: all 0.2s;
+}
+
+.slider-control::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 16px var(--accent);
+}
+
+.slider-control::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--accent);
+  border: none;
+}
+
+.toggle-model-group {
+  display: flex;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 14px;
+  gap: 4px;
+}
+
+.toggle-model-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  border-radius: 6px;
+  text-transform: uppercase;
+  transition: all 0.3s;
+}
+
+.toggle-model-btn:hover {
+  color: var(--accent);
+  background: rgba(0, 255, 157, 0.05);
+}
+
+.toggle-model-btn.active-mode {
+  background: var(--border);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(0, 255, 157, 0.2);
+}
+
+.player-name-hover {
+  position: relative;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.player-name-hover:hover {
+  color: var(--accent);
+  text-shadow: 0 0 12px var(--accent-glow);
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0, 255, 157, 0.1);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.stat-value {
+  color: var(--accent);
+  font-weight: 700;
+  font-family: monospace;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header-area">
+    <div class="main-logo">
+      <img id="dashboardLogoSource" src="bbi-logo.jpg" alt="The Daily Run Line Logo" onerror="this.style.display='none';">
+    </div>
+    <h1>The Daily Run Line's Homerun Index</h1>
+    <div class="subtitle">MLB Daily Home Run Predictive Analytics Panel</div>
+  </div>
+
+  <div id="spotlightTicker" class="spotlight-ticker">
+    <div class="spotlight-title">
+      <span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%; box-shadow:0 0 8px var(--stadium-lights);"></span>
+      Heavy Hitters // Daily Apex Models (Top 12)
+    </div>
+    <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
+  </div>
+
+  <div class="upload-box">
+    <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
+    <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px; font-weight: 500;">Upload your standard daily workbook containing the active 'HR', 'vsPitcher', 'PLdata', 'lastweek', and 'weather' data tables</div>
+  </div>
+
+  <div class="dashboard-grid">
+    
+    <div style="display:flex; flex-direction:column; gap:24px;">
+
+      <div class="panel">
+        <h2>Live Calibration Console</h2>
+        <div class="toggle-model-group">
+          <button id="modePower" class="toggle-model-btn active-mode" onclick="switchPriorityModel('power')">Power Premium</button>
+          <button id="modeMatchup" class="toggle-model-btn" onclick="switchPriorityModel('matchup')">Matchup Precision</button>
+        </div>
+        
+        <div class="slider-container">
+          <div class="slider-header"><span>Batted Profile (Barrel/EV)</span><span id="valWeightPower">100%</span></div>
+          <input type="range" id="weightPower" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
+        </div>
+        <div class="slider-container">
+          <div class="slider-header"><span>Matchup Data (PL/BvP)</span><span id="valWeightMatchup">100%</span></div>
+          <input type="range" id="weightMatchup" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
+        </div>
+        <div class="slider-container">
+          <div class="slider-header"><span>Recent Hot Streak Metrics</span><span id="valWeightStreak">100%</span></div>
+          <input type="range" id="weightStreak" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
+        </div>
+        <div class="slider-container">
+          <div class="slider-header"><span>Environment &amp; Parks Adjuster</span><span id="valWeightEnv">100%</span></div>
+          <input type="range" id="weightEnv" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
+        </div>
+        <button onclick="recalculateAllBBIScores()" class="btn-blue" style="padding:10px; font-size:11px; margin-top:6px;">🔄 Force Recalculate Index</button>
+      </div>
+
+      <div class="panel">
+        <h2>Automated Optimal Slips</h2>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <button onclick="generateOptimalSlip('pack2')" class="btn-blue" style="padding:10px; font-size:11px; flex:1;">🚀 Power 2-Pack</button>
+          <button onclick="generateOptimalSlip('pack3')" class="btn-blue" style="padding:10px; font-size:11px; flex:1;">💥 Power 3-Pack</button>
+        </div>
+        <button onclick="generateOptimalSlip('stack')" class="btn-blue" style="padding:10px; font-size:11px; width:100%; margin-bottom:12px; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-color: #8b5cf6;">🏟️ Correlated Team Stack</button>
+        <div id="optimalResults">Trigger generator arrays above to construct highly optimized projection slips automatically.</div>
+      </div>
+
+      <div class="panel">
+        <h2>Filter by team:</h2>
+        <div id="todayTeamsList" class="today-teams-list">
+          <div class="today-team-empty">Upload today's workbook to load every team playing today.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>BBI Parlay Constructor</h2>
+        <div id="parlaySelects" class="parlay-grid">
+          <select id="parlayTeam1" class="parlayTeamSelect"><option value="">-- Leg 1 Team --</option></select>
+          <select id="parlayTeam2" class="parlayTeamSelect"><option value="">-- Leg 2 Team --</option></select>
+          <select id="parlayTeam3" class="parlayTeamSelect"><option value="">-- Leg 3 Team --</option></select>
+        </div>
+        <button onclick="generateParlay()" class="btn-accent">Generate Ticket Legs</button>
+        <div id="parlayResults">Select active matchup combinations above to build custom ticket arrays.</div>
+      </div>
+
+      <div class="panel" id="graphicsPanel" style="display:none;">
+        <h2>Media Asset Generation</h2>
+        <button onclick="generateDailyDingerGraphic()" class="btn-blue" style="background: linear-gradient(135deg, #091c36 0%, #0f2b48 100%); border-color:#223e66; margin-bottom:12px;">⚡ Export Daily Top 50 Graphic</button>
+        <button onclick="generateTeamMatrixGraphic()" class="btn-blue" style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); border-color:#1e3a8a;">📋 Export Team Matrix Graphic</button>
+      </div>
+
+    </div>
+
+    <div>
+      
+      <div class="controls-bar">
+        <div class="filter-group">
+          <label>Filter Teams</label>
+          <div style="display: flex; gap: 8px;">
+            <select id="teamFilter1" class="select-input-sm" onchange="applyFiltersAndRender()">
+              <option value="ALL">Team 1 (All)</option>
+            </select>
+            <select id="teamFilter2" class="select-input-sm" onchange="applyFiltersAndRender()">
+              <option value="ALL">Team 2 (All)</option>
+            </select>
+            <select id="teamFilter3" class="select-input-sm" onchange="applyFiltersAndRender()">
+              <option value="ALL">Team 3 (All)</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>Search Player Name</label>
+          <input type="text" id="searchFilter" class="search-input" placeholder="Type player name..." oninput="applyFiltersAndRender()" />
+        </div>
+        <div class="filter-group" style="margin-left: auto; flex-direction: row; align-items: center; gap: 10px;">
+          <input type="checkbox" id="showRemovedCheck" onchange="applyFiltersAndRender()" style="cursor:pointer; width:auto;" />
+          <label for="showRemovedCheck" style="cursor:pointer; margin-bottom:0; color:var(--accent);">Show Removed Bench Players</label>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 50px;">Rank</th>
+              <th style="text-align: left; padding-left: 20px;">Player</th>
+              <th>Team</th>
+              <th>Opposing Pitcher</th>
+              <th>Current Game Climate</th>
+              <th>Homerun Index</th>
+              <th style="width: 95px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td colspan="7" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="topThreeContainer" style="display:none; margin-top: 24px;">
+        <h2 style="margin-bottom:14px; font-size:15px;">⚡ Top 3 Target Options Per Team Matrix</h2>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 140px;">Team Lineup</th>
+                <th style="text-align: left;">Top 1 Anchor</th>
+                <th style="text-align: left;">Top 2 Follow</th>
+                <th style="text-align: left;">Top 3 Variant</th>
+              </tr>
+            </thead>
+            <tbody id="topThreeTableBody">
+              <tr>
+                <td colspan="4" style="color:var(--text-muted); padding:20px;">Data structures preparing...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<canvas id="graphicCanvas" width="1440" height="1420" style="display:none;"></canvas>
+<canvas id="matrixCanvas" width="1200" height="1600" style="display:none;"></canvas>
+
+<script>
+// LEAGUE AVERAGES (2023-2024 MLB Data)
+const LEAGUE_AVERAGES = {
+  iso: 0.185,
+  barrelRate: 0.083,
+  hardHitRate: 0.35,
+  fbRate: 0.41,
+  pitcherHR9: 1.08,
+  pitcherBarrelAllowed: 0.085,
+  pitcherFBRate: 0.39
+};
+
+let playerData = [];
+let vsPitcherData = {};
+let plDataMap = {}; 
+let lastWeekMap = {};
+let bullpenData = {};
+let gameMatchups = [];
+let weatherSettings = {};
+let teamToGameIdMap = {};
+let selectedGameIdFilter = null;
+let selectedQuickTeamFilter = 'ALL';
+let systemPriorityModel = 'power';
+
+const teamLogos = {
+  ARI:'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',
+  ATL:'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',
+  BAL:'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',
+  BOS:'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',
+  CHC:'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',
+  CHW:'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',
+  CIN:'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',
+  CLE:'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',
+  COL:'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',
+  DET:'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',
+  HOU:'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',
+  KCR:'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',
+  LAA:'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',
+  LAD:'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',
+  MIA:'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',
+  MIL:'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',
+  MIN:'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',
+  NYM:'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',
+  NYY:'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',
+  ATH:'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',
+  PHI:'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',
+  PIT:'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',
+  SDP:'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',
+  SEA:'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',
+  SFG:'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',
+  STL:'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',
+  TBR:'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',
+  TEX:'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',
+  TOR:'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',
+  WSN:'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
+};
+
+const teamColors = {
+  ARI: '#A71930', ATL: '#CE1141', BAL: '#DF4601', BOS: '#BD3039',
+  CHC: '#0E3386', CHW: '#27251F', CIN: '#C6011F', CLE: '#E31937',
+  COL: '#333366', DET: '#0C2340', HOU: '#EB6E1F', KCR: '#004687',
+  LAA: '#BA0021', LAD: '#005A9C', MIA: '#00A3E0', MIL: '#FFC52F',
+  MIN: '#002B5C', NYM: '#002D62', NYY: '#0C2340', ATH: '#003831',
+  PHI: '#E81828', PIT: '#FDB827', SDP: '#2F241D', SEA: '#0C2C56',
+  SFG: '#FD5A1E', STL: '#C41E3A', TBR: '#092C5C', TEX: '#003278',
+  TOR: '#134A8E', WSN: '#AB0003', UNK: '#172a46'
+};
+
+const stadiumCoordinates = {
+  ARI: { dome: true }, ATL: { dome: false }, BAL: { dome: false }, BOS: { dome: false },
+  CHC: { dome: false }, CHW: { dome: false }, CIN: { dome: false }, CLE: { dome: false },
+  COL: { dome: false }, DET: { dome: false }, HOU: { dome: true },  KCR: { dome: false },
+  LAA: { dome: false }, LAD: { dome: false }, MIA: { dome: true },  MIL: { dome: true },
+  MIN: { dome: false }, NYM: { dome: false }, NYY: { dome: false }, ATH: { dome: false },
+  PHI: { dome: false }, PIT: { dome: false }, SDP: { dome: false }, SEA: { dome: true },
+  SFG: { dome: false }, STL: { dome: false }, TBR: { dome: true },  TEX: { dome: true },
+  TOR: { dome: true },  WSN: { dome: false }
+};
+
+// Load saved data on page load
+window.addEventListener('DOMContentLoaded', loadCachedData);
+
+document.getElementById('excelFile').addEventListener('change', handleFile, false);
+
+function saveCachedData() {
+  const cacheData = {
+    playerData,
+    vsPitcherData,
+    plDataMap,
+    lastWeekMap,
+    bullpenData,
+    gameMatchups,
+    weatherSettings,
+    teamToGameIdMap,
+    selectedQuickTeamFilter,
+    systemPriorityModel
+  };
+  localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
+}
+
+function loadCachedData() {
+  const cached = localStorage.getItem('bbiDashboardCache');
+  if (cached) {
+    try {
+      const cacheData = JSON.parse(cached);
+      playerData = cacheData.playerData || [];
+      vsPitcherData = cacheData.vsPitcherData || {};
+      plDataMap = cacheData.plDataMap || {};
+      lastWeekMap = cacheData.lastWeekMap || {};
+      bullpenData = cacheData.bullpenData || {};
+      gameMatchups = cacheData.gameMatchups || [];
+      weatherSettings = cacheData.weatherSettings || {};
+      teamToGameIdMap = cacheData.teamToGameIdMap || {};
+      selectedQuickTeamFilter = cacheData.selectedQuickTeamFilter || 'ALL';
+      systemPriorityModel = cacheData.systemPriorityModel || 'power';
+      
+      if (playerData.length > 0) {
+        const uniqueTeams = getTeamsPlayingToday();
+        renderTodayTeamsFilter(uniqueTeams);
+        
+        ['parlayTeam1', 'parlayTeam2', 'parlayTeam3', 'teamFilter1', 'teamFilter2', 'teamFilter3'].forEach(id => {
+          const el = document.getElementById(id);
+          if(el) {
+            el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</option>` : `<option value="ALL">All Option</option>`;
+            uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
+          }
+        });
+        
+        document.getElementById('graphicsPanel').style.display = 'block';
+        document.getElementById('topThreeContainer').style.display = 'block';
+        recalculateAllBBIScores();
+      }
+    } catch(e) {
+      console.log('Cache load error, starting fresh');
+    }
+  }
+}
+
+function updateWeightLabels() {
+  document.getElementById('valWeightPower').innerText = document.getElementById('weightPower').value + '%';
+  document.getElementById('valWeightMatchup').innerText = document.getElementById('weightMatchup').value + '%';
+  document.getElementById('valWeightStreak').innerText = document.getElementById('weightStreak').value + '%';
+  document.getElementById('valWeightEnv').innerText = document.getElementById('weightEnv').value + '%';
+}
+
+function switchPriorityModel(type) {
+  systemPriorityModel = type;
+  document.getElementById('modePower').classList.remove('active-mode');
+  document.getElementById('modeMatchup').classList.remove('active-mode');
+  
+  if(type === 'power') {
+    document.getElementById('modePower').classList.add('active-mode');
+    document.getElementById('weightPower').value = 150;
+    document.getElementById('weightMatchup').value = 60;
+  } else {
+    document.getElementById('modeMatchup').classList.add('active-mode');
+    document.getElementById('weightPower').value = 60;
+    document.getElementById('weightMatchup').value = 150;
+  }
+  updateWeightLabels();
+  recalculateAllBBIScores();
+  saveCachedData();
+}
+
+function handleFile(e) {
+  const files = e.target.files;
+  if(!files || files.length === 0) return;
+  const f = files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, {type: 'array'});
+    
+    let hrRaw = []; let vpRaw = []; let plRaw = []; let lwRaw = []; let weatherRaw = []; let bullpenRaw = [];
+    teamToGameIdMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {};
+    
+    workbook.SheetNames.forEach(sheetName => {
+      let nameClean = sheetName.toUpperCase().trim();
+      if (nameClean === 'HR' || nameClean === 'HOMERUN') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'VSPITCHER' || nameClean === 'BVP') vpRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'PLDATA' || nameClean === 'PL') plRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'LASTWEEK') lwRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'WEATHER') weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'BULLPEN') bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') {
+        processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
+      }
+    });
+    
+    vpRaw.forEach(x => { if(x.Player || x.Name) vsPitcherData[String(x.Player || x.Name).trim()] = x; });
+    plRaw.forEach(x => { if(x.Player || x.Name) plDataMap[String(x.Player || x.Name).trim()] = x; });
+    lwRaw.forEach(x => { if(x.Player || x.Name) lastWeekMap[String(x.Player || x.Name).trim()] = x; });
+    bullpenRaw.forEach(x => { if(x.Team || x.TeamID) bullpenData[String(x.Team || x.TeamID).trim()] = x; });
+    
+    playerData = hrRaw.map(p => {
+      let name = String(p.Player || p.Name || 'Unknown Player').trim();
+      let team = String(p.Team || p.TEAM || 'UNK').trim().toUpperCase();
+      return { ...p, Name: name, Team: team, isRemoved: false };
+    }).filter(p => p.Name !== 'Unknown Player');
+    
+    assignFallbackGameIds(playerData);
+    parseWeatherMetadataRows(weatherRaw);
+    
+    gameMatchups.forEach(m => {
+      if (!weatherSettings[m.id]) {
+        let homeTeamCode = m.teamB;
+        let isDomePreset = stadiumCoordinates[homeTeamCode] ? stadiumCoordinates[homeTeamCode].dome : false;
+        weatherSettings[m.id] = { temp: 74, windSpeed: 0, windDir: 'neutral', isDome: isDomePreset };
+      }
+    });
+    
+    const uniqueTeams = getTeamsPlayingToday();
+    renderTodayTeamsFilter(uniqueTeams);
+    
+    ['parlayTeam1', 'parlayTeam2', 'parlayTeam3', 'teamFilter1', 'teamFilter2', 'teamFilter3'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) {
+        el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</option>` : `<option value="ALL">All Option</option>`;
+        uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
+      }
+    });
+    
+    document.getElementById('graphicsPanel').style.display = 'block';
+    document.getElementById('topThreeContainer').style.display = 'block';
+    recalculateAllBBIScores();
+    saveCachedData();
+  };
+  reader.readAsArrayBuffer(f);
+}
+
+function processCompareSheetMatchups(rows) {
+  if(!rows || !Array.isArray(rows)) return;
+  rows.forEach(row => {
+    let tA = String(row.Team1 || row.TEAM1 || row.Away || row.AWAY || '').trim().toUpperCase();
+    let tB = String(row.Team2 || row.TEAM2 || row.Home || row.HOME || '').trim().toUpperCase();
+    if(tA && tB) {
+      let gameId = `${tA}_vs_${tB}`;
+      teamToGameIdMap[tA] = gameId; teamToGameIdMap[tB] = gameId;
+      if (!gameMatchups.some(m => m.id === gameId)) {
+        gameMatchups.push({ id: gameId, teamA: tA, teamB: tB, homeTeam: tB });
+      }
+    }
+  });
+}
+
+function assignFallbackGameIds(data) {
+  if(!data || !Array.isArray(data)) return;
+  data.forEach(p => {
+    if (p.Team && !p.gameId) {
+      if (teamToGameIdMap[p.Team]) {
+        p.gameId = teamToGameIdMap[p.Team];
+      } else {
+        let opName = p['Opp Pitcher'] || p['Opp Pitcher Name'] || '';
+        const opposingRecord = data.find(x => (x.Name || x.Player || '').trim() === String(opName).trim());
+        let oppTeam = opposingRecord ? opposingRecord.Team : "OPP";
+        let teamsAlpha = [p.Team, oppTeam].sort();
+        let fallbackId = `${teamsAlpha[0]}_vs_${teamsAlpha[1]}`;
+        p.gameId = fallbackId;
+        
+        if (!weatherSettings[fallbackId]) {
+          const homeStadiumKey = stadiumCoordinates[teamsAlpha[1]] ? teamsAlpha[1] : (stadiumCoordinates[teamsAlpha[0]] ? teamsAlpha[0] : null);
+          const isDomePreset = homeStadiumKey ? stadiumCoordinates[homeStadiumKey].dome : false;
+          weatherSettings[fallbackId] = { temp: 70, windSpeed: 0, windDir: 'neutral', isDome: isDomePreset };
+        }
+        if (!gameMatchups.some(m => m.id === fallbackId)) {
+          gameMatchups.push({ id: fallbackId, teamA: p.Team, teamB: oppTeam, homeTeam: oppTeam });
+        }
+      }
+    }
+  });
+}
+
+function parseWeatherMetadataRows(rows) {
+  if(!rows || !Array.isArray(rows)) return;
+  rows.forEach(row => {
+    let teamKey = String(row.Team || row.TEAM || row.Home || '').trim().toUpperCase();
+    let matchingGameId = teamToGameIdMap[teamKey] || null;
+    if (!matchingGameId) {
+      gameMatchups.forEach(m => { if (m.teamA === teamKey || m.teamB === teamKey) matchingGameId = m.id; });
+    }
+    if (matchingGameId) {
+      let isDome = String(row.Dome || row.DOME || row.Roof || '').toLowerCase().includes('yes') || 
+                   String(row.Dome || row.DOME || row.Roof || '').toLowerCase().includes('dome') || 
+                   String(row.Dome || row.DOME || row.Roof || 'false') === 'true';
+      let temp = Number(row.Temp || row.Temperature || row.temp || 72) || 72;
+      let windSpeed = Number(row.Wind || row.WindSpeed || row.Speed || row.wind || row['Wind MPH'] || row['wind mph']) || 0;
+      let windDir = String(row.Direction || row.Dir || row.winddir || 'neutral').toLowerCase().trim();
+      weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome };
+    }
+  });
+}
+
+function cleanNumber(v) {
+  if(v === undefined || v === null || v === '') return 0;
+  if (typeof v === 'string' && v.includes('%')) return parseFloat(v) / 100;
+  return Number(v) || 0;
+}
+
+function calculateBBI(p, weatherObj) {
+  if (!p) return 0.0;
+  
+  const baseBarrel = cleanNumber(p['Barrel %']);
+  const baseHardHit = cleanNumber(p['Hard Hit %']);
+  if (baseBarrel < 0.01 && baseHardHit < 0.20) return 0.0;
+
+  const scalePower = Number(document.getElementById('weightPower').value) / 100;
+  const scaleMatchup = Number(document.getElementById('weightMatchup').value) / 100;
+  const scaleStreak = Number(document.getElementById('weightStreak').value) / 100;
+  const scaleEnv = Number(document.getElementById('weightEnv').value) / 100;
+
+  // ===== CREDIBILITY FILTER (NEW) =====
+  // Players with very few PAs or no home run track record get penalized
+  const pa = cleanNumber(p['PA'] || 0);
+  const totalHR = cleanNumber(p['Total HR'] || 0);
+  const hrFB = cleanNumber(p['HR/FB %'] || 0);
+  
+  let credibilityMultiplier = 1.0;
+  
+  // If less than 100 PAs and no home runs yet, heavily penalize
+  if (pa < 100 && totalHR === 0) {
+    credibilityMultiplier = 0.3; // 70% reduction
+  }
+  // If less than 150 PAs and only 1 HR, penalize moderately
+  else if (pa < 150 && totalHR <= 1) {
+    credibilityMultiplier = 0.6; // 40% reduction
+  }
+  // If less than 200 PAs and no HR/FB rate established, penalize lightly
+  else if (pa < 200 && hrFB === 0) {
+    credibilityMultiplier = 0.8; // 20% reduction
+  }
+  // Normal credibility after 200+ PAs
+  else if (pa >= 200) {
+    credibilityMultiplier = 1.0;
+  }
+
+  // ===== COMPONENT 1: BATTED BALL QUALITY (25% weight) =====
+  const barrelRate = cleanNumber(p['Barrel %']);
+  const hardHitRate = cleanNumber(p['Hard Hit %']);
+  const ev = cleanNumber(p['Avg EV'] || 88);
+  
+  const barrelDelta = barrelRate > 0 ? (barrelRate - LEAGUE_AVERAGES.barrelRate) / LEAGUE_AVERAGES.barrelRate : -0.3;
+  const hardHitDelta = hardHitRate > 0 ? (hardHitRate - LEAGUE_AVERAGES.hardHitRate) / LEAGUE_AVERAGES.hardHitRate : -0.3;
+  const evDelta = (ev - 88) / 88;
+  
+  const qualityScore = 1.0 + (barrelDelta * 0.45) + (hardHitDelta * 0.35) + (evDelta * 0.20);
+  const qualityModifier = Math.max(0.4, qualityScore);
+  
+  // ===== COMPONENT 2: POWER PROFILE (20% weight) =====
+  const iso = cleanNumber(p['ISO'] || LEAGUE_AVERAGES.iso);
+  const isoDelta = iso > 0 ? (iso - LEAGUE_AVERAGES.iso) / LEAGUE_AVERAGES.iso : -0.2;
+  const powerModifier = Math.max(0.3, 1.0 + (isoDelta * 0.6));
+  
+  // ===== COMPONENT 3: RECENT HOT STREAK (15% weight) =====
+  const lastWeekData = lastWeekMap[p.Name];
+  let streakModifier = 1.0;
+  
+  if (lastWeekData) {
+    const recentEV = cleanNumber(lastWeekData['EV'] || 0);
+    const recentLA = cleanNumber(lastWeekData['LA'] || 0);
+    const recentBarrels = cleanNumber(lastWeekData['Barrels'] || 0);
+    const recentBarrelPct = cleanNumber(lastWeekData['Barrel%'] || 0);
+    const recentHardHit = cleanNumber(lastWeekData['HardHit'] || 0);
+    const recentHardHitPct = cleanNumber(lastWeekData['HardHit%'] || 0);
+    const recentXSLG = cleanNumber(lastWeekData['xSLG'] || 0);
+    const recentHRs = cleanNumber(lastWeekData['HRs'] || 0);
+    
+    const hrBoost = Math.min(recentHRs * 0.25, 0.8);
+    const recentEVBoost = recentEV > 0 ? ((recentEV - 88) / 88) * 0.15 : 0;
+    const recentBarrelBoost = recentBarrelPct > 0 ? ((recentBarrelPct - LEAGUE_AVERAGES.barrelRate) / LEAGUE_AVERAGES.barrelRate) * 0.10 : 0;
+    const recentXSLGBoost = recentXSLG > 0.400 ? ((recentXSLG - 0.400) / 0.400) * 0.10 : 0;
+    
+    let laBoost = 0;
+    if (recentLA > 0) {
+      const optimalLA = 30;
+      const laDistance = Math.abs(recentLA - optimalLA);
+      laBoost = laDistance < 10 ? 0.08 : (laDistance < 15 ? 0.03 : -0.03);
+    }
+    
+    streakModifier = 1.0 + hrBoost + recentEVBoost + recentBarrelBoost + recentXSLGBoost + laBoost;
+  }
+  streakModifier = Math.max(0.7, streakModifier);
+  
+  // ===== COMPONENT 4: PITCHER VULNERABILITY (20% weight) =====
+  const vsp = vsPitcherData[p.Name];
+  
+  const pitcherHR9 = cleanNumber(p['Pitcher HR/9'] || LEAGUE_AVERAGES.pitcherHR9);
+  const pitcherBarrel = cleanNumber(p['Pitcher Barrel %'] || LEAGUE_AVERAGES.pitcherBarrelAllowed);
+  const pitcherFB = cleanNumber(p['Pitcher FB %'] || LEAGUE_AVERAGES.pitcherFBRate);
+  
+  const pitcherHR9Ratio = pitcherHR9 / LEAGUE_AVERAGES.pitcherHR9;
+  const pitcherBarrelRatio = pitcherBarrel / LEAGUE_AVERAGES.pitcherBarrelAllowed;
+  const pitcherFBRatio = pitcherFB / LEAGUE_AVERAGES.pitcherFBRate;
+  
+  const pvf = (pitcherHR9Ratio * 0.5) + (pitcherBarrelRatio * 0.3) + (pitcherFBRatio * 0.2);
+  
+  // ===== COMPONENT 5: PITCH-LEVEL MATCHUP (10% weight) =====
+  let pitchModifier = 1.0;
+  
+  const fbPct = cleanNumber(p['FB%'] || p['Fastball%'] || p['Fastball %'] || 0);
+  const vsFBXsLG = cleanNumber(vsp ? (vsp['xSLG vs FB'] || vsp['xSLG vs Fastball'] || 0) : 0);
+  const vs2SEAM = cleanNumber(vsp ? (vsp['xSLG vs 4-Seam'] || vsp['xSLG vs 4S'] || 0) : 0);
+  
+  const brkPct = cleanNumber(p['Breaking%'] || p['Breaking %'] || p['Brk%'] || 0);
+  const vsBRKXsLG = cleanNumber(vsp ? (vsp['xSLG vs Breaking'] || vsp['xSLG vs Brk'] || 0) : 0);
+  
+  const offPct = cleanNumber(p['Offspeed%'] || p['Offspeed %'] || p['Off%'] || 0);
+  const vsOFFXsLG = cleanNumber(vsp ? (vsp['xSLG vs Offspeed'] || vsp['xSLG vs Off'] || 0) : 0);
+  
+  const pitcherFBThrow = cleanNumber(p['Pitcher FB%'] || 0);
+  const pitcherBrkThrow = cleanNumber(p['Pitcher Brk%'] || 0);
+  const pitcherOffThrow = cleanNumber(p['Pitcher Off%'] || 0);
+  
+  if (vsFBXsLG > 0 && pitcherFBThrow > 0) {
+    const fbAdvantage = vsFBXsLG > 0.400 ? 0.04 : (vsFBXsLG > 0.350 ? 0.02 : -0.02);
+    pitchModifier += (fbAdvantage * pitcherFBThrow);
+  }
+  
+  if (vsBRKXsLG > 0 && pitcherBrkThrow > 0) {
+    const brkAdvantage = vsBRKXsLG > 0.400 ? 0.04 : (vsBRKXsLG > 0.350 ? 0.02 : -0.03);
+    pitchModifier += (brkAdvantage * pitcherBrkThrow);
+  }
+  
+  if (vsOFFXsLG > 0 && pitcherOffThrow > 0) {
+    const offAdvantage = vsOFFXsLG > 0.400 ? 0.04 : (vsOFFXsLG > 0.350 ? 0.02 : -0.03);
+    pitchModifier += (offAdvantage * pitcherOffThrow);
+  }
+  
+  pitchModifier = Math.max(0.85, Math.min(1.15, pitchModifier));
+  
+  // ===== COMPONENT 6: WEATHER (5% weight) =====
+  let weatherMod = 1.0;
+  if (weatherObj && !weatherObj.isDome) {
+    const temp = weatherObj.temp || 70;
+    const tempBonus = (temp > 75) ? ((temp - 75) * 0.01) : ((temp < 65) ? ((65 - temp) * -0.01) : 0);
+    
+    const windSpeed = weatherObj.windSpeed || 0;
+    let windBonus = 0;
+    if (windSpeed > 10) {
+      windBonus = Math.min(windSpeed - 10, 15) * 0.015;
+    } else if (windSpeed > 5) {
+      windBonus = ((windSpeed - 5) / 5) * 0.03;
+    } else if (windSpeed > 0) {
+      windBonus = -0.01;
+    }
+    
+    weatherMod = 1.0 + tempBonus + windBonus;
+  }
+  
+  // ===== COMPONENT 7: PARK FACTOR (5% weight) =====
+  const parkFactor = cleanNumber(p['Park Factor'] || p['pf'] || p['PF'] || 100) / 100;
+  
+  // ===== COMPOSITE BBI SCORE WITH NEW WEIGHTINGS =====
+  let finalScore = (
+    (qualityModifier * 0.25) +
+    (powerModifier * 0.20) +
+    (streakModifier * 0.15) +
+    (pvf * 0.20) +
+    (pitchModifier * 0.10) +
+    (weatherMod * 0.05) +
+    (parkFactor * 0.05)
+  );
+
+  finalScore = finalScore * scalePower * scaleMatchup * scaleStreak * scaleEnv;
+  finalScore = Math.min(100, finalScore * 25);
+  
+  // ===== APPLY CREDIBILITY MULTIPLIER =====
+  finalScore = finalScore * credibilityMultiplier;
+  
+  p.calculatedPVF = pvf;
+  p.calculatedQualityModifier = qualityModifier;
+  p.calculatedPowerModifier = powerModifier;
+  p.calculatedStreakModifier = streakModifier;
+  p.calculatedPitchModifier = pitchModifier;
+  p.calculatedCredibility = credibilityMultiplier;
+  
+  return Math.max(0, finalScore);
+}
+
+function recalculateAllBBIScores() {
+  playerData.forEach(p => { p.calculatedBBI = calculateBBI(p, weatherSettings[p.gameId] || null); });
+  applyFiltersAndRender();
+}
+
+function getTeamsPlayingToday() {
+  let teams = new Set();
+  playerData.forEach(p => { if(p.Team) teams.add(p.Team); });
+  return Array.from(teams).sort();
+}
+
+function applyFiltersAndRender() {
+  const f1 = document.getElementById('teamFilter1').value;
+  const f2 = document.getElementById('teamFilter2').value;
+  const f3 = document.getElementById('teamFilter3').value;
+  const searchVal = document.getElementById('searchFilter').value.toLowerCase().trim();
+  const showRemoved = document.getElementById('showRemovedCheck').checked;
+  
+  let filtered = playerData.filter(p => {
+    if (!showRemoved && p.isRemoved) return false;
+    if (showRemoved && !p.isRemoved) return false;
+    if (selectedQuickTeamFilter !== 'ALL' && p.Team !== selectedQuickTeamFilter) return false;
+    if (f1 !== 'ALL' || f2 !== 'ALL' || f3 !== 'ALL') {
+      let matchAnyDrop = false;
+      if (f1 !== 'ALL' && p.Team === f1) matchAnyDrop = true;
+      if (f2 !== 'ALL' && p.Team === f2) matchAnyDrop = true;
+      if (f3 !== 'ALL' && p.Team === f3) matchAnyDrop = true;
+      if (!matchAnyDrop) return false;
+    }
+    if (searchVal && !p.Name.toLowerCase().includes(searchVal)) return false;
+    return true;
+  });
+  
+  filtered.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+  renderMainTableBoard(filtered);
+  renderTopThreePerTeamTable();
+  renderTopTwelveSpotlightWidget();
+}
+
+function renderMainTableBoard(data) {
+  const tbody = document.getElementById('tableBody');
+  if (data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = '';
+  
+  const globalSlateSorted = [...playerData].filter(p => !p.isRemoved);
+  globalSlateSorted.sort((a, b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV']));
+  const jackpotTop4Names = globalSlateSorted.slice(0, 4).map(p => p.Name);
+
+  data.forEach((p, idx) => {
+    const tr = document.createElement('tr');
+    let climateString = 'Closed Dome 🏟️';
+    let w = weatherSettings[p.gameId];
+    if (w && !w.isDome) climateString = `${w.temp}°F // Wind ${w.windSpeed} MPH ${w.windDir.toUpperCase()}`;
+    
+    const bBarrel = cleanNumber(p['Barrel %']) * 100;
+    const bHardHit = cleanNumber(p['Hard Hit %']) * 100;
+    const ev = cleanNumber(p['Avg EV'] || p['EV']);
+    const isoVal = cleanNumber(p['ISO']);
+    const pa = cleanNumber(p['PA'] || 0);
+    const totalHR = cleanNumber(p['Total HR'] || 0);
+
+    const isoPlusVal = cleanNumber(
+      p['ISO+'] || p['ISO Plus'] || p['ISO_PLUS'] || p['ISOPLUS'] || 100
+    );
+    const pHR9 = cleanNumber(p['Pitcher HR/9'] || p['P HR/9']);
+    const pullRate = cleanNumber(p['Pulled Air %'] || p['Pull %'] || p['Pull%'] || p['PullRate'] || 0.0) * 100;
+    const flyBallRate = cleanNumber(p['Fly Ball Rate'] || p['FB%'] || p['Fly Ball %']) * 100;
+    
+    let badgeHtml = '';
+    if (bBarrel >= 14.5) badgeHtml += `<span class="metric-badge badge-barrel">🚀 BARREL MACHINE</span>`;
+    if (isoVal >= 0.240) badgeHtml += `<span class="metric-badge badge-power">💪 PURE POWER</span>`;
+
+    const pvf = p.calculatedPVF || 1.0;
+    if (pvf > 1.35) badgeHtml += `<span class="metric-badge badge-pvf">⚡ PVF MAX</span>`;
+    else if (pvf > 1.20) badgeHtml += `<span class="metric-badge badge-pvf">🔥 PVF HIGH</span>`;
+
+    if (flyBallRate >= 40 && pullRate >= 40) badgeHtml += `<span class="metric-badge badge-angle">📐 DINGER ANGLE</span>`;
+    if (pHR9 >= 1.6) badgeHtml += `<span class="metric-badge badge-gopher">⚠️ GOPHER PITCHER</span>`;
+    if (jackpotTop4Names.includes(p.Name)) badgeHtml += `<span class="metric-badge badge-jackpot">🎯 JACKPOT TOP 4</span>`;
+
+    const bvp = vsPitcherData[p.Name];
+    if (bvp && cleanNumber(bvp['HR'] || bvp['Homeruns']) >= 1) badgeHtml += `<span class="metric-badge badge-bvp">⚔️ ${cleanNumber(bvp['HR'] || bvp['Homeruns'])} HR vs P</span>`;
+
+    // Credibility badge
+    const credibility = p.calculatedCredibility || 1.0;
+    if (credibility < 1.0) {
+      const credPercent = (credibility * 100).toFixed(0);
+      badgeHtml += `<span class="metric-badge badge-lowvolume">📊 ${credPercent}% CRED</span>`;
+    }
+
+    const pFactor = cleanNumber(p.pf) || 100;
+    let pfBadge = `<span class="pf-badge pf-neutral">PF ${pFactor}</span>`;
+    if (pFactor >= 106) pfBadge = `<span class="pf-badge pf-green">PF ${pFactor}✓</span>`;
+    else if (pFactor <= 94) pfBadge = `<span class="pf-badge pf-red">PF ${pFactor}✗</span>`;
+    
+    const logoUrl = teamLogos[p.Team] || '';
+    const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
+    let safeName = p.Name.replace(/'/g, "\\'");
+    let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
+    
+    tr.innerHTML = `
+      <td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td>
+      <td style="text-align:left; padding-left:20px;" class="interactive-cell">
+        <span class="player-name-hover">${p.Name}</span> ${pfBadge}
+        <div style="margin-top:4px;">${badgeHtml}</div>
+        <div class="tooltip-box">
+          <b>⚙️ VOLUME CHECK:</b>
+          <div class="stat-row">
+            <span class="stat-label">PA</span>
+            <span class="stat-value">${pa.toFixed(0)}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Total HR</span>
+            <span class="stat-value">${totalHR.toFixed(0)}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Credibility</span>
+            <span class="stat-value">${(credibility * 100).toFixed(0)}%</span>
+          </div>
+          
+          <b>⚙️ QUALITY SCORE:</b>
+          <div class="stat-row">
+            <span class="stat-label">Quality Mod</span>
+            <span class="stat-value">${(p.calculatedQualityModifier || 1).toFixed(2)}x</span>
+          </div>
+          
+          <b>📊 BATTED BALL:</b>
+          <div class="stat-row">
+            <span class="stat-label">Barrel %</span>
+            <span class="stat-value">${bBarrel.toFixed(1)}%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Hard Hit %</span>
+            <span class="stat-value">${bHardHit.toFixed(1)}%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Avg EV</span>
+            <span class="stat-value">${ev.toFixed(1)} mph</span>
+          </div>
+          
+          <b>💪 POWER PROFILE:</b>
+          <div class="stat-row">
+            <span class="stat-label">Power Mod</span>
+            <span class="stat-value">${(p.calculatedPowerModifier || 1).toFixed(2)}x</span>
+          </div>
+          
+          <b>🔥 HOT STREAK:</b>
+          <div class="stat-row">
+            <span class="stat-label">Streak Mod</span>
+            <span class="stat-value">${(p.calculatedStreakModifier || 1).toFixed(2)}x</span>
+          </div>
+          
+          <b>⚡ PITCH MATCHUP:</b>
+          <div class="stat-row">
+            <span class="stat-label">Pitch Mod</span>
+            <span class="stat-value">${(p.calculatedPitchModifier || 1).toFixed(2)}x</span>
+          </div>
+        </div>
+      </td>
+      <td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td>
+      <td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td>
+      <td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}</td>
+      <td><span class="index-score">${p.calculatedBBI.toFixed(1)}</span></td>
+      <td>${actionBtn}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleBenchPlayer(playerName, shouldRemove) {
+  let matched = playerData.find(p => p.Name === playerName);
+  if (matched) { matched.isRemoved = shouldRemove; applyFiltersAndRender(); }
+}
+
+function renderTopThreePerTeamTable() {
+  const tbody = document.getElementById('topThreeTableBody');
+  if(!tbody) return;
+  const todayTeams = getTeamsPlayingToday();
+  if (todayTeams.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--text-muted); padding:20px;">Data structures preparing...</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = '';
+  
+  todayTeams.forEach(team => {
+    if (team === 'OPP') return;
+    let pool = playerData.filter(p => p.Team === team && !p.isRemoved);
+    pool.sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+    
+    let slot1 = pool[0] ? `<b>${pool[0].Name}</b> <span style="font-family:monospace; color:var(--accent);">(${pool[0].calculatedBBI.toFixed(1)})</span>` : `<span style="color:var(--text-muted);">-</span>`;
+    let slot2 = pool[1] ? `<b>${pool[1].Name}</b> <span style="font-family:monospace; color:var(--stadium-lights);">(${pool[1].calculatedBBI.toFixed(1)})</span>` : `<span style="color:var(--text-muted);">-</span>`;
+    let slot3 = pool[2] ? `<b>${pool[2].Name}</b> <span style="font-family:monospace; color:var(--text-muted);">(${pool[2].calculatedBBI.toFixed(1)})</span>` : `<span style="color:var(--text-muted);">-</span>`;
+    
+    const tr = document.createElement('tr');
+    const logoUrl = teamLogos[team] || '';
+    const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
+    
+    tr.innerHTML = `
+      <td style="font-weight:800; color:#fff; text-align:left;">${logoImg}${team}</td>
+      <td style="text-align:left;">${slot1}</td>
+      <td style="text-align:left;">${slot2}</td>
+      <td style="text-align:left;">${slot3}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderTodayTeamsFilter(teams) {
+  const list = document.getElementById('todayTeamsList');
+  if(!list) return;
+  if(teams.length === 0) {
+    list.innerHTML = `<div class="today-team-empty">Upload today's workbook to load every team playing today.</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  
+  const makeButton = (team, label, countLabel) => {
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = 'today-team-button';
+    if(selectedQuickTeamFilter === team) button.classList.add('active-team-filter');
+    const logoUrl = teamLogos[team] || '';
+    const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
+    
+    button.innerHTML = `<span class="today-team-name">${logoImg}${label}</span><span class="today-team-count">${countLabel}</span>`;
+    button.onclick = () => {
+      selectedQuickTeamFilter = team;
+      list.querySelectorAll('.today-team-button').forEach(btn => btn.classList.remove('active-team-filter'));
+      button.classList.add('active-team-filter');
+      applyFiltersAndRender();
+    };
+    return button;
+  };
+  
+  list.appendChild(makeButton('ALL', 'ALL TEAMS COMBINED', playerData.filter(p => !p.isRemoved).length));
+  teams.forEach(t => { if (t !== 'OPP') list.appendChild(makeButton(t, t, playerData.filter(p => p.Team === t && !p.isRemoved).length)); });
+}
+
+function generateParlay() {
+  const t1 = document.getElementById('parlayTeam1').value;
+  const t2 = document.getElementById('parlayTeam2').value;
+  const t3 = document.getElementById('parlayTeam3').value;
+  let targetTeams = [t1, t2, t3].filter(x => x !== "");
+  if (targetTeams.length === 0) {
+    document.getElementById('parlayResults').innerHTML = "Please configure at least one active team selector leg.";
+    return;
+  }
+  
+  let finalSelections = [];
+  targetTeams.forEach(team => {
+    let pool = playerData.filter(p => p.Team === team && !p.isRemoved);
+    pool.sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+    if (pool[0]) finalSelections.push(pool[0]);
+  });
+  if (finalSelections.length === 0) {
+    document.getElementById('parlayResults').innerHTML = "No active players found for the selected team paths.";
+    return;
+  }
+  
+  let html = `<div style="font-weight:800; color:#fff; margin-bottom:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--stadium-lights);">Constructed Slip Matrix:</div>`;
+  finalSelections.forEach((p, index) => {
+    html += `<div style="margin-bottom:6px; color:#f1f5f9; font-size:13px;">
+      Leg ${index+1}: <b style="color:var(--accent);">${p.Name}</b> (${p.Team}) vs ${p['Opp Pitcher'] || 'Pitcher'} 
+      <span style="font-family:monospace; color:var(--text-muted);">[BBI ${p.calculatedBBI.toFixed(1)}]</span>
+    </div>`;
+  });
+  document.getElementById('parlayResults').innerHTML = html;
+}
+
+function generateOptimalSlip(mode) {
+  let activePool = playerData.filter(p => !p.isRemoved);
+  if(activePool.length === 0) {
+    document.getElementById('optimalResults').innerHTML = "Please upload standard workbook metrics before triggering optimization passes.";
+    return;
+  }
+  
+  activePool.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+  let outputHtml = "";
+
+  if(mode === 'pack2' || mode === 'pack3') {
+    let targetSize = mode === 'pack2' ? 2 : 3;
+    let selected = [];
+    let usedGames = new Set();
+    
+    for(let i = 0; i < activePool.length; i++) {
+      let candidate = activePool[i];
+      if(!usedGames.has(candidate.gameId)) {
+        selected.push(candidate);
+        usedGames.add(candidate.gameId);
+      }
+      if(selected.length === targetSize) break;
+    }
+    
+    outputHtml = `<div style="font-weight:800; color:var(--accent); margin-bottom:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase;">AUTO-GENERATED ${targetSize}-PACK:</div>`;
+    selected.forEach((p, idx) => {
+      outputHtml += `<div style="margin-bottom:6px; color:#fff; font-size:12px;">
+        Leg ${idx+1}: <b>${p.Name}</b> (${p.Team}) <span style="color:var(--stadium-lights);">vs ${p['Opp Pitcher'] || 'Pitcher'}</span> 
+        <span style="font-family:monospace; color:var(--text-muted);">[BBI ${p.calculatedBBI.toFixed(1)}]</span>
+      </div>`;
+    });
+  } 
+  else if(mode === 'stack') {
+    let teams = getTeamsPlayingToday().filter(t => t !== 'OPP');
+    let bestTeam = null;
+    let bestSum = -1;
+    let bestStackPlayers = [];
+    
+    teams.forEach(t => {
+      let tPool = activePool.filter(p => p.Team === t);
+      tPool.sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+      if(tPool.length >= 3) {
+        let currentSum = tPool[0].calculatedBBI + tPool[1].calculatedBBI + tPool[2].calculatedBBI;
+        if(currentSum > bestSum) {
+          bestSum = currentSum;
+          bestTeam = t;
+          bestStackPlayers = [tPool[0], tPool[1], tPool[2]];
+        }
+      }
+    });
+    
+    if(!bestTeam || bestStackPlayers.length < 3) {
+      document.getElementById('optimalResults').innerHTML = "Insufficient team depth variance discovered to isolate a 3-Batter Same Game Stack profile.";
+      return;
+    }
+    
+    outputHtml = `<div style="font-weight:800; color:#ef4444; margin-bottom:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase;">CORRELATED TEAM STACK:</div>`;
+    outputHtml += `<div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">vs ${bestStackPlayers[0]['Opp Pitcher'] || 'Starter'}</div>`;
+    bestStackPlayers.forEach((p, idx) => {
+      outputHtml += `<div style="margin-bottom:4px; color:#fff; font-size:12px;">
+        Slot ${idx+1}: <b>${p.Name}</b> <span style="font-family:monospace; color:var(--accent);">(${p.calculatedBBI.toFixed(1)})</span>
+      </div>`;
+    });
+  }
+  
+  document.getElementById('optimalResults').innerHTML = outputHtml;
+}
+
+function renderTopTwelveSpotlightWidget() {
+  const grid = document.getElementById('spotlightCardsGrid');
+  const widgetBox = document.getElementById('spotlightTicker');
+  if(!grid || !widgetBox) return;
+  
+  let candidates = playerData.filter(p => !p.isRemoved);
+  if(candidates.length === 0) { widgetBox.style.display = 'none'; return; }
+  
+  widgetBox.style.display = 'block'; grid.innerHTML = '';
+  candidates.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+  
+  candidates.slice(0, 12).forEach((p, index) => {
+    const card = document.createElement('div'); card.className = 'spotlight-card';
+    const logoUrl = teamLogos[p.Team] || '';
+    const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:28px; height:28px; object-fit:contain; margin-right:10px;">` : '';
+    
+    card.innerHTML = `
+      <div style="display:flex; align-items:center; min-width:0;">
+        <span style="font-family:monospace; font-weight:800; color:var(--stadium-lights); font-size:12px; margin-right:8px; width:20px;">#${index+1}</span>
+        ${logoImg}
+        <div style="min-width:0; overflow:hidden; text-overflow:ellipsis;">
+          <div style="font-weight:800; color:#fff; font-size:12px;">${p.Name}</div>
+          <div style="font-size:10px; color:var(--text-muted); font-weight:600;">vs ${p['Opp Pitcher'] || 'Pitcher'}</div>
+        </div>
+      </div>
+      <div style="font-family:monospace; font-weight:900; color:var(--accent); font-size:15px; margin-left:8px;">${p.calculatedBBI.toFixed(1)}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function loadTeamLogoImages(callback) {
+  let loadedCount = 0; const imageObjects = {}; const teams = Object.keys(teamLogos);
+  teams.forEach(t => {
+    const img = new Image(); img.crossOrigin = "anonymous";
+    img.onload = () => { loadedCount++; if (loadedCount === teams.length) callback(imageObjects); };
+    img.onerror = () => { loadedCount++; if (loadedCount === teams.length) callback(imageObjects); };
+    img.src = teamLogos[t]; imageObjects[t] = img;
+  });
+}
+
+function generateDailyDingerGraphic() {
+  loadTeamLogoImages((loadedLogos) => {
+    const canvas = document.getElementById('graphicCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    ctx.fillStyle = '#060c16'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let gradient = ctx.createRadialGradient(720, 0, 100, 720, 0, 1300);
+    gradient.addColorStop(0, '#0a1d37'); gradient.addColorStop(0.5, '#060c16'); gradient.addColorStop(1, '#03060b');
+    ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'rgba(0, 255, 157, 0.02)'; ctx.font = 'black 180px Impact'; ctx.textAlign = 'center';
+    ctx.fillText("BBI MODELS", 720, 750);
+    
+    ctx.strokeStyle = '#172a46'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+    ctx.fillStyle = '#00ff9d'; ctx.fillRect(40, 40, canvas.width - 80, 6);
+    
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 38px Arial'; ctx.textAlign = 'center';
+    ctx.fillText("THE DAILY RUN LINE'S HOMERUN INDEX", 720, 95);
+    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 15px Courier New';
+    ctx.fillText("CONTINUOUS MULTIPLIER MODEL // PREMIUM ANALYTICS", 720, 130);
+    
+    let items = playerData.filter(p => !p.isRemoved);
+    items.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+    items = items.slice(0, 50);
+    
+    let startY = 200; let rowHeight = 46;
+    
+    for (let col = 0; col < 2; col++) {
+      let colOffsetX = col === 0 ? 40 : 740;
+      ctx.fillStyle = 'rgba(9, 18, 34, 0.9)'; ctx.fillRect(colOffsetX, startY - 32, 660, 26);
+      ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'left';
+      ctx.fillText("RNK   PLAYER NAME", colOffsetX + 15, startY - 14);
+      ctx.textAlign = 'center'; ctx.fillText("OPP PITCHER", colOffsetX + 450, startY - 14);
+      ctx.fillText("INDEX", colOffsetX + 610, startY - 14);
+    }
+    
+    items.forEach((p, idx) => {
+      let col = idx >= 25 ? 1 : 0; let subIdx = idx % 25;
+      let colOffsetX = col === 0 ? 40 : 740; let currentY = startY + (subIdx * rowHeight);
+      
+      ctx.fillStyle = 'rgba(16, 28, 48, 0.5)'; ctx.fillRect(colOffsetX, currentY - 18, 660, 38);
+      ctx.strokeStyle = '#1e3454'; ctx.lineWidth = 1; ctx.strokeRect(colOffsetX, currentY - 18, 660, 38);
+      
+      ctx.fillStyle = teamColors[p.Team] || '#172a46'; ctx.fillRect(colOffsetX, currentY - 18, 6, 38);
+      
+      ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 13px Courier New'; ctx.textAlign = 'left';
+      ctx.fillText(String(idx + 1).padStart(2, '0'), colOffsetX + 15, currentY + 6);
+      
+      const logoImgObj = loadedLogos[p.Team];
+      if (logoImgObj) {
+        ctx.drawImage(logoImgObj, colOffsetX + 45, currentY - 12, 24, 24);
+      }
+      
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px Arial';
+      ctx.fillText(p.Name.substring(0, 18), colOffsetX + 82, currentY + 5);
+      
+      ctx.fillStyle = '#94a3b8'; ctx.font = '13px Arial'; ctx.textAlign = 'center';
+      let pName = p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter';
+      ctx.fillText(pName.substring(0, 16), colOffsetX + 450, currentY + 5);
+      
+      ctx.fillStyle = 'rgba(0, 255, 157, 0.05)'; ctx.fillRect(colOffsetX + 570, currentY - 13, 75, 28);
+      ctx.strokeStyle = 'rgba(0, 255, 157, 0.25)'; ctx.strokeRect(colOffsetX + 570, currentY - 13, 75, 28);
+      
+      ctx.fillStyle = '#00ff9d'; ctx.font = 'bold 16px Courier New'; ctx.textAlign = 'center';
+      ctx.fillText((p.calculatedBBI || 0).toFixed(1), colOffsetX + 607, currentY + 6);
+    });
+    
+    ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'center';
+    ctx.fillText("CONTINUOUS MULTIPLIER SYSTEM ACTIVE // THE DAILY RUN LINE ANALYTICS", 720, canvas.height - 35);
+    
+    const dataUrl = canvas.toDataURL('image/png'); const win = window.open();
+    win.document.write(`<iframe src="${dataUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+  });
+}
+
+function generateTeamMatrixGraphic() {
+  loadTeamLogoImages((loadedLogos) => {
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    ctx.fillStyle = '#060c16'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let gradient = ctx.createRadialGradient(600, 0, 50, 600, 0, 1400);
+    gradient.addColorStop(0, '#0d223d'); gradient.addColorStop(0.6, '#060c16'); gradient.addColorStop(1, '#03050a');
+    ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.strokeStyle = '#172a46'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+    ctx.fillStyle = '#38bdf8'; ctx.fillRect(40, 40, canvas.width - 80, 6);
+    
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 32px Arial'; ctx.textAlign = 'center';
+    ctx.fillText("DRL HR INDEX // TEAM MATRIX ARRAY", 600, 95);
+    ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 13px Courier New';
+    ctx.fillText("CONTINUOUS MATCHUP LAYER // CONFIGURATION SCHEDULER", 600, 125);
+    
+    const todayTeams = getTeamsPlayingToday().filter(t => t !== 'OPP');
+    let startY = 190; let rowHeight = 62;
+    
+    ctx.fillStyle = 'rgba(9, 18, 34, 0.9)'; ctx.fillRect(40, startY - 32, canvas.width - 80, 26);
+    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'left';
+    ctx.fillText("TEAM LINEUP", 65, startY - 15);
+    ctx.fillText("TOP 1 ANCHOR", 285, startY - 15);
+    ctx.fillText("TOP 2 FOLLOW", 595, startY - 15);
+    ctx.fillText("TOP 3 VARIANT", 905, startY - 15);
+    
+    todayTeams.forEach((team, idx) => {
+      let pool = playerData.filter(p => p.Team === team && !p.isRemoved);
+      pool.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+      
+      let currentY = startY + (idx * rowHeight);
+      
+      ctx.fillStyle = 'rgba(16, 28, 48, 0.45)'; ctx.fillRect(40, currentY - 22, canvas.width - 80, 52);
+      ctx.strokeStyle = '#1e3454'; ctx.lineWidth = 1; ctx.strokeRect(40, currentY - 22, canvas.width - 80, 52);
+      ctx.fillStyle = teamColors[team] || '#172a46'; ctx.fillRect(40, currentY - 22, 8, 52);
+      
+      const logoImgObj = loadedLogos[team];
+      if (logoImgObj) {
+        ctx.drawImage(logoImgObj, 60, currentY - 14, 36, 36);
+      }
+      
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 19px Arial'; ctx.textAlign = 'left';
+      ctx.fillText(team, 112, currentY + 10);
+      
+      const drawSlot = (p, xPos, isPrimary) => {
+        if(p) {
+          ctx.fillStyle = isPrimary ? '#00ff9d' : '#e2e8f0';
+          ctx.font = isPrimary ? 'bold 15px Arial' : '15px Arial';
+          ctx.fillText(p.Name, xPos, currentY + 10);
+          
+          let textWidth = ctx.measureText(p.Name).width;
+          ctx.fillStyle = isPrimary ? '#00ff9d' : '#6b7c96';
+          ctx.font = '13px Courier New';
+          ctx.fillText(`(${p.calculatedBBI.toFixed(1)})`, xPos + textWidth + 6, currentY + 10);
+        } else {
+          ctx.fillStyle = '#26354a'; ctx.font = 'italic 14px Arial';
+          ctx.fillText('-', xPos, currentY + 10);
+        }
+      };
+      
+      drawSlot(pool[0], 285, true);
+      drawSlot(pool[1], 595, false);
+      drawSlot(pool[2], 905, false);
+    });
+    
+    const dataUrl = canvas.toDataURL('image/png'); const win = window.open();
+    win.document.write(`<iframe src="${dataUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+  });
+}
+</script>
+
+</body>
+</html>
