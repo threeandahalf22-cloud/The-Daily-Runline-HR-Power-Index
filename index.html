@@ -374,18 +374,6 @@ th {
 tr:hover { 
   background: rgba(30, 41, 59, 0.6);
 }
-.rank-badge {
-  font-family: monospace;
-  font-weight: 700;
-  color: var(--text-muted);
-  font-size: 13px;
-  animation: rankPulse 0.8s ease-in-out;
-}
-@keyframes rankPulse {
-  0% { opacity: 0; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 1; transform: scale(1); }
-}
 .metric-badge {
   display: inline-block;
   font-size: 9px;
@@ -395,17 +383,11 @@ tr:hover {
   margin-left: 4px;
   margin-top: 2px;
   text-transform: uppercase;
-  cursor: help;
-  position: relative;
-  transition: all 0.2s;
-}
-.metric-badge:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 .badge-barrel { background: linear-gradient(135deg, #ff4500 0%, #ff8c00 100%); color: #fff; }
 .badge-power { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
 .badge-pulledair { background: linear-gradient(135deg, #ff00ff 0%, #cc00cc 100%); color: #fff; }
+.badge-pvf { background: linear-gradient(135deg, #ff1493 0%, #ff69b4 100%); color: #fff; }
 .badge-meatball { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 .badge-angle { background: rgba(217, 70, 239, 0.15); color: #f5d0fe; }
 .badge-gopher { background: rgba(220, 38, 38, 0.2); color: #f87171; animation: pulse 2s infinite; }
@@ -414,36 +396,6 @@ tr:hover {
 .badge-pitch-fb { background: linear-gradient(135deg, #ff0055 0%, #990033 100%); color: #fff; }
 .badge-pitch-brk { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; }
 .badge-lowvolume { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
-.badge-hotbat { background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%); color: #fff; animation: hotPulse 0.6s infinite; }
-@keyframes hotPulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(255, 107, 53, 0.4); }
-  50% { box-shadow: 0 0 16px rgba(255, 107, 53, 0.8); }
-}
-.badge-tooltip {
-  display: none;
-  position: absolute;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #0a1626 0%, #091222 100%);
-  border: 2px solid var(--accent);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 10px;
-  color: #e2e8f0;
-  white-space: nowrap;
-  z-index: 1000;
-  font-weight: 600;
-  box-shadow: 0 4px 16px rgba(0, 255, 157, 0.3);
-}
-.metric-badge:hover .badge-tooltip {
-  display: block;
-  animation: tooltipFadeIn 0.2s ease-out;
-}
-@keyframes tooltipFadeIn {
-  0% { opacity: 0; transform: translateX(-50%) translateY(5px); }
-  100% { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
 @keyframes pulse {
   0% { opacity: 0.8; }
   50% { opacity: 1; }
@@ -478,7 +430,7 @@ tr:hover {
   color: #e2e8f0;
   text-align: left;
   white-space: normal;
-  max-width: 420px;
+  max-width: 380px;
   box-shadow: 0 8px 32px rgba(0, 255, 157, 0.2);
   z-index: 999;
   pointer-events: none;
@@ -520,17 +472,6 @@ tr:hover {
   border-radius: 8px;
   display: inline-block;
   min-width: 40px;
-  position: relative;
-}
-.streak-bar {
-  position: absolute;
-  bottom: -8px;
-  left: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #00ff9d 0%, #38bdf8 100%);
-  border-radius: 2px;
-  width: 0%;
-  transition: width 0.3s ease;
 }
 .parlay-grid { display: flex; flex-direction: column; gap: 12px; }
 .btn-accent {
@@ -562,12 +503,6 @@ tr:hover {
   object-fit: contain;
   vertical-align: middle; 
   margin-right: 10px;
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 0 0px rgba(0, 0, 0, 0));
-}
-tr:hover .team-logo-img {
-  filter: drop-shadow(0 0 12px currentColor);
-  transform: scale(1.15);
 }
 .btn-remove {
   background: rgba(239, 68, 68, 0.1);
@@ -625,6 +560,32 @@ tr:hover .team-logo-img {
   background: var(--accent);
   cursor: pointer;
   box-shadow: 0 0 8px var(--accent);
+}
+.toggle-model-group {
+  display: flex;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 14px;
+  gap: 4px;
+}
+.toggle-model-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+.toggle-model-btn.active-mode {
+  background: var(--border);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(0, 255, 157, 0.2);
 }
 .stat-row {
   display: flex;
@@ -868,7 +829,7 @@ function loadCachedData() {
         document.getElementById('topThreeContainer').style.display = 'block';
         recalculateAllBBIScores();
       }
-    } catch(e) { console.error('Cache load error', e); }
+    } catch(e) { console.log('Cache load error'); }
   }
 }
 
@@ -887,123 +848,58 @@ function handleFile(e) {
   const f = files[0];
   const reader = new FileReader();
   reader.onload = function(e) {
-    try {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, {type: 'array'});
-      
-      let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [];
-      teamToGameIdMap = {}; 
-      gameMatchups = []; 
-      weatherSettings = {}; 
-      vsPitcherData = {}; 
-      plDataMap = {}; 
-      lastWeekMap = {}; 
-      bullpenData = {}; 
-      parkFactorMap = {};
-      
-      workbook.SheetNames.forEach(sheetName => {
-        let nameClean = sheetName.toUpperCase().trim();
-        
-        if (nameClean === 'HR' || nameClean === 'HOMERUN') {
-          hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-        }
-        else if (nameClean === 'VSPITCHER' || nameClean === 'BVP') {
-          vpRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-        }
-        else if (nameClean === 'PLDATA' || nameClean === 'PL') {
-          plRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-        }
-        else if (nameClean === 'LASTWEEK') {
-          lwRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-        }
-        else if (nameClean === 'WEATHER') {
-          weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-        }
-        else if (nameClean === 'BULLPEN') {
-          bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-        }
-        else if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') {
-          processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
-        }
-      });
-      
-      if (hrRaw.length === 0) {
-        alert('Error: No HR sheet found. Make sure you have a sheet named "HR", "HomeRun", or similar');
-        return;
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, {type: 'array'});
+    let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [];
+    teamToGameIdMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {};
+    workbook.SheetNames.forEach(sheetName => {
+      let nameClean = sheetName.toUpperCase().trim();
+      if (nameClean === 'HR' || nameClean === 'HOMERUN') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'VSPITCHER' || nameClean === 'BVP') vpRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'PLDATA' || nameClean === 'PL') plRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'LASTWEEK') lwRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'WEATHER') weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'BULLPEN') bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
+    });
+    vpRaw.forEach(x => { if(x.Player || x.Name) vsPitcherData[String(x.Player || x.Name).trim()] = x; });
+    plRaw.forEach(x => { if(x.Player || x.Name) plDataMap[String(x.Player || x.Name).trim()] = x; });
+    lwRaw.forEach(x => { if(x.Player || x.Name) lastWeekMap[String(x.Player || x.Name).trim()] = x; });
+    bullpenRaw.forEach(x => { if(x.Team || x.TeamID) bullpenData[String(x.Team || x.TeamID).trim()] = x; });
+    hrRaw.forEach(p => {
+      let team = String(p.Team || p.TEAM || 'UNK').trim().toUpperCase();
+      let lf = cleanNumber(p.LF || p.lf || 330);
+      let cf = cleanNumber(p.CF || p.cf || 400);
+      let rf = cleanNumber(p.RF || p.rf || 330);
+      if (!parkFactorMap[team]) parkFactorMap[team] = { lf, cf, rf };
+    });
+    playerData = hrRaw.map(p => {
+      let name = String(p.Player || p.Name || 'Unknown Player').trim();
+      let team = String(p.Team || p.TEAM || 'UNK').trim().toUpperCase();
+      return { ...p, Name: name, Team: team, isRemoved: false };
+    }).filter(p => p.Name !== 'Unknown Player');
+    assignFallbackGameIds(playerData);
+    parseWeatherMetadataRows(weatherRaw);
+    gameMatchups.forEach(m => {
+      if (!weatherSettings[m.id]) {
+        let homeTeamCode = m.teamB;
+        let isDomePreset = stadiumCoordinates[homeTeamCode] ? stadiumCoordinates[homeTeamCode].dome : false;
+        weatherSettings[m.id] = { temp: 74, windSpeed: 0, windDir: 'neutral', isDome: isDomePreset };
       }
-      
-      vpRaw.forEach(x => { 
-        if(x.Player || x.Name) {
-          const key = String(x.Player || x.Name).trim();
-          vsPitcherData[key] = x;
-        }
-      });
-      
-      plRaw.forEach(x => { 
-        if(x.Player || x.Name) {
-          const key = String(x.Player || x.Name).trim();
-          plDataMap[key] = x;
-        }
-      });
-      
-      lwRaw.forEach(x => { 
-        if(x.Player || x.Name) {
-          const key = String(x.Player || x.Name).trim();
-          lastWeekMap[key] = x;
-        }
-      });
-      
-      bullpenRaw.forEach(x => { 
-        if(x.Team || x.TeamID) {
-          const key = String(x.Team || x.TeamID).trim();
-          bullpenData[key] = x;
-        }
-      });
-      
-      hrRaw.forEach(p => {
-        let team = String(p.Team || p.TEAM || 'UNK').trim().toUpperCase();
-        let lf = cleanNumber(p.LF || p.lf || 330);
-        let cf = cleanNumber(p.CF || p.cf || 400);
-        let rf = cleanNumber(p.RF || p.rf || 330);
-        if (!parkFactorMap[team]) parkFactorMap[team] = { lf, cf, rf };
-      });
-      
-      playerData = hrRaw.map(p => {
-        let name = String(p.Player || p.Name || 'Unknown').trim();
-        let team = String(p.Team || p.TEAM || 'UNK').trim().toUpperCase();
-        return { ...p, Name: name, Team: team, isRemoved: false };
-      }).filter(p => p.Name !== 'Unknown');
-      
-      assignFallbackGameIds(playerData);
-      parseWeatherMetadataRows(weatherRaw);
-      
-      gameMatchups.forEach(m => {
-        if (!weatherSettings[m.id]) {
-          let homeTeamCode = m.teamB;
-          let isDomePreset = stadiumCoordinates[homeTeamCode] ? stadiumCoordinates[homeTeamCode].dome : false;
-          weatherSettings[m.id] = { temp: 74, windSpeed: 0, windDir: 'neutral', isDome: isDomePreset };
-        }
-      });
-      
-      const uniqueTeams = getTeamsPlayingToday();
-      renderTodayTeamsFilter(uniqueTeams);
-      
-      ['parlayTeam1', 'parlayTeam2', 'parlayTeam3', 'teamFilter1', 'teamFilter2', 'teamFilter3'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) {
-          el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</option>` : `<option value="ALL">All Option</option>`;
-          uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
-        }
-      });
-      
-      document.getElementById('graphicsPanel').style.display = 'block';
-      document.getElementById('topThreeContainer').style.display = 'block';
-      recalculateAllBBIScores();
-      saveCachedData();
-    } catch(err) {
-      console.error('File processing error:', err);
-      alert('Error loading file. Check browser console for details.');
-    }
+    });
+    const uniqueTeams = getTeamsPlayingToday();
+    renderTodayTeamsFilter(uniqueTeams);
+    ['parlayTeam1', 'parlayTeam2', 'parlayTeam3', 'teamFilter1', 'teamFilter2', 'teamFilter3'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) {
+        el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</option>` : `<option value="ALL">All Option</option>`;
+        uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
+      }
+    });
+    document.getElementById('graphicsPanel').style.display = 'block';
+    document.getElementById('topThreeContainer').style.display = 'block';
+    recalculateAllBBIScores();
+    saveCachedData();
   };
   reader.readAsArrayBuffer(f);
 }
@@ -1015,11 +911,8 @@ function processCompareSheetMatchups(rows) {
     let tB = String(row.Team2 || row.TEAM2 || row.Home || row.HOME || '').trim().toUpperCase();
     if(tA && tB) {
       let gameId = `${tA}_vs_${tB}`;
-      teamToGameIdMap[tA] = gameId;
-      teamToGameIdMap[tB] = gameId;
-      if (!gameMatchups.some(m => m.id === gameId)) {
-        gameMatchups.push({ id: gameId, teamA: tA, teamB: tB, homeTeam: tB });
-      }
+      teamToGameIdMap[tA] = gameId; teamToGameIdMap[tB] = gameId;
+      if (!gameMatchups.some(m => m.id === gameId)) gameMatchups.push({ id: gameId, teamA: tA, teamB: tB, homeTeam: tB });
     }
   });
 }
@@ -1032,7 +925,8 @@ function assignFallbackGameIds(data) {
         p.gameId = teamToGameIdMap[p.Team];
       } else {
         let opName = p['Opp Pitcher'] || p['Opp Pitcher Name'] || '';
-        let oppTeam = "OPP";
+        const opposingRecord = data.find(x => (x.Name || x.Player || '').trim() === String(opName).trim());
+        let oppTeam = opposingRecord ? opposingRecord.Team : "OPP";
         let teamsAlpha = [p.Team, oppTeam].sort();
         let fallbackId = `${teamsAlpha[0]}_vs_${teamsAlpha[1]}`;
         p.gameId = fallbackId;
@@ -1041,9 +935,7 @@ function assignFallbackGameIds(data) {
           const isDomePreset = homeStadiumKey ? stadiumCoordinates[homeStadiumKey].dome : false;
           weatherSettings[fallbackId] = { temp: 70, windSpeed: 0, windDir: 'neutral', isDome: isDomePreset };
         }
-        if (!gameMatchups.some(m => m.id === fallbackId)) {
-          gameMatchups.push({ id: fallbackId, teamA: p.Team, teamB: oppTeam, homeTeam: oppTeam });
-        }
+        if (!gameMatchups.some(m => m.id === fallbackId)) gameMatchups.push({ id: fallbackId, teamA: p.Team, teamB: oppTeam, homeTeam: oppTeam });
       }
     }
   });
@@ -1083,10 +975,108 @@ function applyStabilization(actual, leagueAvg, sample, stabilizationPA) {
   return (actual * weight) + (leagueAvg * (1 - weight));
 }
 
+// New: weights per your spec (category and internal stat breakdowns)
+// Category weights sum to 1. Subweights inside each category are normalized internally.
+const SCORE_WEIGHTS = {
+  hitterPowerProfile: 0.30,
+  battedBallProfile: 0.15,
+  pitcherVulnerability: 0.25,
+  pitchMatchup: 0.10,
+  recentForm: 0.08,
+  weather: 0.05,
+  park: 0.04,
+  bvp: 0.03
+};
+
+const SUBWEIGHTS = {
+  hitterPowerProfile: {
+    barrelPct: 8,
+    isoVsHand: 7,
+    maxEV: 5,
+    avgEV: 3,
+    hardHitPct: 3,
+    blastContactPct: 2,
+    batSpeed: 2
+  },
+  battedBallProfile: {
+    pulledAirPct: 6,
+    flyBallPct: 3,
+    sweetSpotPct: 2,
+    idealAttackAnglePct: 2,
+    launchAnglePct: 2
+  },
+  pitcherVulnerability: {
+    pitcherHR9: 6,
+    pitcherBarrelAllowed: 5,
+    pitcherHardHitAllowed: 4,
+    pitcherFBpct: 3,
+    pitcherHRFBpct: 3,
+    pitcherEVallowed: 2,
+    pitcherPullAllowed: 2
+  },
+  pitchMatchup: {
+    fastballRV: 3,
+    breakingRV: 3,
+    offspeedRV: 2,
+    stuffPlus: 1,
+    pitchingPlus: 1
+  },
+  recentForm: {
+    lastWeekBarrelPct: 2,
+    lastWeekEV: 2,
+    lastWeekxSLG: 2,
+    lastWeekHRs: 1,
+    lastWeekHardHit: 1
+  },
+  weather: {
+    wind: 3,
+    temp: 2
+  },
+  park: {
+    hrParkFactor: 2,
+    fenceDistance: 2
+  },
+  bvp: {
+    xslg: 1,
+    ev: 1,
+    hrHistory: 1
+  }
+};
+
+function normalizeSubweights(sub) {
+  const total = Object.values(sub).reduce((s, v) => s + (Number(v) || 0), 0);
+  const out = {};
+  if (total <= 0) {
+    Object.keys(sub).forEach(k => out[k] = 0);
+    return out;
+  }
+  Object.keys(sub).forEach(k => out[k] = (Number(sub[k]) || 0) / total);
+  return out;
+}
+
+const N_SUB = {};
+Object.keys(SUBWEIGHTS).forEach(cat => { N_SUB[cat] = normalizeSubweights(SUBWEIGHTS[cat]); });
+
+function ratioToModifier(value, leagueAvg, opts = {}) {
+  let ratio = leagueAvg > 0 ? (value / leagueAvg) : (value || 1);
+  const minR = opts.min || 0.5;
+  const maxR = opts.max || 2.0;
+  ratio = Math.max(minR, Math.min(maxR, ratio));
+  const sensitivity = opts.sensitivity || 0.9;
+  return 1 + ((ratio - 1) * sensitivity);
+}
+
+function safeGet(obj, ...keys) {
+  for (const k of keys) {
+    if (obj && (obj[k] !== undefined && obj[k] !== null)) return obj[k];
+  }
+  return undefined;
+}
+
 function calculateBBI(p, weatherObj) {
   if (!p) return 0.0;
-  const baseBarrel = cleanNumber(p['Barrel %']);
-  const baseHardHit = cleanNumber(p['Hard Hit %']);
+  const baseBarrel = cleanNumber(safeGet(p, 'Barrel %', 'Barrel%'));
+  const baseHardHit = cleanNumber(safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%'));
   if (baseBarrel < 0.01 && baseHardHit < 0.20) return 0.0;
 
   const scaleHRFB = Number(document.getElementById('weightHRFB').value) / 100;
@@ -1095,89 +1085,155 @@ function calculateBBI(p, weatherObj) {
   const scalePark = Number(document.getElementById('weightPark').value) / 100;
   const scalePulled = Number(document.getElementById('weightPulled').value) / 100;
 
-  const pa = cleanNumber(p['PA'] || 0);
-  const totalHR = cleanNumber(p['Total HR'] || 0);
-  const hrFB = cleanNumber(p['HR/FB %'] || 0);
-  
+  const pa = cleanNumber(safeGet(p, 'PA', 'pa')) || 0;
+  const totalHR = cleanNumber(safeGet(p, 'Total HR', 'HR', 'Homeruns')) || 0;
+  const hrFB = cleanNumber(safeGet(p, 'HR/FB %', 'HR/FB', 'HRFB')) || 0;
+
   let credibilityMultiplier = 1.0;
   if (pa < 100 && totalHR === 0) credibilityMultiplier = 0.3;
   else if (pa < 150 && totalHR <= 1) credibilityMultiplier = 0.6;
   else if (pa < 200 && hrFB === 0) credibilityMultiplier = 0.8;
   else if (pa >= 200) credibilityMultiplier = 1.0;
 
-  const ev = cleanNumber(p['Avg EV'] || 88);
-  const barrelRate = cleanNumber(p['Barrel %']);
+  const ev = cleanNumber(safeGet(p, 'Avg EV', 'EV')) || 88;
+  const maxEV = cleanNumber(safeGet(p, 'Max EV', 'MaxEV')) || ev;
+  const barrelRate = cleanNumber(baseBarrel);
   if (barrelRate > 0.14 || ev > 92) credibilityMultiplier = Math.min(1.0, credibilityMultiplier + 0.20);
 
-  const hrfbStabilized = applyStabilization(hrFB, 0.082, pa, STABILIZATION.hrfb);
-  const hrfbDelta = hrfbStabilized > 0 ? (hrfbStabilized / 0.082) : 0.5;
-  const hrfbModifier = Math.max(0.3, Math.pow(hrfbDelta, 1.0));
-
-  const pitcherHR9 = cleanNumber(p['Pitcher HR/9'] || LEAGUE_AVERAGES.pitcherHR9);
-  const pitcherHR9Ratio = pitcherHR9 / LEAGUE_AVERAGES.pitcherHR9;
-  const pitcherHR9Modifier = Math.max(0.5, Math.min(1.8, pitcherHR9Ratio));
-
   const barrelRateStabilized = applyStabilization(barrelRate, LEAGUE_AVERAGES.barrelRate, pa, STABILIZATION.barrelRate);
-  const barrelDelta = barrelRateStabilized > 0 ? (barrelRateStabilized / LEAGUE_AVERAGES.barrelRate) : 0.5;
-  const barrelImpact = Math.pow(barrelDelta, 1.35);
-  const hardHitRate = cleanNumber(p['Hard Hit %']);
-  const hardHitDelta = hardHitRate > 0 ? (hardHitRate / LEAGUE_AVERAGES.hardHitRate) : 0.5;
-  const maxEV = cleanNumber(p['Max EV'] || ev);
-  const evDelta = (maxEV - 88) / 88;
-  const qualityScore = (barrelImpact * 0.60) + (hardHitDelta * 0.05) + (Math.max(0.8, 1.0 + (evDelta * 0.20)) * 0.35);
-  const barrelQualityModifier = Math.max(0.4, qualityScore);
+  const iso = cleanNumber(safeGet(p, 'ISO', 'Iso')) || LEAGUE_AVERAGES.iso;
+  const isoStabilized = applyStabilization(iso, LEAGUE_AVERAGES.iso, pa, STABILIZATION.iso);
+  const pulledAir = cleanNumber(safeGet(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %', 'Pull%')) || 0;
+  const pulledAirStabilized = applyStabilization(pulledAir, 0.18, pa, STABILIZATION.pulledAir);
+  const hardHitRate = cleanNumber(safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%'));
+  const flyBallRate = cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')) || 0;
 
-  const hitterHand = getHitterHandedness(p);
-  let parkDimensionMod = 1.0;
-  const homeTeam = p['Opp Team'] || p.Team;
-  const parkDims = parkFactorMap[homeTeam] || { lf: 330, cf: 400, rf: 330 };
-  
-  if (hitterHand === 'R') {
-    const lfDist = parkDims.lf || 330;
-    if (lfDist < 320) parkDimensionMod = 1.12;
-    else if (lfDist < 330) parkDimensionMod = 1.08;
-    else if (lfDist > 340) parkDimensionMod = 0.92;
-  } else if (hitterHand === 'L') {
-    const rfDist = parkDims.rf || 330;
-    if (rfDist < 320) parkDimensionMod = 1.12;
-    else if (rfDist < 330) parkDimensionMod = 1.08;
-    else if (rfDist > 340) parkDimensionMod = 0.92;
+  const pitcherHR9 = cleanNumber(safeGet(p, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9')) || LEAGUE_AVERAGES.pitcherHR9;
+  const pitcherBarrelAllowed = cleanNumber(safeGet(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%')) || LEAGUE_AVERAGES.pitcherBarrelAllowed;
+  const pitcherHardHitAllowed = cleanNumber(safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed')) || LEAGUE_AVERAGES.hardHitRate;
+  const pitcherFB = cleanNumber(safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %')) || LEAGUE_AVERAGES.pitcherFBRate;
+  const pitcherHRFB = cleanNumber(safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB')) || 0;
+  const pitcherEVallowed = cleanNumber(safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV')) || 0;
+  const pitcherPullAllowed = cleanNumber(safeGet(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%')) || 0;
+
+  const vsp = vsPitcherData[p.Name];
+  let vspPA = 0;
+  let vsp_xslg = 0, vsp_ev = 0, vsp_hr = 0;
+  if (vsp) {
+    vspPA = cleanNumber(safeGet(vsp, 'PA', 'PAs', 'AB'));
+    vsp_xslg = cleanNumber(safeGet(vsp, 'xSLG', 'xSLG vs P', 'xSLG vs')) || 0;
+    vsp_ev = cleanNumber(safeGet(vsp, 'EV', 'Avg EV')) || 0;
+    vsp_hr = cleanNumber(safeGet(vsp, 'HR', 'HRs', 'Homeruns')) || 0;
   }
 
-  const pulledAir = cleanNumber(p['Pulled Air %'] || p['Pull Air %'] || p['Air Pull %'] || 0);
-  const pulledAirStabilized = applyStabilization(pulledAir, 0.18, pa, STABILIZATION.pulledAir);
-  
-  let pullModifier = 1.0;
-  if (pulledAirStabilized > 0.30) pullModifier += 0.35;
-  else if (pulledAirStabilized > 0.25) pullModifier += 0.25;
-  else if (pulledAirStabilized > 0.20) pullModifier += 0.20;
-  pullModifier = Math.max(0.85, Math.min(2.5, pullModifier));
+  const pl = plDataMap[p.Name] || {};
+  const plFastball = cleanNumber(safeGet(pl, 'Fastball Run Value Matchup', 'FastballRV', 'Fastball RV', 'FB RV', 'FastballRunValue')) || 0;
+  const plBreaking = cleanNumber(safeGet(pl, 'Breaking Ball Matchup', 'BreakingRV', 'BreakRV')) || 0;
+  const plOffspeed = cleanNumber(safeGet(pl, 'Offspeed Matchup', 'OffspeedRV', 'OffRV')) || 0;
+  const plStuffPlus = cleanNumber(safeGet(pl, 'Stuff+ Adjustment', 'Stuff+', 'StuffPlus')) || 0;
+  const plPitchingPlus = cleanNumber(safeGet(pl, 'Pitching+ Adjustment', 'Pitching+', 'PitchingPlus')) || 0;
 
-  const iso = cleanNumber(p['ISO'] || LEAGUE_AVERAGES.iso);
-  const isoStabilized = applyStabilization(iso, LEAGUE_AVERAGES.iso, pa, STABILIZATION.iso);
-  const isoDelta = isoStabilized > 0 ? (isoStabilized / LEAGUE_AVERAGES.iso) : 0.5;
-  const powerModifier = Math.max(0.3, Math.pow(isoDelta, 1.25));
+  const lw = lastWeekMap[p.Name] || {};
+  const lwBarrel = cleanNumber(safeGet(lw, 'Barrel%', 'Barrel %')) || 0;
+  const lwEV = cleanNumber(safeGet(lw, 'EV', 'Avg EV')) || 0;
+  const lwxSLG = cleanNumber(safeGet(lw, 'xSLG', 'xSLG%')) || 0;
+  const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR')) || 0;
+  const lwHardHit = cleanNumber(safeGet(lw, 'Hard Hit %', 'HardHit%')) || 0;
 
-  const pitcherGB = cleanNumber(p['Pitcher GB%'] || p['Pitcher GB Rate'] || 0.45);
-  const pitcherAir = 1 - pitcherGB;
-  const pitcherPull = cleanNumber(p['Pitcher Pull%'] || p['Pitcher Pull Rate'] || 0.35);
-  const pitcherOppo = cleanNumber(p['Pitcher Oppo%'] || p['Pitcher Oppo Rate'] || 0.25);
-  
-  let pitcherFBModifier = 1.0;
-  if (pitcherAir > 0.50) pitcherFBModifier += 0.12;
-  else if (pitcherAir > 0.45) pitcherFBModifier += 0.08;
-  if (pitcherPull > 0.40) pitcherFBModifier += 0.10;
-  else if (pitcherPull > 0.35) pitcherFBModifier += 0.06;
-  if (pitcherOppo > 0.30) pitcherFBModifier -= 0.05;
-  pitcherFBModifier = Math.max(0.80, Math.min(1.35, pitcherFBModifier));
+  const homeTeam = safeGet(p, 'Opp Team', 'Team', 'TEAM') || p.Team;
+  const parkDims = parkFactorMap[homeTeam] || { lf: 330, cf: 400, rf: 330 };
+  const parkPF = cleanNumber(safeGet(p, 'pf', 'PF', 'ParkFactor')) || (parkDims.pf || 100);
 
-  let weatherMod = 1.0;
+  // 1) Hitter Power Profile
+  const hpSub = N_SUB.hitterPowerProfile;
+  const hp_barrelM = ratioToModifier(barrelRateStabilized, LEAGUE_AVERAGES.barrelRate, { min:0.5, max:2.2, sensitivity:0.95 });
+  const hp_isoM = ratioToModifier(isoStabilized, LEAGUE_AVERAGES.iso, { min:0.5, max:2.0, sensitivity:0.9 });
+  const hp_maxEVM = 1 + Math.max(-0.4, Math.min(1.2, ((maxEV - 88) / 88)));
+  const hp_avgEVM = 1 + Math.max(-0.3, Math.min(0.8, ((ev - 88) / 88)));
+  const hp_hhM = ratioToModifier(hardHitRate, LEAGUE_AVERAGES.hardHitRate, { min:0.6, max:1.8, sensitivity:0.9 });
+  const hp_blastContact = 1 + ((cleanNumber(safeGet(p, 'Blast Contact %', 'BlastContact%')) || 0) / 100) * 0.25;
+  const hp_batSpeed = 1 + ((cleanNumber(safeGet(p, 'Bat Speed', 'BatSpeed')) || 0) / 100) * 0.12;
+  const hitterPowerModifier = (
+    (hp_barrelM * hpSub.barrelPct) +
+    (hp_isoM * hpSub.isoVsHand) +
+    (hp_maxEVM * hpSub.maxEV) +
+    (hp_avgEVM * hpSub.avgEV) +
+    (hp_hhM * hpSub.hardHitPct) +
+    (hp_blastContact * hpSub.blastContactPct) +
+    (hp_batSpeed * hpSub.batSpeed)
+  );
+
+  // 2) Batted Ball Profile
+  const bbSub = N_SUB.battedBallProfile;
+  const bb_pulledM = ratioToModifier(pulledAirStabilized, 0.18, { min:0.6, max:2.2, sensitivity:0.95 });
+  const bb_fbM = ratioToModifier(flyBallRate, LEAGUE_AVERAGES.fbRate, { min:0.6, max:1.8, sensitivity:0.85 });
+  const bb_sweetSpot = 1 + ((cleanNumber(safeGet(p, 'Sweet Spot %', 'Sweetspot %')) || 0) / 100) * 0.6;
+  const bb_attackAngle = 1 + ((cleanNumber(safeGet(p, 'Ideal Attack Angle %', 'Attack Angle', 'AttackAngle')) || 0) / 100) * 0.25;
+  const bb_launchAngle = 1 + (((cleanNumber(safeGet(p, 'Launch Angle', 'LA')) || 10) - 10) / 30) * 0.2;
+  const battedBallModifier = (
+    (bb_pulledM * bbSub.pulledAirPct) +
+    (bb_fbM * bbSub.flyBallPct) +
+    (bb_sweetSpot * bbSub.sweetSpotPct) +
+    (bb_attackAngle * bbSub.idealAttackAnglePct) +
+    (bb_launchAngle * bbSub.launchAnglePct)
+  );
+
+  // 3) Pitcher Vulnerability
+  const pvSub = N_SUB.pitcherVulnerability;
+  const pv_hr9M = ratioToModifier(pitcherHR9, LEAGUE_AVERAGES.pitcherHR9, { min:0.6, max:1.8 });
+  const pv_barrelAllowedM = ratioToModifier(pitcherBarrelAllowed, LEAGUE_AVERAGES.pitcherBarrelAllowed, { min:0.6, max:1.8 });
+  const pv_hhAllowedM = ratioToModifier(pitcherHardHitAllowed, LEAGUE_AVERAGES.hardHitRate, { min:0.6, max:1.8 });
+  const pv_fbM = ratioToModifier(pitcherFB, LEAGUE_AVERAGES.pitcherFBRate, { min:0.7, max:1.6 });
+  const pv_hrfbM = 1 + (pitcherHRFB * 0.5);
+  const pv_evAllowedM = 1 + Math.max(-0.3, Math.min(0.6, (pitcherEVallowed - 88) / 88));
+  const pv_pullAllowedM = 1 + Math.max(-0.25, Math.min(0.5, (pitcherPullAllowed - 0.25)));
+  const pitcherVulnerabilityModifier = (
+    (pv_hr9M * pvSub.pitcherHR9) +
+    (pv_barrelAllowedM * pvSub.pitcherBarrelAllowed) +
+    (pv_hhAllowedM * pvSub.pitcherHardHitAllowed) +
+    (pv_fbM * pvSub.pitcherFBpct) +
+    (pv_hrfbM * pvSub.pitcherHRFBpct) +
+    (pv_evAllowedM * pvSub.pitcherEVallowed) +
+    (pv_pullAllowedM * pvSub.pitcherPullAllowed)
+  );
+
+  // 4) Pitch Matchup
+  const pmSub = N_SUB.pitchMatchup;
+  const pl_fastM = 1 + Math.max(-0.5, Math.min(0.9, plFastball / 10));
+  const pl_brkM = 1 + Math.max(-0.5, Math.min(0.9, plBreaking / 10));
+  const pl_offM = 1 + Math.max(-0.5, Math.min(0.6, plOffspeed / 10));
+  const pl_stuffM = 1 + Math.max(-0.3, Math.min(0.6, plStuffPlus / 10));
+  const pl_pitchPlusM = 1 + Math.max(-0.3, Math.min(0.6, plPitchingPlus / 10));
+  const pitchMatchupModifier = (
+    (pl_fastM * pmSub.fastballRV) +
+    (pl_brkM * pmSub.breakingRV) +
+    (pl_offM * pmSub.offspeedRV) +
+    (pl_stuffM * pmSub.stuffPlus) +
+    (pl_pitchPlusM * pmSub.pitchingPlus)
+  );
+
+  // 5) Recent Form
+  const rfSub = N_SUB.recentForm;
+  const rf_barrelM = ratioToModifier(lwBarrel, LEAGUE_AVERAGES.barrelRate, { min:0.6, max:2.0 });
+  const rf_evM = 1 + Math.max(-0.4, Math.min(0.9, ((lwEV || 0) - 88) / 88));
+  const rf_xslgM = 1 + Math.max(-0.4, Math.min(0.9, (lwxSLG || 0) - 0.3));
+  const rf_hrsM = 1 + Math.max(0, Math.min(0.5, lwHRs * 0.08));
+  const rf_hhM = ratioToModifier(lwHardHit, LEAGUE_AVERAGES.hardHitRate, { min:0.7, max:1.6 });
+  const recentFormModifier = (
+    (rf_barrelM * rfSub.lastWeekBarrelPct) +
+    (rf_evM * rfSub.lastWeekEV) +
+    (rf_xslgM * rfSub.lastWeekxSLG) +
+    (rf_hrsM * rfSub.lastWeekHRs) +
+    (rf_hhM * rfSub.lastWeekHardHit)
+  );
+
+  // 6) Weather
+  let computedWeatherMod = 1.0;
   if (weatherObj && !weatherObj.isDome) {
     const temp = weatherObj.temp || 70;
     const tempBonus = (temp > 75) ? ((temp - 75) * 0.012) : ((temp < 65) ? ((65 - temp) * -0.012) : 0);
     const windSpeed = weatherObj.windSpeed || 0;
     const windDir = String(weatherObj.windDir || 'neutral').toLowerCase();
-    
     const getWindBoost = (speed) => {
       if (speed >= 23) return 0.25;
       if (speed >= 19) return 0.20;
@@ -1187,7 +1243,6 @@ function calculateBBI(p, weatherObj) {
       if (speed >= 5) return 0.03;
       return 0;
     };
-    
     const getWindPenalty = (speed) => {
       if (speed >= 20) return -0.10;
       if (speed >= 16) return -0.08;
@@ -1195,8 +1250,8 @@ function calculateBBI(p, weatherObj) {
       if (speed >= 5) return -0.02;
       return 0;
     };
-    
     let windBonus = 0;
+    const hitterHand = getHitterHandedness(p);
     if (hitterHand === 'R') {
       if (windDir.includes('out') && windDir.includes('lf')) windBonus = getWindBoost(windSpeed);
       else if (windDir.includes('in') && windDir.includes('lf')) windBonus = getWindPenalty(windSpeed);
@@ -1214,79 +1269,60 @@ function calculateBBI(p, weatherObj) {
       else if (windDir.includes('in')) windBonus = getWindPenalty(windSpeed) * 0.75;
       else if (windDir.includes('center') || windDir.includes('cf')) windBonus = getWindBoost(windSpeed) * 0.50;
     }
-    weatherMod = 1.0 + tempBonus + windBonus;
+    computedWeatherMod = 1.0 + tempBonus + windBonus;
   }
 
-  const lastWeekData = lastWeekMap[p.Name];
-  let streakModifier = 1.0;
-  if (lastWeekData) {
-    const recentEV = cleanNumber(lastWeekData['EV'] || 0);
-    const recentBarrelPct = cleanNumber(lastWeekData['Barrel%'] || 0);
-    const recentXSLG = cleanNumber(lastWeekData['xSLG'] || 0);
-    const recentHRs = cleanNumber(lastWeekData['HRs'] || 0);
-    
-    const hrBoost = Math.min(recentHRs * 0.08, 0.24);
-    const recentEVBoost = recentEV > 0 ? Math.max(0, ((recentEV - 88) / 88)) * 0.20 : 0;
-    const recentBarrelBoost = recentBarrelPct > 0 ? ((recentBarrelPct / LEAGUE_AVERAGES.barrelRate) - 1) * 0.15 : 0;
-    const recentXSLGBoost = recentXSLG > 0.400 ? ((recentXSLG - 0.400) / 0.400) * 0.15 : 0;
-    
-    streakModifier = 1.0 + hrBoost + recentEVBoost + recentBarrelBoost + recentXSLGBoost;
+  // 7) Park
+  let parkDimensionMod = 1.0;
+  const hitterHand2 = getHitterHandedness(p);
+  if (hitterHand2 === 'R') {
+    const lfDist = parkDims.lf || 330;
+    if (lfDist < 320) parkDimensionMod = 1.12;
+    else if (lfDist < 330) parkDimensionMod = 1.08;
+    else if (lfDist > 340) parkDimensionMod = 0.92;
+  } else if (hitterHand2 === 'L') {
+    const rfDist = parkDims.rf || 330;
+    if (rfDist < 320) parkDimensionMod = 1.12;
+    else if (rfDist < 330) parkDimensionMod = 1.08;
+    else if (rfDist > 340) parkDimensionMod = 0.92;
   }
-  streakModifier = Math.max(0.7, streakModifier);
+  const parkPFmod = 1 + ((parkPF - 100) / 100) * 0.25;
+  const parkModifier = ((parkDimensionMod * N_SUB.park.fenceDistance) + (parkPFmod * N_SUB.park.hrParkFactor));
 
-  const sweetSpot = cleanNumber(p['Sweet Spot %'] || p['Sweetspot %'] || 0);
-  let sweetSpotModifier = 1.0;
-  if (sweetSpot > 0.12) sweetSpotModifier = 1.10;
-  else if (sweetSpot > 0.10) sweetSpotModifier = 1.06;
-  else if (sweetSpot > 0.08) sweetSpotModifier = 1.02;
-
+  // 8) BvP
   let bvpModifier = 1.0;
-  const vsp = vsPitcherData[p.Name];
-  if (vsp) {
-    const vsPA = cleanNumber(vsp['PA'] || vsp['PAs'] || vsp['AB'] || vsp['PA vs P'] || 0);
-    if (vsPA >= 10) {
-      const vsHR = cleanNumber(vsp['HR'] || vsp['Homeruns'] || vsp['HRs'] || 0);
-      const hrBoost = Math.min(vsHR * 0.04, 0.12);
-      bvpModifier = 1.0 + (hrBoost * 0.5);
-      bvpModifier = Math.max(0.88, Math.min(1.20, bvpModifier));
-      if (vsPA < 20) {
-        const scale = vsPA / 20;
-        bvpModifier = 1.0 + ((bvpModifier - 1.0) * scale);
-      }
-    }
+  if (vsp && vspPA >= 15) {
+    const bvp_xslgM = 1 + Math.max(-0.4, Math.min(0.8, ((vsp_xslg || 0) - 0.3)));
+    const bvp_evM = 1 + Math.max(-0.3, Math.min(0.9, ((vsp_ev || 0) - 88) / 88));
+    const bvp_hrM = 1 + Math.max(0, Math.min(0.6, (vsp_hr || 0) * 0.04));
+    bvpModifier = (bvp_xslgM * N_SUB.bvp.xslg) + (bvp_evM * N_SUB.bvp.ev) + (bvp_hrM * N_SUB.bvp.hrHistory);
   }
 
-  const sweetBvPAvg = (sweetSpotModifier + bvpModifier) / 2;
-
-  p.calculatedBvP = bvpModifier;
-  p.calculatedPitcherFB = pitcherFBModifier;
-  p.calculatedSweetSpot = sweetSpotModifier;
-  p.calculatedStreakModifier = streakModifier;
-
-  let finalScore = (
-    (hrfbModifier * 0.22) +
-    (pitcherHR9Modifier * 0.18) +
-    (barrelQualityModifier * 0.15) +
-    (parkDimensionMod * 0.10) +
-    (pullModifier * 0.12) +
-    (powerModifier * 0.07) +
-    (pitcherFBModifier * 0.08) +
-    (weatherMod * 0.03) +
-    (streakModifier * 0.02) +
-    (sweetBvPAvg * 0.03)
+  const combined = (
+    (hitterPowerModifier * SCORE_WEIGHTS.hitterPowerProfile) +
+    (battedBallModifier * SCORE_WEIGHTS.battedBallProfile) +
+    (pitcherVulnerabilityModifier * SCORE_WEIGHTS.pitcherVulnerability) +
+    (pitchMatchupModifier * SCORE_WEIGHTS.pitchMatchup) +
+    (recentFormModifier * SCORE_WEIGHTS.recentForm) +
+    (computedWeatherMod * SCORE_WEIGHTS.weather) +
+    (parkModifier * SCORE_WEIGHTS.park) +
+    (bvpModifier * SCORE_WEIGHTS.bvp)
   );
 
-  finalScore = finalScore * scaleHRFB * scalePitcherHR9 * scaleBarrel * scalePark * scalePulled;
+  let finalScore = combined * scaleHRFB * scalePitcherHR9 * scaleBarrel * scalePark * scalePulled;
   finalScore = Math.min(100, finalScore * 22);
   finalScore = finalScore * credibilityMultiplier;
-  
-  p.calculatedPVF = pitcherHR9Modifier;
-  p.calculatedQualityModifier = barrelQualityModifier;
-  p.calculatedPullModifier = pullModifier;
-  p.calculatedPowerModifier = powerModifier;
-  p.calculatedPitchModifier = pitcherFBModifier;
+
+  p.calculatedBvP = bvpModifier;
+  p.calculatedPitcherFB = pitcherVulnerabilityModifier;
+  p.calculatedSweetSpot = safeGet(p, 'Sweet Spot %') ? (1 + (cleanNumber(safeGet(p, 'Sweet Spot %')) / 100) * 0.1) : 1.0;
+  p.calculatedPVF = Math.max(0.5, Math.min(2.0, pitcherHR9 / LEAGUE_AVERAGES.pitcherHR9));
+  p.calculatedQualityModifier = hitterPowerModifier;
+  p.calculatedPullModifier = pulledAirStabilized > 0 ? ratioToModifier(pulledAirStabilized, 0.18) : 1.0;
+  p.calculatedPowerModifier = ratioToModifier(isoStabilized, LEAGUE_AVERAGES.iso);
+  p.calculatedPitchModifier = pitcherFB;
   p.calculatedCredibility = credibilityMultiplier;
-  
+
   return Math.max(0, finalScore);
 }
 
@@ -1358,51 +1394,22 @@ function renderMainTableBoard(data) {
     const pullRate = cleanNumber(p['Pulled Air %'] || p['Pull %'] || p['Pull%'] || p['PullRate'] || 0.0) * 100;
     const flyBallRate = cleanNumber(p['Fly Ball Rate'] || p['FB%'] || p['Fly Ball %']) * 100;
     
-    const vsp = vsPitcherData[p.Name];
-    const vsPA = vsp ? cleanNumber(vsp['PA'] || vsp['PAs'] || vsp['AB'] || vsp['PA vs P'] || 0) : 0;
-    const vsHR = vsp ? cleanNumber(vsp['HR'] || vsp['Homeruns'] || vsp['HRs'] || 0) : 0;
-    
-    const ffHRs = vsp ? cleanNumber(vsp['FF_HRs'] || vsp['Fastball_HRs'] || vsp['Fastball HR'] || 0) : 0;
-    const brkHRs = vsp ? cleanNumber(vsp['BRK_HRs'] || vsp['Breaking_HRs'] || vsp['Breaking HR'] || 0) : 0;
-    
-    const lastWeekData = lastWeekMap[p.Name];
-    const recentHRs = lastWeekData ? cleanNumber(lastWeekData['HRs'] || 0) : 0;
-    
     let badgeHtml = '';
-    
-    if (bBarrel >= 14.5) badgeHtml += `<span class="metric-badge badge-barrel">🚀 BARREL<span class="badge-tooltip">Elite contact</span></span>`;
-    if (isoVal >= 0.240) badgeHtml += `<span class="metric-badge badge-power">💪 POWER<span class="badge-tooltip">Exceptional power</span></span>`;
-    if (pulledAir >= 25) badgeHtml += `<span class="metric-badge badge-pulledair">⬅️ PULLED<span class="badge-tooltip">Pull elite</span></span>`;
+    if (bBarrel >= 14.5) badgeHtml += `<span class="metric-badge badge-barrel">🚀 BARREL MACHINE</span>`;
+    if (isoVal >= 0.240) badgeHtml += `<span class="metric-badge badge-power">💪 PURE POWER</span>`;
+    if (pulledAir >= 25) badgeHtml += `<span class="metric-badge badge-pulledair">⬅️ PULLED AIR ELITE</span>`;
 
     const pitcherFBMod = p.calculatedPitcherFB || 1.0;
-    if (pitcherFBMod > 1.25) badgeHtml += `<span class="metric-badge badge-meatball">🍝 MEATBALL<span class="badge-tooltip">Good matchup</span></span>`;
+    if (pitcherFBMod > 1.25) badgeHtml += `<span class="metric-badge badge-meatball">🍝 PITCHER FLY BALL</span>`;
 
-    if (flyBallRate >= 40 && pullRate >= 40) badgeHtml += `<span class="metric-badge badge-angle">📐 ANGLE<span class="badge-tooltip">Ideal combo</span></span>`;
-    if (pHR9 >= 1.6) badgeHtml += `<span class="metric-badge badge-gopher">⚠️ GOPHER<span class="badge-tooltip">High HR pitcher</span></span>`;
-    if (jackpotTop4Names.includes(p.Name)) badgeHtml += `<span class="metric-badge badge-jackpot">🎯 JACKPOT<span class="badge-tooltip">Top 4 EV</span></span>`;
+    if (flyBallRate >= 40 && pullRate >= 40) badgeHtml += `<span class="metric-badge badge-angle">📐 DINGER ANGLE</span>`;
+    if (pHR9 >= 1.6) badgeHtml += `<span class="metric-badge badge-gopher">⚠️ GOPHER PITCHER</span>`;
+    if (jackpotTop4Names.includes(p.Name)) badgeHtml += `<span class="metric-badge badge-jackpot">🎯 JACKPOT TOP 4</span>`;
 
     const credibility = p.calculatedCredibility || 1.0;
     if (credibility < 1.0) {
       const credPercent = (credibility * 100).toFixed(0);
-      badgeHtml += `<span class="metric-badge badge-lowvolume">📊 ${credPercent}%<span class="badge-tooltip">Sample cred</span></span>`;
-    }
-    
-    // BVP Badge - HRs vs this specific pitcher
-    if (vsPA >= 10 && vsHR >= 1) {
-      badgeHtml += `<span class="metric-badge badge-bvp">🎯 ${vsHR}HR<span class="badge-tooltip">${vsHR} HRs vs pitcher (${vsPA} PA)</span></span>`;
-    }
-    
-    // Pitch type badges
-    if (ffHRs >= 2) {
-      badgeHtml += `<span class="metric-badge badge-pitch-fb">⚡ FB<span class="badge-tooltip">${ffHRs} HRs off FB</span></span>`;
-    }
-    if (brkHRs >= 2) {
-      badgeHtml += `<span class="metric-badge badge-pitch-brk">🌀 BRK<span class="badge-tooltip">${brkHRs} HRs off BRK</span></span>`;
-    }
-    
-    // Hot bat badge - 2+ HRs last week
-    if (recentHRs >= 2) {
-      badgeHtml += `<span class="metric-badge badge-hotbat">🔥 HOT ${recentHRs}HR<span class="badge-tooltip">${recentHRs} HRs last week</span></span>`;
+      badgeHtml += `<span class="metric-badge badge-lowvolume">📊 ${credPercent}% CRED</span>`;
     }
 
     const pFactor = cleanNumber(p.pf) || 100;
@@ -1415,10 +1422,8 @@ function renderMainTableBoard(data) {
     let safeName = p.Name.replace(/'/g, "\\'");
     let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
     
-    const streakValue = Math.min(100, Math.max(0, (((p.calculatedStreakModifier || 1.0) - 1) * 100)));
-    
     tr.innerHTML = `
-      <td class="rank-badge">#${idx+1}</td>
+      <td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td>
       <td style="text-align:left; padding-left:20px;" class="interactive-cell">
         <span>${p.Name}</span> ${pfBadge}
         <div style="margin-top:4px;">${badgeHtml}</div>
@@ -1434,25 +1439,17 @@ function renderMainTableBoard(data) {
           <b>⬅️ PULLED AIR:</b>
           <div class="stat-row"><span class="stat-label">Pull Air Mod</span><span class="stat-value">${(p.calculatedPullModifier || 1).toFixed(2)}x</span></div>
           <b>💪 POWER PROFILE:</b>
-          <div class="stat-row"><span class="stat-label">ISO</span><span class="stat-value">${isoVal.toFixed(3)}</span></div>
           <div class="stat-row"><span class="stat-label">Power Mod</span><span class="stat-value">${(p.calculatedPowerModifier || 1).toFixed(2)}x</span></div>
           <b>🍝 PITCHER FB:</b>
           <div class="stat-row"><span class="stat-label">Pitcher FB Mod</span><span class="stat-value">${(p.calculatedPitcherFB || 1).toFixed(2)}x</span></div>
           <b>⚡ PITCHER HR/9:</b>
           <div class="stat-row"><span class="stat-label">HR/9 Ratio</span><span class="stat-value">${(p.calculatedPVF || 1).toFixed(2)}x</span></div>
-          <b>🎯 BVP DATA:</b>
-          <div class="stat-row"><span class="stat-label">HRs vs Pitcher</span><span class="stat-value">${vsHR.toFixed(0)} (${vsPA.toFixed(0)} PA)</span></div>
-          <b>🔥 RECENT FORM:</b>
-          <div class="stat-row"><span class="stat-label">Last Week HRs</span><span class="stat-value">${recentHRs.toFixed(0)}</span></div>
-          <div class="stat-row"><span class="stat-label">Streak Mod</span><span class="stat-value">${(p.calculatedStreakModifier || 1).toFixed(2)}x</span></div>
         </div>
       </td>
       <td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td>
       <td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td>
       <td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}</td>
-      <td style="position:relative;">
-        <span class="index-score">${p.calculatedBBI.toFixed(1)}<div class="streak-bar" style="width:${streakValue}%;"></div></span>
-      </td>
+      <td><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span></td>
       <td>${actionBtn}</td>
     `;
     tbody.appendChild(tr);
@@ -1461,11 +1458,7 @@ function renderMainTableBoard(data) {
 
 function toggleBenchPlayer(playerName, shouldRemove) {
   let matched = playerData.find(p => p.Name === playerName);
-  if (matched) { 
-    matched.isRemoved = shouldRemove; 
-    applyFiltersAndRender(); 
-    saveCachedData(); 
-  }
+  if (matched) { matched.isRemoved = shouldRemove; applyFiltersAndRender(); }
 }
 
 function renderTopThreePerTeamTable() {
@@ -1473,7 +1466,7 @@ function renderTopThreePerTeamTable() {
   if(!tbody) return;
   const todayTeams = getTeamsPlayingToday();
   if (todayTeams.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--text-muted); padding:20px;">Loading...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--text-muted); padding:20px;">Data structures preparing...</td></tr>`;
     return;
   }
   tbody.innerHTML = '';
@@ -1496,14 +1489,13 @@ function renderTodayTeamsFilter(teams) {
   const list = document.getElementById('todayTeamsList');
   if(!list) return;
   if(teams.length === 0) {
-    list.innerHTML = `<div class="today-team-empty">Upload today's workbook.</div>`;
+    list.innerHTML = `<div class="today-team-empty">Upload today's workbook to load every team playing today.</div>`;
     return;
   }
   list.innerHTML = '';
   const makeButton = (team, label, countLabel) => {
     const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'today-team-button';
+    button.type = 'button'; button.className = 'today-team-button';
     if(selectedQuickTeamFilter === team) button.classList.add('active-team-filter');
     const logoUrl = teamLogos[team] || '';
     const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
@@ -1513,11 +1505,10 @@ function renderTodayTeamsFilter(teams) {
       list.querySelectorAll('.today-team-button').forEach(btn => btn.classList.remove('active-team-filter'));
       button.classList.add('active-team-filter');
       applyFiltersAndRender();
-      saveCachedData();
     };
     return button;
   };
-  list.appendChild(makeButton('ALL', 'ALL', playerData.filter(p => !p.isRemoved).length));
+  list.appendChild(makeButton('ALL', 'ALL TEAMS COMBINED', playerData.filter(p => !p.isRemoved).length));
   teams.forEach(t => { if (t !== 'OPP') list.appendChild(makeButton(t, t, playerData.filter(p => p.Team === t && !p.isRemoved).length)); });
 }
 
@@ -1526,24 +1517,24 @@ function generateParlay() {
   const t2 = document.getElementById('parlayTeam2').value;
   const t3 = document.getElementById('parlayTeam3').value;
   let targetTeams = [t1, t2, t3].filter(x => x !== "");
-  if (targetTeams.length === 0) { document.getElementById('parlayResults').innerHTML = "Select at least one team."; return; }
+  if (targetTeams.length === 0) { document.getElementById('parlayResults').innerHTML = "Please configure at least one active team selector leg."; return; }
   let finalSelections = [];
   targetTeams.forEach(team => {
     let pool = playerData.filter(p => p.Team === team && !p.isRemoved);
     pool.sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
     if (pool[0]) finalSelections.push(pool[0]);
   });
-  if (finalSelections.length === 0) { document.getElementById('parlayResults').innerHTML = "No players found."; return; }
-  let html = `<div style="font-weight:800; color:var(--stadium-lights); margin-bottom:8px; font-size:11px; text-transform:uppercase;">Parlay:</div>`;
+  if (finalSelections.length === 0) { document.getElementById('parlayResults').innerHTML = "No active players found for the selected team paths."; return; }
+  let html = `<div style="font-weight:800; color:#fff; margin-bottom:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--stadium-lights);">Constructed Slip Matrix:</div>`;
   finalSelections.forEach((p, index) => {
-    html += `<div style="margin-bottom:6px; color:#f1f5f9; font-size:13px;">Leg ${index+1}: <b style="color:var(--accent);">${p.Name}</b> (${p.Team}) <span style="font-family:monospace; color:var(--text-muted);">[${p.calculatedBBI.toFixed(1)}]</span></div>`;
+    html += `<div style="margin-bottom:6px; color:#f1f5f9; font-size:13px;">Leg ${index+1}: <b style="color:var(--accent);">${p.Name}</b> (${p.Team}) vs ${p['Opp Pitcher'] || 'Pitcher'} <span style="font-family:monospace; color:var(--text-muted);">[BBI ${p.calculatedBBI.toFixed(1)}]</span></div>`;
   });
   document.getElementById('parlayResults').innerHTML = html;
 }
 
 function generateOptimalSlip(mode) {
   let activePool = playerData.filter(p => !p.isRemoved);
-  if(activePool.length === 0) { document.getElementById('optimalResults').innerHTML = "Upload data first."; return; }
+  if(activePool.length === 0) { document.getElementById('optimalResults').innerHTML = "Please upload standard workbook metrics before triggering optimization passes."; return; }
   activePool.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
   let outputHtml = "";
   if(mode === 'pack2' || mode === 'pack3') {
@@ -1555,9 +1546,9 @@ function generateOptimalSlip(mode) {
       if(!usedGames.has(candidate.gameId)) { selected.push(candidate); usedGames.add(candidate.gameId); }
       if(selected.length === targetSize) break;
     }
-    outputHtml = `<div style="font-weight:800; color:var(--accent); margin-bottom:8px; font-size:11px; text-transform:uppercase;">${targetSize}-PACK:</div>`;
+    outputHtml = `<div style="font-weight:800; color:var(--accent); margin-bottom:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase;">AUTO-GENERATED ${targetSize}-PACK:</div>`;
     selected.forEach((p, idx) => {
-      outputHtml += `<div style="margin-bottom:6px; color:#fff; font-size:12px;">Leg ${idx+1}: <b>${p.Name}</b> (${p.Team}) <span style="color:var(--stadium-lights);">vs ${p['Opp Pitcher'] || 'Pitcher'}</span> <span style="font-family:monospace; color:var(--text-muted);">[${p.calculatedBBI.toFixed(1)}]</span></div>`;
+      outputHtml += `<div style="margin-bottom:6px; color:#fff; font-size:12px;">Leg ${idx+1}: <b>${p.Name}</b> (${p.Team}) <span style="color:var(--stadium-lights);">vs ${p['Opp Pitcher'] || 'Pitcher'}</span> <span style="font-family:monospace; color:var(--text-muted);">[BBI ${p.calculatedBBI.toFixed(1)}]</span></div>`;
     });
   } else if(mode === 'stack') {
     let teams = getTeamsPlayingToday().filter(t => t !== 'OPP');
@@ -1572,8 +1563,9 @@ function generateOptimalSlip(mode) {
         if(currentSum > bestSum) { bestSum = currentSum; bestTeam = t; bestStackPlayers = [tPool[0], tPool[1], tPool[2]]; }
       }
     });
-    if(!bestTeam || bestStackPlayers.length < 3) { document.getElementById('optimalResults').innerHTML = "Not enough players to stack."; return; }
-    outputHtml = `<div style="font-weight:800; color:#ef4444; margin-bottom:8px; font-size:11px; text-transform:uppercase;">STACK:</div>`;
+    if(!bestTeam || bestStackPlayers.length < 3) { document.getElementById('optimalResults').innerHTML = "Insufficient team depth variance discovered to isolate a 3-Batter Same Game Stack profile."; return; }
+    outputHtml = `<div style="font-weight:800; color:#ef4444; margin-bottom:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase;">CORRELATED TEAM STACK:</div>`;
+    outputHtml += `<div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">vs ${bestStackPlayers[0]['Opp Pitcher'] || 'Starter'}</div>`;
     bestStackPlayers.forEach((p, idx) => {
       outputHtml += `<div style="margin-bottom:4px; color:#fff; font-size:12px;">Slot ${idx+1}: <b>${p.Name}</b> <span style="font-family:monospace; color:var(--accent);">(${p.calculatedBBI.toFixed(1)})</span></div>`;
     });
@@ -1587,30 +1579,24 @@ function renderTopTwelveSpotlightWidget() {
   if(!grid || !widgetBox) return;
   let candidates = playerData.filter(p => !p.isRemoved);
   if(candidates.length === 0) { widgetBox.style.display = 'none'; return; }
-  widgetBox.style.display = 'block';
-  grid.innerHTML = '';
+  widgetBox.style.display = 'block'; grid.innerHTML = '';
   candidates.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
   candidates.slice(0, 12).forEach((p, index) => {
-    const card = document.createElement('div');
-    card.className = 'spotlight-card';
+    const card = document.createElement('div'); card.className = 'spotlight-card';
     const logoUrl = teamLogos[p.Team] || '';
     const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:28px; height:28px; object-fit:contain; margin-right:10px;">` : '';
-    card.innerHTML = `<div style="display:flex; align-items:center; min-width:0;"><span style="font-family:monospace; font-weight:800; color:var(--stadium-lights); font-size:12px; margin-right:8px; width:20px;">#${index+1}</span>${logoImg}<div style="min-width:0;"><div style="font-weight:800; color:#fff; font-size:12px;">${p.Name}</div><div style="font-size:10px; color:var(--text-muted);">vs ${p['Opp Pitcher'] || 'Pitcher'}</div></div></div><div style="font-family:monospace; font-weight:900; color:var(--accent); font-size:15px; margin-left:8px;">${p.calculatedBBI.toFixed(1)}</div>`;
+    card.innerHTML = `<div style="display:flex; align-items:center; min-width:0;"><span style="font-family:monospace; font-weight:800; color:var(--stadium-lights); font-size:12px; margin-right:8px; width:20px;">#${index+1}</span>${logoImg}<div style="min-width:0; overflow:hidden; text-overflow:ellipsis;"><div style="font-weight:800; color:#fff; font-size:12px;">${p.Name}</div><div style="font-size:10px; color:var(--text-muted); font-weight:600;">vs ${p['Opp Pitcher'] || 'Pitcher'}</div></div></div><div style="font-family:monospace; font-weight:900; color:var(--accent); font-size:15px; margin-left:8px;">${p.calculatedBBI.toFixed(1)}</div>`;
     grid.appendChild(card);
   });
 }
 
 function loadTeamLogoImages(callback) {
-  let loadedCount = 0;
-  const imageObjects = {};
-  const teams = Object.keys(teamLogos);
+  let loadedCount = 0; const imageObjects = {}; const teams = Object.keys(teamLogos);
   teams.forEach(t => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
+    const img = new Image(); img.crossOrigin = "anonymous";
     img.onload = () => { loadedCount++; if (loadedCount === teams.length) callback(imageObjects); };
     img.onerror = () => { loadedCount++; if (loadedCount === teams.length) callback(imageObjects); };
-    img.src = teamLogos[t];
-    imageObjects[t] = img;
+    img.src = teamLogos[t]; imageObjects[t] = img;
   });
 }
 
@@ -1618,88 +1604,53 @@ function generateDailyDingerGraphic() {
   loadTeamLogoImages((loadedLogos) => {
     const canvas = document.getElementById('graphicCanvas');
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#060c16';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#060c16'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     let gradient = ctx.createRadialGradient(720, 0, 100, 720, 0, 1300);
-    gradient.addColorStop(0, '#0a1d37');
-    gradient.addColorStop(0.5, '#060c16');
-    gradient.addColorStop(1, '#03060b');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'rgba(0, 255, 157, 0.02)';
-    ctx.font = 'black 180px Impact';
-    ctx.textAlign = 'center';
+    gradient.addColorStop(0, '#0a1d37'); gradient.addColorStop(0.5, '#060c16'); gradient.addColorStop(1, '#03060b');
+    ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(0, 255, 157, 0.02)'; ctx.font = 'black 180px Impact'; ctx.textAlign = 'center';
     ctx.fillText("BBI MODELS", 720, 750);
-    ctx.strokeStyle = '#172a46';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-    ctx.fillStyle = '#00ff9d';
-    ctx.fillRect(40, 40, canvas.width - 80, 6);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 38px Arial';
-    ctx.textAlign = 'center';
+    ctx.strokeStyle = '#172a46'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+    ctx.fillStyle = '#00ff9d'; ctx.fillRect(40, 40, canvas.width - 80, 6);
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 38px Arial'; ctx.textAlign = 'center';
     ctx.fillText("THE DAILY RUN LINE'S HOMERUN INDEX", 720, 95);
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 15px Courier New';
+    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 15px Courier New';
     ctx.fillText("CONTINUOUS MULTIPLIER MODEL // PREMIUM ANALYTICS", 720, 130);
     let items = playerData.filter(p => !p.isRemoved);
     items.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
     items = items.slice(0, 50);
-    let startY = 200;
-    let rowHeight = 46;
+    let startY = 200; let rowHeight = 46;
     for (let col = 0; col < 2; col++) {
       let colOffsetX = col === 0 ? 40 : 740;
-      ctx.fillStyle = 'rgba(9, 18, 34, 0.9)';
-      ctx.fillRect(colOffsetX, startY - 32, 660, 26);
-      ctx.fillStyle = '#6b7c96';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(9, 18, 34, 0.9)'; ctx.fillRect(colOffsetX, startY - 32, 660, 26);
+      ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'left';
       ctx.fillText("RNK   PLAYER NAME", colOffsetX + 15, startY - 14);
-      ctx.textAlign = 'center';
-      ctx.fillText("OPP", colOffsetX + 450, startY - 14);
+      ctx.textAlign = 'center'; ctx.fillText("OPP", colOffsetX + 450, startY - 14);
       ctx.fillText("INDEX", colOffsetX + 610, startY - 14);
     }
     items.forEach((p, idx) => {
-      let col = idx >= 25 ? 1 : 0;
-      let subIdx = idx % 25;
-      let colOffsetX = col === 0 ? 40 : 740;
-      let currentY = startY + (subIdx * rowHeight);
-      ctx.fillStyle = 'rgba(16, 28, 48, 0.5)';
-      ctx.fillRect(colOffsetX, currentY - 18, 660, 38);
-      ctx.strokeStyle = '#1e3454';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(colOffsetX, currentY - 18, 660, 38);
-      ctx.fillStyle = teamColors[p.Team] || '#172a46';
-      ctx.fillRect(colOffsetX, currentY - 18, 6, 38);
-      ctx.fillStyle = '#6b7c96';
-      ctx.font = 'bold 13px Courier New';
-      ctx.textAlign = 'left';
+      let col = idx >= 25 ? 1 : 0; let subIdx = idx % 25;
+      let colOffsetX = col === 0 ? 40 : 740; let currentY = startY + (subIdx * rowHeight);
+      ctx.fillStyle = 'rgba(16, 28, 48, 0.5)'; ctx.fillRect(colOffsetX, currentY - 18, 660, 38);
+      ctx.strokeStyle = '#1e3454'; ctx.lineWidth = 1; ctx.strokeRect(colOffsetX, currentY - 18, 660, 38);
+      ctx.fillStyle = teamColors[p.Team] || '#172a46'; ctx.fillRect(colOffsetX, currentY - 18, 6, 38);
+      ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 13px Courier New'; ctx.textAlign = 'left';
       ctx.fillText(String(idx + 1).padStart(2, '0'), colOffsetX + 15, currentY + 6);
       const logoImgObj = loadedLogos[p.Team];
       if (logoImgObj) ctx.drawImage(logoImgObj, colOffsetX + 45, currentY - 12, 24, 24);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 15px Arial';
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px Arial';
       ctx.fillText(p.Name.substring(0, 18), colOffsetX + 82, currentY + 5);
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '13px Arial';
-      ctx.textAlign = 'center';
+      ctx.fillStyle = '#94a3b8'; ctx.font = '13px Arial'; ctx.textAlign = 'center';
       let pName = p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter';
       ctx.fillText(pName.substring(0, 16), colOffsetX + 450, currentY + 5);
-      ctx.fillStyle = 'rgba(0, 255, 157, 0.05)';
-      ctx.fillRect(colOffsetX + 570, currentY - 13, 75, 28);
-      ctx.strokeStyle = 'rgba(0, 255, 157, 0.25)';
-      ctx.strokeRect(colOffsetX + 570, currentY - 13, 75, 28);
-      ctx.fillStyle = '#00ff9d';
-      ctx.font = 'bold 16px Courier New';
-      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(0, 255, 157, 0.05)'; ctx.fillRect(colOffsetX + 570, currentY - 13, 75, 28);
+      ctx.strokeStyle = 'rgba(0, 255, 157, 0.25)'; ctx.strokeRect(colOffsetX + 570, currentY - 13, 75, 28);
+      ctx.fillStyle = '#00ff9d'; ctx.font = 'bold 16px Courier New'; ctx.textAlign = 'center';
       ctx.fillText((p.calculatedBBI || 0).toFixed(1), colOffsetX + 607, currentY + 6);
     });
-    ctx.fillStyle = '#6b7c96';
-    ctx.font = 'bold 11px Courier New';
-    ctx.textAlign = 'center';
+    ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'center';
     ctx.fillText("CONTINUOUS MULTIPLIER SYSTEM ACTIVE // THE DAILY RUN LINE ANALYTICS", 720, canvas.height - 35);
-    const dataUrl = canvas.toDataURL('image/png');
-    const win = window.open();
+    const dataUrl = canvas.toDataURL('image/png'); const win = window.open();
     win.document.write(`<iframe src="${dataUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
   });
 }
@@ -1708,51 +1659,34 @@ function generateTeamMatrixGraphic() {
   loadTeamLogoImages((loadedLogos) => {
     const canvas = document.getElementById('matrixCanvas');
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#060c16';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#060c16'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     let gradient = ctx.createRadialGradient(600, 0, 50, 600, 0, 1400);
-    gradient.addColorStop(0, '#0d223d');
-    gradient.addColorStop(0.6, '#060c16');
-    gradient.addColorStop(1, '#03050a');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = '#172a46';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(40, 40, canvas.width - 80, 6);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 32px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText("DRL HR INDEX // TEAM MATRIX", 600, 95);
+    gradient.addColorStop(0, '#0d223d'); gradient.addColorStop(0.6, '#060c16'); gradient.addColorStop(1, '#03050a');
+    ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#172a46'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+    ctx.fillStyle = '#38bdf8'; ctx.fillRect(40, 40, canvas.width - 80, 6);
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 32px Arial'; ctx.textAlign = 'center';
+    ctx.fillText("DRL HR INDEX // TEAM MATRIX ARRAY", 600, 95);
+    ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 13px Courier New';
+    ctx.fillText("CONTINUOUS MATCHUP LAYER // CONFIGURATION SCHEDULER", 600, 125);
     const todayTeams = getTeamsPlayingToday().filter(t => t !== 'OPP');
-    let startY = 190;
-    let rowHeight = 62;
-    ctx.fillStyle = 'rgba(9, 18, 34, 0.9)';
-    ctx.fillRect(40, startY - 32, canvas.width - 80, 26);
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 11px Arial';
-    ctx.textAlign = 'left';
+    let startY = 190; let rowHeight = 62;
+    ctx.fillStyle = 'rgba(9, 18, 34, 0.9)'; ctx.fillRect(40, startY - 32, canvas.width - 80, 26);
+    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'left';
     ctx.fillText("TEAM", 65, startY - 15);
-    ctx.fillText("TOP 1", 285, startY - 15);
-    ctx.fillText("TOP 2", 595, startY - 15);
-    ctx.fillText("TOP 3", 905, startY - 15);
+    ctx.fillText("TOP 1 ANCHOR", 285, startY - 15);
+    ctx.fillText("TOP 2 FOLLOW", 595, startY - 15);
+    ctx.fillText("TOP 3 VARIANT", 905, startY - 15);
     todayTeams.forEach((team, idx) => {
       let pool = playerData.filter(p => p.Team === team && !p.isRemoved);
       pool.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
       let currentY = startY + (idx * rowHeight);
-      ctx.fillStyle = 'rgba(16, 28, 48, 0.45)';
-      ctx.fillRect(40, currentY - 22, canvas.width - 80, 52);
-      ctx.strokeStyle = '#1e3454';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(40, currentY - 22, canvas.width - 80, 52);
-      ctx.fillStyle = teamColors[team] || '#172a46';
-      ctx.fillRect(40, currentY - 22, 8, 52);
+      ctx.fillStyle = 'rgba(16, 28, 48, 0.45)'; ctx.fillRect(40, currentY - 22, canvas.width - 80, 52);
+      ctx.strokeStyle = '#1e3454'; ctx.lineWidth = 1; ctx.strokeRect(40, currentY - 22, canvas.width - 80, 52);
+      ctx.fillStyle = teamColors[team] || '#172a46'; ctx.fillRect(40, currentY - 22, 8, 52);
       const logoImgObj = loadedLogos[team];
       if (logoImgObj) ctx.drawImage(logoImgObj, 60, currentY - 14, 36, 36);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 19px Arial';
-      ctx.textAlign = 'left';
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 19px Arial'; ctx.textAlign = 'left';
       ctx.fillText(team, 112, currentY + 10);
       const drawSlot = (p, xPos, isPrimary) => {
         if(p) {
@@ -1764,8 +1698,7 @@ function generateTeamMatrixGraphic() {
           ctx.font = '13px Courier New';
           ctx.fillText(`(${p.calculatedBBI.toFixed(1)})`, xPos + textWidth + 6, currentY + 10);
         } else {
-          ctx.fillStyle = '#26354a';
-          ctx.font = 'italic 14px Arial';
+          ctx.fillStyle = '#26354a'; ctx.font = 'italic 14px Arial';
           ctx.fillText('-', xPos, currentY + 10);
         }
       };
@@ -1773,8 +1706,7 @@ function generateTeamMatrixGraphic() {
       drawSlot(pool[1], 595, false);
       drawSlot(pool[2], 905, false);
     });
-    const dataUrl = canvas.toDataURL('image/png');
-    const win = window.open();
+    const dataUrl = canvas.toDataURL('image/png'); const win = window.open();
     win.document.write(`<iframe src="${dataUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
   });
 }
