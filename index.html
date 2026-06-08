@@ -766,7 +766,8 @@ const STABILIZATION = {
   barrelRate: 150,
   iso: 250,
   hrfb: 400,
-  pulledAir: 200
+  pulledAir: 200,
+  pitcherIP: 60
 };
 
 let playerData = [];
@@ -794,6 +795,11 @@ const stadiumCoordinates = {
 
 window.addEventListener('DOMContentLoaded', loadCachedData);
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
+
+function normalizeName(s) {
+  if (!s) return '';
+  return String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
 
 function saveCachedData() {
   const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter };
@@ -862,9 +868,9 @@ function handleFile(e) {
       if (nameClean === 'BULLPEN') bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
     });
-    vpRaw.forEach(x => { if(x.Player || x.Name) vsPitcherData[String(x.Player || x.Name).trim()] = x; });
-    plRaw.forEach(x => { if(x.Player || x.Name) plDataMap[String(x.Player || x.Name).trim()] = x; });
-    lwRaw.forEach(x => { if(x.Player || x.Name) lastWeekMap[String(x.Player || x.Name).trim()] = x; });
+    vpRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) vsPitcherData[normalizeName(raw)] = x; });
+    plRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) plDataMap[normalizeName(raw)] = x; });
+    lwRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) lastWeekMap[normalizeName(raw)] = x; });
     bullpenRaw.forEach(x => { if(x.Team || x.TeamID) bullpenData[String(x.Team || x.TeamID).trim()] = x; });
     hrRaw.forEach(p => {
       let team = String(p.Team || p.TEAM || 'UNK').trim().toUpperCase();
@@ -975,13 +981,12 @@ function applyStabilization(actual, leagueAvg, sample, stabilizationPA) {
   return (actual * weight) + (leagueAvg * (1 - weight));
 }
 
-// New: weights per your spec (category and internal stat breakdowns)
-// Category weights sum to 1. Subweights inside each category are normalized internally.
+// Category weights (pitchMatchup is 0.20 as requested)
 const SCORE_WEIGHTS = {
-  hitterPowerProfile: 0.30,
+  hitterPowerProfile: 0.25,
   battedBallProfile: 0.15,
-  pitcherVulnerability: 0.25,
-  pitchMatchup: 0.10,
+  pitcherVulnerability: 0.20,
+  pitchMatchup: 0.20,
   recentForm: 0.08,
   weather: 0.05,
   park: 0.04,
@@ -1073,6 +1078,15 @@ function safeGet(obj, ...keys) {
   return undefined;
 }
 
+// parseUsage: accepts fraction (0..1) or percent (0..100) or percent string "45%"
+function parseUsageValue(raw) {
+  let v = cleanNumber(raw);
+  if (!v) return 0;
+  if (v > 1 && v <= 100) return v / 100;
+  if (v > 100) return v / 100;
+  return v;
+}
+
 function calculateBBI(p, weatherObj) {
   if (!p) return 0.0;
   const baseBarrel = cleanNumber(safeGet(p, 'Barrel %', 'Barrel%'));
@@ -1116,7 +1130,21 @@ function calculateBBI(p, weatherObj) {
   const pitcherEVallowed = cleanNumber(safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV')) || 0;
   const pitcherPullAllowed = cleanNumber(safeGet(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%')) || 0;
 
-  const vsp = vsPitcherData[p.Name];
+  // NEW: parse Pitcher xHR and Pitcher IP (if present in player row or fallback to VSP)
+  let pitcherXhrRaw = cleanNumber(safeGet(p, 'Pitcher xHR', 'Pitcher xHR%', 'Pitcher xHR %', 'Pitcher xHR Rate')) || 0;
+  let pitcherIPraw = cleanNumber(safeGet(p, 'Pitcher IP', 'P IP', 'PitcherIP', 'IP')) || 0;
+
+  // fallback to vsPitcher info if available
+  const normalizedPlayer = normalizeName(p.Name);
+  const vsp = vsPitcherData[normalizedPlayer];
+  if (!pitcherXhrRaw && vsp) {
+    pitcherXhrRaw = cleanNumber(safeGet(vsp, 'Pitcher xHR', 'xHR', 'xHR%', 'xHR Rate')) || pitcherXhrRaw;
+  }
+  if (!pitcherIPraw && vsp) {
+    pitcherIPraw = cleanNumber(safeGet(vsp, 'IP', 'Innings Pitched', 'P IP')) || pitcherIPraw;
+  }
+
+  // Normalize name and look up VSP / PL / LastWeek data safely
   let vspPA = 0;
   let vsp_xslg = 0, vsp_ev = 0, vsp_hr = 0;
   if (vsp) {
@@ -1126,14 +1154,102 @@ function calculateBBI(p, weatherObj) {
     vsp_hr = cleanNumber(safeGet(vsp, 'HR', 'HRs', 'Homeruns')) || 0;
   }
 
-  const pl = plDataMap[p.Name] || {};
-  const plFastball = cleanNumber(safeGet(pl, 'Fastball Run Value Matchup', 'FastballRV', 'Fastball RV', 'FB RV', 'FastballRunValue')) || 0;
-  const plBreaking = cleanNumber(safeGet(pl, 'Breaking Ball Matchup', 'BreakingRV', 'BreakRV')) || 0;
-  const plOffspeed = cleanNumber(safeGet(pl, 'Offspeed Matchup', 'OffspeedRV', 'OffRV')) || 0;
+  const pl = plDataMap[normalizedPlayer] || {};
+
+  // --- PL parsing using vFA / wFA style headers ---
+  const raw_wFA = safeGet(pl, 'wFA', 'wFA/C', 'wFA_C', 'wFA %', 'wFA%','wFA/C');
+  const raw_wFC = safeGet(pl, 'wFC', 'wFC/C', 'wFC_C', 'wFC %', 'wFC%','wFC/C');
+  const raw_wFS = safeGet(pl, 'wFS', 'wFS/C', 'wFS_C', 'wFS %', 'wFS%','wFS/C');
+  const raw_wFO = safeGet(pl, 'wFO', 'wFO/C', 'wFO_C', 'wFO %', 'wFO%','wFO/C');
+  const raw_wSI = safeGet(pl, 'wSI', 'wSI/C', 'wSI_C', 'wSI %', 'wSI%','wSI/C');
+  const raw_wSL = safeGet(pl, 'wSL', 'wSL/C', 'wSL_C', 'wSL %', 'wSL%','wSL/C');
+  const raw_wCU = safeGet(pl, 'wCU', 'wCU/C', 'wCU_C', 'wCU %', 'wCU%','wCU/C');
+
+  // Pitcher usage fallback fields
+  const raw_pitcherFB = safeGet(pl, 'Pitcher FB %', 'Pitcher FB%', 'Pitcher FB %', 'Pitcher FB');
+  const raw_pitcherFC = safeGet(pl, 'Pitcher Cut %', 'Pitcher Cut%', 'Pitcher Cutter %', 'Pitcher Cutter');
+  const raw_pitcherFS = safeGet(pl, 'Pitcher SP %', 'Pitcher SP%', 'Pitcher Split %');
+  const raw_pitcherSNK = safeGet(pl, 'Pitcher SNK %', 'Pitcher SNK%', 'Pitcher Sinker %');
+  const raw_pitcherCH = safeGet(pl, 'Pitcher CH %', 'Pitcher CH%', 'Pitcher Changeup %');
+  const raw_pitcherSL = safeGet(pl, 'Pitcher SL %', 'Pitcher SL%', 'Pitcher Slider %');
+  const raw_pitcherCV = safeGet(pl, 'Pitcher CV %', 'Pitcher CV%', 'Pitcher Curve %');
+
+  // velocity fields
+  const vFA = cleanNumber(safeGet(pl, 'vFA', 'vFA (mph)', 'vFA_mph')) || 0;
+  const vFC = cleanNumber(safeGet(pl, 'vFC', 'vFC (mph)', 'vFC_mph')) || 0;
+  const vFS = cleanNumber(safeGet(pl, 'vFS', 'vFS (mph)', 'vFS_mph')) || 0;
+  const vFO = cleanNumber(safeGet(pl, 'vFO', 'vFO (mph)', 'vFO_mph')) || 0;
+  const vSI = cleanNumber(safeGet(pl, 'vSI', 'vSI (mph)', 'vSI_mph')) || 0;
+  const vSL = cleanNumber(safeGet(pl, 'vSL', 'vSL (mph)', 'vSL_mph')) || 0;
+  const vCU = cleanNumber(safeGet(pl, 'vCU', 'vCU (mph)', 'vCU_mph')) || 0;
+  const vKC = cleanNumber(safeGet(pl, 'vKC', 'vKC (mph)', 'vKC_mph')) || 0;
+  const vCH = cleanNumber(safeGet(pl, 'vCH', 'vCH (mph)', 'vCH_mph')) || 0;
+
+  // parse usages into fractions
+  const u_wFA = parseUsageValue(raw_wFA);
+  const u_wFC = parseUsageValue(raw_wFC);
+  const u_wFS = parseUsageValue(raw_wFS);
+  const u_wFO = parseUsageValue(raw_wFO);
+  const u_wSI = parseUsageValue(raw_wSI);
+  const u_wSL = parseUsageValue(raw_wSL);
+  const u_wCU = parseUsageValue(raw_wCU);
+
+  const u_pitcherFB = parseUsageValue(raw_pitcherFB);
+  const u_pitcherFC = parseUsageValue(raw_pitcherFC);
+  const u_pitcherFS = parseUsageValue(raw_pitcherFS);
+  const u_pitcherSNK = parseUsageValue(raw_pitcherSNK);
+  const u_pitcherCH = parseUsageValue(raw_pitcherCH);
+  const u_pitcherSL = parseUsageValue(raw_pitcherSL);
+  const u_pitcherCV = parseUsageValue(raw_pitcherCV);
+
+  // Group usage families
+  const fbUsage = Math.max(0, (u_wFA + u_wFC + u_wSI) || (u_pitcherFB + u_pitcherFC + u_pitcherSNK));
+  const breakingUsage = Math.max(0, (u_wSL + u_wCU) || (u_pitcherSL + u_pitcherCV));
+  const offspeedUsage = Math.max(0, (u_wFS + u_wFO) || (u_pitcherFS + u_pitcherCH));
+
+  function weightedEV(parts) {
+    let totalUsage = parts.reduce((s, it) => s + (it.usage || 0), 0);
+    if (totalUsage <= 0) {
+      for (const it of parts) if (it.ev && it.ev > 0) return it.ev;
+      return 88;
+    }
+    let sum = parts.reduce((s, it) => s + ((it.ev || 88) * (it.usage || 0)), 0);
+    return sum / totalUsage;
+  }
+
+  const fbParts = [
+    { usage: u_wFA || u_pitcherFB, ev: vFA },
+    { usage: u_wFC || u_pitcherFC, ev: vFC },
+    { usage: u_wSI || u_pitcherSNK, ev: vSI }
+  ];
+  const fbEV = weightedEV(fbParts);
+
+  const breakingParts = [
+    { usage: u_wSL || u_pitcherSL, ev: vSL },
+    { usage: u_wCU || u_pitcherCV, ev: vCU },
+    { usage: u_wFC ? 0 : 0, ev: vKC } // KC used only if present
+  ];
+  const breakingEV = weightedEV(breakingParts);
+
+  const offParts = [
+    { usage: u_wFS || u_pitcherFS, ev: vFS },
+    { usage: u_wFO || u_pitcherCH, ev: vFO },
+    { usage: 0, ev: vCH }
+  ];
+  const offEV = weightedEV(offParts);
+
+  let plFastball = fbUsage * ((fbEV - 88) / 10);
+  let plBreaking  = breakingUsage * ((breakingEV - 88) / 10);
+  let plOffspeed  = offspeedUsage * ((offEV - 88) / 10);
+
   const plStuffPlus = cleanNumber(safeGet(pl, 'Stuff+ Adjustment', 'Stuff+', 'StuffPlus')) || 0;
   const plPitchingPlus = cleanNumber(safeGet(pl, 'Pitching+ Adjustment', 'Pitching+', 'PitchingPlus')) || 0;
 
-  const lw = lastWeekMap[p.Name] || {};
+  plFastball = Math.max(-5, Math.min(9, plFastball));
+  plBreaking  = Math.max(-5, Math.min(9, plBreaking));
+  plOffspeed  = Math.max(-5, Math.min(9, plOffspeed));
+
+  const lw = lastWeekMap[normalizedPlayer] || {};
   const lwBarrel = cleanNumber(safeGet(lw, 'Barrel%', 'Barrel %')) || 0;
   const lwEV = cleanNumber(safeGet(lw, 'EV', 'Avg EV')) || 0;
   const lwxSLG = cleanNumber(safeGet(lw, 'xSLG', 'xSLG%')) || 0;
@@ -1144,7 +1260,7 @@ function calculateBBI(p, weatherObj) {
   const parkDims = parkFactorMap[homeTeam] || { lf: 330, cf: 400, rf: 330 };
   const parkPF = cleanNumber(safeGet(p, 'pf', 'PF', 'ParkFactor')) || (parkDims.pf || 100);
 
-  // 1) Hitter Power Profile
+  // Hitter Power Profile
   const hpSub = N_SUB.hitterPowerProfile;
   const hp_barrelM = ratioToModifier(barrelRateStabilized, LEAGUE_AVERAGES.barrelRate, { min:0.5, max:2.2, sensitivity:0.95 });
   const hp_isoM = ratioToModifier(isoStabilized, LEAGUE_AVERAGES.iso, { min:0.5, max:2.0, sensitivity:0.9 });
@@ -1163,7 +1279,14 @@ function calculateBBI(p, weatherObj) {
     (hp_batSpeed * hpSub.batSpeed)
   );
 
-  // 2) Batted Ball Profile
+  // NEW: Batter xHR influence (small, sensible bump to hitter power)
+  const batterXhrRaw = cleanNumber(safeGet(p, 'xHR', 'xHR%', 'xHR Rate')) || 0;
+  // Convert percent-style values to modest modifier; cap sensibly
+  const batterXhrM = 1 + Math.max(-0.35, Math.min(0.9, batterXhrRaw * 1.35));
+  // Blend xhr influence into hitter power modifier (~8% influence)
+  const hitterPowerModifierWithXhr = (hitterPowerModifier * 0.92) + (batterXhrM * 0.08);
+
+  // Batted Ball Profile
   const bbSub = N_SUB.battedBallProfile;
   const bb_pulledM = ratioToModifier(pulledAirStabilized, 0.18, { min:0.6, max:2.2, sensitivity:0.95 });
   const bb_fbM = ratioToModifier(flyBallRate, LEAGUE_AVERAGES.fbRate, { min:0.6, max:1.8, sensitivity:0.85 });
@@ -1178,7 +1301,7 @@ function calculateBBI(p, weatherObj) {
     (bb_launchAngle * bbSub.launchAnglePct)
   );
 
-  // 3) Pitcher Vulnerability
+  // Pitcher Vulnerability
   const pvSub = N_SUB.pitcherVulnerability;
   const pv_hr9M = ratioToModifier(pitcherHR9, LEAGUE_AVERAGES.pitcherHR9, { min:0.6, max:1.8 });
   const pv_barrelAllowedM = ratioToModifier(pitcherBarrelAllowed, LEAGUE_AVERAGES.pitcherBarrelAllowed, { min:0.6, max:1.8 });
@@ -1197,7 +1320,13 @@ function calculateBBI(p, weatherObj) {
     (pv_pullAllowedM * pvSub.pitcherPullAllowed)
   );
 
-  // 4) Pitch Matchup
+  // NEW: incorporate Pitcher xHR (stabilized by Pitcher IP) into pitcher vulnerability
+  const stabilizedPitcherXHR = applyStabilization(pitcherXhrRaw, LEAGUE_AVERAGES.pitcherHR9, pitcherIPraw, STABILIZATION.pitcherIP);
+  const pv_xhrM = ratioToModifier(stabilizedPitcherXHR, LEAGUE_AVERAGES.pitcherHR9, { min:0.6, max:2.0 });
+  // Blend in with modest but material influence (~12% of pitcher's vulnerability)
+  const pitcherVulnerabilityWithXhr = (pitcherVulnerabilityModifier * 0.88) + (pv_xhrM * 0.12);
+
+  // Pitch Matchup
   const pmSub = N_SUB.pitchMatchup;
   const pl_fastM = 1 + Math.max(-0.5, Math.min(0.9, plFastball / 10));
   const pl_brkM = 1 + Math.max(-0.5, Math.min(0.9, plBreaking / 10));
@@ -1212,7 +1341,7 @@ function calculateBBI(p, weatherObj) {
     (pl_pitchPlusM * pmSub.pitchingPlus)
   );
 
-  // 5) Recent Form
+  // Recent Form
   const rfSub = N_SUB.recentForm;
   const rf_barrelM = ratioToModifier(lwBarrel, LEAGUE_AVERAGES.barrelRate, { min:0.6, max:2.0 });
   const rf_evM = 1 + Math.max(-0.4, Math.min(0.9, ((lwEV || 0) - 88) / 88));
@@ -1227,7 +1356,7 @@ function calculateBBI(p, weatherObj) {
     (rf_hhM * rfSub.lastWeekHardHit)
   );
 
-  // 6) Weather
+  // Weather
   let computedWeatherMod = 1.0;
   if (weatherObj && !weatherObj.isDome) {
     const temp = weatherObj.temp || 70;
@@ -1272,7 +1401,7 @@ function calculateBBI(p, weatherObj) {
     computedWeatherMod = 1.0 + tempBonus + windBonus;
   }
 
-  // 7) Park
+  // Park
   let parkDimensionMod = 1.0;
   const hitterHand2 = getHitterHandedness(p);
   if (hitterHand2 === 'R') {
@@ -1289,7 +1418,7 @@ function calculateBBI(p, weatherObj) {
   const parkPFmod = 1 + ((parkPF - 100) / 100) * 0.25;
   const parkModifier = ((parkDimensionMod * N_SUB.park.fenceDistance) + (parkPFmod * N_SUB.park.hrParkFactor));
 
-  // 8) BvP
+  // BvP
   let bvpModifier = 1.0;
   if (vsp && vspPA >= 15) {
     const bvp_xslgM = 1 + Math.max(-0.4, Math.min(0.8, ((vsp_xslg || 0) - 0.3)));
@@ -1299,9 +1428,9 @@ function calculateBBI(p, weatherObj) {
   }
 
   const combined = (
-    (hitterPowerModifier * SCORE_WEIGHTS.hitterPowerProfile) +
+    (hitterPowerModifierWithXhr * SCORE_WEIGHTS.hitterPowerProfile) +
     (battedBallModifier * SCORE_WEIGHTS.battedBallProfile) +
-    (pitcherVulnerabilityModifier * SCORE_WEIGHTS.pitcherVulnerability) +
+    (pitcherVulnerabilityWithXhr * SCORE_WEIGHTS.pitcherVulnerability) +
     (pitchMatchupModifier * SCORE_WEIGHTS.pitchMatchup) +
     (recentFormModifier * SCORE_WEIGHTS.recentForm) +
     (computedWeatherMod * SCORE_WEIGHTS.weather) +
@@ -1314,10 +1443,10 @@ function calculateBBI(p, weatherObj) {
   finalScore = finalScore * credibilityMultiplier;
 
   p.calculatedBvP = bvpModifier;
-  p.calculatedPitcherFB = pitcherVulnerabilityModifier;
+  p.calculatedPitcherFB = pitcherVulnerabilityWithXhr;
   p.calculatedSweetSpot = safeGet(p, 'Sweet Spot %') ? (1 + (cleanNumber(safeGet(p, 'Sweet Spot %')) / 100) * 0.1) : 1.0;
   p.calculatedPVF = Math.max(0.5, Math.min(2.0, pitcherHR9 / LEAGUE_AVERAGES.pitcherHR9));
-  p.calculatedQualityModifier = hitterPowerModifier;
+  p.calculatedQualityModifier = hitterPowerModifierWithXhr;
   p.calculatedPullModifier = pulledAirStabilized > 0 ? ratioToModifier(pulledAirStabilized, 0.18) : 1.0;
   p.calculatedPowerModifier = ratioToModifier(isoStabilized, LEAGUE_AVERAGES.iso);
   p.calculatedPitchModifier = pitcherFB;
@@ -1346,7 +1475,6 @@ function applyFiltersAndRender() {
   
   let filtered = playerData.filter(p => {
     if (!showRemoved && p.isRemoved) return false;
-    if (showRemoved && !p.isRemoved) return false;
     if (selectedQuickTeamFilter !== 'ALL' && p.Team !== selectedQuickTeamFilter) return false;
     if (f1 !== 'ALL' || f2 !== 'ALL' || f3 !== 'ALL') {
       let matchAnyDrop = false;
