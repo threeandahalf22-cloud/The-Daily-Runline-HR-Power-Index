@@ -645,6 +645,10 @@ tr:hover {
           <div class="slider-header"><span>Pulled Air % Weight</span><span id="valWeightPulled">100%</span></div>
           <input type="range" id="weightPulled" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
         </div>
+        <div class="slider-container">
+          <div class="slider-header"><span>Weather Impact Weight</span><span id="valWeightWeather">100%</span></div>
+          <input type="range" id="weightWeather" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
+        </div>
         <button onclick="recalculateAllBBIScores()" class="btn-blue" style="padding:10px; font-size:11px; margin-top:6px;">🔄 Force Recalculate Index</button>
       </div>
 
@@ -845,6 +849,7 @@ function updateWeightLabels() {
   document.getElementById('valWeightBarrel').innerText = document.getElementById('weightBarrel').value + '%';
   document.getElementById('valWeightPark').innerText = document.getElementById('weightPark').value + '%';
   document.getElementById('valWeightPulled').innerText = document.getElementById('weightPulled').value + '%';
+  document.getElementById('valWeightWeather').innerText = document.getElementById('weightWeather').value + '%';
   recalculateAllBBIScores();
 }
 
@@ -958,7 +963,8 @@ function parseWeatherMetadataRows(rows) {
       let temp = Number(row.Temp || row.Temperature || row.temp || 72) || 72;
       let windSpeed = Number(row.Wind || row.WindSpeed || row.Speed || row.wind || row['Wind MPH'] || row['wind mph']) || 0;
       let windDir = String(row.Direction || row.Dir || row.winddir || 'neutral').toLowerCase().trim();
-      weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome };
+      let humidity = Number(row.Humidity || row.humidity || 0);
+      weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome, humidity };
     }
   });
 }
@@ -981,71 +987,27 @@ function applyStabilization(actual, leagueAvg, sample, stabilizationPA) {
   return (actual * weight) + (leagueAvg * (1 - weight));
 }
 
-// Category weights (pitchMatchup is 0.20 as requested)
+// UPDATED WEIGHTS: Sum = 1.00
 const SCORE_WEIGHTS = {
   hitterPowerProfile: 0.25,
-  battedBallProfile: 0.15,
-  pitcherVulnerability: 0.20,
-  pitchMatchup: 0.20,
-  recentForm: 0.08,
+  pitcherVulnerability: 0.18,
+  battedBallProfile: 0.11,
+  pitchMatchup: 0.15,
+  recentForm: 0.13,
   weather: 0.05,
-  park: 0.04,
-  bvp: 0.03
+  park: 0.02,
+  bvp: 0.11
 };
 
 const SUBWEIGHTS = {
-  hitterPowerProfile: {
-    barrelPct: 8,
-    isoVsHand: 7,
-    maxEV: 5,
-    avgEV: 3,
-    hardHitPct: 3,
-    blastContactPct: 2,
-    batSpeed: 2
-  },
-  battedBallProfile: {
-    pulledAirPct: 6,
-    flyBallPct: 3,
-    sweetSpotPct: 2,
-    idealAttackAnglePct: 2,
-    launchAnglePct: 2
-  },
-  pitcherVulnerability: {
-    pitcherHR9: 6,
-    pitcherBarrelAllowed: 5,
-    pitcherHardHitAllowed: 4,
-    pitcherFBpct: 3,
-    pitcherHRFBpct: 3,
-    pitcherEVallowed: 2,
-    pitcherPullAllowed: 2
-  },
-  pitchMatchup: {
-    fastballRV: 3,
-    breakingRV: 3,
-    offspeedRV: 2,
-    stuffPlus: 1,
-    pitchingPlus: 1
-  },
-  recentForm: {
-    lastWeekBarrelPct: 2,
-    lastWeekEV: 2,
-    lastWeekxSLG: 2,
-    lastWeekHRs: 1,
-    lastWeekHardHit: 1
-  },
-  weather: {
-    wind: 3,
-    temp: 2
-  },
-  park: {
-    hrParkFactor: 2,
-    fenceDistance: 2
-  },
-  bvp: {
-    xslg: 1,
-    ev: 1,
-    hrHistory: 1
-  }
+  hitterPowerProfile: { barrelPct: 8, isoVsHand: 7, maxEV: 5, avgEV: 3, hardHitPct: 3, blastContactPct: 2, batSpeed: 2 },
+  battedBallProfile: { pulledAirPct: 6, flyBallPct: 3, sweetSpotPct: 2, idealAttackAnglePct: 2, launchAnglePct: 2 },
+  pitcherVulnerability: { pitcherHR9: 6, pitcherBarrelAllowed: 5, pitcherHardHitAllowed: 4, pitcherFBpct: 3, pitcherHRFBpct: 3, pitcherEVallowed: 2, pitcherPullAllowed: 2 },
+  pitchMatchup: { fastballRV: 3, breakingRV: 3, offspeedRV: 2, stuffPlus: 1, pitchingPlus: 1 },
+  recentForm: { lastWeekBarrelPct: 2, lastWeekEV: 2, lastWeekxSLG: 2, lastWeekHRs: 1, lastWeekHardHit: 1 },
+  weather: { wind: 3, temp: 2 },
+  park: { hrParkFactor: 2, fenceDistance: 2 },
+  bvp: { xslg: 1, ev: 1, hrHistory: 1 }
 };
 
 function normalizeSubweights(sub) {
@@ -1078,7 +1040,6 @@ function safeGet(obj, ...keys) {
   return undefined;
 }
 
-// parseUsage: accepts fraction (0..1) or percent (0..100) or percent string "45%"
 function parseUsageValue(raw) {
   let v = cleanNumber(raw);
   if (!v) return 0;
@@ -1098,6 +1059,7 @@ function calculateBBI(p, weatherObj) {
   const scaleBarrel = Number(document.getElementById('weightBarrel').value) / 100;
   const scalePark = Number(document.getElementById('weightPark').value) / 100;
   const scalePulled = Number(document.getElementById('weightPulled').value) / 100;
+  const scaleWeather = Number(document.getElementById('weightWeather').value) / 100;
 
   const pa = cleanNumber(safeGet(p, 'PA', 'pa')) || 0;
   const totalHR = cleanNumber(safeGet(p, 'Total HR', 'HR', 'Homeruns')) || 0;
@@ -1130,11 +1092,9 @@ function calculateBBI(p, weatherObj) {
   const pitcherEVallowed = cleanNumber(safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV')) || 0;
   const pitcherPullAllowed = cleanNumber(safeGet(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%')) || 0;
 
-  // NEW: parse Pitcher xHR and Pitcher IP (if present in player row or fallback to VSP)
   let pitcherXhrRaw = cleanNumber(safeGet(p, 'Pitcher xHR', 'Pitcher xHR%', 'Pitcher xHR %', 'Pitcher xHR Rate')) || 0;
   let pitcherIPraw = cleanNumber(safeGet(p, 'Pitcher IP', 'P IP', 'PitcherIP', 'IP')) || 0;
 
-  // fallback to vsPitcher info if available
   const normalizedPlayer = normalizeName(p.Name);
   const vsp = vsPitcherData[normalizedPlayer];
   if (!pitcherXhrRaw && vsp) {
@@ -1144,7 +1104,6 @@ function calculateBBI(p, weatherObj) {
     pitcherIPraw = cleanNumber(safeGet(vsp, 'IP', 'Innings Pitched', 'P IP')) || pitcherIPraw;
   }
 
-  // Normalize name and look up VSP / PL / LastWeek data safely
   let vspPA = 0;
   let vsp_xslg = 0, vsp_ev = 0, vsp_hr = 0;
   if (vsp) {
@@ -1155,8 +1114,6 @@ function calculateBBI(p, weatherObj) {
   }
 
   const pl = plDataMap[normalizedPlayer] || {};
-
-  // --- PL parsing using vFA / wFA style headers ---
   const raw_wFA = safeGet(pl, 'wFA', 'wFA/C', 'wFA_C', 'wFA %', 'wFA%','wFA/C');
   const raw_wFC = safeGet(pl, 'wFC', 'wFC/C', 'wFC_C', 'wFC %', 'wFC%','wFC/C');
   const raw_wFS = safeGet(pl, 'wFS', 'wFS/C', 'wFS_C', 'wFS %', 'wFS%','wFS/C');
@@ -1164,8 +1121,6 @@ function calculateBBI(p, weatherObj) {
   const raw_wSI = safeGet(pl, 'wSI', 'wSI/C', 'wSI_C', 'wSI %', 'wSI%','wSI/C');
   const raw_wSL = safeGet(pl, 'wSL', 'wSL/C', 'wSL_C', 'wSL %', 'wSL%','wSL/C');
   const raw_wCU = safeGet(pl, 'wCU', 'wCU/C', 'wCU_C', 'wCU %', 'wCU%','wCU/C');
-
-  // Pitcher usage fallback fields
   const raw_pitcherFB = safeGet(pl, 'Pitcher FB %', 'Pitcher FB%', 'Pitcher FB %', 'Pitcher FB');
   const raw_pitcherFC = safeGet(pl, 'Pitcher Cut %', 'Pitcher Cut%', 'Pitcher Cutter %', 'Pitcher Cutter');
   const raw_pitcherFS = safeGet(pl, 'Pitcher SP %', 'Pitcher SP%', 'Pitcher Split %');
@@ -1174,7 +1129,6 @@ function calculateBBI(p, weatherObj) {
   const raw_pitcherSL = safeGet(pl, 'Pitcher SL %', 'Pitcher SL%', 'Pitcher Slider %');
   const raw_pitcherCV = safeGet(pl, 'Pitcher CV %', 'Pitcher CV%', 'Pitcher Curve %');
 
-  // velocity fields
   const vFA = cleanNumber(safeGet(pl, 'vFA', 'vFA (mph)', 'vFA_mph')) || 0;
   const vFC = cleanNumber(safeGet(pl, 'vFC', 'vFC (mph)', 'vFC_mph')) || 0;
   const vFS = cleanNumber(safeGet(pl, 'vFS', 'vFS (mph)', 'vFS_mph')) || 0;
@@ -1185,7 +1139,6 @@ function calculateBBI(p, weatherObj) {
   const vKC = cleanNumber(safeGet(pl, 'vKC', 'vKC (mph)', 'vKC_mph')) || 0;
   const vCH = cleanNumber(safeGet(pl, 'vCH', 'vCH (mph)', 'vCH_mph')) || 0;
 
-  // parse usages into fractions
   const u_wFA = parseUsageValue(raw_wFA);
   const u_wFC = parseUsageValue(raw_wFC);
   const u_wFS = parseUsageValue(raw_wFS);
@@ -1193,7 +1146,6 @@ function calculateBBI(p, weatherObj) {
   const u_wSI = parseUsageValue(raw_wSI);
   const u_wSL = parseUsageValue(raw_wSL);
   const u_wCU = parseUsageValue(raw_wCU);
-
   const u_pitcherFB = parseUsageValue(raw_pitcherFB);
   const u_pitcherFC = parseUsageValue(raw_pitcherFC);
   const u_pitcherFS = parseUsageValue(raw_pitcherFS);
@@ -1202,7 +1154,6 @@ function calculateBBI(p, weatherObj) {
   const u_pitcherSL = parseUsageValue(raw_pitcherSL);
   const u_pitcherCV = parseUsageValue(raw_pitcherCV);
 
-  // Group usage families
   const fbUsage = Math.max(0, (u_wFA + u_wFC + u_wSI) || (u_pitcherFB + u_pitcherFC + u_pitcherSNK));
   const breakingUsage = Math.max(0, (u_wSL + u_wCU) || (u_pitcherSL + u_pitcherCV));
   const offspeedUsage = Math.max(0, (u_wFS + u_wFO) || (u_pitcherFS + u_pitcherCH));
@@ -1217,25 +1168,11 @@ function calculateBBI(p, weatherObj) {
     return sum / totalUsage;
   }
 
-  const fbParts = [
-    { usage: u_wFA || u_pitcherFB, ev: vFA },
-    { usage: u_wFC || u_pitcherFC, ev: vFC },
-    { usage: u_wSI || u_pitcherSNK, ev: vSI }
-  ];
+  const fbParts = [ { usage: u_wFA || u_pitcherFB, ev: vFA }, { usage: u_wFC || u_pitcherFC, ev: vFC }, { usage: u_wSI || u_pitcherSNK, ev: vSI } ];
   const fbEV = weightedEV(fbParts);
-
-  const breakingParts = [
-    { usage: u_wSL || u_pitcherSL, ev: vSL },
-    { usage: u_wCU || u_pitcherCV, ev: vCU },
-    { usage: u_wFC ? 0 : 0, ev: vKC } // KC used only if present
-  ];
+  const breakingParts = [ { usage: u_wSL || u_pitcherSL, ev: vSL }, { usage: u_wCU || u_pitcherCV, ev: vCU }, { usage: u_wFC ? 0 : 0, ev: vKC } ];
   const breakingEV = weightedEV(breakingParts);
-
-  const offParts = [
-    { usage: u_wFS || u_pitcherFS, ev: vFS },
-    { usage: u_wFO || u_pitcherCH, ev: vFO },
-    { usage: 0, ev: vCH }
-  ];
+  const offParts = [ { usage: u_wFS || u_pitcherFS, ev: vFS }, { usage: u_wFO || u_pitcherCH, ev: vFO }, { usage: 0, ev: vCH } ];
   const offEV = weightedEV(offParts);
 
   let plFastball = fbUsage * ((fbEV - 88) / 10);
@@ -1269,21 +1206,9 @@ function calculateBBI(p, weatherObj) {
   const hp_hhM = ratioToModifier(hardHitRate, LEAGUE_AVERAGES.hardHitRate, { min:0.6, max:1.8, sensitivity:0.9 });
   const hp_blastContact = 1 + ((cleanNumber(safeGet(p, 'Blast Contact %', 'BlastContact%')) || 0) / 100) * 0.25;
   const hp_batSpeed = 1 + ((cleanNumber(safeGet(p, 'Bat Speed', 'BatSpeed')) || 0) / 100) * 0.12;
-  const hitterPowerModifier = (
-    (hp_barrelM * hpSub.barrelPct) +
-    (hp_isoM * hpSub.isoVsHand) +
-    (hp_maxEVM * hpSub.maxEV) +
-    (hp_avgEVM * hpSub.avgEV) +
-    (hp_hhM * hpSub.hardHitPct) +
-    (hp_blastContact * hpSub.blastContactPct) +
-    (hp_batSpeed * hpSub.batSpeed)
-  );
-
-  // NEW: Batter xHR influence (small, sensible bump to hitter power)
+  const hitterPowerModifier = ( (hp_barrelM * hpSub.barrelPct) + (hp_isoM * hpSub.isoVsHand) + (hp_maxEVM * hpSub.maxEV) + (hp_avgEVM * hpSub.avgEV) + (hp_hhM * hpSub.hardHitPct) + (hp_blastContact * hpSub.blastContactPct) + (hp_batSpeed * hpSub.batSpeed) );
   const batterXhrRaw = cleanNumber(safeGet(p, 'xHR', 'xHR%', 'xHR Rate')) || 0;
-  // Convert percent-style values to modest modifier; cap sensibly
   const batterXhrM = 1 + Math.max(-0.35, Math.min(0.9, batterXhrRaw * 1.35));
-  // Blend xhr influence into hitter power modifier (~8% influence)
   const hitterPowerModifierWithXhr = (hitterPowerModifier * 0.92) + (batterXhrM * 0.08);
 
   // Batted Ball Profile
@@ -1293,13 +1218,7 @@ function calculateBBI(p, weatherObj) {
   const bb_sweetSpot = 1 + ((cleanNumber(safeGet(p, 'Sweet Spot %', 'Sweetspot %')) || 0) / 100) * 0.6;
   const bb_attackAngle = 1 + ((cleanNumber(safeGet(p, 'Ideal Attack Angle %', 'Attack Angle', 'AttackAngle')) || 0) / 100) * 0.25;
   const bb_launchAngle = 1 + (((cleanNumber(safeGet(p, 'Launch Angle', 'LA')) || 10) - 10) / 30) * 0.2;
-  const battedBallModifier = (
-    (bb_pulledM * bbSub.pulledAirPct) +
-    (bb_fbM * bbSub.flyBallPct) +
-    (bb_sweetSpot * bbSub.sweetSpotPct) +
-    (bb_attackAngle * bbSub.idealAttackAnglePct) +
-    (bb_launchAngle * bbSub.launchAnglePct)
-  );
+  const battedBallModifier = ( (bb_pulledM * bbSub.pulledAirPct) + (bb_fbM * bbSub.flyBallPct) + (bb_sweetSpot * bbSub.sweetSpotPct) + (bb_attackAngle * bbSub.idealAttackAnglePct) + (bb_launchAngle * bbSub.launchAnglePct) );
 
   // Pitcher Vulnerability
   const pvSub = N_SUB.pitcherVulnerability;
@@ -1310,20 +1229,9 @@ function calculateBBI(p, weatherObj) {
   const pv_hrfbM = 1 + (pitcherHRFB * 0.5);
   const pv_evAllowedM = 1 + Math.max(-0.3, Math.min(0.6, (pitcherEVallowed - 88) / 88));
   const pv_pullAllowedM = 1 + Math.max(-0.25, Math.min(0.5, (pitcherPullAllowed - 0.25)));
-  const pitcherVulnerabilityModifier = (
-    (pv_hr9M * pvSub.pitcherHR9) +
-    (pv_barrelAllowedM * pvSub.pitcherBarrelAllowed) +
-    (pv_hhAllowedM * pvSub.pitcherHardHitAllowed) +
-    (pv_fbM * pvSub.pitcherFBpct) +
-    (pv_hrfbM * pvSub.pitcherHRFBpct) +
-    (pv_evAllowedM * pvSub.pitcherEVallowed) +
-    (pv_pullAllowedM * pvSub.pitcherPullAllowed)
-  );
-
-  // NEW: incorporate Pitcher xHR (stabilized by Pitcher IP) into pitcher vulnerability
+  const pitcherVulnerabilityModifier = ( (pv_hr9M * pvSub.pitcherHR9) + (pv_barrelAllowedM * pvSub.pitcherBarrelAllowed) + (pv_hhAllowedM * pvSub.pitcherHardHitAllowed) + (pv_fbM * pvSub.pitcherFBpct) + (pv_hrfbM * pvSub.pitcherHRFBpct) + (pv_evAllowedM * pvSub.pitcherEVallowed) + (pv_pullAllowedM * pvSub.pitcherPullAllowed) );
   const stabilizedPitcherXHR = applyStabilization(pitcherXhrRaw, LEAGUE_AVERAGES.pitcherHR9, pitcherIPraw, STABILIZATION.pitcherIP);
   const pv_xhrM = ratioToModifier(stabilizedPitcherXHR, LEAGUE_AVERAGES.pitcherHR9, { min:0.6, max:2.0 });
-  // Blend in with modest but material influence (~12% of pitcher's vulnerability)
   const pitcherVulnerabilityWithXhr = (pitcherVulnerabilityModifier * 0.88) + (pv_xhrM * 0.12);
 
   // Pitch Matchup
@@ -1333,13 +1241,7 @@ function calculateBBI(p, weatherObj) {
   const pl_offM = 1 + Math.max(-0.5, Math.min(0.6, plOffspeed / 10));
   const pl_stuffM = 1 + Math.max(-0.3, Math.min(0.6, plStuffPlus / 10));
   const pl_pitchPlusM = 1 + Math.max(-0.3, Math.min(0.6, plPitchingPlus / 10));
-  const pitchMatchupModifier = (
-    (pl_fastM * pmSub.fastballRV) +
-    (pl_brkM * pmSub.breakingRV) +
-    (pl_offM * pmSub.offspeedRV) +
-    (pl_stuffM * pmSub.stuffPlus) +
-    (pl_pitchPlusM * pmSub.pitchingPlus)
-  );
+  const pitchMatchupModifier = ( (pl_fastM * pmSub.fastballRV) + (pl_brkM * pmSub.breakingRV) + (pl_offM * pmSub.offspeedRV) + (pl_stuffM * pmSub.stuffPlus) + (pl_pitchPlusM * pmSub.pitchingPlus) );
 
   // Recent Form
   const rfSub = N_SUB.recentForm;
@@ -1348,57 +1250,70 @@ function calculateBBI(p, weatherObj) {
   const rf_xslgM = 1 + Math.max(-0.4, Math.min(0.9, (lwxSLG || 0) - 0.3));
   const rf_hrsM = 1 + Math.max(0, Math.min(0.5, lwHRs * 0.08));
   const rf_hhM = ratioToModifier(lwHardHit, LEAGUE_AVERAGES.hardHitRate, { min:0.7, max:1.6 });
-  const recentFormModifier = (
-    (rf_barrelM * rfSub.lastWeekBarrelPct) +
-    (rf_evM * rfSub.lastWeekEV) +
-    (rf_xslgM * rfSub.lastWeekxSLG) +
-    (rf_hrsM * rfSub.lastWeekHRs) +
-    (rf_hhM * rfSub.lastWeekHardHit)
-  );
+  const recentFormModifier = ( (rf_barrelM * rfSub.lastWeekBarrelPct) + (rf_evM * rfSub.lastWeekEV) + (rf_xslgM * rfSub.lastWeekxSLG) + (rf_hrsM * rfSub.lastWeekHRs) + (rf_hhM * rfSub.lastWeekHardHit) );
 
-  // Weather
+  // --- NEW COMPREHENSIVE WEATHER LOGIC ---
   let computedWeatherMod = 1.0;
   if (weatherObj && !weatherObj.isDome) {
-    const temp = weatherObj.temp || 70;
-    const tempBonus = (temp > 75) ? ((temp - 75) * 0.012) : ((temp < 65) ? ((65 - temp) * -0.012) : 0);
-    const windSpeed = weatherObj.windSpeed || 0;
-    const windDir = String(weatherObj.windDir || 'neutral').toLowerCase();
-    const getWindBoost = (speed) => {
-      if (speed >= 23) return 0.25;
-      if (speed >= 19) return 0.20;
-      if (speed >= 15) return 0.15;
-      if (speed >= 11) return 0.10;
-      if (speed >= 8) return 0.06;
-      if (speed >= 5) return 0.03;
-      return 0;
-    };
-    const getWindPenalty = (speed) => {
-      if (speed >= 20) return -0.10;
-      if (speed >= 16) return -0.08;
-      if (speed >= 11) return -0.05;
-      if (speed >= 5) return -0.02;
-      return 0;
-    };
-    let windBonus = 0;
     const hitterHand = getHitterHandedness(p);
-    if (hitterHand === 'R') {
-      if (windDir.includes('out') && windDir.includes('lf')) windBonus = getWindBoost(windSpeed);
-      else if (windDir.includes('in') && windDir.includes('lf')) windBonus = getWindPenalty(windSpeed);
-      else if (windDir.includes('out') && windDir.includes('rf')) windBonus = getWindPenalty(windSpeed);
-      else if (windDir.includes('in') && windDir.includes('rf')) windBonus = getWindBoost(windSpeed);
-      else if (windDir.includes('out')) windBonus = getWindBoost(windSpeed) * 0.75;
-      else if (windDir.includes('in')) windBonus = getWindPenalty(windSpeed) * 0.75;
-      else if (windDir.includes('center') || windDir.includes('cf')) windBonus = getWindBoost(windSpeed) * 0.50;
-    } else if (hitterHand === 'L') {
-      if (windDir.includes('out') && windDir.includes('rf')) windBonus = getWindBoost(windSpeed);
-      else if (windDir.includes('in') && windDir.includes('rf')) windBonus = getWindPenalty(windSpeed);
-      else if (windDir.includes('out') && windDir.includes('lf')) windBonus = getWindPenalty(windSpeed);
-      else if (windDir.includes('in') && windDir.includes('lf')) windBonus = getWindBoost(windSpeed);
-      else if (windDir.includes('out')) windBonus = getWindBoost(windSpeed) * 0.75;
-      else if (windDir.includes('in')) windBonus = getWindPenalty(windSpeed) * 0.75;
-      else if (windDir.includes('center') || windDir.includes('cf')) windBonus = getWindBoost(windSpeed) * 0.50;
+    const dir = String(weatherObj.windDir || 'neutral').toLowerCase();
+    const speed = Number(weatherObj.windSpeed || 0);
+    
+    // 1. Directional Base Effect
+    let windEffect = 0;
+    if (dir.includes('out') && dir.includes('lf')) {
+      windEffect = (hitterHand === 'R') ? 1.0 : 0.3;
+    } else if (dir.includes('out') && dir.includes('cf')) {
+      let fbRate = cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')) || 0.41;
+      let playerEV = cleanNumber(safeGet(p, 'Avg EV', 'EV')) || 88;
+      let fbEvScale = 1.0 + ((fbRate - 0.41) * 0.5) + ((playerEV - 88) * 0.02);
+      windEffect = 0.8 * fbEvScale;
+    } else if (dir.includes('out') && dir.includes('rf')) {
+      windEffect = (hitterHand === 'L') ? 1.0 : 0.3;
+    } else if (dir.includes('in') && dir.includes('lf')) {
+      windEffect = (hitterHand === 'R') ? -1.0 : -0.6;
+    } else if (dir.includes('in') && dir.includes('cf')) {
+      windEffect = -0.7;
+    } else if (dir.includes('in') && dir.includes('rf')) {
+      windEffect = (hitterHand === 'L') ? -1.0 : -0.6;
+    } else if (dir.includes('left') && dir.includes('right') && dir.indexOf('left') < dir.indexOf('right')) {
+      windEffect = (hitterHand === 'L') ? 0.5 : 0.1; // LF -> RF drift
+    } else if (dir.includes('right') && dir.includes('left') && dir.indexOf('right') < dir.indexOf('left')) {
+      windEffect = (hitterHand === 'R') ? 0.5 : 0.1; // RF -> LF drift
+    } else if (dir.includes('out')) {
+      windEffect = 0.8; // generic out
+    } else if (dir.includes('in')) {
+      windEffect = -0.7; // generic in
     }
-    computedWeatherMod = 1.0 + tempBonus + windBonus;
+
+    // 2. Wind Speed Modifier
+    let speedMult = 1.0;
+    if (speed <= 5) speedMult = 0.3;
+    else if (speed <= 10) speedMult = 0.7;
+    else if (speed <= 15) speedMult = 1.0;
+    else speedMult = 1.35; // 15+ mph sustained
+
+    // 3. Stadium Geometry Adjustment (Foul pole distances)
+    let parkGeoMult = 1.0;
+    if (dir.includes('lf') && parkDims.lf < 325) parkGeoMult = 1.15;
+    if (dir.includes('rf') && parkDims.rf < 325) parkGeoMult = 1.15;
+    if (dir.includes('cf') && parkDims.cf < 390) parkGeoMult = 1.10;
+
+    let finalWindBonus = windEffect * speedMult * parkGeoMult;
+
+    // 4. Temperature (Air Density)
+    let temp = Number(weatherObj.temp || 72);
+    let tempBonus = 0;
+    if (temp < 60) tempBonus = -0.15;
+    else if (temp >= 60 && temp <= 75) tempBonus = 0.0;
+    else if (temp > 75 && temp <= 85) tempBonus = 0.10;
+    else if (temp > 85) tempBonus = 0.20;
+
+    // 5. Humidity (Minor carry effect)
+    let humidity = Number(weatherObj.humidity || 0);
+    let humidityBonus = (humidity > 60) ? 0.02 : 0.0;
+
+    computedWeatherMod = 1.0 + finalWindBonus + tempBonus + humidityBonus;
   }
 
   // Park
@@ -1438,7 +1353,7 @@ function calculateBBI(p, weatherObj) {
     (bvpModifier * SCORE_WEIGHTS.bvp)
   );
 
-  let finalScore = combined * scaleHRFB * scalePitcherHR9 * scaleBarrel * scalePark * scalePulled;
+  let finalScore = combined * scaleHRFB * scalePitcherHR9 * scaleBarrel * scalePark * scalePulled * scaleWeather;
   finalScore = Math.min(100, finalScore * 22);
   finalScore = finalScore * credibilityMultiplier;
 
