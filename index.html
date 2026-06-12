@@ -596,6 +596,12 @@ tr:hover {
 }
 .stat-label { color: var(--text-muted); font-size: 10px; }
 .stat-value { color: var(--accent); font-weight: 700; font-family: monospace; }
+
+/* New Styles for Pitcher Targets */
+.vulnerability-high {
+  color: #ef4444;
+  font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -605,26 +611,52 @@ tr:hover {
       <img id="dashboardLogoSource" src="bbi-logo.jpg" alt="Logo" onerror="this.style.display='none';">
     </div>
     <h1>The Daily Run Line's Homerun Index</h1>
-    <div class="subtitle">MLB Daily Home Run Predictive Analytics Panel</div>
+    <div class="subtitle">Bowen's Bash Index (BBI)</div>
   </div>
 
   <div id="spotlightTicker" class="spotlight-ticker">
     <div class="spotlight-title">
       <span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>
-      Heavy Hitters // Daily Apex Models (Top 12)
+     Top 12 Homerun Targets
     </div>
     <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
   </div>
 
   <div class="upload-box">
     <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
-    <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">Upload your workbook with HR, vsPitcher, PLdata, lastweek, and weather sheets</div>
+    <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">Upload your workbook with HR, vsPitcher, PLdata, lastweek, weather, and <b>top5</b> sheets</div>
   </div>
+
+  <!-- NEW SECTION: TOP 5 PITCHER TARGETS -->
+  <div class="table-wrapper" style="margin-top: 24px; border: 1px solid var(--border);">
+    <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
+      <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🎯 Top 5 Pitcher Targets</h2>
+      <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Identifies the 5 opposing pitchers with the highest HR/9 rates.</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 50px;">Rank</th>
+          <th>Pitcher</th>
+          <th>Team</th>
+          <th>HR/9 vs LHB</th>
+          <th>HR/9 vs RHB</th>
+          <th>Primary Vulnerability</th>
+        </tr>
+      </thead>
+      <tbody id="pitcher-targets-body">
+        <tr>
+          <td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- END NEW SECTION -->
 
   <div class="dashboard-grid">
     <div style="display:flex; flex-direction:column; gap:24px;">
       <div class="panel">
-        <h2>Live Calibration Console</h2>
+        <h2>Live Calibration Station</h2>
         <div class="slider-container">
           <div class="slider-header"><span>HR/FB % Weight</span><span id="valWeightHRFB">100%</span></div>
           <input type="range" id="weightHRFB" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
@@ -653,17 +685,19 @@ tr:hover {
       </div>
 
       <div class="panel">
-        <h2>Automated Optimal Slips</h2>
+        <h2>Parlay Generator</h2>
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
           <button onclick="generateOptimalSlip('pack2')" class="btn-blue" style="padding:10px; font-size:11px; flex:1;">🚀 Power 2-Pack</button>
           <button onclick="generateOptimalSlip('pack3')" class="btn-blue" style="padding:10px; font-size:11px; flex:1;">💥 Power 3-Pack</button>
         </div>
         <button onclick="generateOptimalSlip('stack')" class="btn-blue" style="padding:10px; font-size:11px; width:100%; margin-bottom:12px; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-color: #8b5cf6;">🏟️ Correlated Team Stack</button>
-        <div id="optimalResults">Trigger generator arrays above to construct highly optimized projection slips automatically.</div>
+        <div id="optimalResults">Trigger generator arrays above to construct highly optimized projection slips automatically. 
+
+Connor is the Drive God </div>
       </div>
 
       <div class="panel">
-        <h2>Filter by team:</h2>
+        <h2>Filter by team</h2>
         <div id="todayTeamsList" class="today-teams-list">
           <div class="today-team-empty">Upload today's workbook to load every team playing today.</div>
         </div>
@@ -681,7 +715,7 @@ tr:hover {
       </div>
 
       <div class="panel" id="graphicsPanel" style="display:none;">
-        <h2>Media Asset Generation</h2>
+        <h2>Exports</h2>
         <button onclick="generateDailyDingerGraphic()" class="btn-blue" style="background: linear-gradient(135deg, #091c36 0%, #0f2b48 100%); border-color:#223e66; margin-bottom:12px;">⚡ Export Daily Top 50 Graphic</button>
         <button onclick="generateTeamMatrixGraphic()" class="btn-blue" style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); border-color:#1e3a8a;">📋 Export Team Matrix Graphic</button>
       </div>
@@ -715,8 +749,8 @@ tr:hover {
               <th style="text-align: left; padding-left: 20px;">Player</th>
               <th>Team</th>
               <th>Opposing Pitcher</th>
-              <th>Current Game Climate</th>
-              <th>Homerun Index</th>
+              <th>Weather</th>
+              <th>BBI</th>
               <th style="width: 95px;">Action</th>
             </tr>
           </thead>
@@ -838,6 +872,7 @@ function loadCachedData() {
         document.getElementById('graphicsPanel').style.display = 'block';
         document.getElementById('topThreeContainer').style.display = 'block';
         recalculateAllBBIScores();
+        renderTop5PitcherTargets(); // <--- TRIGGER PITCHER TARGETS
       }
     } catch(e) { console.log('Cache load error'); }
   }
@@ -861,7 +896,7 @@ function handleFile(e) {
   reader.onload = function(e) {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, {type: 'array'});
-    let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [];
+    let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [];
     teamToGameIdMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {};
     workbook.SheetNames.forEach(sheetName => {
       let nameClean = sheetName.toUpperCase().trim();
@@ -871,8 +906,13 @@ function handleFile(e) {
       if (nameClean === 'LASTWEEK') lwRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'WEATHER') weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'BULLPEN') bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'TOP5') top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
     });
+    
+    // Store top5 data globally so the render function can access it
+    window.top5SheetData = top5Raw;
+
     vpRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) vsPitcherData[normalizeName(raw)] = x; });
     plRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) plDataMap[normalizeName(raw)] = x; });
     lwRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) lastWeekMap[normalizeName(raw)] = x; });
@@ -910,6 +950,7 @@ function handleFile(e) {
     document.getElementById('graphicsPanel').style.display = 'block';
     document.getElementById('topThreeContainer').style.display = 'block';
     recalculateAllBBIScores();
+    renderTop5PitcherTargets(); // <--- TRIGGER PITCHER TARGETS
     saveCachedData();
   };
   reader.readAsArrayBuffer(f);
@@ -1066,10 +1107,10 @@ function calculateBBI(p, weatherObj) {
   const hrFB = cleanNumber(safeGet(p, 'HR/FB %', 'HR/FB', 'HRFB')) || 0;
 
   let credibilityMultiplier = 1.0;
-  if (pa < 100 && totalHR === 0) credibilityMultiplier = 0.3;
-  else if (pa < 150 && totalHR <= 1) credibilityMultiplier = 0.6;
-  else if (pa < 200 && hrFB === 0) credibilityMultiplier = 0.8;
-  else if (pa >= 200) credibilityMultiplier = 1.0;
+  if (pa < 50 && totalHR === 0) credibilityMultiplier = 0.5;
+  else if (pa < 100 && totalHR <= 1) credibilityMultiplier = 0.75;
+  else if (pa < 150 && hrFB === 0) credibilityMultiplier = 0.90;
+  else if (pa >= 150) credibilityMultiplier = 1.0;
 
   const ev = cleanNumber(safeGet(p, 'Avg EV', 'EV')) || 88;
   const maxEV = cleanNumber(safeGet(p, 'Max EV', 'MaxEV')) || ev;
@@ -1197,7 +1238,6 @@ function calculateBBI(p, weatherObj) {
   const parkDims = parkFactorMap[homeTeam] || { lf: 330, cf: 400, rf: 330 };
   const parkPF = cleanNumber(safeGet(p, 'pf', 'PF', 'ParkFactor')) || (parkDims.pf || 100);
 
-  // Hitter Power Profile
   const hpSub = N_SUB.hitterPowerProfile;
   const hp_barrelM = ratioToModifier(barrelRateStabilized, LEAGUE_AVERAGES.barrelRate, { min:0.5, max:2.2, sensitivity:0.95 });
   const hp_isoM = ratioToModifier(isoStabilized, LEAGUE_AVERAGES.iso, { min:0.5, max:2.0, sensitivity:0.9 });
@@ -1211,7 +1251,6 @@ function calculateBBI(p, weatherObj) {
   const batterXhrM = 1 + Math.max(-0.35, Math.min(0.9, batterXhrRaw * 1.35));
   const hitterPowerModifierWithXhr = (hitterPowerModifier * 0.92) + (batterXhrM * 0.08);
 
-  // Batted Ball Profile
   const bbSub = N_SUB.battedBallProfile;
   const bb_pulledM = ratioToModifier(pulledAirStabilized, 0.18, { min:0.6, max:2.2, sensitivity:0.95 });
   const bb_fbM = ratioToModifier(flyBallRate, LEAGUE_AVERAGES.fbRate, { min:0.6, max:1.8, sensitivity:0.85 });
@@ -1220,7 +1259,6 @@ function calculateBBI(p, weatherObj) {
   const bb_launchAngle = 1 + (((cleanNumber(safeGet(p, 'Launch Angle', 'LA')) || 10) - 10) / 30) * 0.2;
   const battedBallModifier = ( (bb_pulledM * bbSub.pulledAirPct) + (bb_fbM * bbSub.flyBallPct) + (bb_sweetSpot * bbSub.sweetSpotPct) + (bb_attackAngle * bbSub.idealAttackAnglePct) + (bb_launchAngle * bbSub.launchAnglePct) );
 
-  // Pitcher Vulnerability
   const pvSub = N_SUB.pitcherVulnerability;
   const pv_hr9M = ratioToModifier(pitcherHR9, LEAGUE_AVERAGES.pitcherHR9, { min:0.6, max:1.8 });
   const pv_barrelAllowedM = ratioToModifier(pitcherBarrelAllowed, LEAGUE_AVERAGES.pitcherBarrelAllowed, { min:0.6, max:1.8 });
@@ -1234,7 +1272,6 @@ function calculateBBI(p, weatherObj) {
   const pv_xhrM = ratioToModifier(stabilizedPitcherXHR, LEAGUE_AVERAGES.pitcherHR9, { min:0.6, max:2.0 });
   const pitcherVulnerabilityWithXhr = (pitcherVulnerabilityModifier * 0.88) + (pv_xhrM * 0.12);
 
-  // Pitch Matchup
   const pmSub = N_SUB.pitchMatchup;
   const pl_fastM = 1 + Math.max(-0.5, Math.min(0.9, plFastball / 10));
   const pl_brkM = 1 + Math.max(-0.5, Math.min(0.9, plBreaking / 10));
@@ -1243,7 +1280,6 @@ function calculateBBI(p, weatherObj) {
   const pl_pitchPlusM = 1 + Math.max(-0.3, Math.min(0.6, plPitchingPlus / 10));
   const pitchMatchupModifier = ( (pl_fastM * pmSub.fastballRV) + (pl_brkM * pmSub.breakingRV) + (pl_offM * pmSub.offspeedRV) + (pl_stuffM * pmSub.stuffPlus) + (pl_pitchPlusM * pmSub.pitchingPlus) );
 
-  // Recent Form
   const rfSub = N_SUB.recentForm;
   const rf_barrelM = ratioToModifier(lwBarrel, LEAGUE_AVERAGES.barrelRate, { min:0.6, max:2.0 });
   const rf_evM = 1 + Math.max(-0.4, Math.min(0.9, ((lwEV || 0) - 88) / 88));
@@ -1252,14 +1288,12 @@ function calculateBBI(p, weatherObj) {
   const rf_hhM = ratioToModifier(lwHardHit, LEAGUE_AVERAGES.hardHitRate, { min:0.7, max:1.6 });
   const recentFormModifier = ( (rf_barrelM * rfSub.lastWeekBarrelPct) + (rf_evM * rfSub.lastWeekEV) + (rf_xslgM * rfSub.lastWeekxSLG) + (rf_hrsM * rfSub.lastWeekHRs) + (rf_hhM * rfSub.lastWeekHardHit) );
 
-  // --- NEW COMPREHENSIVE WEATHER LOGIC ---
   let computedWeatherMod = 1.0;
   if (weatherObj && !weatherObj.isDome) {
     const hitterHand = getHitterHandedness(p);
     const dir = String(weatherObj.windDir || 'neutral').toLowerCase();
     const speed = Number(weatherObj.windSpeed || 0);
     
-    // 1. Directional Base Effect
     let windEffect = 0;
     if (dir.includes('out') && dir.includes('lf')) {
       windEffect = (hitterHand === 'R') ? 1.0 : 0.3;
@@ -1277,23 +1311,21 @@ function calculateBBI(p, weatherObj) {
     } else if (dir.includes('in') && dir.includes('rf')) {
       windEffect = (hitterHand === 'L') ? -1.0 : -0.6;
     } else if (dir.includes('left') && dir.includes('right') && dir.indexOf('left') < dir.indexOf('right')) {
-      windEffect = (hitterHand === 'L') ? 0.5 : 0.1; // LF -> RF drift
+      windEffect = (hitterHand === 'L') ? 0.5 : 0.1;
     } else if (dir.includes('right') && dir.includes('left') && dir.indexOf('right') < dir.indexOf('left')) {
-      windEffect = (hitterHand === 'R') ? 0.5 : 0.1; // RF -> LF drift
+      windEffect = (hitterHand === 'R') ? 0.5 : 0.1;
     } else if (dir.includes('out')) {
-      windEffect = 0.8; // generic out
+      windEffect = 0.8;
     } else if (dir.includes('in')) {
-      windEffect = -0.7; // generic in
+      windEffect = -0.7;
     }
 
-    // 2. Wind Speed Modifier
     let speedMult = 1.0;
     if (speed <= 5) speedMult = 0.3;
     else if (speed <= 10) speedMult = 0.7;
     else if (speed <= 15) speedMult = 1.0;
-    else speedMult = 1.35; // 15+ mph sustained
+    else speedMult = 1.35;
 
-    // 3. Stadium Geometry Adjustment (Foul pole distances)
     let parkGeoMult = 1.0;
     if (dir.includes('lf') && parkDims.lf < 325) parkGeoMult = 1.15;
     if (dir.includes('rf') && parkDims.rf < 325) parkGeoMult = 1.15;
@@ -1301,7 +1333,6 @@ function calculateBBI(p, weatherObj) {
 
     let finalWindBonus = windEffect * speedMult * parkGeoMult;
 
-    // 4. Temperature (Air Density)
     let temp = Number(weatherObj.temp || 72);
     let tempBonus = 0;
     if (temp < 60) tempBonus = -0.15;
@@ -1309,14 +1340,12 @@ function calculateBBI(p, weatherObj) {
     else if (temp > 75 && temp <= 85) tempBonus = 0.10;
     else if (temp > 85) tempBonus = 0.20;
 
-    // 5. Humidity (Minor carry effect)
     let humidity = Number(weatherObj.humidity || 0);
     let humidityBonus = (humidity > 60) ? 0.02 : 0.0;
 
     computedWeatherMod = 1.0 + finalWindBonus + tempBonus + humidityBonus;
   }
 
-  // Park
   let parkDimensionMod = 1.0;
   const hitterHand2 = getHitterHandedness(p);
   if (hitterHand2 === 'R') {
@@ -1333,7 +1362,6 @@ function calculateBBI(p, weatherObj) {
   const parkPFmod = 1 + ((parkPF - 100) / 100) * 0.25;
   const parkModifier = ((parkDimensionMod * N_SUB.park.fenceDistance) + (parkPFmod * N_SUB.park.hrParkFactor));
 
-  // BvP
   let bvpModifier = 1.0;
   if (vsp && vspPA >= 15) {
     const bvp_xslgM = 1 + Math.max(-0.4, Math.min(0.8, ((vsp_xslg || 0) - 0.3)));
@@ -1354,7 +1382,7 @@ function calculateBBI(p, weatherObj) {
   );
 
   let finalScore = combined * scaleHRFB * scalePitcherHR9 * scaleBarrel * scalePark * scalePulled * scaleWeather;
-  finalScore = Math.min(100, finalScore * 22);
+  finalScore = Math.min(100, finalScore * 45);
   finalScore = finalScore * credibilityMultiplier;
 
   p.calculatedBvP = bvpModifier;
@@ -1438,16 +1466,16 @@ function renderMainTableBoard(data) {
     const flyBallRate = cleanNumber(p['Fly Ball Rate'] || p['FB%'] || p['Fly Ball %']) * 100;
     
     let badgeHtml = '';
-    if (bBarrel >= 14.5) badgeHtml += `<span class="metric-badge badge-barrel">🚀 BARREL MACHINE</span>`;
-    if (isoVal >= 0.240) badgeHtml += `<span class="metric-badge badge-power">💪 PURE POWER</span>`;
-    if (pulledAir >= 25) badgeHtml += `<span class="metric-badge badge-pulledair">⬅️ PULLED AIR ELITE</span>`;
+    if (bBarrel >= 14.5) badgeHtml += `<span class="metric-badge badge-barrel">🌪️ Barrel Storm </span>`;
+    if (isoVal >= 0.240) badgeHtml += `<span class="metric-badge badge-power">💣 BOMB SQUAD</span>`;
+    if (pulledAir >= 25) badgeHtml += `<span class="metric-badge badge-pulledair"> 💥 Pull Power</span>`;
 
     const pitcherFBMod = p.calculatedPitcherFB || 1.0;
     if (pitcherFBMod > 1.25) badgeHtml += `<span class="metric-badge badge-meatball">🍝 PITCHER FLY BALL</span>`;
 
-    if (flyBallRate >= 40 && pullRate >= 40) badgeHtml += `<span class="metric-badge badge-angle">📐 DINGER ANGLE</span>`;
-    if (pHR9 >= 1.6) badgeHtml += `<span class="metric-badge badge-gopher">⚠️ GOPHER PITCHER</span>`;
-    if (jackpotTop4Names.includes(p.Name)) badgeHtml += `<span class="metric-badge badge-jackpot">🎯 JACKPOT TOP 4</span>`;
+    if (flyBallRate >= 40 && pullRate >= 40) badgeHtml += `<span class="metric-badge badge-angle">📐 LAUNCH ANGLE KING</span>`;
+    if (pHR9 >= 1.6) badgeHtml += `<span class="metric-badge badge-gopher">⚠️ PITCHER TARGET</span>`;
+    if (jackpotTop4Names.includes(p.Name)) badgeHtml += `<span class="metric-badge badge-jackpot">🎯 FANATICS JACKPOT TARGET</span>`;
 
     const credibility = p.calculatedCredibility || 1.0;
     if (credibility < 1.0) {
@@ -1631,6 +1659,87 @@ function renderTopTwelveSpotlightWidget() {
     card.innerHTML = `<div style="display:flex; align-items:center; min-width:0;"><span style="font-family:monospace; font-weight:800; color:var(--stadium-lights); font-size:12px; margin-right:8px; width:20px;">#${index+1}</span>${logoImg}<div style="min-width:0; overflow:hidden; text-overflow:ellipsis;"><div style="font-weight:800; color:#fff; font-size:12px;">${p.Name}</div><div style="font-size:10px; color:var(--text-muted); font-weight:600;">vs ${p['Opp Pitcher'] || 'Pitcher'}</div></div></div><div style="font-family:monospace; font-weight:900; color:var(--accent); font-size:15px; margin-left:8px;">${p.calculatedBBI.toFixed(1)}</div>`;
     grid.appendChild(card);
   });
+}
+
+// --- FIXED LOGIC: TOP 5 PITCHER TARGETS (FROM "top5" SHEET) ---
+function renderTop5PitcherTargets() {
+    const tbody = document.getElementById('pitcher-targets-body');
+    if(!tbody) return;
+
+    // Use the stored top5 sheet data
+    let rawPitchers = window.top5SheetData || [];
+
+    if (rawPitchers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No data found in "top5" sheet...</td></tr>`;
+        return;
+    }
+
+    // Process rows to extract Pitcher info and Splits
+    let processedPitchers = rawPitchers.map(row => {
+        // Attempt to find Pitcher Name (Column A or common headers)
+        let pName = String(safeGet(row, 'Pitcher', 'Name', 'Player', 'A') || '').trim();
+        let pTeam = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
+
+        // Get Splits (Assuming Col C is Left, Col D is Right based on prompt)
+        // We check multiple possible header names just in case, but prioritize generic positions if headers are missing
+        let valC = cleanNumber(safeGet(row, 'HR/9 vs LHB', 'HR/9 vs L', 'HR/9 LHB', 'HR/9 L', 'C'));
+        let valD = cleanNumber(safeGet(row, 'HR/9 vs RHB', 'HR/9 vs R', 'HR/9 RHB', 'HR/9 R', 'D'));
+
+        // If headers aren't standard, try to grab by index if available (less reliable in JSON conversion but good fallback)
+        // Note: XLSX utils usually map by header. If no headers, it uses A, B, C, D.
+        
+        return {
+            name: pName,
+            team: pTeam,
+            lhb: valC,
+            rhb: valD
+        };
+    }).filter(p => p.name && p.name !== '');
+
+    // Sort by the highest available metric (split or total)
+    // We want the top 5 pitchers with the HIGHEST vulnerability
+    processedPitchers.sort((a, b) => {
+        let maxA = Math.max(a.lhb, a.rhb);
+        let maxB = Math.max(b.lhb, b.rhb);
+        return maxB - maxA;
+    });
+
+    let top5 = processedPitchers.slice(0, 5);
+
+    if (top5.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No valid pitcher data found...</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = '';
+    top5.forEach((p, idx) => {
+        let vulnerabilityText = 'Even Matchup';
+        let vulnClass = '';
+        
+        // Determine primary vulnerability based on splits
+        // "if a pitcher is bad agaisnt lefties but not righties he only needs the left. so the highest in columns c and d."
+        if (p.lhb >= p.rhb) {
+            vulnerabilityText = `Left-Handed Batters (${p.lhb.toFixed(2)} HR/9)`;
+            vulnClass = 'vulnerability-high';
+        } else {
+            vulnerabilityText = `Right-Handed Batters (${p.rhb.toFixed(2)} HR/9)`;
+            vulnClass = 'vulnerability-high';
+        }
+
+        const logoUrl = teamLogos[p.team] || '';
+        const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="" style="width:20px; height:20px; margin-right:8px; vertical-align:middle;">` : '';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-family:monospace; font-weight:700; color:var(--text-muted);">#${idx+1}</td>
+            <td style="font-weight:700; color:#fff;">${p.name}</td>
+            <td style="color:#94a3b8; font-weight:600;">${logoImg}${p.team}</td>
+            <td style="font-family:monospace; color:#38bdf8; font-weight:700;">${p.lhb > 0 ? p.lhb.toFixed(2) : '-'}</td>
+            <td style="font-family:monospace; color:#38bdf8; font-weight:700;">${p.rhb > 0 ? p.rhb.toFixed(2) : '-'}</td>
+            <td class="${vulnClass}" style="font-size:12px;">${vulnerabilityText}</td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 function loadTeamLogoImages(callback) {
