@@ -396,6 +396,7 @@ tr:hover {
 .badge-pitch-fb { background: linear-gradient(135deg, #ff0055 0%, #990033 100%); color: #fff; }
 .badge-pitch-brk { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; }
 .badge-lowvolume { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+.badge-env { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
 @keyframes pulse {
   0% { opacity: 0.8; }
   50% { opacity: 1; }
@@ -872,7 +873,7 @@ function loadCachedData() {
         document.getElementById('graphicsPanel').style.display = 'block';
         document.getElementById('topThreeContainer').style.display = 'block';
         recalculateAllBBIScores();
-        renderTop5PitcherTargets(); // <--- TRIGGER PITCHER TARGETS
+        renderTop5PitcherTargets(); 
       }
     } catch(e) { console.log('Cache load error'); }
   }
@@ -900,17 +901,16 @@ function handleFile(e) {
     teamToGameIdMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {};
     workbook.SheetNames.forEach(sheetName => {
       let nameClean = sheetName.toUpperCase().trim();
-      if (nameClean === 'HR' || nameClean === 'HOMERUN') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-      if (nameClean === 'VSPITCHER' || nameClean === 'BVP') vpRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'HR' || nameClean === 'HOMERUN' || nameClean === 'SHEET1') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'VSPITCHER' || nameClean === 'BVP' || nameClean === 'SHEET2') vpRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'PLDATA' || nameClean === 'PL') plRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'LASTWEEK') lwRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'WEATHER') weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'BULLPEN') bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-      if (nameClean === 'TOP5') top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'TOP5' || nameClean === 'SHEET3') top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
     });
     
-    // Store top5 data globally so the render function can access it
     window.top5SheetData = top5Raw;
 
     vpRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) vsPitcherData[normalizeName(raw)] = x; });
@@ -950,7 +950,7 @@ function handleFile(e) {
     document.getElementById('graphicsPanel').style.display = 'block';
     document.getElementById('topThreeContainer').style.display = 'block';
     recalculateAllBBIScores();
-    renderTop5PitcherTargets(); // <--- TRIGGER PITCHER TARGETS
+    renderTop5PitcherTargets(); 
     saveCachedData();
   };
   reader.readAsArrayBuffer(f);
@@ -1028,7 +1028,6 @@ function applyStabilization(actual, leagueAvg, sample, stabilizationPA) {
   return (actual * weight) + (leagueAvg * (1 - weight));
 }
 
-// UPDATED WEIGHTS: Sum = 1.00
 const SCORE_WEIGHTS = {
   hitterPowerProfile: 0.25,
   pitcherVulnerability: 0.18,
@@ -1385,6 +1384,60 @@ function calculateBBI(p, weatherObj) {
   finalScore = Math.min(100, finalScore * 45);
   finalScore = finalScore * credibilityMultiplier;
 
+  // ==========================================
+  // NEW MULTIPLIERS INTEGRATION (UPDATED WEIGHTS)
+  // ==========================================
+  
+  // 1. Game Total (Vegas O/U) Environment Multiplier - HALVED IMPACT
+  let gameTotal = cleanNumber(safeGet(p, 'Total', 'Game Total', 'O/U', 'Over/Under', 'total'));
+  let envMultiplier = 1.0;
+  if (gameTotal > 0) {
+      if (gameTotal >= 10.0) envMultiplier = 1.075; // Was 1.15
+      else if (gameTotal >= 9.0) envMultiplier = 1.025; // Was 1.05
+      else if (gameTotal >= 8.0) envMultiplier = 1.00; // Was 1.00
+      else envMultiplier = 0.925; // Was 0.85
+  }
+
+  // 2. Plate Appearances Per Game (PA PG) Factor
+  let paPG = cleanNumber(safeGet(p, 'PA PG', 'PA/Game', 'PApg', 'PA per game'));
+  let paFactor = 1.0;
+  if (paPG > 0) {
+      paFactor = paPG / 4.0; // 4.0 is league average PA/game
+      paFactor = Math.max(0.80, Math.min(1.25, paFactor)); // Cap between 0.8 and 1.25
+  }
+
+  // 3. Elite Power Bonus (Season xHR Volume)
+  let xhr = cleanNumber(safeGet(p, 'xHR', 'Expected HR', 'xHR Season'));
+  let elitePowerBonus = 1.0;
+  if (xhr >= 15) elitePowerBonus = 1.10;
+  else if (xhr >= 10) elitePowerBonus = 1.05;
+
+  // 4. Release Position (VAA Proxy via release_pos_z)
+  let releaseZ = cleanNumber(safeGet(p, 'release_pos_z', 'Release Z', 'Rel Z', 'releaseZ'));
+  let releaseModifier = 1.0;
+  if (releaseZ > 0) {
+      if (releaseZ < 5.6) {
+          releaseModifier = 1.15; // Low release = steep VAA = HR Target
+      } else if (releaseZ > 6.2) {
+          releaseModifier = 0.85; // High release = flat VAA = HR Suppressor
+      }
+  }
+  
+  // Optional: release_pos_x for extreme arm slots
+  let releaseX = cleanNumber(safeGet(p, 'release_pos_x', 'Release X', 'Rel X', 'releaseX'));
+  if (Math.abs(releaseX) > 2.5) {
+      releaseModifier *= 1.05; // Extreme arm angle can lead to mistakes
+  }
+
+  // Store on player object for UI tooltips
+  p.envMultiplier = envMultiplier;
+  p.paFactor = paFactor;
+  p.elitePowerBonus = elitePowerBonus;
+  p.releaseModifier = releaseModifier;
+
+  // Apply the new multipliers to the final score
+  finalScore = finalScore * envMultiplier * paFactor * elitePowerBonus * releaseModifier;
+
   p.calculatedBvP = bvpModifier;
   p.calculatedPitcherFB = pitcherVulnerabilityWithXhr;
   p.calculatedSweetSpot = safeGet(p, 'Sweet Spot %') ? (1 + (cleanNumber(safeGet(p, 'Sweet Spot %')) / 100) * 0.1) : 1.0;
@@ -1476,6 +1529,10 @@ function renderMainTableBoard(data) {
     if (flyBallRate >= 40 && pullRate >= 40) badgeHtml += `<span class="metric-badge badge-angle">📐 LAUNCH ANGLE KING</span>`;
     if (pHR9 >= 1.6) badgeHtml += `<span class="metric-badge badge-gopher">⚠️ PITCHER TARGET</span>`;
     if (jackpotTop4Names.includes(p.Name)) badgeHtml += `<span class="metric-badge badge-jackpot">🎯 FANATICS JACKPOT TARGET</span>`;
+    
+    // New Badges for Multipliers
+    if (p.envMultiplier >= 1.15) badgeHtml += `<span class="metric-badge badge-env">🌤️ SHOOTOUT</span>`;
+    if (p.releaseModifier >= 1.15) badgeHtml += `<span class="metric-badge badge-gopher">📉 VAA TARGET</span>`;
 
     const credibility = p.calculatedCredibility || 1.0;
     if (credibility < 1.0) {
@@ -1515,6 +1572,11 @@ function renderMainTableBoard(data) {
           <div class="stat-row"><span class="stat-label">Pitcher FB Mod</span><span class="stat-value">${(p.calculatedPitcherFB || 1).toFixed(2)}x</span></div>
           <b>⚡ PITCHER HR/9:</b>
           <div class="stat-row"><span class="stat-label">HR/9 Ratio</span><span class="stat-value">${(p.calculatedPVF || 1).toFixed(2)}x</span></div>
+          <b>🚀 NEW MULTIPLIERS:</b>
+          <div class="stat-row"><span class="stat-label">Game Total Mod</span><span class="stat-value">${(p.envMultiplier || 1).toFixed(2)}x</span></div>
+          <div class="stat-row"><span class="stat-label">PA/Game Mod</span><span class="stat-value">${(p.paFactor || 1).toFixed(2)}x</span></div>
+          <div class="stat-row"><span class="stat-label">xHR Vol Bonus</span><span class="stat-value">${(p.elitePowerBonus || 1).toFixed(2)}x</span></div>
+          <div class="stat-row"><span class="stat-label">VAA (Rel Z) Mod</span><span class="stat-value">${(p.releaseModifier || 1).toFixed(2)}x</span></div>
         </div>
       </td>
       <td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td>
@@ -1666,7 +1728,6 @@ function renderTop5PitcherTargets() {
     const tbody = document.getElementById('pitcher-targets-body');
     if(!tbody) return;
 
-    // Use the stored top5 sheet data
     let rawPitchers = window.top5SheetData || [];
 
     if (rawPitchers.length === 0) {
@@ -1674,19 +1735,12 @@ function renderTop5PitcherTargets() {
         return;
     }
 
-    // Process rows to extract Pitcher info and Splits
     let processedPitchers = rawPitchers.map(row => {
-        // Attempt to find Pitcher Name (Column A or common headers)
         let pName = String(safeGet(row, 'Pitcher', 'Name', 'Player', 'A') || '').trim();
         let pTeam = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
 
-        // Get Splits (Assuming Col C is Left, Col D is Right based on prompt)
-        // We check multiple possible header names just in case, but prioritize generic positions if headers are missing
         let valC = cleanNumber(safeGet(row, 'HR/9 vs LHB', 'HR/9 vs L', 'HR/9 LHB', 'HR/9 L', 'C'));
         let valD = cleanNumber(safeGet(row, 'HR/9 vs RHB', 'HR/9 vs R', 'HR/9 RHB', 'HR/9 R', 'D'));
-
-        // If headers aren't standard, try to grab by index if available (less reliable in JSON conversion but good fallback)
-        // Note: XLSX utils usually map by header. If no headers, it uses A, B, C, D.
         
         return {
             name: pName,
@@ -1696,8 +1750,6 @@ function renderTop5PitcherTargets() {
         };
     }).filter(p => p.name && p.name !== '');
 
-    // Sort by the highest available metric (split or total)
-    // We want the top 5 pitchers with the HIGHEST vulnerability
     processedPitchers.sort((a, b) => {
         let maxA = Math.max(a.lhb, a.rhb);
         let maxB = Math.max(b.lhb, b.rhb);
@@ -1716,8 +1768,6 @@ function renderTop5PitcherTargets() {
         let vulnerabilityText = 'Even Matchup';
         let vulnClass = '';
         
-        // Determine primary vulnerability based on splits
-        // "if a pitcher is bad agaisnt lefties but not righties he only needs the left. so the highest in columns c and d."
         if (p.lhb >= p.rhb) {
             vulnerabilityText = `Left-Handed Batters (${p.lhb.toFixed(2)} HR/9)`;
             vulnClass = 'vulnerability-high';
