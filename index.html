@@ -603,6 +603,42 @@ tr:hover {
   color: #ef4444;
   font-weight: bold;
 }
+
+/* Cody's Diamonds Styles */
+.diamonds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.diamond-card {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.1) 0%, rgba(202, 138, 4, 0.05) 100%);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s;
+}
+.diamond-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(234, 179, 8, 0.2);
+}
+.diamond-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+.diamond-name {
+  font-weight: 700;
+  color: #fff;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.diamond-team {
+  color: var(--stadium-lights);
+  font-size: 11px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body>
@@ -684,6 +720,18 @@ tr:hover {
         </div>
         <button onclick="recalculateAllBBIScores()" class="btn-blue" style="padding:10px; font-size:11px; margin-top:6px;">🔄 Force Recalculate Index</button>
       </div>
+
+      <!-- CODY'S DIAMONDS SECTION -->
+      <div class="panel">
+        <h2>💎 Cody's Diamonds</h2>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Diamond's In The Rough</p>
+        <div id="codysDiamonds" class="diamonds-grid">
+          <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">
+            Upload workbook to load Cody's Diamonds...
+          </div>
+        </div>
+      </div>
+      <!-- END CODY'S DIAMONDS SECTION -->
 
       <div class="panel">
         <h2>Parlay Generator</h2>
@@ -820,6 +868,7 @@ let weatherSettings = {};
 let teamToGameIdMap = {};
 let parkFactorMap = {};
 let selectedQuickTeamFilter = 'ALL';
+let codysDiamondsData = [];
 
 const teamLogos = {
   ARI:'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',ATL:'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',BAL:'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',BOS:'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',CHC:'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',CHW:'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',CIN:'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',CLE:'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',COL:'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',DET:'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',HOU:'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',KCR:'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',LAA:'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',LAD:'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',MIA:'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',MIL:'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',MIN:'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',NYM:'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',NYY:'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',ATH:'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',PHI:'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',PIT:'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',SDP:'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',SEA:'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',SFG:'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',STL:'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',TBR:'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',TEX:'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',TOR:'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',WSN:'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
@@ -842,7 +891,7 @@ function normalizeName(s) {
 }
 
 function saveCachedData() {
-  const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter };
+  const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData };
   localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 
@@ -861,6 +910,7 @@ function loadCachedData() {
       teamToGameIdMap = cacheData.teamToGameIdMap || {};
       parkFactorMap = cacheData.parkFactorMap || {};
       selectedQuickTeamFilter = cacheData.selectedQuickTeamFilter || 'ALL';
+      codysDiamondsData = cacheData.codysDiamondsData || [];
       if (playerData.length > 0) {
         const uniqueTeams = getTeamsPlayingToday();
         renderTodayTeamsFilter(uniqueTeams);
@@ -874,7 +924,8 @@ function loadCachedData() {
         document.getElementById('graphicsPanel').style.display = 'block';
         document.getElementById('topThreeContainer').style.display = 'block';
         recalculateAllBBIScores();
-        renderTop5PitcherTargets(); 
+        renderTop5PitcherTargets();
+        renderCodysDiamonds();
       }
     } catch(e) { console.log('Cache load error'); }
   }
@@ -939,6 +990,19 @@ function handleFile(e) {
         weatherSettings[m.id] = { temp: 74, windSpeed: 0, windDir: 'neutral', isDome: isDomePreset };
       }
     });
+    
+    // Process Cody's Diamonds from top5 sheet
+    codysDiamondsData = [];
+    if (top5Raw && top5Raw.length > 0) {
+      top5Raw.forEach(row => {
+        let hitter = String(row.hitter || row.Hitter || '').trim();
+        let team = String(row.team2 || row.Team2 || '').trim().toUpperCase();
+        if (hitter && team) {
+          codysDiamondsData.push({ name: hitter, team: team });
+        }
+      });
+    }
+    
     const uniqueTeams = getTeamsPlayingToday();
     renderTodayTeamsFilter(uniqueTeams);
     ['parlayTeam1', 'parlayTeam2', 'parlayTeam3', 'teamFilter1', 'teamFilter2', 'teamFilter3'].forEach(id => {
@@ -951,10 +1015,39 @@ function handleFile(e) {
     document.getElementById('graphicsPanel').style.display = 'block';
     document.getElementById('topThreeContainer').style.display = 'block';
     recalculateAllBBIScores();
-    renderTop5PitcherTargets(); 
+    renderTop5PitcherTargets();
+    renderCodysDiamonds();
     saveCachedData();
   };
   reader.readAsArrayBuffer(f);
+}
+
+function renderCodysDiamonds() {
+  const container = document.getElementById('codysDiamonds');
+  if (!container) return;
+  
+  if (codysDiamondsData.length === 0) {
+    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">No diamonds found in top5 sheet...</div>';
+    return;
+  }
+  
+  container.innerHTML = '';
+  const displayCount = Math.min(3, codysDiamondsData.length);
+  
+  for (let i = 0; i < displayCount; i++) {
+    const diamond = codysDiamondsData[i];
+    const logoUrl = teamLogos[diamond.team] || '';
+    const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
+    
+    const card = document.createElement('div');
+    card.className = 'diamond-card';
+    card.innerHTML = `
+      <div class="diamond-icon">💎</div>
+      <div class="diamond-name">${diamond.name}</div>
+      <div class="diamond-team">${logoImg}${diamond.team}</div>
+    `;
+    container.appendChild(card);
+  }
 }
 
 function processCompareSheetMatchups(rows) {
@@ -1042,7 +1135,7 @@ const SCORE_WEIGHTS = {
 
 const SUBWEIGHTS = {
   hitterPowerProfile: { barrelPct: 8, isoVsHand: 7, maxEV: 5, avgEV: 3, hardHitPct: 3, blastContactPct: 2, batSpeed: 2 },
-  battedBallProfile: { pulledAirPct: 3, flyBallPct: 3, sweetSpotPct: 2, idealAttackAnglePct: 2, launchAnglePct: 2 }, // CHANGED pulledAirPct from 6 to 3
+  battedBallProfile: { pulledAirPct: 3, flyBallPct: 3, sweetSpotPct: 2, idealAttackAnglePct: 2, launchAnglePct: 2 },
   pitcherVulnerability: { pitcherHR9: 6, pitcherBarrelAllowed: 5, pitcherHardHitAllowed: 4, pitcherSweetSpot: 4, pitcherFBpct: 3, pitcherHRFBpct: 3, pitcherEVallowed: 2, pitcherPullAllowed: 2 },
   pitchMatchup: { fastballRV: 3, breakingRV: 3, offspeedRV: 2, stuffPlus: 1, pitchingPlus: 1 },
   recentForm: { lastWeekBarrelPct: 2, lastWeekEV: 2, lastWeekxSLG: 2, lastWeekHRs: 1, lastWeekHardHit: 1 },
