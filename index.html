@@ -1221,27 +1221,43 @@ function calculateBBI(p, weatherObj) {
   const hardHitRate = cleanNumber(safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%'));
   const flyBallRate = cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')) || 0;
 
-  const pitcherHR9 = cleanNumber(safeGet(p, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9')) || LEAGUE_AVERAGES.pitcherHR9;
-  const pitcherBarrelAllowed = cleanNumber(safeGet(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%')) || LEAGUE_AVERAGES.pitcherBarrelAllowed;
-  const pitcherHardHitAllowed = cleanNumber(safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed')) || LEAGUE_AVERAGES.hardHitRate;
-  const pitcherFB = cleanNumber(safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %')) || LEAGUE_AVERAGES.pitcherFBRate;
-  const pitcherHRFB = cleanNumber(safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB')) || 0;
-  const pitcherEVallowed = cleanNumber(safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV')) || 0;
-  const pitcherPullAllowed = cleanNumber(safeGet(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%')) || 0;
-  
-  const pitcherSweetSpot = cleanNumber(safeGet(p, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot')) || LEAGUE_AVERAGES.pitcherSweetSpot;
+  // --- PITCHER DATA INTEGRATION FIX ---
+  // We start with the HR sheet data (the "Base" truth)
+  let pitcherHR9 = cleanNumber(safeGet(p, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9')) || LEAGUE_AVERAGES.pitcherHR9;
+  let pitcherBarrelAllowed = cleanNumber(safeGet(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%')) || LEAGUE_AVERAGES.pitcherBarrelAllowed;
+  let pitcherHardHitAllowed = cleanNumber(safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed')) || LEAGUE_AVERAGES.hardHitRate;
+  let pitcherFB = cleanNumber(safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %')) || LEAGUE_AVERAGES.pitcherFBRate;
+  let pitcherHRFB = cleanNumber(safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB')) || 0;
+  let pitcherEVallowed = cleanNumber(safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV')) || 0;
+  let pitcherPullAllowed = cleanNumber(safeGet(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%')) || 0;
+  let pitcherSweetSpot = cleanNumber(safeGet(p, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot')) || LEAGUE_AVERAGES.pitcherSweetSpot;
+  let pitcherGB = cleanNumber(safeGet(p, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB')) || 0.44;
 
   let pitcherXhrRaw = cleanNumber(safeGet(p, 'Pitcher xHR', 'Pitcher xHR%', 'Pitcher xHR %', 'Pitcher xHR Rate')) || 0;
   let pitcherIPraw = cleanNumber(safeGet(p, 'Pitcher IP', 'P IP', 'PitcherIP', 'IP')) || 0;
 
+  // Now we check vsPitcher for SPECIFIC matchup data
   const normalizedPlayer = normalizeName(p.Name);
   const vsp = vsPitcherData[normalizedPlayer];
-  if (!pitcherXhrRaw && vsp) {
-    pitcherXhrRaw = cleanNumber(safeGet(vsp, 'Pitcher xHR', 'xHR', 'xHR%', 'xHR Rate')) || pitcherXhrRaw;
+  
+  if (vsp) {
+    // Only overwrite if the vsPitcher sheet actually has a value for these stats
+    // This prevents empty cells in vsPitcher from wiping out the good data in HR sheet
+    if (safeGet(vsp, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9') !== undefined) pitcherHR9 = cleanNumber(safeGet(vsp, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9'));
+    if (safeGet(vsp, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%') !== undefined) pitcherBarrelAllowed = cleanNumber(safeGet(vsp, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%'));
+    if (safeGet(vsp, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed') !== undefined) pitcherHardHitAllowed = cleanNumber(safeGet(vsp, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed'));
+    if (safeGet(vsp, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %') !== undefined) pitcherFB = cleanNumber(safeGet(vsp, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %'));
+    if (safeGet(vsp, 'Pitcher HR/FB %', 'Pitcher HRFB') !== undefined) pitcherHRFB = cleanNumber(safeGet(vsp, 'Pitcher HR/FB %', 'Pitcher HRFB'));
+    if (safeGet(vsp, 'Pitcher EV Allowed', 'Pitcher EV') !== undefined) pitcherEVallowed = cleanNumber(safeGet(vsp, 'Pitcher EV Allowed', 'Pitcher EV'));
+    if (safeGet(vsp, 'Pitcher Pull% Allowed', 'Pitcher Pull%') !== undefined) pitcherPullAllowed = cleanNumber(safeGet(vsp, 'Pitcher Pull% Allowed', 'Pitcher Pull%'));
+    if (safeGet(vsp, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot') !== undefined) pitcherSweetSpot = cleanNumber(safeGet(vsp, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot'));
+    if (safeGet(vsp, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB') !== undefined) pitcherGB = cleanNumber(safeGet(vsp, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB'));
+    
+    // Always grab xHR and IP from vsPitcher if available as they are matchup specific
+    if (safeGet(vsp, 'Pitcher xHR', 'xHR', 'xHR%', 'xHR Rate') !== undefined) pitcherXhrRaw = cleanNumber(safeGet(vsp, 'Pitcher xHR', 'xHR', 'xHR%', 'xHR Rate'));
+    if (safeGet(vsp, 'IP', 'Innings Pitched', 'P IP') !== undefined) pitcherIPraw = cleanNumber(safeGet(vsp, 'IP', 'Innings Pitched', 'P IP'));
   }
-  if (!pitcherIPraw && vsp) {
-    pitcherIPraw = cleanNumber(safeGet(vsp, 'IP', 'Innings Pitched', 'P IP')) || pitcherIPraw;
-  }
+  // --- END PITCHER DATA FIX ---
 
   let vspPA = 0;
   let vsp_xslg = 0, vsp_ev = 0, vsp_hr = 0;
@@ -1403,7 +1419,6 @@ function calculateBBI(p, weatherObj) {
   const pv_sweetSpotM = ratioToModifier(pitcherSweetSpot, LEAGUE_AVERAGES.pitcherSweetSpot, { min: 0.7, max: 1.5, sensitivity: 0.9 });
   
   // NEW: Pitcher Ground Ball % (League avg ~44%)
-  const pitcherGB = cleanNumber(safeGet(p, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB')) || 0.44;
   const pitcherGBNorm = pitcherGB > 1 ? pitcherGB / 100 : pitcherGB;
   const pv_gbM = ratioToModifier(pitcherGBNorm, 0.44, { min: 0.7, max: 1.3, sensitivity: 0.9 });
 
@@ -1533,7 +1548,8 @@ function calculateBBI(p, weatherObj) {
   );
 
   let finalScore = combined * scaleHRFB * scalePitcherHR9 * scaleBarrel * scalePark * scalePulled * scaleWeather;
-  finalScore = Math.min(100, finalScore * 45);
+  // REMOVED THE HARD CAP AT 100 TO ALLOW ELITE PLAYERS TO SEPARATE THEMSELVES
+  finalScore = finalScore * 45;
   finalScore = finalScore * credibilityMultiplier;
 
   // ==========================================
