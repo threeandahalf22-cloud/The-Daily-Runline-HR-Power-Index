@@ -773,12 +773,17 @@ Connor is the Drive God </div>
     <div>
       <div class="controls-bar">
         <div class="filter-group">
-          <label>Filter Teams</label>
-          <div style="display: flex; gap: 8px;">
-            <select id="teamFilter1" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">Team 1 (All)</option></select>
-            <select id="teamFilter2" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">Team 2 (All)</option></select>
-            <select id="teamFilter3" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">Team 3 (All)</option></select>
-          </div>
+          <label>Filter Team</label>
+          <select id="teamFilter1" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">All Teams</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Filter Bats</label>
+          <select id="batsFilter" class="select-input-sm" onchange="applyFiltersAndRender()">
+            <option value="ALL">All</option>
+            <option value="L">Left</option>
+            <option value="R">Right</option>
+            <option value="S">Switch</option>
+          </select>
         </div>
         <div class="filter-group">
           <label>Search Player Name</label>
@@ -914,10 +919,10 @@ function loadCachedData() {
       if (playerData.length > 0) {
         const uniqueTeams = getTeamsPlayingToday();
         renderTodayTeamsFilter(uniqueTeams);
-        ['parlayTeam1', 'parlayTeam2', 'parlayTeam3', 'teamFilter1', 'teamFilter2', 'teamFilter3'].forEach(id => {
+        ['parlayTeam1', 'parlayTeam2', 'parlayTeam3', 'teamFilter1'].forEach(id => {
           const el = document.getElementById(id);
           if(el) {
-            el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</option>` : `<option value="ALL">All Option</option>`;
+            el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</option>` : `<option value="ALL">All Teams</option>`;
             uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
           }
         });
@@ -1005,10 +1010,10 @@ function handleFile(e) {
     
     const uniqueTeams = getTeamsPlayingToday();
     renderTodayTeamsFilter(uniqueTeams);
-    ['parlayTeam1', 'parlayTeam2', 'parlayTeam3', 'teamFilter1', 'teamFilter2', 'teamFilter3'].forEach(id => {
+    ['parlayTeam1', 'parlayTeam2', 'parlayTeam3', 'teamFilter1'].forEach(id => {
       const el = document.getElementById(id);
       if(el) {
-        el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</option>` : `<option value="ALL">All Option</option>`;
+        el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</option>` : `<option value="ALL">All Teams</option>`;
         uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
       }
     });
@@ -1630,21 +1635,21 @@ function getTeamsPlayingToday() {
 
 function applyFiltersAndRender() {
   const f1 = document.getElementById('teamFilter1').value;
-  const f2 = document.getElementById('teamFilter2').value;
-  const f3 = document.getElementById('teamFilter3').value;
+  const batsFilter = document.getElementById('batsFilter').value;
   const searchVal = document.getElementById('searchFilter').value.toLowerCase().trim();
   const showRemoved = document.getElementById('showRemovedCheck').checked;
   
   let filtered = playerData.filter(p => {
     if (!showRemoved && p.isRemoved) return false;
     if (selectedQuickTeamFilter !== 'ALL' && p.Team !== selectedQuickTeamFilter) return false;
-    if (f1 !== 'ALL' || f2 !== 'ALL' || f3 !== 'ALL') {
-      let matchAnyDrop = false;
-      if (f1 !== 'ALL' && p.Team === f1) matchAnyDrop = true;
-      if (f2 !== 'ALL' && p.Team === f2) matchAnyDrop = true;
-      if (f3 !== 'ALL' && p.Team === f3) matchAnyDrop = true;
-      if (!matchAnyDrop) return false;
+    
+    if (f1 !== 'ALL' && p.Team !== f1) return false;
+    
+    if (batsFilter !== 'ALL') {
+      let batsVal = String(p['Bats'] || p['bats'] || p['Hand'] || p['Handedness'] || '').toUpperCase().trim();
+      if (!batsVal.includes(batsFilter)) return false;
     }
+    
     if (searchVal && !p.Name.toLowerCase().includes(searchVal)) return false;
     return true;
   });
