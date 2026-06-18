@@ -745,6 +745,18 @@ tr:hover {
       </div>
       <!-- END LONGSHOT SECTION -->
 
+      <!-- TOP 5 HR DUE SECTION -->
+      <div class="panel">
+        <h2>⚾ Your Boy's Due</h2>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Zero HRs Last Week</p>
+        <div id="hrDueContainer" class="diamonds-grid">
+          <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">
+            Upload workbook to load HR Due candidates...
+          </div>
+        </div>
+      </div>
+      <!-- END TOP 5 HR DUE SECTION -->
+
       <div class="panel">
         <h2>Parlay Generator</h2>
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -887,6 +899,7 @@ let parkFactorMap = {};
 let selectedQuickTeamFilter = 'ALL';
 let codysDiamondsData = [];
 let longshotData = [];
+let hrDueData = [];
 
 const teamLogos = {
   ARI:'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',ATL:'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',BAL:'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',BOS:'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',CHC:'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',CHW:'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',CIN:'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',CLE:'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',COL:'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',DET:'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',HOU:'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',KCR:'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',LAA:'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',LAD:'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',MIA:'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',MIL:'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',MIN:'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',NYM:'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',NYY:'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',ATH:'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',PHI:'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',PIT:'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',SDP:'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',SEA:'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',SFG:'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',STL:'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',TBR:'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',TEX:'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',TOR:'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',WSN:'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
@@ -909,7 +922,7 @@ function normalizeName(s) {
 }
 
 function saveCachedData() {
-  const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData };
+  const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData };
   localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 
@@ -930,6 +943,7 @@ function loadCachedData() {
       selectedQuickTeamFilter = cacheData.selectedQuickTeamFilter || 'ALL';
       codysDiamondsData = cacheData.codysDiamondsData || [];
       longshotData = cacheData.longshotData || [];
+      hrDueData = cacheData.hrDueData || [];
       if (playerData.length > 0) {
         const uniqueTeams = getTeamsPlayingToday();
         renderTodayTeamsFilter(uniqueTeams);
@@ -946,6 +960,7 @@ function loadCachedData() {
         renderTop5PitcherTargets();
         renderCodysDiamonds();
         renderLongshot();
+        renderHRDue();
       }
     } catch(e) { console.log('Cache load error'); }
   }
@@ -1029,6 +1044,27 @@ function handleFile(e) {
         }
       });
     }
+
+    // Process HR Due Candidates from lastweek sheet
+    hrDueData = [];
+    if (lwRaw && lwRaw.length > 0) {
+        let candidates = [];
+        lwRaw.forEach(row => {
+            let hrsLastWeek = cleanNumber(safeGet(row, 'hrs', 'HRs', 'HR'));
+            let totalHrs = cleanNumber(safeGet(row, 'total hrs', 'Total HRs', 'Total HR'));
+            let name = String(safeGet(row, 'Player', 'Name', 'player') || '').trim();
+            
+            if (name && hrsLastWeek === 0 && totalHrs > 0) {
+                candidates.push({ name: name, totalHrs: totalHrs });
+            }
+        });
+        
+        // Sort by total hrs descending
+        candidates.sort((a, b) => b.totalHrs - a.totalHrs);
+        
+        // Take top 5
+        hrDueData = candidates.slice(0, 5);
+    }
     
     const uniqueTeams = getTeamsPlayingToday();
     renderTodayTeamsFilter(uniqueTeams);
@@ -1045,6 +1081,7 @@ function handleFile(e) {
     renderTop5PitcherTargets();
     renderCodysDiamonds();
     renderLongshot();
+    renderHRDue();
     saveCachedData();
   };
   reader.readAsArrayBuffer(f);
@@ -1099,6 +1136,30 @@ function renderLongshot() {
       <div class="diamond-icon">🎰</div>
       <div class="diamond-name">${ls.name}</div>
       <div class="diamond-team">${logoImg}${ls.team}</div>
+    `;
+    container.appendChild(card);
+  }
+}
+
+function renderHRDue() {
+  const container = document.getElementById('hrDueContainer');
+  if (!container) return;
+  
+  if (hrDueData.length === 0) {
+    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">No HR Due candidates found...</div>';
+    return;
+  }
+  
+  container.innerHTML = '';
+  for (let i = 0; i < hrDueData.length; i++) {
+    const hr = hrDueData[i];
+    
+    const card = document.createElement('div');
+    card.className = 'diamond-card';
+    card.innerHTML = `
+      <div class="diamond-icon">⚾</div>
+      <div class="diamond-name">${hr.name}</div>
+      <div class="diamond-team">${hr.totalHrs} Total HRs</div>
     `;
     container.appendChild(card);
   }
