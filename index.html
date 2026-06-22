@@ -1045,7 +1045,7 @@ function handleFile(e) {
       });
     }
 
-    // Process HR Due Candidates from lastweek sheet
+     // Process HR Due Candidates from lastweek sheet
     hrDueData = [];
     if (lwRaw && lwRaw.length > 0) {
         let candidates = [];
@@ -1053,9 +1053,16 @@ function handleFile(e) {
             let hrsLastWeek = cleanNumber(safeGet(row, 'hrs', 'HRs', 'HR'));
             let totalHrs = cleanNumber(safeGet(row, 'total hrs', 'Total HRs', 'Total HR'));
             let name = String(safeGet(row, 'Player', 'Name', 'player') || '').trim();
+            let team = String(safeGet(row, 'Team', 'TEAM', 'Tm', 'team') || '').trim().toUpperCase();
+            
+            // If team not in lastweek sheet, look it up from playerData
+            if (!team && name) {
+                const matchedPlayer = playerData.find(p => p.Name.toLowerCase() === name.toLowerCase());
+                if (matchedPlayer) team = matchedPlayer.Team;
+            }
             
             if (name && hrsLastWeek === 0 && totalHrs > 0) {
-                candidates.push({ name: name, totalHrs: totalHrs });
+                candidates.push({ name: name, totalHrs: totalHrs, team: team });
             }
         });
         
@@ -1153,13 +1160,15 @@ function renderHRDue() {
   container.innerHTML = '';
   for (let i = 0; i < hrDueData.length; i++) {
     const hr = hrDueData[i];
+    const logoUrl = teamLogos[hr.team] || '';
+    const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
     
     const card = document.createElement('div');
     card.className = 'diamond-card';
     card.innerHTML = `
       <div class="diamond-icon">⚾</div>
       <div class="diamond-name">${hr.name}</div>
-      <div class="diamond-team">${hr.totalHrs} Total HRs</div>
+      <div class="diamond-team">${logoImg}${hr.team || 'UNK'} // ${hr.totalHrs} Total HRs</div>
     `;
     container.appendChild(card);
   }
