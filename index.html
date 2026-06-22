@@ -1359,7 +1359,11 @@ function calculateBBI(p, weatherObj) {
   const normalizedPlayer = normalizeName(p.Name);
   const vsp = vsPitcherData[normalizedPlayer];
   
+  let matchupHR = 0;
   if (vsp) {
+    if (safeGet(vsp, 'Matchup HR', 'Matchup HRs', 'HR vs Pitcher', 'HR vs P') !== undefined) {
+        matchupHR = cleanNumber(safeGet(vsp, 'Matchup HR', 'Matchup HRs', 'HR vs Pitcher', 'HR vs P'));
+    }
     if (safeGet(vsp, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9') !== undefined) pitcherHR9 = cleanNumber(safeGet(vsp, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9'));
     if (safeGet(vsp, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%') !== undefined) pitcherBarrelAllowed = cleanNumber(safeGet(vsp, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%'));
     if (safeGet(vsp, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed') !== undefined) pitcherHardHitAllowed = cleanNumber(safeGet(vsp, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed'));
@@ -1373,6 +1377,7 @@ function calculateBBI(p, weatherObj) {
     if (safeGet(vsp, 'Pitcher xHR', 'xHR', 'xHR%', 'xHR Rate') !== undefined) pitcherXhrRaw = cleanNumber(safeGet(vsp, 'Pitcher xHR', 'xHR', 'xHR%', 'xHR Rate'));
     if (safeGet(vsp, 'IP', 'Innings Pitched', 'P IP') !== undefined) pitcherIPraw = cleanNumber(safeGet(vsp, 'IP', 'Innings Pitched', 'P IP'));
   }
+  p.matchupHR = matchupHR;
 
   let vspPA = 0;
   let vsp_xslg = 0, vsp_ev = 0, vsp_hr = 0;
@@ -1462,6 +1467,7 @@ function calculateBBI(p, weatherObj) {
   const lwxSLG = cleanNumber(safeGet(lw, 'xSLG', 'xSLG%')) || 0;
   const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR')) || 0;
   const lwHardHit = cleanNumber(safeGet(lw, 'Hard Hit %', 'HardHit%')) || 0;
+  const lwwOBA = cleanNumber(safeGet(lw, 'wOBA', 'wOBA Last Week', 'wOBA%')) || 0;
 
   const homeTeam = safeGet(p, 'Opp Team', 'Team', 'TEAM') || p.Team;
   const parkDims = parkFactorMap[homeTeam] || { lf: 330, cf: 400, rf: 330 };
@@ -1823,6 +1829,58 @@ function renderMainTableBoard(data) {
     if (p.envMultiplier >= 1.07) badgeHtml += `<span class="metric-badge badge-env">🌤️ SHOOTOUT</span>`;
     if (p.releaseModifier >= 1.15) badgeHtml += `<span class="metric-badge badge-gopher">📉 VAA TARGET</span>`;
 
+    if (p.matchupHR >= 1) {
+        badgeHtml += `<span class="metric-badge badge-jackpot">🎯 ${p.matchupHR} HR vs Pitcher</span>`;
+    }
+
+    // NEW BADGES
+    if (p.matchupHR >= 2) {
+        badgeHtml += `<span class="metric-badge badge-bvp">🩸 BLOOD IN THE WATER</span>`;
+    }
+
+    const breakingXwoba = cleanNumber(safeGet(p, 'Breaking xwOBA', 'SL xwOBA', 'CV xwOBA', 'Brk xwOBA'));
+    if (breakingXwoba >= 0.400) {
+        badgeHtml += `<span class="metric-badge badge-pitch-brk">🪃 HANGING BREAKER</span>`;
+    }
+
+    const normalizedPlayer = normalizeName(p.Name);
+    const lw = lastWeekMap[normalizedPlayer] || {};
+    const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR'));
+    const lwwOBA = cleanNumber(safeGet(lw, 'wOBA', 'wOBA Last Week', 'wOBA%'));
+    if (lwHRs >= 3 || lwwOBA >= 0.450) {
+        badgeHtml += `<span class="metric-badge badge-barrel">🔥 HOT BAT</span>`;
+    }
+
+    const xwoba = cleanNumber(safeGet(p, 'xwOBA', 'xWOBA', 'Expected wOBA'));
+    const woba = cleanNumber(safeGet(p, 'wOBA', 'WOBA'));
+    if (xwoba >= 0.360 && woba <= 0.300 && woba > 0) {
+        badgeHtml += `<span class="metric-badge badge-lowvolume">🍀 UNLUCKY ELITE</span>`;
+    }
+
+    const pitcherFBPct = cleanNumber(safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %')) * 100;
+    if (pitcherFBPct >= 60) {
+        badgeHtml += `<span class="metric-badge badge-pitch-fb">🔥 FASTBALL HEAVY</span>`;
+    }
+
+    const pitcherGBPct = cleanNumber(safeGet(p, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB')) * 100;
+    if (pitcherGBPct <= 35) {
+        badgeHtml += `<span class="metric-badge badge-meatball">🎈 AIR RAID PITCHER</span>`;
+    }
+    const vaaReleaseZ = cleanNumber(safeGet(p, 'release_pos_z', 'Release Z', 'Rel Z', 'releaseZ'));
+    const vaaFB = cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')) * 100;
+    if (vaaReleaseZ > 0 && vaaReleaseZ <= 5.8 && vaaFB >= 38) {
+        badgeHtml += `<span class="metric-badge badge-gopher">📉 THE VAA VULTURE</span>`;
+    }
+    const isCodyDiamond = codysDiamondsData.some(d => d.name.toLowerCase() === p.Name.toLowerCase());
+    if (isCodyDiamond) {
+        badgeHtml += `<span class="metric-badge badge-jackpot">💎 CODY'S DIAMOND</span>`;
+    }
+
+    const lastWeekStats = lastWeekMap[normalizeName(p.Name)] || {};
+    const hrsThisWeek = cleanNumber(safeGet(lastWeekStats, 'HRs', 'HRsLastWeek', 'HR'));
+    if (hrsThisWeek >= 3) {
+        badgeHtml += `<span class="metric-badge badge-barrel">🔥 ${hrsThisWeek} HRs THIS WEEK</span>`;
+    }
     const credibility = p.calculatedCredibility || 1.0;
     if (credibility < 1.0) {
       const credPercent = (credibility * 100).toFixed(0);
