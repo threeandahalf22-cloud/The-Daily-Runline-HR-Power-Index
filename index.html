@@ -2070,7 +2070,7 @@ function renderMainTableBoard(data) {
     const lastWeekStats = lastWeekMap[normalizeName(p.Name)] || {};
     const hrsThisWeek = cleanNumber(safeGet(lastWeekStats, 'HRs', 'HRsLastWeek', 'HR'));
     if (hrsThisWeek >= 3) {
-        badgeHtml += `<span class="metric-badge badge-barrel">🔥 ${hrsThisWeek} HRs THIS WEEK</span>`;
+        badgeHtml += `<span class="metric-badge badge-barrel">🔥 ${hrsThisWeek} HRs Last 7 Games </span>`;
     }
     const credibility = p.calculatedCredibility || 1.0;
     if (credibility < 1.0) {
