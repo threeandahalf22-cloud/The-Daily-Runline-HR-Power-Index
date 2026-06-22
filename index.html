@@ -690,6 +690,45 @@ tr:hover {
   </div>
   <!-- END NEW SECTION -->
 
+  <!-- NEW SECTION: WEATHER ENVIRONMENT RANKINGS -->
+  <div class="table-wrapper" style="margin-top: 24px; border: 1px solid var(--border);">
+    <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
+      <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🌦️ Top 4 HR Environments</h2>
+      <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">The top 4 games most favorable for home runs based on weather and park factors.</p>
+    </div>
+    <div id="weatherRankContainer" style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+      <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</div>
+    </div>
+  </div>
+  <!-- END WEATHER SECTION -->
+
+  <!-- NEW SECTION: HEAD-TO-HEAD DOMINATORS -->
+  <div class="table-wrapper" style="margin-top: 24px; border: 1px solid var(--border);">
+    <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
+      <h2 style="margin:0; border:none; padding:0; font-size: 16px;">⚔️ Head-to-Head Dominators</h2>
+      <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Batters with a minimum of 5 PAs and an xSLG of .500+ against today's opposing pitcher.</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Batter</th>
+          <th>Team</th>
+          <th>Opposing Pitcher</th>
+          <th>PAs</th>
+          <th>xSLG</th>
+          <th>EV</th>
+          <th>HRs</th>
+        </tr>
+      </thead>
+      <tbody id="h2hTableBody">
+        <tr>
+          <td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- END H2H SECTION -->
+
   <div class="dashboard-grid">
     <div style="display:flex; flex-direction:column; gap:24px;">
       <div class="panel">
@@ -958,6 +997,8 @@ function loadCachedData() {
         document.getElementById('topThreeContainer').style.display = 'block';
         recalculateAllBBIScores();
         renderTop5PitcherTargets();
+        renderWeatherRankings();
+        renderH2HTable();
         renderCodysDiamonds();
         renderLongshot();
         renderHRDue();
@@ -1086,12 +1127,153 @@ function handleFile(e) {
     document.getElementById('topThreeContainer').style.display = 'block';
     recalculateAllBBIScores();
     renderTop5PitcherTargets();
+    renderWeatherRankings();
+    renderH2HTable();
     renderCodysDiamonds();
     renderLongshot();
     renderHRDue();
     saveCachedData();
   };
   reader.readAsArrayBuffer(f);
+}
+
+function renderWeatherRankings() {
+    const container = document.getElementById('weatherRankContainer');
+    if (!container) return;
+    
+    const gameIds = [...new Set(playerData.map(p => p.gameId).filter(id => id))];
+    if (gameIds.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic;">No game data found...</div>';
+        return;
+    }
+
+    let gameScores = [];
+    gameIds.forEach(gid => {
+        const matchup = gameMatchups.find(m => m.id === gid);
+        const weather = weatherSettings[gid] || {};
+        
+        let score = 100;
+        let details = [];
+        
+        if (weather.isDome) {
+            score = 100;
+            details.push('Closed Dome 🏟️');
+        } else {
+            const temp = Number(weather.temp || 72);
+            if (temp >= 85) { score += 15; details.push(`🌡️ ${temp}°F (Hot)`); }
+            else if (temp >= 75) { score += 5; details.push(`🌡️ ${temp}°F`); }
+            else if (temp < 60) { score -= 15; details.push(`🥶 ${temp}°F (Cold)`); }
+            else { details.push(`🌡️ ${temp}°F`); }
+            
+            const windSpeed = Number(weather.windSpeed || 0);
+            const windDir = String(weather.windDir || 'neutral').toLowerCase();
+            if (windDir.includes('out')) {
+                score += (windSpeed * 1.5);
+                details.push(`🌬️ ${windSpeed}mph OUT`);
+            } else if (windDir.includes('in')) {
+                score -= (windSpeed * 1.5);
+                details.push(`🌬️ ${windSpeed}mph IN`);
+            } else {
+                details.push(`🌬️ ${windSpeed}mph`);
+            }
+            
+            const humidity = Number(weather.humidity || 0);
+            if (humidity > 60) { score -= 5; details.push(`💧 Humid`); }
+        }
+        
+        if (matchup) {
+            const pfA = parkFactorMap[matchup.teamA]?.pf || 100;
+            const pfB = parkFactorMap[matchup.teamB]?.pf || 100;
+            const avgPF = (pfA + pfB) / 2;
+            if (avgPF >= 105) { score += 10; details.push(`🏟️ PF ${avgPF} (HR Boost)`); }
+            else if (avgPF <= 95) { score -= 10; details.push(`🏟️ PF ${avgPF} (HR Suppress)`); }
+        }
+
+        let matchupStr = gid.replace('_vs_', ' vs ').replace(/_/g, ' ');
+        if (matchup) {
+            matchupStr = `${matchup.teamA} vs ${matchup.teamB}`;
+        }
+
+        gameScores.push({
+            id: gid,
+            matchup: matchupStr,
+            score: score,
+            details: details.join(' // ')
+        });
+    });
+
+    gameScores.sort((a, b) => b.score - a.score);
+    gameScores = gameScores.slice(0, 4);
+
+    container.innerHTML = '';
+    gameScores.forEach(game => {
+        let colorClass = 'badge-env'; 
+        if (game.score >= 115) colorClass = 'badge-barrel'; 
+        else if (game.score <= 85) colorClass = 'badge-gopher'; 
+
+        const card = document.createElement('div');
+        card.className = 'diamond-card';
+        card.style.border = `1px solid var(--border)`;
+        card.innerHTML = `
+            <div class="diamond-icon" style="font-size: 20px; margin-bottom: 4px;">
+                <span class="metric-badge ${colorClass}" style="font-size: 12px; padding: 6px 10px;">SCORE: ${game.score.toFixed(0)}</span>
+            </div>
+            <div class="diamond-name" style="font-size: 15px; margin-bottom: 8px;">${game.matchup}</div>
+            <div class="diamond-team" style="font-size: 11px; line-height: 1.5;">${game.details}</div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function renderH2HTable() {
+    const tbody = document.getElementById('h2hTableBody');
+    if (!tbody) return;
+
+    let h2hData = [];
+    playerData.forEach(p => {
+        const normName = normalizeName(p.Name);
+        const vsp = vsPitcherData[normName];
+        if (vsp) {
+            const pa = cleanNumber(safeGet(vsp, 'PA', 'PAs', 'AB'));
+            const xslg = cleanNumber(safeGet(vsp, 'xSLG', 'xSLG vs P', 'xSLG vs'));
+            if (pa >= 5 && xslg >= 0.500) {
+                h2hData.push({
+                    batter: p.Name,
+                    team: p.Team,
+                    pitcher: p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter',
+                    pa: pa,
+                    xslg: xslg,
+                    ev: cleanNumber(safeGet(vsp, 'EV', 'Avg EV')),
+                    hr: cleanNumber(safeGet(vsp, 'HR', 'HRs', 'Matchup HR'))
+                });
+            }
+        }
+    });
+
+    if (h2hData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No batters meet the criteria (Min 5 PAs, xSLG >= .500)...</td></tr>`;
+        return;
+    }
+
+    h2hData.sort((a, b) => b.xslg - a.xslg);
+
+    tbody.innerHTML = '';
+    h2hData.forEach(row => {
+        const logoUrl = teamLogos[row.team] || '';
+        const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-weight:700; color:#fff; text-align:left;">${row.batter}</td>
+            <td style="color:#cbd5e1;">${logoImg}${row.team}</td>
+            <td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher}</td>
+            <td style="font-family:monospace; color:#38bdf8;">${row.pa}</td>
+            <td style="font-family:monospace; font-weight:900; color:#00ff9d;">${row.xslg.toFixed(3)}</td>
+            <td style="font-family:monospace; color:#f1f5f9;">${row.ev.toFixed(1)} mph</td>
+            <td style="font-family:monospace; font-weight:700; color:#eab308;">${row.hr}</td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 function renderCodysDiamonds() {
@@ -1327,7 +1509,7 @@ function calculateBBI(p, weatherObj) {
   const scalePulled = Number(document.getElementById('weightPulled').value) / 100;
   const scaleWeather = Number(document.getElementById('weightWeather').value) / 100;
 
-  const pa = cleanNumber(safeGet(p, 'PA', 'pa')) || 0;
+  const pa = cleanNumber(safeGet(p, 'PA', 'pa', 'PAs', 'PA\'s', 'Plate Appearances', 'AB', 'At Bats')) || 0;
   const totalHR = cleanNumber(safeGet(p, 'Total HR', 'HR', 'Homeruns')) || 0;
   const hrFB = cleanNumber(safeGet(p, 'HR/FB %', 'HR/FB', 'HRFB')) || 0;
 
@@ -1816,7 +1998,7 @@ function renderMainTableBoard(data) {
     const bHardHit = cleanNumber(p['Hard Hit %']) * 100;
     const ev = cleanNumber(p['Avg EV'] || p['EV']);
     const isoVal = cleanNumber(p['ISO']);
-    const pa = cleanNumber(p['PA'] || 0);
+    const pa = cleanNumber(safeGet(p, 'PA', 'pa', 'PAs', 'PA\'s', 'Plate Appearances', 'AB', 'At Bats')) || 0;
     const totalHR = cleanNumber(p['Total HR'] || 0);
     const pulledAir = cleanNumber(p['Pulled Air %'] || p['Pull Air %'] || p['Air Pull %'] || 0) * 100;
     const pHR9 = cleanNumber(p['Pitcher HR/9'] || p['P HR/9']);
