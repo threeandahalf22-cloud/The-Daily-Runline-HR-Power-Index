@@ -697,6 +697,34 @@ tr:hover {
   border-radius: 2px;
   transition: width 0.3s ease;
 }
+
+/* Player Headshot Styles */
+.player-headshot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  margin-right: 10px;
+  vertical-align: middle;
+  background: var(--bg-dark);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.player-headshot-lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  margin-right: 10px;
+  vertical-align: middle;
+  background: var(--bg-dark);
+  box-shadow: 0 2px 8px rgba(0, 255, 157, 0.2);
+}
+.player-name-with-headshot {
+  display: inline-flex;
+  align-items: center;
+}
 </style>
 </head>
 <body>
@@ -719,7 +747,7 @@ tr:hover {
 
   <div class="upload-box">
     <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
-    <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">Upload your workbook with HR, vsPitcher, PLdata, lastweek, weather, and <b>top5</b> sheets</div>
+    <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">Upload your workbook with HR, vsPitcher, PLdata, lastweek, weather, <b>ID</b>, and <b>top5</b> sheets</div>
   </div>
 
   <!-- NEW SECTION: TOP 5 PITCHER TARGETS -->
@@ -1099,6 +1127,7 @@ let selectedQuickTeamFilter = 'ALL';
 let codysDiamondsData = [];
 let longshotData = [];
 let hrDueData = [];
+let playerIdMap = {}; // NEW: Player Name -> MLB ID mapping
 
 const teamLogos = {
   ARI:'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',ATL:'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',BAL:'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',BOS:'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',CHC:'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',CHW:'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',CIN:'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',CLE:'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',COL:'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',DET:'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',HOU:'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',KCR:'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',LAA:'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',LAD:'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',MIA:'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',MIL:'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',MIN:'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',NYM:'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',NYY:'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',ATH:'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',PHI:'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',PIT:'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',SDP:'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',SEA:'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',SFG:'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',STL:'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',TBR:'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',TEX:'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',TOR:'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',WSN:'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
@@ -1112,6 +1141,22 @@ const stadiumCoordinates = {
   ARI: { dome: true }, ATL: { dome: false }, BAL: { dome: false }, BOS: { dome: false }, CHC: { dome: false }, CHW: { dome: false }, CIN: { dome: false }, CLE: { dome: false }, COL: { dome: false }, DET: { dome: false }, HOU: { dome: true }, KCR: { dome: false }, LAA: { dome: false }, LAD: { dome: false }, MIA: { dome: true }, MIL: { dome: true }, MIN: { dome: false }, NYM: { dome: false }, NYY: { dome: false }, ATH: { dome: false }, PHI: { dome: false }, PIT: { dome: false }, SDP: { dome: false }, SEA: { dome: true }, SFG: { dome: false }, STL: { dome: false }, TBR: { dome: true }, TEX: { dome: true }, TOR: { dome: true }, WSN: { dome: false }
 };
 
+// NEW: Helper function to get headshot URL from MLB ID
+function getHeadshotUrl(playerName) {
+  const id = playerIdMap[normalizeName(playerName)];
+  if (!id) return null;
+  // MLB.com headshot URL format
+  return `https://img.mlbstatic.com/mlb-photos/image/upload/v1/people/${id}/headshot/67/current`;
+}
+
+// NEW: Helper to create headshot HTML
+function createHeadshotHtml(playerName, size = 'sm') {
+  const url = getHeadshotUrl(playerName);
+  if (!url) return '';
+  const sizeClass = size === 'lg' ? 'player-headshot-lg' : 'player-headshot';
+  return `<img class="${sizeClass}" src="${url}" alt="${playerName}" onerror="this.style.display='none'">`;
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   loadCachedData();
   loadCommunityPicks();
@@ -1124,7 +1169,7 @@ function normalizeName(s) {
 }
 
 function saveCachedData() {
-  const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData };
+  const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap };
   localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 
@@ -1146,6 +1191,7 @@ function loadCachedData() {
       codysDiamondsData = cacheData.codysDiamondsData || [];
       longshotData = cacheData.longshotData || [];
       hrDueData = cacheData.hrDueData || [];
+      playerIdMap = cacheData.playerIdMap || {};
       if (playerData.length > 0) {
         const uniqueTeams = getTeamsPlayingToday();
         renderTodayTeamsFilter(uniqueTeams);
@@ -1188,8 +1234,8 @@ function handleFile(e) {
   reader.onload = function(e) {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, {type: 'array'});
-    let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [];
-    teamToGameIdMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {};
+    let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [];
+    teamToGameIdMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; playerIdMap = {};
     workbook.SheetNames.forEach(sheetName => {
       let nameClean = sheetName.toUpperCase().trim();
       if (nameClean === 'HR' || nameClean === 'HOMERUN' || nameClean === 'SHEET1') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -1199,10 +1245,22 @@ function handleFile(e) {
       if (nameClean === 'WEATHER') weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'BULLPEN') bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'TOP5' || nameClean === 'SHEET3') top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      if (nameClean === 'ID' || nameClean === 'IDS' || nameClean === 'PLAYERID' || nameClean === 'PLAYERIDS') idRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
     });
     
     window.top5SheetData = top5Raw;
+
+    // NEW: Process ID sheet to build playerIdMap
+    if (idRaw && idRaw.length > 0) {
+      idRaw.forEach(row => {
+        const name = String(safeGet(row, 'Player', 'Name', 'PlayerName', 'PLAYER', 'NAME') || '').trim();
+        const id = cleanNumber(safeGet(row, 'ID', 'PlayerID', 'MLBID', 'mlbid', 'id'));
+        if (name && id) {
+          playerIdMap[normalizeName(name)] = String(id);
+        }
+      });
+    }
 
     vpRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) vsPitcherData[normalizeName(raw)] = x; });
     plRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) plDataMap[normalizeName(raw)] = x; });
@@ -2254,10 +2312,16 @@ function renderMainTableBoard(data) {
     // Add Lock Pick button
     const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}')">💰 LOCK PICK</button>`;
     
+    // NEW: Add headshot
+    const headshotHtml = createHeadshotHtml(p.Name, 'sm');
+    
     tr.innerHTML = `
       <td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td>
       <td style="text-align:left; padding-left:20px;" class="interactive-cell">
-        <span>${p.Name}</span> ${pfBadge}
+        <div class="player-name-with-headshot">
+          ${headshotHtml}
+          <span>${p.Name}</span> ${pfBadge}
+        </div>
         <div style="margin-top:4px;">${badgeHtml}</div>
         <div class="tooltip-box">
           <b>⚙️ VOLUME CHECK:</b>
@@ -2423,7 +2487,9 @@ function renderTopTwelveSpotlightWidget() {
     const card = document.createElement('div'); card.className = 'spotlight-card';
     const logoUrl = teamLogos[p.Team] || '';
     const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:28px; height:28px; object-fit:contain; margin-right:10px;">` : '';
-    card.innerHTML = `<div style="display:flex; align-items:center; min-width:0;"><span style="font-family:monospace; font-weight:800; color:var(--stadium-lights); font-size:12px; margin-right:8px; width:20px;">#${index+1}</span>${logoImg}<div style="min-width:0; overflow:hidden; text-overflow:ellipsis;"><div style="font-weight:800; color:#fff; font-size:12px;">${p.Name}</div><div style="font-size:10px; color:var(--text-muted); font-weight:600;">vs ${p['Opp Pitcher'] || 'Pitcher'}</div></div></div><div style="font-family:monospace; font-weight:900; color:var(--accent); font-size:15px; margin-left:8px;">${p.calculatedBBI.toFixed(1)}</div>`;
+    // NEW: Add headshot to spotlight
+    const headshotHtml = createHeadshotHtml(p.Name, 'lg');
+    card.innerHTML = `<div style="display:flex; align-items:center; min-width:0;">${headshotHtml}<span style="font-family:monospace; font-weight:800; color:var(--stadium-lights); font-size:12px; margin-right:8px; width:20px;">#${index+1}</span>${logoImg}<div style="min-width:0; overflow:hidden; text-overflow:ellipsis;"><div style="font-weight:800; color:#fff; font-size:12px;">${p.Name}</div><div style="font-size:10px; color:var(--text-muted); font-weight:600;">vs ${p['Opp Pitcher'] || 'Pitcher'}</div></div></div><div style="font-family:monospace; font-weight:900; color:var(--accent); font-size:15px; margin-left:8px;">${p.calculatedBBI.toFixed(1)}</div>`;
     grid.appendChild(card);
   });
 }
