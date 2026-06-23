@@ -31,41 +31,69 @@ body {
   width: 100%;
   max-width: 1440px;
 }
+
+/* --- ENHANCED HEADER STYLES --- */
 .header-area {
-  background: linear-gradient(180deg, #091526 0%, rgba(6, 12, 22, 0.9) 100%);
+  background: linear-gradient(180deg, #091526 0%, rgba(6, 12, 22, 0.95) 100%);
   border: 1px solid var(--border);
   border-top: 4px solid var(--accent);
   border-radius: 16px;
   padding: 30px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   margin-bottom: 25px;
   text-align: center;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
+/* Subtle Background Animation */
 .header-area::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(0, 255, 157, 0.03) 0%, transparent 60%);
+  animation: stadium-sweep 15s infinite linear;
+  z-index: 0;
+  pointer-events: none;
 }
+@keyframes stadium-sweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.header-content-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header-top-row {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 20px;
+  width: 100%;
+  justify-content: center;
+}
+
 .main-logo {
-  width: 110px;
-  height: 110px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   border: 2px solid var(--accent);
   background: var(--bg-dark);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
   box-shadow: 0 0 25px var(--accent-glow);
   overflow: hidden;
   animation: pulse-glow 2s infinite;
+  flex-shrink: 0;
 }
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 25px var(--accent-glow); }
@@ -76,9 +104,15 @@ body {
   height: 100%;
   object-fit: cover;
 }
+
+.header-title-section {
+  flex: 1;
+  text-align: center;
+  max-width: 600px;
+}
 h1 { 
   margin: 0; 
-  font-size: 36px; 
+  font-size: 32px; 
   font-weight: 900; 
   letter-spacing: -1px; 
   text-transform: uppercase;
@@ -88,13 +122,157 @@ h1 {
 }
 .subtitle { 
   color: var(--stadium-lights); 
-  margin-top: 8px; 
-  font-size: 14px; 
+  margin-top: 6px; 
+  font-size: 13px; 
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 2px;
 }
+.date-display {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
 
+/* Quick Actions */
+.quick-actions {
+  display: flex;
+  gap: 10px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.action-btn {
+  background: rgba(9, 18, 34, 0.8);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 16px;
+}
+.action-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0, 255, 157, 0.05);
+  transform: translateY(-2px);
+}
+
+/* Stats Ribbon */
+.stats-ribbon {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 0;
+  background: linear-gradient(135deg, rgba(9, 18, 34, 0.95) 0%, rgba(6, 12, 22, 0.9) 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  align-items: center;
+}
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px;
+}
+.stat-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.03);
+  border-radius: 50%;
+  border: 1px solid var(--border);
+}
+.stat-content {
+  text-align: left;
+  min-width: 0;
+}
+.stat-label {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+.stat-value {
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 18px;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.stat-player {
+  font-size: 11px;
+  color: var(--stadium-lights);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat-player img {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--border), transparent);
+}
+
+/* Slate Ticker */
+.slate-ticker {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  background: rgba(0,0,0,0.3);
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.05);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.slate-ticker span {
+  color: var(--accent);
+  font-family: monospace;
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-block;
+  animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* --- EXISTING STYLES BELOW --- */
 .nav-tabs {
   display: flex;
   gap: 8px;
@@ -927,12 +1105,68 @@ tr.highlighted-row {
 </head>
 <body>
 <div class="container">
+  
+  <!-- ENHANCED HEADER -->
   <div class="header-area">
-    <div class="main-logo">
-      <img id="dashboardLogoSource" src="https://i.imgur.com/Czha5qm.png" alt="Logo" onerror="this.style.display='none';">
+    <div class="header-content-wrapper">
+      <div class="header-top-row">
+        <div class="main-logo">
+          <img id="dashboardLogoSource" src="https://i.imgur.com/Czha5qm.png" alt="Logo" onerror="this.style.display='none';">
+        </div>
+        
+        <div class="header-title-section">
+          <h1>The Daily Run Line's Homerun Index</h1>
+          <div class="subtitle">Bowen's Bash Index (BBI)</div>
+          <div class="date-display" id="currentDateDisplay"></div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="action-btn" onclick="resetAllFilters()" title="Reset All Filters"></button>
+          <button class="action-btn" onclick="exportDataCSV()" title="Export Data">⬇️</button>
+          <button class="action-btn" onclick="toggleTheme()" title="Toggle Theme"></button>
+        </div>
+      </div>
+
+      <!-- Stats Ribbon -->
+      <div class="stats-ribbon" id="statsRibbon">
+        <div class="stat-card featured">
+          <div class="stat-icon">🏆</div>
+          <div class="stat-content">
+            <div class="stat-label">Top BBI Score</div>
+            <div class="stat-value" id="topBBIValue">--</div>
+            <div class="stat-player" id="topBBIPlayer"><span style="color:var(--text-muted)">Loading...</span></div>
+          </div>
+        </div>
+        
+        <div class="stat-divider"></div>
+        
+        <div class="stat-card hot">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-content">
+            <div class="stat-label">Hottest Bat</div>
+            <div class="stat-value" id="hotBatValue">--</div>
+            <div class="stat-player" id="hotBatPlayer"><span style="color:var(--text-muted)">Loading...</span></div>
+          </div>
+        </div>
+        
+        <div class="stat-divider"></div>
+        
+        <div class="stat-card pitcher">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-content">
+            <div class="stat-label">Weakest Pitcher</div>
+            <div class="stat-value" id="weakPitcherValue">--</div>
+            <div class="stat-player" id="weakPitcherPlayer"><span style="color:var(--text-muted)">Loading...</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slate Summary Ticker -->
+      <div class="slate-ticker" id="slateTicker">
+        <span class="live-dot"></span>
+        <span id="tickerText">Waiting for data upload...</span>
+      </div>
     </div>
-    <h1>The Daily Run Line's Homerun Index</h1>
-    <div class="subtitle">Bowen's Bash Index (BBI)</div>
   </div>
 
   <div class="nav-tabs">
@@ -941,7 +1175,7 @@ tr.highlighted-row {
     <button class="nav-tab" onclick="switchTab('hotbat', this)">🔥 Hot Bat</button>
     <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
     <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
-    <button class="nav-tab" onclick="switchTab('tools', this)">⛅ Weather</button>
+    <button class="nav-tab" onclick="switchTab('tools', this)"> Weather</button>
   </div>
 
   <!-- HOME TAB -->
@@ -1046,7 +1280,7 @@ tr.highlighted-row {
   <div id="tab-pitchers" class="tab-content">
     <div class="table-wrapper">
       <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
-        <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🎯 All Pitcher Targets</h2>
+        <h2 style="margin:0; border:none; padding:0; font-size: 16px;"> All Pitcher Targets</h2>
         <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">All opposing pitchers ranked by HR/9 vulnerability</p>
       </div>
       <div class="pitcher-filter-group" style="padding: 12px 20px;">
@@ -1346,7 +1580,12 @@ function createHeadshotHtml(playerName, size = 'sm') {
   return `<img class="${sizeClass}" src="${url}" alt="${playerName}" onerror="this.style.display='none'">`;
 }
 
-window.addEventListener('DOMContentLoaded', () => { loadCachedData(); loadCommunityPicks(); });
+window.addEventListener('DOMContentLoaded', () => { 
+  loadCachedData(); 
+  loadCommunityPicks(); 
+  updateDateDisplay();
+  setInterval(updateCountdown, 1000); // Start countdown timer
+});
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
 
 function normalizeName(s) {
@@ -1396,6 +1635,8 @@ function loadCachedData() {
         renderH2HFullTable();
         renderEdgePanels();
         renderWeatherRankings();
+        updateHeaderStats();
+        updateSlateTicker();
       }
     } catch(e) { console.log('Cache load error'); }
   }
@@ -1519,10 +1760,203 @@ function handleFile(e) {
     renderH2HFullTable();
     renderEdgePanels();
     renderWeatherRankings();
+    
+    // Update new header elements
+    updateHeaderStats();
+    updateSlateTicker();
+    
     saveCachedData();
   };
   reader.readAsArrayBuffer(f);
 }
+
+// --- NEW HEADER FUNCTIONS ---
+
+function updateDateDisplay() {
+  const now = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('currentDateDisplay').innerText = now.toLocaleDateString('en-US', options);
+}
+
+function updateCountdown() {
+  if(gameMatchups.length === 0) return;
+  
+  // Find earliest game time
+  let earliestTime = null;
+  gameMatchups.forEach(m => {
+    const w = weatherSettings[m.id];
+    if(w && w.startTime) {
+      // Parse time string like "7:05 PM" or "19:05"
+      let [timeStr, ampm] = w.startTime.split(' ');
+      let [hours, minutes] = timeStr.split(':').map(Number);
+      
+      if(ampm && ampm.toLowerCase() === 'pm' && hours !== 12) hours += 12;
+      if(ampm && ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
+      
+      const gameDate = new Date();
+      gameDate.setHours(hours, minutes, 0, 0);
+      
+      if(!earliestTime || gameDate < earliestTime) {
+        earliestTime = gameDate;
+      }
+    }
+  });
+  
+  const tickerEl = document.getElementById('tickerText');
+   if(!earliestTime) {
+    // Just hide the countdown part if no times are found, 
+    // but keep the slate ticker info from updateSlateTicker()
+    return; 
+  } if(!earliestTime) {
+    tickerEl.innerText = `${gameMatchups.length} Games Today | No start times found`;
+    return;
+  }
+  
+  const now = new Date();
+  const diff = earliestTime - now;
+  
+  if(diff <= 0) {
+    tickerEl.innerHTML = `FIRST PITCH IS LIVE! 🟢`;
+  } else {
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+    tickerEl.innerHTML = `FIRST PITCH IN: <span>${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}</span>`;
+  }
+}
+
+function updateHeaderStats() {
+  // 1. Top BBI
+  const activePlayers = playerData.filter(p => !p.isRemoved);
+  if(activePlayers.length > 0) {
+    const sortedByBBI = [...activePlayers].sort((a,b) => (b.calculatedBBI||0) - (a.calculatedBBI||0));
+    const topP = sortedByBBI[0];
+    document.getElementById('topBBIValue').innerText = topP.calculatedBBI.toFixed(1);
+    const hs = createHeadshotHtml(topP.Name, 'sm');
+    document.getElementById('topBBIPlayer').innerHTML = `${hs} ${topP.Name}`;
+  }
+
+  // 2. Hottest Bat (Highest BBI among those with 3+ HRs last week OR .450+ wOBA)
+  let hotBatCandidates = activePlayers.filter(p => {
+    const norm = normalizeName(p.Name);
+    const lw = lastWeekMap[norm] || {};
+    const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR'));
+    const lwwOBA = cleanNumber(safeGet(lw, 'wOBA', 'wOBA Last Week', 'wOBA%'));
+    return lwHRs >= 3 || lwwOBA >= 0.450;
+  });
+  
+  if(hotBatCandidates.length > 0) {
+    hotBatCandidates.sort((a,b) => (b.calculatedBBI||0) - (a.calculatedBBI||0));
+    const hotP = hotBatCandidates[0];
+    document.getElementById('hotBatValue').innerText = hotP.calculatedBBI.toFixed(1);
+    const hs = createHeadshotHtml(hotP.Name, 'sm');
+    document.getElementById('hotBatPlayer').innerHTML = `${hs} ${hotP.Name}`;
+  } else {
+    document.getElementById('hotBatValue').innerText = "--";
+    document.getElementById('hotBatPlayer').innerHTML = "<span style='color:var(--text-muted)'>No qualifiers</span>";
+  }
+
+  // 3. Weakest Pitcher (Highest HR/9 from top5 sheet)
+  let rawPitchers = window.top5SheetData || [];
+  if(rawPitchers.length > 0) {
+    let processed = rawPitchers.map(row => {
+      let pName = String(safeGet(row, 'Pitcher', 'Name', 'Player', 'A') || '').trim();
+      let pTeam = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
+      let valC = cleanNumber(safeGet(row, 'HR/9 vs LHB', 'HR/9 vs L', 'HR/9 LHB', 'HR/9 L', 'C'));
+      let valD = cleanNumber(safeGet(row, 'HR/9 vs RHB', 'HR/9 vs R', 'HR/9 RHB', 'HR/9 R', 'D'));
+      return { name: pName, team: pTeam, lhb: valC, rhb: valD, maxHR9: Math.max(valC, valD) };
+    }).filter(p => p.name && p.name !== '' && p.maxHR9 > 0);
+    
+    if(processed.length > 0) {
+      processed.sort((a,b) => b.maxHR9 - a.maxHR9);
+      const weakP = processed[0];
+      document.getElementById('weakPitcherValue').innerText = weakP.maxHR9.toFixed(2);
+      const hs = createHeadshotHtml(weakP.name, 'sm');
+      document.getElementById('weakPitcherPlayer').innerHTML = `${hs} ${weakP.name}`;
+    }
+  }
+}
+
+function updateSlateTicker() {
+  const teams = getTeamsPlayingToday().filter(t => t !== 'OPP');
+  const numGames = teams.length / 2; // Approximate since each game has 2 teams
+  
+  let domes = 0;
+  let windOut = 0;
+  
+  // Count unique games for domes/wind
+  const countedGames = new Set();
+  
+  playerData.forEach(p => {
+    if(countedGames.has(p.gameId)) return;
+    countedGames.add(p.gameId);
+    
+    const w = weatherSettings[p.gameId];
+    if(w) {
+      if(w.isDome) domes++;
+      if(String(w.windDir || '').toLowerCase().includes('out')) windOut++;
+    }
+  });
+  
+  const tickerText = `${Math.round(numGames)} Games Today | ${domes} Domes | ${windOut} Wind Out`;
+  document.getElementById('tickerText').innerText = tickerText;
+}
+
+function resetAllFilters() {
+  document.getElementById('teamFilter1').value = 'ALL';
+  document.getElementById('batsFilter').value = 'ALL';
+  document.getElementById('searchFilter').value = '';
+  document.getElementById('showRemovedCheck').checked = false;
+  selectedQuickTeamFilter = 'ALL';
+  
+  // Reset team buttons visual state
+  document.querySelectorAll('.today-team-button').forEach(btn => btn.classList.remove('active-team-filter'));
+  const allBtn = document.querySelector('.today-team-button'); // First button is usually ALL
+  if(allBtn) allBtn.classList.add('active-team-filter');
+  
+  applyFiltersAndRender();
+}
+
+function exportDataCSV() {
+  if(playerData.length === 0) return alert("No data to export!");
+  
+  let csvContent = "data:text/csv;charset=utf-8,";
+  csvContent += "Rank,Name,Team,Opp Pitcher,BBI Score,Max EV,Weather\n";
+  
+  const sorted = [...playerData].filter(p => !p.isRemoved).sort((a,b) => (b.calculatedBBI||0) - (a.calculatedBBI||0));
+  
+  sorted.forEach((p, idx) => {
+    const w = weatherSettings[p.gameId];
+    let climate = w && !w.isDome ? `${w.temp}F ${w.windSpeed}mph ${w.windDir}` : "Dome";
+    csvContent += `${idx+1},"${p.Name}",${p.Team},"${p['Opp Pitcher'] || ''}",${(p.calculatedBBI||0).toFixed(1)},${cleanNumber(p['Max EV']||0).toFixed(1)},"${climate}"\n`;
+  });
+  
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "DRL_Homerun_Index_Data.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+let isBlueTheme = false;
+function toggleTheme() {
+  isBlueTheme = !isBlueTheme;
+  const root = document.documentElement;
+  
+  if(isBlueTheme) {
+    root.style.setProperty('--accent', '#38bdf8');
+    root.style.setProperty('--accent-glow', 'rgba(56, 189, 248, 0.2)');
+    root.style.setProperty('--stadium-lights', '#00ff9d'); // Swap accent colors
+  } else {
+    root.style.setProperty('--accent', '#00ff9d');
+    root.style.setProperty('--accent-glow', 'rgba(0, 255, 157, 0.2)');
+    root.style.setProperty('--stadium-lights', '#38bdf8');
+  }
+}
+
+// --- END NEW HEADER FUNCTIONS ---
 
 function renderFanaticsJackpot() {
   const section = document.getElementById('fanaticsJackpotSection');
@@ -1621,7 +2055,7 @@ function renderWeatherRankings() {
             if (temp >= 85) { score += 15; details.push(`🌡️ ${temp}°F (Hot)`); }
             else if (temp >= 75) { score += 5; details.push(`🌡️ ${temp}°F`); }
             else if (temp < 60) { score -= 15; details.push(`🥶 ${temp}°F (Cold)`); }
-            else { details.push(`🌡️ ${temp}°F`); }
+            else { details.push(`️ ${temp}°F`); }
             const windSpeed = Number(weather.windSpeed || 0);
             const windDir = String(weather.windDir || 'neutral').toLowerCase();
             if (windDir.includes('out')) { score += (windSpeed * 1.5); details.push(`🌬️ ${windSpeed}mph OUT`); }
@@ -1787,7 +2221,7 @@ function renderEdgePanels() {
         const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
         const card = document.createElement('div');
         card.className = 'diamond-card';
-        card.innerHTML = `<div class="diamond-icon">⚾</div><div class="diamond-name">${hr.name}</div><div class="diamond-team">${logoImg}${hr.team || 'UNK'} // ${hr.totalHrs} Total HRs</div>`;
+        card.innerHTML = `<div class="diamond-icon"></div><div class="diamond-name">${hr.name}</div><div class="diamond-team">${logoImg}${hr.team || 'UNK'} // ${hr.totalHrs} Total HRs</div>`;
         hdContainer.appendChild(card);
       }
     }
@@ -1858,7 +2292,10 @@ function parseWeatherMetadataRows(rows) {
       let windSpeed = Number(row.Wind || row.WindSpeed || row.Speed || row.wind || row['Wind MPH'] || row['wind mph']) || 0;
       let windDir = String(row.Direction || row.Dir || row.winddir || 'neutral').toLowerCase().trim();
       let humidity = Number(row.Humidity || row.humidity || 0);
-      weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome, humidity };
+      // Parse Game Time if available
+      let startTime = String(row.GameTime || row.FirstPitch || row.StartTime || row.time || '').trim();
+      
+      weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome, humidity, startTime };
     }
   });
 }
@@ -2284,7 +2721,7 @@ function renderMainTableBoard(data) {
     let badgeHtml = '';
     if (bBarrel >= 14.5) badgeHtml += `<span class="metric-badge badge-barrel">🏌️‍♂️ Drive God Power </span>`;
     if (isoVal >= 0.240) badgeHtml += `<span class="metric-badge badge-power">💣 BOMB SQUAD</span>`;
-    if (pulledAir >= 25) badgeHtml += `<span class="metric-badge badge-pulledair"> 💥 Pull Power</span>`;
+    if (pulledAir >= 25) badgeHtml += `<span class="metric-badge badge-pulledair">  Pull Power</span>`;
     const pitcherFBMod = p.calculatedPitcherFB || 1.0;
     if (pitcherFBMod > 1.25) badgeHtml += `<span class="metric-badge badge-meatball">🍝 PITCHER FLY BALL</span>`;
     if (flyBallRate >= 40 && pullRate >= 40) badgeHtml += `<span class="metric-badge badge-angle">📐 LAUNCH ANGLE KING</span>`;
@@ -2312,10 +2749,10 @@ function renderMainTableBoard(data) {
     const vaaFB = cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')) * 100;
     if (vaaReleaseZ > 0 && vaaReleaseZ <= 5.8 && vaaFB >= 38) badgeHtml += `<span class="metric-badge badge-gopher">📉 THE VAA VULTURE</span>`;
     const isCodyDiamond = codysDiamondsData.some(d => d.name.toLowerCase() === p.Name.toLowerCase());
-    if (isCodyDiamond) badgeHtml += `<span class="metric-badge badge-jackpot">💎 CODY'S DIAMOND</span>`;
+    if (isCodyDiamond) badgeHtml += `<span class="metric-badge badge-jackpot"> CODY'S DIAMOND</span>`;
     const lastWeekStats = lastWeekMap[normalizeName(p.Name)] || {};
     const hrsThisWeek = cleanNumber(safeGet(lastWeekStats, 'HRs', 'HRsLastWeek', 'HR'));
-    if (hrsThisWeek >= 3) badgeHtml += `<span class="metric-badge badge-barrel">🔥 ${hrsThisWeek} HRs Last 7 Games </span>`;
+    if (hrsThisWeek >= 3) badgeHtml += `<span class="metric-badge badge-barrel"> ${hrsThisWeek} HRs Last 7 Games </span>`;
     const credibility = p.calculatedCredibility || 1.0;
     if (credibility < 1.0) { const credPercent = (credibility * 100).toFixed(0); badgeHtml += `<span class="metric-badge badge-lowvolume">📊 ${credPercent}% CRED</span>`; }
     const pFactor = cleanNumber(p.pf) || 100;
