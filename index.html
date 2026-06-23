@@ -187,6 +187,91 @@ h1 {
   0% { box-shadow: 0 0 30px var(--accent-glow); transform: scale(1.02); }
   100% { box-shadow: 0 8px 16px rgba(0, 255, 157, 0.1); transform: scale(1); }
 }
+
+/* Fanatics Jackpot Styles */
+.jackpot-section {
+  background: rgba(9, 18, 34, 0.9);
+  border: 1px solid var(--border);
+  border-left: 4px solid #eab308;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  display: none;
+}
+.jackpot-title {
+  font-size: 11px;
+  font-weight: 900;
+  color: #eab308;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.jackpot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.jackpot-card {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(202, 138, 4, 0.03) 100%);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.jackpot-card:hover {
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(234, 179, 8, 0.15);
+}
+.jackpot-card .player-headshot-lg {
+  width: 52px;
+  height: 52px;
+  border-color: #eab308;
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.3);
+}
+.jackpot-info {
+  flex: 1;
+  min-width: 0;
+}
+.jackpot-name {
+  font-weight: 800;
+  color: #fff;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.jackpot-team {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+.jackpot-stats {
+  text-align: right;
+}
+.jackpot-ev {
+  font-family: monospace;
+  font-weight: 900;
+  color: #eab308;
+  font-size: 14px;
+}
+.jackpot-bbi {
+  font-family: monospace;
+  font-size: 10px;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
 .upload-box {
   background: var(--bg-card);
   backdrop-filter: blur(12px);
@@ -839,11 +924,12 @@ tr.highlighted-row {
 
   <!-- Navigation Tabs -->
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="switchTab('home')">🏠 Home</button>
-    <button class="nav-tab" onclick="switchTab('pitchers')">🎯 Pitchers</button>
-    <button class="nav-tab" onclick="switchTab('h2h')">⚔️ H2H Matchups</button>
-    <button class="nav-tab" onclick="switchTab('edge')">💎 Edge Plays</button>
-    <button class="nav-tab" onclick="switchTab('tools')">Weather</button>
+    <button class="nav-tab active" onclick="switchTab('home', this)">🏠 Home</button>
+    <button class="nav-tab" onclick="switchTab('pitchers', this)">🎯 Pitchers</button>
+    <button class="nav-tab" onclick="switchTab('hotbat', this)">🔥 Hot Bat</button>
+    <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
+    <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
+    <button class="nav-tab" onclick="switchTab('tools', this)">Weather</button>
   </div>
 
   <!-- HOME TAB -->
@@ -854,6 +940,15 @@ tr.highlighted-row {
        Top 12 Homerun Targets
       </div>
       <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
+    </div>
+
+    <!-- Fanatics Jackpot Section -->
+    <div id="fanaticsJackpotSection" class="jackpot-section">
+      <div class="jackpot-title">
+        <span>🎯</span>
+        Top 4 Fanatics Jackpot - Max EV Power Plays
+      </div>
+      <div id="jackpotGrid" class="jackpot-grid"></div>
     </div>
 
     <div class="upload-box">
@@ -957,6 +1052,36 @@ tr.highlighted-row {
           </tr>
         </thead>
         <tbody id="allPitchersBody">
+          <tr>
+            <td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- HOT BAT TAB -->
+  <div id="tab-hotbat" class="tab-content">
+    <div class="table-wrapper">
+      <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
+        <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🔥 Hot Bat - Players On Fire</h2>
+        <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Players with 3+ HRs last week OR .450+ wOBA last week</p>
+      </div>
+      <div style="padding: 12px 20px;">
+        <input type="text" class="h2h-search" id="hotbatSearch" placeholder="🔍 Search player name..." oninput="filterHotBatTable()" />
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align: left; padding-left: 20px;">Player</th>
+            <th>Team</th>
+            <th>Opposing Pitcher</th>
+            <th>Last Week HRs</th>
+            <th>Last Week wOBA</th>
+            <th>BBI Score</th>
+          </tr>
+        </thead>
+        <tbody id="hotbatTableBody">
           <tr>
             <td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td>
           </tr>
@@ -1116,14 +1241,15 @@ Connor is the Drive God </div>
 
 <script>
 // Tab switching
-function switchTab(tabName) {
+function switchTab(tabName, btn) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + tabName).classList.add('active');
-  event.target.classList.add('active');
+  if (btn) btn.classList.add('active');
   
   // Re-render when switching tabs
   if (tabName === 'pitchers') renderAllPitchers();
+  if (tabName === 'hotbat') renderHotBatTable();
   if (tabName === 'h2h') renderH2HFullTable();
   if (tabName === 'edge') renderEdgePanels();
   if (tabName === 'tools') renderWeatherRankings();
@@ -1203,6 +1329,8 @@ let hrDueData = [];
 let playerIdMap = {};
 let allPitchersData = [];
 let h2hFullData = [];
+let hotBatData = [];
+let fanaticsJackpotData = [];
 
 const teamLogos = {
   ARI:'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',ATL:'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',BAL:'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',BOS:'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',CHC:'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',CHW:'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',CIN:'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',CLE:'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',COL:'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',DET:'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',HOU:'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',KCR:'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',LAA:'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',LAD:'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',MIA:'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',MIL:'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',MIN:'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',NYM:'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',NYY:'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',ATH:'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',PHI:'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',PIT:'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',SDP:'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',SEA:'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',SFG:'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',STL:'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',TBR:'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',TEX:'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',TOR:'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',WSN:'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
@@ -1276,7 +1404,9 @@ function loadCachedData() {
         });
         document.getElementById('graphicsPanel').style.display = 'block';
         recalculateAllBBIScores();
+        renderFanaticsJackpot();
         renderAllPitchers();
+        renderHotBatTable();
         renderH2HFullTable();
         renderEdgePanels();
         renderWeatherRankings();
@@ -1398,7 +1528,9 @@ function handleFile(e) {
     });
     document.getElementById('graphicsPanel').style.display = 'block';
     recalculateAllBBIScores();
+    renderFanaticsJackpot();
     renderAllPitchers();
+    renderHotBatTable();
     renderH2HFullTable();
     renderEdgePanels();
     renderWeatherRankings();
@@ -1407,11 +1539,153 @@ function handleFile(e) {
   reader.readAsArrayBuffer(f);
 }
 
+// Render Fanatics Jackpot - Top 4 by Max EV
+function renderFanaticsJackpot() {
+  const section = document.getElementById('fanaticsJackpotSection');
+  const grid = document.getElementById('jackpotGrid');
+  if (!section || !grid) return;
+
+  const activePlayers = playerData.filter(p => !p.isRemoved);
+  if (activePlayers.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  // Sort by Max EV descending
+  const sorted = [...activePlayers].sort((a, b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV']));
+  fanaticsJackpotData = sorted.slice(0, 4);
+
+  if (fanaticsJackpotData.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  grid.innerHTML = '';
+
+  fanaticsJackpotData.forEach((p, idx) => {
+    const maxEV = cleanNumber(p['Max EV'] || p['MAX EV'] || p['MaxEV']);
+    const bbi = (p.calculatedBBI || 0).toFixed(1);
+    const headshotHtml = createHeadshotHtml(p.Name, 'lg');
+    const logoUrl = teamLogos[p.Team] || '';
+    const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:4px; vertical-align:middle;">` : '';
+
+    const card = document.createElement('div');
+    card.className = 'jackpot-card';
+    card.onclick = () => scrollToPlayer(p.Name);
+    card.innerHTML = `
+      ${headshotHtml}
+      <div class="jackpot-info">
+        <div class="jackpot-name">${p.Name}</div>
+        <div class="jackpot-team">${logoImg}${p.Team} // vs ${p['Opp Pitcher'] || 'Pitcher'}</div>
+      </div>
+      <div class="jackpot-stats">
+        <div class="jackpot-ev">${maxEV.toFixed(1)} mph</div>
+        <div class="jackpot-bbi">BBI: ${bbi}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// Render Hot Bat table - players with 3+ HRs last week OR .450+ wOBA last week
+function renderHotBatTable() {
+  const tbody = document.getElementById('hotbatTableBody');
+  if (!tbody) return;
+
+  hotBatData = [];
+  playerData.forEach(p => {
+    const normName = normalizeName(p.Name);
+    const lw = lastWeekMap[normName] || {};
+    const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR'));
+    const lwwOBA = cleanNumber(safeGet(lw, 'wOBA', 'wOBA Last Week', 'wOBA%'));
+
+    if (lwHRs >= 3 || lwwOBA >= 0.450) {
+      hotBatData.push({
+        player: p,
+        name: p.Name,
+        team: p.Team,
+        pitcher: p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter',
+        lwHRs: lwHRs,
+        lwwOBA: lwwOBA,
+        bbi: p.calculatedBBI || 0
+      });
+    }
+  });
+
+  // Sort by BBI score descending
+  hotBatData.sort((a, b) => b.bbi - a.bbi);
+
+  if (hotBatData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No players qualify for Hot Bat (3+ HRs last week OR .450+ wOBA last week)...</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  hotBatData.forEach(row => {
+    const logoUrl = teamLogos[row.team] || '';
+    const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
+    const headshotHtml = createHeadshotHtml(row.name, 'sm');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:left; padding-left:20px;">
+        <div class="player-name-with-headshot">
+          ${headshotHtml}
+          <span style="font-weight:700; color:#fff;">${row.name}</span>
+        </div>
+      </td>
+      <td style="color:#cbd5e1;">${logoImg}${row.team}</td>
+      <td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher}</td>
+      <td style="font-family:monospace; font-weight:900; color:#ff4500;">${row.lwHRs}</td>
+      <td style="font-family:monospace; font-weight:900; color:#00ff9d;">${row.lwwOBA.toFixed(3)}</td>
+      <td><span class="index-score">${row.bbi.toFixed(1)}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterHotBatTable() {
+  const searchVal = document.getElementById('hotbatSearch').value.toLowerCase().trim();
+  const tbody = document.getElementById('hotbatTableBody');
+  if (!tbody) return;
+
+  let filtered = hotBatData;
+  if (searchVal) {
+    filtered = hotBatData.filter(r => r.name.toLowerCase().includes(searchVal));
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No hot bats match your search...</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  filtered.forEach(row => {
+    const logoUrl = teamLogos[row.team] || '';
+    const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
+    const headshotHtml = createHeadshotHtml(row.name, 'sm');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:left; padding-left:20px;">
+        <div class="player-name-with-headshot">
+          ${headshotHtml}
+          <span style="font-weight:700; color:#fff;">${row.name}</span>
+        </div>
+      </td>
+      <td style="color:#cbd5e1;">${logoImg}${row.team}</td>
+      <td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher}</td>
+      <td style="font-family:monospace; font-weight:900; color:#ff4500;">${row.lwHRs}</td>
+      <td style="font-family:monospace; font-weight:900; color:#00ff9d;">${row.lwwOBA.toFixed(3)}</td>
+      <td><span class="index-score">${row.bbi.toFixed(1)}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 function renderWeatherRankings() {
     const container = document.getElementById('weatherRankContainer');
     if (!container) return;
     
-    // Get ALL unique game IDs
     const gameIds = [...new Set(playerData.map(p => p.gameId).filter(id => id))];
     if (gameIds.length === 0) {
         container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic;">No game data found...</div>';
@@ -1473,7 +1747,6 @@ function renderWeatherRankings() {
         });
     });
 
-    // Sort by score descending but DON'T slice - show ALL games
     gameScores.sort((a, b) => b.score - a.score);
 
     container.innerHTML = '';
@@ -1496,7 +1769,6 @@ function renderWeatherRankings() {
     });
 }
 
-// Render ALL pitchers with filters
 function renderAllPitchers(filter = 'all') {
   const tbody = document.getElementById('allPitchersBody');
   if (!tbody) return;
@@ -1521,7 +1793,6 @@ function renderAllPitchers(filter = 'all') {
     return maxB - maxA;
   });
 
-  // Apply filter
   if (filter === 'lhb') processed.sort((a, b) => b.lhb - a.lhb);
   else if (filter === 'rhb') processed.sort((a, b) => b.rhb - a.rhb);
   else if (filter === 'both') processed = processed.filter(p => p.lhb > 0 && p.rhb > 0);
@@ -1550,7 +1821,6 @@ function filterPitchers(filter, btn) {
   renderAllPitchers(filter);
 }
 
-// Render full H2H table (top 25)
 function renderH2HFullTable() {
   const tbody = document.getElementById('h2hFullTableBody');
   if (!tbody) return;
@@ -1612,7 +1882,6 @@ function filterH2HTable() {
 }
 
 function renderEdgePanels() {
-  // Cody's Diamonds
   const cdContainer = document.getElementById('codysDiamondsEdge');
   if (cdContainer) {
     if (codysDiamondsData.length === 0) {
@@ -1632,7 +1901,6 @@ function renderEdgePanels() {
     }
   }
 
-  // HR Due
   const hdContainer = document.getElementById('hrDueEdge');
   if (hdContainer) {
     if (hrDueData.length === 0) {
@@ -1651,7 +1919,6 @@ function renderEdgePanels() {
     }
   }
 
-  // Longshot
   const lsContainer = document.getElementById('longshotEdge');
   if (lsContainer) {
     if (longshotData.length === 0) {
@@ -1668,64 +1935,6 @@ function renderEdgePanels() {
         lsContainer.appendChild(card);
       }
     }
-  }
-}
-
-function renderCodysDiamonds() {
-  const container = document.getElementById('codysDiamonds');
-  if (!container) return;
-  if (codysDiamondsData.length === 0) {
-    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Cody\'s Diamonds...</div>';
-    return;
-  }
-  container.innerHTML = '';
-  const displayCount = Math.min(3, codysDiamondsData.length);
-  for (let i = 0; i < displayCount; i++) {
-    const diamond = codysDiamondsData[i];
-    const logoUrl = teamLogos[diamond.team] || '';
-    const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
-    const card = document.createElement('div');
-    card.className = 'diamond-card';
-    card.innerHTML = `<div class="diamond-icon">💎</div><div class="diamond-name">${diamond.name}</div><div class="diamond-team">${logoImg}${diamond.team}</div>`;
-    container.appendChild(card);
-  }
-}
-
-function renderLongshot() {
-  const container = document.getElementById('longshotContainer');
-  if (!container) return;
-  if (longshotData.length === 0) {
-    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Longshot...</div>';
-    return;
-  }
-  container.innerHTML = '';
-  for (let i = 0; i < longshotData.length; i++) {
-    const ls = longshotData[i];
-    const logoUrl = teamLogos[ls.team] || '';
-    const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
-    const card = document.createElement('div');
-    card.className = 'diamond-card';
-    card.innerHTML = `<div class="diamond-icon">🎰</div><div class="diamond-name">${ls.name}</div><div class="diamond-team">${logoImg}${ls.team}</div>`;
-    container.appendChild(card);
-  }
-}
-
-function renderHRDue() {
-  const container = document.getElementById('hrDueContainer');
-  if (!container) return;
-  if (hrDueData.length === 0) {
-    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load HR Due candidates...</div>';
-    return;
-  }
-  container.innerHTML = '';
-  for (let i = 0; i < hrDueData.length; i++) {
-    const hr = hrDueData[i];
-    const logoUrl = teamLogos[hr.team] || '';
-    const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
-    const card = document.createElement('div');
-    card.className = 'diamond-card';
-    card.innerHTML = `<div class="diamond-icon">⚾</div><div class="diamond-name">${hr.name}</div><div class="diamond-team">${logoImg}${hr.team || 'UNK'} // ${hr.totalHrs} Total HRs</div>`;
-    container.appendChild(card);
   }
 }
 
@@ -2172,6 +2381,7 @@ function applyFiltersAndRender() {
   filtered.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
   renderMainTableBoard(filtered);
   renderTopTwelveSpotlightWidget();
+  renderFanaticsJackpot();
 }
 
 function renderMainTableBoard(data) {
@@ -2363,15 +2573,12 @@ function renderTopTwelveSpotlightWidget() {
   });
 }
 
-// Scroll to player in main table from spotlight click
 function scrollToPlayer(playerName) {
-  // Switch to home tab first
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-home').classList.add('active');
   document.querySelector('.nav-tab').classList.add('active');
   
-  // Find and highlight the row
   setTimeout(() => {
     const rowId = `player-row-${normalizeName(playerName)}`;
     const row = document.getElementById(rowId);
