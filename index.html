@@ -909,7 +909,6 @@ tr.highlighted-row {
   box-shadow: 0 0 12px var(--accent-glow);
 }
 
-/* Pitcher row with headshot */
 .pitcher-name-with-headshot {
   display: inline-flex;
   align-items: center;
@@ -942,7 +941,7 @@ tr.highlighted-row {
     <button class="nav-tab" onclick="switchTab('hotbat', this)">🔥 Hot Bat</button>
     <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
     <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
-    <button class="nav-tab" onclick="switchTab('tools', this)">Weather</button>
+    <button class="nav-tab" onclick="switchTab('tools', this)">⛅ Weather</button>
   </div>
 
   <!-- HOME TAB -->
@@ -985,6 +984,12 @@ tr.highlighted-row {
           <div id="todayTeamsList" class="today-teams-list">
             <div class="today-team-empty">Upload today's workbook to load every team playing today.</div>
           </div>
+        </div>
+
+        <div class="panel" id="graphicsPanel" style="display:none;">
+          <h2>Exports</h2>
+          <button onclick="generateDailyDingerGraphic()" class="btn-blue" style="background: linear-gradient(135deg, #091c36 0%, #0f2b48 100%); border-color:#223e66; margin-bottom:12px;">⚡ Export Daily Top 20 Graphic</button>
+          <button onclick="generateTeamMatrixGraphic()" class="btn-blue" style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); border-color:#1e3a8a;">📋 Export Team Matrix Graphic</button>
         </div>
       </div>
 
@@ -1213,12 +1218,6 @@ tr.highlighted-row {
           <button onclick="generateParlay()" class="btn-accent">Generate Ticket Legs</button>
           <div id="parlayResults">Select active matchup combinations above to build custom ticket arrays.</div>
         </div>
-
-        <div class="panel" id="graphicsPanel" style="display:none;">
-          <h2>Exports</h2>
-          <button onclick="generateDailyDingerGraphic()" class="btn-blue" style="background: linear-gradient(135deg, #091c36 0%, #0f2b48 100%); border-color:#223e66; margin-bottom:12px;">⚡ Export Daily Top 50 Graphic</button>
-          <button onclick="generateTeamMatrixGraphic()" class="btn-blue" style="background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); border-color:#1e3a8a;">📋 Export Team Matrix Graphic</button>
-        </div>
       </div>
 
       <div>
@@ -1236,7 +1235,7 @@ tr.highlighted-row {
   </div>
 </div>
 
-<canvas id="graphicCanvas" width="1440" height="1420" style="display:none;"></canvas>
+<canvas id="graphicCanvas" width="1440" height="1400" style="display:none;"></canvas>
 <canvas id="matrixCanvas" width="1200" height="1600" style="display:none;"></canvas>
 
 <script>
@@ -1292,7 +1291,8 @@ function renderCommunityPicks() {
   let html = '';
   sortedPicks.forEach(([playerName, data]) => {
     const percentage = totalPicks > 0 ? ((data.count / totalPicks) * 100).toFixed(0) : 0;
-    html += `<div class="community-pick-item"><div style="flex: 1;"><div class="community-pick-name">${playerName}</div><div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${data.team}</div></div><div style="text-align: right; margin-left: 12px;"><div class="community-pick-count">${data.count} picks</div><div style="font-size: 10px; color: var(--text-muted);">${percentage}%</div></div></div><div class="community-pick-bar"><div class="community-pick-bar-fill" style="width: ${percentage}%"></div></div>`;
+    const headshotHtml = createHeadshotHtml(playerName, 'sm');
+    html += `<div class="community-pick-item"><div style="flex: 1; display: flex; align-items: center;"><div class="player-name-with-headshot">${headshotHtml}<div class="community-pick-name">${playerName}</div></div><div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; margin-left: 42px;">${data.team}</div></div><div style="text-align: right; margin-left: 12px;"><div class="community-pick-count">${data.count} picks</div><div style="font-size: 10px; color: var(--text-muted);">${percentage}%</div></div></div><div class="community-pick-bar"><div class="community-pick-bar-fill" style="width: ${percentage}%"></div></div>`;
   });
   container.innerHTML = html;
 }
@@ -2470,58 +2470,129 @@ function loadTeamLogoImages(callback) {
   });
 }
 
+function loadPlayerHeadshots(items, callback) {
+  const headshotObjects = {};
+  let loadedCount = 0;
+  const totalToLoad = items.length;
+  
+  if (totalToLoad === 0) {
+    callback(headshotObjects);
+    return;
+  }
+  
+  items.forEach(p => {
+    const url = getHeadshotUrl(p.Name);
+    if (url) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        headshotObjects[p.Name] = img;
+        loadedCount++;
+        if (loadedCount === totalToLoad) callback(headshotObjects);
+      };
+      img.onerror = () => {
+        loadedCount++;
+        if (loadedCount === totalToLoad) callback(headshotObjects);
+      };
+      img.src = url;
+    } else {
+      loadedCount++;
+      if (loadedCount === totalToLoad) callback(headshotObjects);
+    }
+  });
+}
+
 function generateDailyDingerGraphic() {
   loadTeamLogoImages((loadedLogos) => {
-    const canvas = document.getElementById('graphicCanvas');
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#060c16'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    let gradient = ctx.createRadialGradient(720, 0, 100, 720, 0, 1300);
-    gradient.addColorStop(0, '#0a1d37'); gradient.addColorStop(0.5, '#060c16'); gradient.addColorStop(1, '#03060b');
-    ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'rgba(0, 255, 157, 0.02)'; ctx.font = 'black 180px Impact'; ctx.textAlign = 'center';
-    ctx.fillText("BBI MODELS", 720, 750);
-    ctx.strokeStyle = '#172a46'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-    ctx.fillStyle = '#00ff9d'; ctx.fillRect(40, 40, canvas.width - 80, 6);
-    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 38px Arial'; ctx.textAlign = 'center';
-    ctx.fillText("THE DAILY RUN LINE'S HOMERUN INDEX", 720, 95);
-    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 15px Courier New';
-    ctx.fillText("CONTINUOUS MULTIPLIER MODEL // PREMIUM ANALYTICS", 720, 130);
     let items = playerData.filter(p => !p.isRemoved);
     items.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
-    items = items.slice(0, 50);
-    let startY = 200; let rowHeight = 46;
-    for (let col = 0; col < 2; col++) {
-      let colOffsetX = col === 0 ? 40 : 740;
-      ctx.fillStyle = 'rgba(9, 18, 34, 0.9)'; ctx.fillRect(colOffsetX, startY - 32, 660, 26);
+    items = items.slice(0, 20);
+    
+    loadPlayerHeadshots(items, (loadedHeadshots) => {
+      const canvas = document.getElementById('graphicCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#060c16'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      let gradient = ctx.createRadialGradient(720, 0, 100, 720, 0, 1300);
+      gradient.addColorStop(0, '#0a1d37'); gradient.addColorStop(0.5, '#060c16'); gradient.addColorStop(1, '#03060b');
+      ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(0, 255, 157, 0.02)'; ctx.font = 'black 180px Impact'; ctx.textAlign = 'center';
+      ctx.fillText("BBI MODELS", 720, 750);
+      ctx.strokeStyle = '#172a46'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+      ctx.fillStyle = '#00ff9d'; ctx.fillRect(40, 40, canvas.width - 80, 6);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 38px Arial'; ctx.textAlign = 'center';
+      ctx.fillText("THE DAILY RUN LINE'S HOMERUN INDEX", 720, 95);
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 15px Courier New';
+      ctx.fillText("TOP 20 HOMERUN TARGETS // PREMIUM ANALYTICS", 720, 130);
+      
+      let startY = 200;
+      let rowHeight = 90;
+      
+      ctx.fillStyle = 'rgba(9, 18, 34, 0.9)'; ctx.fillRect(40, startY - 32, canvas.width - 80, 26);
       ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'left';
-      ctx.fillText("RNK   PLAYER NAME", colOffsetX + 15, startY - 14);
-      ctx.textAlign = 'center'; ctx.fillText("OPP", colOffsetX + 450, startY - 14);
-      ctx.fillText("INDEX", colOffsetX + 610, startY - 14);
-    }
-    items.forEach((p, idx) => {
-      let col = idx >= 25 ? 1 : 0; let subIdx = idx % 25;
-      let colOffsetX = col === 0 ? 40 : 740; let currentY = startY + (subIdx * rowHeight);
-      ctx.fillStyle = 'rgba(16, 28, 48, 0.5)'; ctx.fillRect(colOffsetX, currentY - 18, 660, 38);
-      ctx.strokeStyle = '#1e3454'; ctx.lineWidth = 1; ctx.strokeRect(colOffsetX, currentY - 18, 660, 38);
-      ctx.fillStyle = teamColors[p.Team] || '#172a46'; ctx.fillRect(colOffsetX, currentY - 18, 6, 38);
-      ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 13px Courier New'; ctx.textAlign = 'left';
-      ctx.fillText(String(idx + 1).padStart(2, '0'), colOffsetX + 15, currentY + 6);
-      const logoImgObj = loadedLogos[p.Team];
-      if (logoImgObj) ctx.drawImage(logoImgObj, colOffsetX + 45, currentY - 12, 24, 24);
-      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px Arial';
-      ctx.fillText(p.Name.substring(0, 18), colOffsetX + 82, currentY + 5);
-      ctx.fillStyle = '#94a3b8'; ctx.font = '13px Arial'; ctx.textAlign = 'center';
-      let pName = p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter';
-      ctx.fillText(pName.substring(0, 16), colOffsetX + 450, currentY + 5);
-      ctx.fillStyle = 'rgba(0, 255, 157, 0.05)'; ctx.fillRect(colOffsetX + 570, currentY - 13, 75, 28);
-      ctx.strokeStyle = 'rgba(0, 255, 157, 0.25)'; ctx.strokeRect(colOffsetX + 570, currentY - 13, 75, 28);
-      ctx.fillStyle = '#00ff9d'; ctx.font = 'bold 16px Courier New'; ctx.textAlign = 'center';
-      ctx.fillText((p.calculatedBBI || 0).toFixed(1), colOffsetX + 607, currentY + 6);
+      ctx.fillText("RNK   PLAYER", 55, startY - 14);
+      ctx.textAlign = 'center'; ctx.fillText("TEAM", 500, startY - 14);
+      ctx.fillText("OPPONENT", 800, startY - 14);
+      ctx.fillText("BBI SCORE", 1100, startY - 14);
+      ctx.fillText("MAX EV", 1300, startY - 14);
+      
+      items.forEach((p, idx) => {
+        let currentY = startY + (idx * rowHeight);
+        
+        ctx.fillStyle = 'rgba(16, 28, 48, 0.5)'; ctx.fillRect(40, currentY - 18, canvas.width - 80, 80);
+        ctx.strokeStyle = '#1e3454'; ctx.lineWidth = 1; ctx.strokeRect(40, currentY - 18, canvas.width - 80, 80);
+        ctx.fillStyle = teamColors[p.Team] || '#172a46'; ctx.fillRect(40, currentY - 18, 6, 80);
+        
+        ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 18px Courier New'; ctx.textAlign = 'left';
+        ctx.fillText(String(idx + 1).padStart(2, '0'), 60, currentY + 30);
+        
+        const headshotImg = loadedHeadshots[p.Name];
+        if (headshotImg) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(140, currentY + 22, 32, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(headshotImg, 108, currentY - 10, 64, 64);
+          ctx.restore();
+          
+          ctx.strokeStyle = '#00ff9d';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(140, currentY + 22, 32, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'left';
+        ctx.fillText(p.Name.substring(0, 22), 190, currentY + 30);
+        
+        const logoImgObj = loadedLogos[p.Team];
+        if (logoImgObj) {
+          ctx.drawImage(logoImgObj, 470, currentY + 5, 40, 40);
+        }
+        ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
+        ctx.fillText(p.Team, 540, currentY + 30);
+        
+        ctx.fillStyle = '#94a3b8'; ctx.font = '16px Arial'; ctx.textAlign = 'center';
+        let pName = p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter';
+        ctx.fillText(pName.substring(0, 20), 800, currentY + 30);
+        
+        ctx.fillStyle = 'rgba(0, 255, 157, 0.1)'; ctx.fillRect(1020, currentY + 5, 160, 50);
+        ctx.strokeStyle = 'rgba(0, 255, 157, 0.4)'; ctx.strokeRect(1020, currentY + 5, 160, 50);
+        ctx.fillStyle = '#00ff9d'; ctx.font = 'bold 24px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText((p.calculatedBBI || 0).toFixed(1), 1100, currentY + 38);
+        
+        const maxEV = cleanNumber(p['Max EV'] || p['MAX EV'] || p['MaxEV']);
+        ctx.fillStyle = 'rgba(234, 179, 8, 0.1)'; ctx.fillRect(1220, currentY + 5, 160, 50);
+        ctx.strokeStyle = 'rgba(234, 179, 8, 0.4)'; ctx.strokeRect(1220, currentY + 5, 160, 50);
+        ctx.fillStyle = '#eab308'; ctx.font = 'bold 24px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText(maxEV.toFixed(1), 1300, currentY + 38);
+      });
+      
+      ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'center';
+      ctx.fillText("CONTINUOUS MULTIPLIER SYSTEM ACTIVE // THE DAILY RUN LINE ANALYTICS", 720, canvas.height - 35);
+      const dataUrl = canvas.toDataURL('image/png'); const win = window.open();
+      win.document.write(`<iframe src="${dataUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
     });
-    ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'center';
-    ctx.fillText("CONTINUOUS MULTIPLIER SYSTEM ACTIVE // THE DAILY RUN LINE ANALYTICS", 720, canvas.height - 35);
-    const dataUrl = canvas.toDataURL('image/png'); const win = window.open();
-    win.document.write(`<iframe src="${dataUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
   });
 }
 
