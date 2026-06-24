@@ -1260,7 +1260,7 @@ border-bottom: 1px solid var(--border);
 <button class="nav-tab" onclick="switchTab('hotbat', this)">🔥 Hot Bat</button>
 <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
 <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
-<button class="nav-tab" onclick="switchTab('tools', this)"> Weather</button>
+<button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
 </div>
 <!-- HOME TAB -->
 <div id="tab-home" class="tab-content active">
@@ -1274,7 +1274,7 @@ Top 12 Homerun Targets
 <div id="fanaticsJackpotSection" class="jackpot-section">
 <div class="jackpot-title">
 <span></span>
-Top 4 Fanatics Jackpot - Max EV Power Plays
+Top 4 Fanatics Jackpot Picks
 </div>
 <div id="jackpotGrid" class="jackpot-grid"></div>
 </div>
@@ -1510,7 +1510,7 @@ Loading community data...
 <button onclick="generateOptimalSlip('pack3')" class="btn-blue" style="padding:10px; font-size:11px; flex:1;">💥 Power 3-Pack</button>
 </div>
 <button onclick="generateOptimalSlip('stack')" class="btn-blue" style="padding:10px; font-size:11px; width:100%; margin-bottom:12px; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-color: #8b5cf6;">🏟️ Correlated Team Stack</button>
-<div id="optimalResults">Trigger generator arrays above to construct highly optimized projection slips automatically. Connor is the Drive God </div>
+<div id="optimalResults">Trigger generator arrays above to construct highly optimized projection slips automatically.</div>
 </div>
 <div class="panel">
 <h2>BBI Parlay Constructor</h2>
@@ -2740,7 +2740,7 @@ const pHR9 = cleanNumber(p['Pitcher HR/9'] || p['P HR/9']);
 const pullRate = cleanNumber(p['Pulled Air %'] || p['Pull %'] || p['Pull%'] || p['PullRate'] || 0.0) * 100;
 const flyBallRate = cleanNumber(p['Fly Ball Rate'] || p['FB%'] || p['Fly Ball %']) * 100;
 let badgeHtml = '';
-if (bBarrel >= 14.5) badgeHtml += `<span class="metric-badge badge-barrel">️‍♂️ Drive God Power </span>`;
+if (bBarrel >= 14.5) badgeHtml += `<span class="metric-badge badge-barrel">️‍💀 Barrel Master </span>`;
 if (isoVal >= 0.240) badgeHtml += `<span class="metric-badge badge-power">💣 BOMB SQUAD</span>`;
 if (pulledAir >= 25) badgeHtml += `<span class="metric-badge badge-pulledair">  Pull Power</span>`;
 const pitcherFBMod = p.calculatedPitcherFB || 1.0;
