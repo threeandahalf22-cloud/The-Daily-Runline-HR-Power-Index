@@ -31,6 +31,7 @@ letter-spacing: -0.2px;
 width: 100%;
 max-width: 1440px;
 }
+/* --- ENHANCED HEADER STYLES --- */
 .header-area {
 background: linear-gradient(180deg, #091526 0%, rgba(6, 12, 22, 0.95) 100%);
 border: 1px solid var(--border);
@@ -685,56 +686,15 @@ margin-left: 4px;
 .pf-green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 .pf-red { background: rgba(239, 68, 68, 0.15); color: #f87171; }
 .pf-neutral { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
-.interactive-cell {
-position: relative;
-cursor: help;
+.player-clickable {
+cursor: pointer;
+transition: all 0.2s;
 }
-.tooltip-box {
-display: none;
-position: absolute;
-bottom: 110%;
-left: 50%;
-transform: translateX(-50%);
-background: linear-gradient(135deg, #0a1626 0%, #091222 100%);
-border: 2px solid var(--accent);
-border-radius: 12px;
-padding: 14px 16px;
-font-size: 11px;
-color: #e2e8f0;
-text-align: left;
-white-space: normal;
-max-width: 380px;
-max-height: 400px;
-overflow-y: auto;
-box-shadow: 0 8px 32px rgba(0, 255, 157, 0.2);
-z-index: 999;
-pointer-events: none;
-animation: tooltip-pop 0.3s ease-out;
-}
-@keyframes tooltip-pop {
-0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
-100% { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-.tooltip-box::after {
-content: '';
-position: absolute;
-top: 100%;
-left: 50%;
-transform: translateX(-50%);
-width: 0;
-height: 0;
-border-left: 8px solid transparent;
-border-right: 8px solid transparent;
-border-top: 8px solid var(--accent);
-}
-.tooltip-box b {
-color: var(--accent);
-display: block;
-margin-top: 8px;
-font-size: 10px;
-}
-.interactive-cell:hover .tooltip-box {
-display: block;
+.player-clickable:hover {
+color: var(--accent) !important;
+text-decoration: underline;
+text-decoration-color: var(--accent-glow);
+text-underline-offset: 4px;
 }
 .index-score {
 font-family: monospace;
@@ -1047,10 +1007,205 @@ border: 2px solid var(--stadium-lights);
 background: var(--bg-dark);
 box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
+
+/* --- PLAYER PROFILE MODAL STYLES --- */
+.modal-overlay {
+display: none;
+position: fixed;
+top: 0; left: 0; width: 100%; height: 100%;
+background: rgba(6, 12, 22, 0.85);
+backdrop-filter: blur(8px);
+z-index: 9999;
+justify-content: center;
+align-items: center;
+padding: 20px;
+}
+.modal-overlay.active {
+display: flex;
+}
+.modal-card {
+background: linear-gradient(180deg, #091526 0%, #060c16 100%);
+border: 1px solid var(--border);
+border-top: 4px solid var(--accent);
+border-radius: 20px;
+width: 100%;
+max-width: 900px;
+max-height: 90vh;
+display: flex;
+flex-direction: row;
+overflow: hidden;
+box-shadow: 0 25px 50px rgba(0,0,0,0.7), 0 0 40px var(--accent-glow);
+animation: modal-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+position: relative;
+}
+@keyframes modal-pop {
+0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-close {
+position: absolute;
+top: 16px; right: 16px;
+background: rgba(255,255,255,0.05);
+border: 1px solid var(--border);
+color: var(--text-muted);
+width: 32px; height: 32px;
+border-radius: 50%;
+display: flex; align-items: center; justify-content: center;
+cursor: pointer; z-index: 10;
+font-size: 18px; transition: all 0.2s;
+}
+.modal-close:hover {
+background: rgba(239, 68, 68, 0.2);
+border-color: #ef4444;
+color: #ef4444;
+}
+.modal-left {
+width: 320px;
+flex-shrink: 0;
+background: rgba(9, 18, 34, 0.6);
+border-right: 1px solid var(--border);
+padding: 40px 30px;
+display: flex;
+flex-direction: column;
+align-items: center;
+text-align: center;
+}
+.modal-headshot-container {
+position: relative;
+margin-bottom: 20px;
+}
+.modal-headshot {
+width: 120px; height: 120px;
+border-radius: 50%;
+object-fit: cover;
+border: 3px solid var(--accent);
+box-shadow: 0 0 30px var(--accent-glow);
+background: var(--bg-dark);
+}
+.modal-team-logo {
+width: 36px; height: 36px;
+object-fit: contain;
+position: absolute;
+bottom: 0; right: -5px;
+background: var(--bg-main);
+border-radius: 50%;
+border: 2px solid var(--border);
+padding: 2px;
+}
+.modal-player-name {
+font-size: 24px;
+font-weight: 900;
+color: #fff;
+margin: 0 0 4px 0;
+line-height: 1.2;
+}
+.modal-player-meta {
+font-size: 13px;
+color: var(--stadium-lights);
+font-weight: 600;
+margin-bottom: 24px;
+}
+.modal-bbi-display {
+background: rgba(0, 255, 157, 0.05);
+border: 2px solid rgba(0, 255, 157, 0.3);
+border-radius: 16px;
+padding: 20px;
+width: 100%;
+}
+.modal-bbi-label {
+font-size: 10px;
+font-weight: 800;
+color: var(--text-muted);
+text-transform: uppercase;
+letter-spacing: 2px;
+margin-bottom: 8px;
+}
+.modal-bbi-value {
+font-family: monospace;
+font-size: 48px;
+font-weight: 900;
+color: var(--accent);
+line-height: 1;
+text-shadow: 0 0 20px var(--accent-glow);
+}
+.modal-right {
+flex: 1;
+padding: 30px;
+overflow-y: auto;
+display: flex;
+flex-direction: column;
+gap: 24px;
+}
+.modal-section-title {
+font-size: 12px;
+font-weight: 800;
+color: var(--accent);
+text-transform: uppercase;
+letter-spacing: 1.5px;
+border-bottom: 1px solid var(--border);
+padding-bottom: 8px;
+margin-bottom: 12px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.modal-stats-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px 20px;
+}
+.modal-stat-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 8px 12px;
+background: rgba(255,255,255,0.02);
+border-radius: 8px;
+border: 1px solid transparent;
+transition: all 0.2s;
+}
+.modal-stat-item:hover {
+background: rgba(0, 255, 157, 0.03);
+border-color: rgba(0, 255, 157, 0.1);
+}
+.modal-stat-label {
+font-size: 11px;
+color: var(--text-muted);
+font-weight: 600;
+}
+.modal-stat-val {
+font-family: monospace;
+font-size: 13px;
+font-weight: 800;
+color: #fff;
+}
+.modal-stat-val.green { color: #10b981; }
+.modal-stat-val.red { color: #ef4444; }
+.modal-stat-val.yellow { color: #eab308; }
+.modal-stat-val.blue { color: #38bdf8; }
+
+@media(max-width: 850px) {
+.modal-card {
+flex-direction: column;
+max-height: 95vh;
+}
+.modal-left {
+width: 100%;
+padding: 30px 20px 20px;
+border-right: none;
+border-bottom: 1px solid var(--border);
+}
+.modal-headshot { width: 90px; height: 90px; }
+.modal-player-name { font-size: 20px; }
+.modal-bbi-value { font-size: 36px; }
+.modal-right { padding: 20px; }
+.modal-stats-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 <div class="container">
+<!-- ENHANCED HEADER -->
 <div class="header-area">
 <div class="header-content-wrapper">
 <div class="header-top-row">
@@ -1063,6 +1218,7 @@ box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 <div class="date-display" id="currentDateDisplay"></div>
 </div>
 </div>
+<!-- Stats Ribbon -->
 <div class="stats-ribbon" id="statsRibbon">
 <div class="stat-card featured">
 <div class="stat-icon">🏆</div>
@@ -1091,6 +1247,7 @@ box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 </div>
 </div>
 </div>
+<!-- Slate Summary Ticker -->
 <div class="slate-ticker" id="slateTicker">
 <span class="live-dot"></span>
 <span id="tickerText">Waiting for data upload...</span>
@@ -1105,6 +1262,7 @@ box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
 <button class="nav-tab" onclick="switchTab('tools', this)"> Weather</button>
 </div>
+<!-- HOME TAB -->
 <div id="tab-home" class="tab-content active">
 <div id="spotlightTicker" class="spotlight-ticker">
 <div class="spotlight-title">
@@ -1194,6 +1352,7 @@ Loading community data...
 </div>
 </div>
 </div>
+<!-- PITCHERS TAB -->
 <div id="tab-pitchers" class="tab-content">
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
@@ -1225,6 +1384,7 @@ Loading community data...
 </table>
 </div>
 </div>
+<!-- HOT BAT TAB -->
 <div id="tab-hotbat" class="tab-content">
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
@@ -1253,6 +1413,7 @@ Loading community data...
 </table>
 </div>
 </div>
+<!-- H2H MATCHUPS TAB -->
 <div id="tab-h2h" class="tab-content">
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
@@ -1282,6 +1443,7 @@ Loading community data...
 </table>
 </div>
 </div>
+<!-- EDGE PLAYS TAB -->
 <div id="tab-edge" class="tab-content">
 <div class="dashboard-grid" style="grid-template-columns: 1fr;">
 <div style="display:flex; flex-direction:column; gap:24px;">
@@ -1309,6 +1471,7 @@ Loading community data...
 </div>
 </div>
 </div>
+<!-- TOOLS & GENERATORS TAB -->
 <div id="tab-tools" class="tab-content">
 <div class="dashboard-grid">
 <div style="display:flex; flex-direction:column; gap:24px;">
@@ -1374,6 +1537,29 @@ Loading community data...
 </div>
 </div>
 </div>
+
+<!-- PLAYER PROFILE MODAL -->
+<div id="playerModal" class="modal-overlay" onclick="closeModal(event)">
+<div class="modal-card" onclick="event.stopPropagation()">
+<button class="modal-close" onclick="closeModalDirect()">×</button>
+<div class="modal-left">
+<div class="modal-headshot-container">
+<img id="modalHeadshot" class="modal-headshot" src="" alt="">
+<img id="modalTeamLogo" class="modal-team-logo" src="" alt="">
+</div>
+<h3 id="modalName" class="modal-player-name"></h3>
+<div id="modalMeta" class="modal-player-meta"></div>
+<div class="modal-bbi-display">
+<div class="modal-bbi-label">Bowen's Bash Index</div>
+<div id="modalBBI" class="modal-bbi-value">0.0</div>
+</div>
+</div>
+<div class="modal-right" id="modalStatsContainer">
+<!-- Stats injected via JS -->
+</div>
+</div>
+</div>
+
 <canvas id="graphicCanvas" width="1440" height="1400" style="display:none;"></canvas>
 <canvas id="matrixCanvas" width="1200" height="1600" style="display:none;"></canvas>
 <script>
@@ -1475,6 +1661,8 @@ loadCachedData();
 loadCommunityPicks();
 updateDateDisplay();
 setInterval(updateCountdown, 1000);
+// Global escape key listener for modal
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalDirect(); });
 });
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
 function normalizeName(s) {
@@ -1744,6 +1932,77 @@ if(String(w.windDir || '').toLowerCase().includes('out')) windOut++;
 const tickerText = `${Math.round(numGames)} Games Today | ${domes} Domes | ${windOut} Wind Out`;
 document.getElementById('tickerText').innerText = tickerText;
 }
+// --- MODAL FUNCTIONS ---
+function openPlayerModal(player) {
+const modal = document.getElementById('playerModal');
+const headshotUrl = getHeadshotUrl(player.Name);
+const logoUrl = teamLogos[player.Team] || '';
+document.getElementById('modalHeadshot').src = headshotUrl || 'https://via.placeholder.com/120x120/091222/172a46?text=?';
+document.getElementById('modalTeamLogo').src = logoUrl;
+document.getElementById('modalName').innerText = player.Name;
+const bats = String(player['Bats'] || player['Hand'] || 'R').toUpperCase();
+document.getElementById('modalMeta').innerText = `${player.Team} // vs ${player['Opp Pitcher'] || 'Starter'} // ${bats}HB`;
+document.getElementById('modalBBI').innerText = (player.calculatedBBI || 0).toFixed(1);
+// Build stats grid
+const pa = cleanNumber(safeGet(player, 'PA', 'pa', 'PAs', 'Plate Appearances', 'AB')) || 0;
+const totalHR = cleanNumber(player['Total HR'] || 0);
+const credibility = (player.calculatedCredibility || 1.0) * 100;
+const barrel = (cleanNumber(player['Barrel %']) * 100).toFixed(1);
+const hh = (cleanNumber(player['Hard Hit %']) * 100).toFixed(1);
+const ev = cleanNumber(player['Avg EV'] || player['EV']).toFixed(1);
+const iso = cleanNumber(player['ISO']).toFixed(3);
+const pullAir = (cleanNumber(player['Pulled Air %'] || player['Pull Air %'] || 0) * 100).toFixed(1);
+const fbRate = (cleanNumber(player['Fly Ball Rate'] || player['FB%'] || 0) * 100).toFixed(1);
+const sweetSpot = (cleanNumber(player['Sweet Spot %'] || 0) * 100).toFixed(1);
+const pullRate = (cleanNumber(player['Pull %'] || player['PullRate'] || 0) * 100).toFixed(1);
+const pHR9 = cleanNumber(player['Pitcher HR/9'] || player['P HR/9']).toFixed(2);
+const pBarrel = (cleanNumber(player['Pitcher Barrel % Allowed'] || player['Pitcher Barrel Allowed'] || 0) * 100).toFixed(1);
+const pHH = (cleanNumber(player['Pitcher Hard Hit % Allowed'] || 0) * 100).toFixed(1);
+const pFB = (cleanNumber(player['Pitcher FB%'] || player['Pitcher FB Rate'] || 0) * 100).toFixed(1);
+const pGB = (cleanNumber(player['Pitcher GB %'] || player['Pitcher GB'] || 0) * 100).toFixed(1);
+const envMod = (player.envMultiplier || 1).toFixed(2);
+const paMod = (player.paFactor || 1).toFixed(2);
+const xhrMod = (player.elitePowerBonus || 1).toFixed(2);
+const vaaMod = (player.releaseModifier || 1).toFixed(2);
+const powerMod = (player.calculatedPowerModifier || 1).toFixed(2);
+const pvfMod = (player.calculatedPVF || 1).toFixed(2);
+const pf = cleanNumber(player.pf) || 100;
+const gameTotal = cleanNumber(safeGet(player, 'Total', 'Game Total', 'O/U', 'Over/Under'));
+const w = weatherSettings[player.gameId];
+let climate = w && !w.isDome ? `${w.temp}°F, ${w.windSpeed}mph ${w.windDir.toUpperCase()}` : 'Closed Dome';
+const stat = (label, val, color = '') => `<div class="modal-stat-item"><span class="modal-stat-label">${label}</span><span class="modal-stat-val ${color}">${val}</span></div>`;
+const section = (title, content) => `<div><div class="modal-section-title">${title}</div><div class="modal-stats-grid">${content}</div></div>`;
+let html = '';
+html += section('⚙️ VOLUME CHECK', 
+stat('PA', pa) + stat('Total HR', totalHR) + stat('Credibility', credibility.toFixed(0)+'%', credibility < 100 ? 'yellow' : 'green') + stat('Park Factor', pf, pf>=106?'green':pf<=94?'red':'')
+);
+html += section('📊 BATTED BALL', 
+stat('Barrel %', barrel+'%', barrel>=14.5?'green':'') + stat('Hard Hit %', hh+'%', hh>=35?'green':'') + stat('Avg EV', ev+' mph') + stat('ISO', iso)
+);
+html += section('⬅️ LAUNCH PROFILE', 
+stat('Pulled Air %', pullAir+'%', pullAir>=25?'green':'') + stat('Fly Ball %', fbRate+'%') + stat('Sweet Spot %', sweetSpot+'%') + stat('Pull %', pullRate+'%')
+);
+html += section('🎯 PITCHER MATCHUP', 
+stat('HR/9', pHR9, pHR9>=1.3?'red':'') + stat('Barrel Allowed', pBarrel+'%') + stat('Hard Hit Allowed', pHH+'%') + stat('FB %', pFB+'%') + stat('GB %', pGB+'%')
+);
+html += section('🚀 MULTIPLIERS', 
+stat('Game Total Mod', envMod+'x', envMod>=1.05?'green':'') + stat('PA/Game Mod', paMod+'x') + stat('xHR Vol Bonus', xhrMod+'x', xhrMod>1?'green':'') + stat('VAA (Rel Z) Mod', vaaMod+'x', vaaMod>=1.1?'green':vaaMod<1?'red':'') + stat('Power Mod', powerMod+'x') + stat('PVF Ratio', pvfMod+'x', pvfMod>=1.2?'red':'')
+);
+html += section('🌤️ ENVIRONMENT', 
+stat('Weather/Park', climate) + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A')
+);
+document.getElementById('modalStatsContainer').innerHTML = html;
+modal.classList.add('active');
+document.body.style.overflow = 'hidden';
+}
+function closeModal(e) {
+if(e.target === document.getElementById('playerModal')) closeModalDirect();
+}
+function closeModalDirect() {
+document.getElementById('playerModal').classList.remove('active');
+document.body.style.overflow = '';
+}
+// --- END MODAL FUNCTIONS ---
 function renderFanaticsJackpot() {
 const section = document.getElementById('fanaticsJackpotSection');
 const grid = document.getElementById('jackpotGrid');
@@ -2082,9 +2341,7 @@ if (sample >= stabilizationPA) return actual;
 const weight = sample / stabilizationPA;
 return (actual * weight) + (leagueAvg * (1 - weight));
 }
-// UPDATED SCORE_WEIGHTS
 const SCORE_WEIGHTS = { hitterPowerProfile: 0.22, pitcherVulnerability: 0.24, battedBallProfile: 0.10, pitchMatchup: 0.17, recentForm: 0.10, weather: 0.06, park: 0.05, bvp: 0.06 };
-// UPDATED SUBWEIGHTS
 const SUBWEIGHTS = {
 hitterPowerProfile: { barrelPct: 5, isoVsHand: 3, maxEV: 3, xwOBA: 2, avgEV: 2, hardHitPct: 1, sqUpCon: 1 },
 battedBallProfile: { flyBallPct: 2, pulledAirPct: 2, sweetSpotPct: 1, pullPct: 1 },
@@ -2300,20 +2557,17 @@ const stabilizedPitcherXHR = applyStabilization(pitcherXhrRaw, LEAGUE_AVERAGES.p
 const pv_xhrM = ratioToModifier(stabilizedPitcherXHR, LEAGUE_AVERAGES.pitcherHR9, { min:0.6, max:2.0 });
 const pitcherVulnerabilityWithXhr = (pitcherVulnerabilityModifier * 0.88) + (pv_xhrM * 0.12);
 const pmSub = N_SUB.pitchMatchup;
-// USAGE-ADJUSTED PITCH MATCHUP
 const pl_fastM = 1 + Math.max(-0.5, Math.min(0.9, plFastball / 10));
 const pl_brkM = 1 + Math.max(-0.5, Math.min(0.9, plBreaking / 10));
 const pl_offM = 1 + Math.max(-0.5, Math.min(0.6, plOffspeed / 10));
 const pl_stuffM = 1 + Math.max(-0.3, Math.min(0.6, plStuffPlus / 10));
 const pl_pitchPlusM = 1 + Math.max(-0.3, Math.min(0.6, plPitchingPlus / 10));
-// Usage-adjusted: multiply RV modifier by pitcher's usage of that pitch type
 const fbUsageNorm = Math.min(1, Math.max(0, fbUsage));
 const brkUsageNorm = Math.min(1, Math.max(0, breakingUsage));
 const offUsageNorm = Math.min(1, Math.max(0, offspeedUsage));
 const adjustedFastballRV = pl_fastM * fbUsageNorm;
 const adjustedBreakingRV = pl_brkM * brkUsageNorm;
 const adjustedOffspeedRV = pl_offM * offUsageNorm;
-// Fastball% direct metric modifier
 const fbPctNorm = pitcherFB > 1 ? pitcherFB / 100 : pitcherFB;
 const fbPctM = ratioToModifier(fbPctNorm, 0.39, { min: 0.7, max: 1.4, sensitivity: 0.85 });
 const pitchMatchupModifier = ((adjustedFastballRV * pmSub.fastballRV) + (adjustedBreakingRV * pmSub.breakingRV) + (adjustedOffspeedRV * pmSub.offspeedRV) + (pl_stuffM * pmSub.stuffPlus) + (pl_pitchPlusM * pmSub.pitchingPlus) + (fbPctM * pmSub.fastballPct));
@@ -2532,7 +2786,8 @@ let safeName = p.Name.replace(/'/g, "\\'");
 let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
 const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}')">💰 LOCK PICK</button>`;
 const headshotHtml = createHeadshotHtml(p.Name, 'sm');
-tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;" class="interactive-cell"><div class="player-name-with-headshot">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div><div class="tooltip-box"><b>⚙️ VOLUME CHECK:</b><div class="stat-row"><span class="stat-label">PA</span><span class="stat-value">${pa.toFixed(0)}</span></div><div class="stat-row"><span class="stat-label">Total HR</span><span class="stat-value">${totalHR.toFixed(0)}</span></div><div class="stat-row"><span class="stat-label">Credibility</span><span class="stat-value">${(credibility * 100).toFixed(0)}%</span></div><b>📊 BATTED BALL:</b><div class="stat-row"><span class="stat-label">Barrel %</span><span class="stat-value">${bBarrel.toFixed(1)}%</span></div><div class="stat-row"><span class="stat-label">Hard Hit %</span><span class="stat-value">${bHardHit.toFixed(1)}%</span></div><div class="stat-row"><span class="stat-label">Avg EV</span><span class="stat-value">${ev.toFixed(1)} mph</span></div><b>⬅️ PULLED AIR:</b><div class="stat-row"><span class="stat-label">Pull Air Mod</span><span class="stat-value">${(p.calculatedPullModifier || 1).toFixed(2)}x</span></div><b>💪 POWER PROFILE:</b><div class="stat-row"><span class="stat-label">Power Mod</span><span class="stat-value">${(p.calculatedPowerModifier || 1).toFixed(2)}x</span></div><b>🍝 PITCHER FB:</b><div class="stat-row"><span class="stat-label">Pitcher FB Mod</span><span class="stat-value">${(p.calculatedPitcherFB || 1).toFixed(2)}x</span></div><b>⚡ PITCHER HR/9:</b><div class="stat-row"><span class="stat-label">HR/9 Ratio</span><span class="stat-value">${(p.calculatedPVF || 1).toFixed(2)}x</span></div><div class="stat-row"><span class="stat-label">P Sweet Spot %</span><span class="stat-value">${((p.calculatedPitcherSweetSpot || 0.35) * 100).toFixed(1)}%</span></div><b> NEW MULTIPLIERS:</b><div class="stat-row"><span class="stat-label">Game Total Mod</span><span class="stat-value">${(p.envMultiplier || 1).toFixed(2)}x</span></div><div class="stat-row"><span class="stat-label">PA/Game Mod</span><span class="stat-value">${(p.paFactor || 1).toFixed(2)}x</span></div><div class="stat-row"><span class="stat-label">xHR Vol Bonus</span><span class="stat-value">${(p.elitePowerBonus || 1).toFixed(2)}x</span></div><div class="stat-row"><span class="stat-label">VAA (Rel Z) Mod</span><span class="stat-value">${(p.releaseModifier || 1).toFixed(2)}x</span></div></div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}</td><td><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span></td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
+// UPDATED: Player cell is now clickable and opens modal instead of hover tooltip
+tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" onclick="openPlayerModal(playerData[${playerData.indexOf(p)}])">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}</td><td><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span></td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
