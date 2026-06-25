@@ -27,11 +27,7 @@ flex-direction: column;
 align-items: center;
 letter-spacing: -0.2px;
 }
-.container {
-width: 100%;
-max-width: 1440px;
-}
-/* --- ENHANCED HEADER STYLES --- */
+.container { width: 100%; max-width: 1440px; }
 .header-area {
 background: linear-gradient(180deg, #091526 0%, rgba(6, 12, 22, 0.95) 100%);
 border: 1px solid var(--border);
@@ -56,611 +52,93 @@ animation: stadium-sweep 15s infinite linear;
 z-index: 0;
 pointer-events: none;
 }
-@keyframes stadium-sweep {
-0% { transform: rotate(0deg); }
-100% { transform: rotate(360deg); }
-}
-.header-content-wrapper {
-position: relative;
-z-index: 1;
-width: 100%;
-display: flex;
-flex-direction: column;
-align-items: center;
-}
-.header-top-row {
-display: flex;
-align-items: center;
-gap: 30px;
-margin-bottom: 20px;
-width: 100%;
-justify-content: center;
-}
+@keyframes stadium-sweep { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.header-content-wrapper { position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center; }
+.header-top-row { display: flex; align-items: center; gap: 30px; margin-bottom: 20px; width: 100%; justify-content: center; }
 .main-logo {
-width: 90px;
-height: 90px;
-border-radius: 50%;
-border: 2px solid var(--accent);
-background: var(--bg-dark);
-display: flex;
-align-items: center;
-justify-content: center;
-box-shadow: 0 0 25px var(--accent-glow);
-overflow: hidden;
-animation: pulse-glow 2s infinite;
-flex-shrink: 0;
+width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--accent); background: var(--bg-dark);
+display: flex; align-items: center; justify-content: center;
+box-shadow: 0 0 25px var(--accent-glow); overflow: hidden; animation: pulse-glow 2s infinite; flex-shrink: 0;
 }
-@keyframes pulse-glow {
-0%, 100% { box-shadow: 0 0 25px var(--accent-glow); }
-50% { box-shadow: 0 0 40px rgba(0, 255, 157, 0.4); }
-}
-.main-logo img {
-width: 100%;
-height: 100%;
-object-fit: cover;
-}
-.header-title-section {
-flex: 1;
-text-align: center;
-max-width: 600px;
-}
-h1 {
-margin: 0;
-font-size: 32px;
-font-weight: 900;
-letter-spacing: -1px;
-text-transform: uppercase;
-background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-}
-.subtitle {
-color: var(--stadium-lights);
-margin-top: 6px;
-font-size: 13px;
-font-weight: 600;
-text-transform: uppercase;
-letter-spacing: 2px;
-}
-.date-display {
-font-size: 11px;
-color: var(--text-muted);
-margin-top: 4px;
-font-weight: 600;
-letter-spacing: 1px;
-}
-.stats-ribbon {
-display: grid;
-grid-template-columns: 1fr auto 1fr auto 1fr;
-gap: 0;
-background: linear-gradient(135deg, rgba(9, 18, 34, 0.95) 0%, rgba(6, 12, 22, 0.9) 100%);
-border: 1px solid var(--border);
-border-radius: 12px;
-padding: 12px 16px;
-width: 100%;
-max-width: 1000px;
-margin: 0 auto;
-box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-align-items: center;
-}
-.stat-card {
-display: flex;
-align-items: center;
-gap: 12px;
-padding: 4px 8px;
-}
-.stat-icon {
-font-size: 24px;
-width: 40px;
-height: 40px;
-display: flex;
-align-items: center;
-justify-content: center;
-background: rgba(255,255,255,0.03);
-border-radius: 50%;
-border: 1px solid var(--border);
-}
-.stat-content {
-text-align: left;
-min-width: 0;
-}
-.stat-label {
-font-size: 9px;
-font-weight: 800;
-color: var(--text-muted);
-text-transform: uppercase;
-letter-spacing: 1px;
-margin-bottom: 2px;
-}
-.stat-value {
-font-family: monospace;
-font-weight: 900;
-font-size: 18px;
-color: #fff;
-line-height: 1;
-margin-bottom: 2px;
-}
-.stat-player {
-font-size: 11px;
-color: var(--stadium-lights);
-font-weight: 600;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-display: flex;
-align-items: center;
-gap: 6px;
-}
-.stat-player img {
-width: 18px;
-height: 18px;
-border-radius: 50%;
-object-fit: cover;
-border: 1px solid var(--border);
-}
-.stat-divider {
-width: 1px;
-height: 40px;
-background: linear-gradient(to bottom, transparent, var(--border), transparent);
-}
-.slate-ticker {
-margin-top: 12px;
-font-size: 11px;
-color: var(--text-muted);
-font-weight: 600;
-letter-spacing: 0.5px;
-background: rgba(0,0,0,0.3);
-padding: 6px 16px;
-border-radius: 20px;
-border: 1px solid rgba(255,255,255,0.05);
-display: inline-flex;
-align-items: center;
-gap: 8px;
-}
-.slate-ticker span {
-color: var(--accent);
-font-family: monospace;
-}
-.live-dot {
-width: 6px;
-height: 6px;
-background: var(--accent);
-border-radius: 50%;
-display: inline-block;
-animation: blink 1.5s infinite;
-}
+@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 25px var(--accent-glow); } 50% { box-shadow: 0 0 40px rgba(0, 255, 157, 0.4); } }
+.main-logo img { width: 100%; height: 100%; object-fit: cover; }
+.header-title-section { flex: 1; text-align: center; max-width: 600px; }
+h1 { margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.subtitle { color: var(--stadium-lights); margin-top: 6px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+.date-display { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 600; letter-spacing: 1px; }
+.stats-ribbon { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; background: linear-gradient(135deg, rgba(9, 18, 34, 0.95) 0%, rgba(6, 12, 22, 0.9) 100%); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; width: 100%; max-width: 1000px; margin: 0 auto; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05); align-items: center; }
+.stat-card { display: flex; align-items: center; gap: 12px; padding: 4px 8px; }
+.stat-icon { font-size: 24px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border-radius: 50%; border: 1px solid var(--border); }
+.stat-content { text-align: left; min-width: 0; }
+.stat-label { font-size: 9px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+.stat-value { font-family: monospace; font-weight: 900; font-size: 18px; color: #fff; line-height: 1; margin-bottom: 2px; }
+.stat-player { font-size: 11px; color: var(--stadium-lights); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+.stat-player img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+.stat-divider { width: 1px; height: 40px; background: linear-gradient(to bottom, transparent, var(--border), transparent); }
+.slate-ticker { margin-top: 12px; font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; background: rgba(0,0,0,0.3); padding: 6px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); display: inline-flex; align-items: center; gap: 8px; }
+.slate-ticker span { color: var(--accent); font-family: monospace; }
+.live-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; animation: blink 1.5s infinite; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-.nav-tabs {
-display: flex;
-gap: 8px;
-margin-bottom: 24px;
-flex-wrap: wrap;
-justify-content: center;
-}
-.nav-tab {
-background: var(--bg-card);
-border: 1px solid var(--border);
-color: var(--text-muted);
-padding: 12px 24px;
-border-radius: 10px;
-font-weight: 800;
-font-size: 13px;
-cursor: pointer;
-text-transform: uppercase;
-letter-spacing: 1px;
-transition: all 0.2s;
-}
-.nav-tab:hover {
-border-color: var(--accent);
-color: #fff;
-transform: translateY(-2px);
-}
-.nav-tab.active {
-background: linear-gradient(135deg, var(--accent) 0%, #00d482 100%);
-color: #04080f;
-border-color: var(--accent);
-box-shadow: 0 4px 16px var(--accent-glow);
-}
-.tab-content {
-display: none;
-}
-.tab-content.active {
-display: block;
-}
-.spotlight-ticker {
-background: rgba(9, 18, 34, 0.9);
-border: 1px solid var(--border);
-border-left: 4px solid var(--stadium-lights);
-border-radius: 12px;
-padding: 16px 20px;
-margin-bottom: 20px;
-display: none;
-box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-.spotlight-title {
-font-size: 11px;
-font-weight: 900;
-color: var(--stadium-lights);
-text-transform: uppercase;
-letter-spacing: 1.5px;
-margin-bottom: 10px;
-display: flex;
-align-items: center;
-gap: 6px;
-}
-.spotlight-cards-grid {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-gap: 15px;
-}
-.spotlight-card {
-background: #050b14;
-border: 1px solid #14243b;
-border-radius: 8px;
-padding: 12px 14px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-transition: all 0.3s;
-cursor: pointer;
-}
-.spotlight-card:hover {
-background: rgba(0, 255, 157, 0.05);
-border-color: var(--accent);
-transform: translateY(-2px);
-box-shadow: 0 8px 16px rgba(0, 255, 157, 0.1);
-}
-.spotlight-card.highlighted {
-border-color: var(--accent);
-background: rgba(0, 255, 157, 0.1);
-box-shadow: 0 0 20px var(--accent-glow);
-animation: highlight-pulse 1s ease-out;
-}
-@keyframes highlight-pulse {
-0% { box-shadow: 0 0 30px var(--accent-glow); transform: scale(1.02); }
-100% { box-shadow: 0 8px 16px rgba(0, 255, 157, 0.1); transform: scale(1); }
-}
-.jackpot-section {
-background: rgba(9, 18, 34, 0.9);
-border: 1px solid var(--border);
-border-left: 4px solid #eab308;
-border-radius: 12px;
-padding: 16px 20px;
-margin-bottom: 20px;
-box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-display: none;
-}
-.jackpot-title {
-font-size: 11px;
-font-weight: 900;
-color: #eab308;
-text-transform: uppercase;
-letter-spacing: 1.5px;
-margin-bottom: 10px;
-display: flex;
-align-items: center;
-gap: 6px;
-}
-.jackpot-grid {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-gap: 12px;
-}
-.jackpot-card {
-background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(202, 138, 4, 0.03) 100%);
-border: 1px solid rgba(234, 179, 8, 0.3);
-border-radius: 10px;
-padding: 14px;
-display: flex;
-align-items: center;
-gap: 12px;
-transition: all 0.3s;
-cursor: pointer;
-}
-.jackpot-card:hover {
-border-color: #eab308;
-background: rgba(234, 179, 8, 0.1);
-transform: translateY(-2px);
-box-shadow: 0 8px 16px rgba(234, 179, 8, 0.15);
-}
-.jackpot-card .player-headshot-lg {
-width: 52px;
-height: 52px;
-border-color: #eab308;
-box-shadow: 0 2px 8px rgba(234, 179, 8, 0.3);
-}
-.jackpot-info {
-flex: 1;
-min-width: 0;
-}
-.jackpot-name {
-font-weight: 800;
-color: #fff;
-font-size: 13px;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-}
-.jackpot-team {
-font-size: 10px;
-color: var(--text-muted);
-font-weight: 600;
-margin-top: 2px;
-}
-.jackpot-stats {
-text-align: right;
-}
-.jackpot-ev {
-font-family: monospace;
-font-weight: 900;
-color: #eab308;
-font-size: 14px;
-}
-.jackpot-bbi {
-font-family: monospace;
-font-size: 10px;
-color: var(--accent);
-margin-top: 2px;
-}
-.upload-box {
-background: var(--bg-card);
-backdrop-filter: blur(12px);
-padding: 24px;
-border-radius: 16px;
-text-align: center;
-border: 1px dashed #223e66;
-margin-bottom: 20px;
-box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-transition: all 0.3s;
-}
-.upload-box:hover {
-border-color: var(--accent);
-background: rgba(16, 28, 48, 0.9);
-}
-input[type="file"] {
-background: var(--bg-dark);
-padding: 12px 18px;
-border-radius: 10px;
-border: 1px solid var(--border);
-color: #fff;
-cursor: pointer;
-font-weight: 600;
-font-size: 13px;
-transition: all 0.2s;
-}
-input[type="file"]:hover {
-border-color: #38bdf8;
-background: #0d192e;
-}
-.dashboard-grid {
-display: grid;
-grid-template-columns: 1fr;
-gap: 24px;
-margin-top: 20px;
-}
-@media(min-width: 1050px) {
-.dashboard-grid {
-grid-template-columns: 380px 1fr;
-}
-}
-.panel {
-background: var(--bg-card);
-backdrop-filter: blur(12px);
-padding: 24px;
-border-radius: 16px;
-border: 1px solid var(--border);
-height: fit-content;
-box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.02);
-transition: all 0.3s;
-}
-.panel:hover {
-border-color: var(--accent);
-box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.02);
-}
-h2 {
-margin-top: 0;
-font-size: 14px;
-font-weight: 800;
-border-bottom: 1px solid var(--border);
-padding-bottom: 12px;
-color: #fff;
-text-transform: uppercase;
-letter-spacing: 1px;
-display: flex;
-align-items: center;
-gap: 8px;
-}
-h2::before {
-content: '';
-display: inline-block;
-width: 6px;
-height: 14px;
-background: var(--accent);
-border-radius: 2px;
-box-shadow: 0 0 8px var(--accent);
-animation: flicker 0.6s infinite;
-}
-@keyframes flicker {
-0%, 100% { opacity: 1; }
-50% { opacity: 0.6; }
-}
-.today-teams-list {
-display: flex;
-flex-direction: column;
-gap: 10px;
-}
-.today-team-button {
-width: 100%;
-min-height: 42px;
-background: rgba(9, 18, 34, 0.85);
-border: 1px solid var(--border);
-color: #f1f5f9;
-border-radius: 8px;
-padding: 9px 10px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 10px;
-cursor: pointer;
-font-size: 12px;
-font-weight: 800;
-transition: all 0.2s;
-}
-.today-team-button:hover {
-border-color: var(--accent);
-background: rgba(16, 28, 48, 0.95);
-transform: translateY(-1px);
-box-shadow: 0 4px 12px rgba(0, 255, 157, 0.15);
-}
-.today-team-button.active-team-filter {
-border-color: var(--accent);
-background: rgba(0, 255, 157, 0.08);
-box-shadow: 0 0 12px rgba(0, 255, 157, 0.16);
-}
-.today-team-name {
-display: inline-flex;
-align-items: center;
-min-width: 0;
-}
-.today-team-count {
-color: var(--text-muted);
-font-family: monospace;
-font-size: 11px;
-flex: 0 0 auto;
-}
-.today-team-empty {
-color: var(--text-muted);
-font-size: 12px;
-line-height: 1.45;
-}
-.btn-blue {
-padding: 14px;
-background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-border: 1px solid #3b82f6;
-border-radius: 10px;
-color: white;
-font-weight: 700;
-font-size: 13px;
-cursor: pointer;
-width: 100%;
-text-transform: uppercase;
-letter-spacing: 1px;
-box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
-transition: all 0.2s;
-}
-.btn-blue:hover {
-background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-box-shadow: 0 6px 20px rgba(29, 78, 216, 0.5);
-transform: translateY(-2px);
-}
-.controls-bar {
-background: var(--bg-card);
-backdrop-filter: blur(12px);
-padding: 18px 24px;
-border-radius: 16px;
-border: 1px solid var(--border);
-margin-bottom: 20px;
-display: flex;
-flex-wrap: wrap;
-gap: 18px;
-align-items: center;
-box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-}
-.filter-group {
-display: flex;
-flex-direction: column;
-gap: 6px;
-}
-.filter-group label {
-font-size: 11px;
-font-weight: 800;
-color: var(--accent);
-text-transform: uppercase;
-}
-.search-input {
-width: 260px;
-background: var(--bg-dark);
-border: 1px solid var(--accent);
-color: #fff;
-padding: 8px 12px;
-border-radius: 6px;
-transition: all 0.2s;
-}
-.search-input:focus {
-outline: none;
-box-shadow: 0 0 12px var(--accent-glow);
-background: rgba(0, 255, 157, 0.05);
-}
-.select-input-sm {
-width: 115px;
-background: var(--bg-dark);
-border: 1px solid var(--accent);
-color: #fff;
-padding: 8px;
-border-radius: 6px;
-cursor: pointer;
-}
-.parlayTeamSelect {
-background: var(--bg-dark);
-border: 1px solid var(--accent);
-color: #fff;
-padding: 10px;
-border-radius: 6px;
-font-weight: 600;
-cursor: pointer;
-}
-.table-wrapper {
-overflow-x: auto;
-background: var(--bg-card);
-backdrop-filter: blur(12px);
-border-radius: 16px;
-border: 1px solid var(--border);
-box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-margin-bottom: 24px;
-}
-table {
-width: 100%;
-border-collapse: collapse;
-text-align: center;
-font-size: 14px;
-}
-th, td {
-padding: 16px 20px;
-border-bottom: 1px solid var(--border);
-}
-th {
-background: rgba(9, 18, 34, 0.9);
-color: #94a3b8;
-font-weight: 800;
-text-transform: uppercase;
-font-size: 11px;
-border-bottom: 2px solid var(--border);
-}
-tr:hover {
-background: rgba(30, 41, 59, 0.6);
-}
-tr.highlighted-row {
-background: rgba(0, 255, 157, 0.1);
-animation: row-highlight 2s ease-out;
-}
-@keyframes row-highlight {
-0% { background: rgba(0, 255, 157, 0.2); }
-100% { background: rgba(0, 255, 157, 0.1); }
-}
-.metric-badge {
-display: inline-block;
-font-size: 9px;
-font-weight: 800;
-padding: 4px 8px;
-border-radius: 4px;
-margin-left: 4px;
-margin-top: 2px;
-text-transform: uppercase;
-}
+.nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; justify-content: center; }
+.nav-tab { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s; }
+.nav-tab:hover { border-color: var(--accent); color: #fff; transform: translateY(-2px); }
+.nav-tab.active { background: linear-gradient(135deg, var(--accent) 0%, #00d482 100%); color: #04080f; border-color: var(--accent); box-shadow: 0 4px 16px var(--accent-glow); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.spotlight-ticker { background: rgba(9, 18, 34, 0.9); border: 1px solid var(--border); border-left: 4px solid var(--stadium-lights); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+.spotlight-title { font-size: 11px; font-weight: 900; color: var(--stadium-lights); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.spotlight-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+.spotlight-card { background: #050b14; border: 1px solid #14243b; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s; cursor: pointer; }
+.spotlight-card:hover { background: rgba(0, 255, 157, 0.05); border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0, 255, 157, 0.1); }
+.jackpot-section { background: rgba(9, 18, 34, 0.9); border: 1px solid var(--border); border-left: 4px solid #eab308; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: none; }
+.jackpot-title { font-size: 11px; font-weight: 900; color: #eab308; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.jackpot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.jackpot-card { background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(202, 138, 4, 0.03) 100%); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 10px; padding: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.3s; cursor: pointer; }
+.jackpot-card:hover { border-color: #eab308; background: rgba(234, 179, 8, 0.1); transform: translateY(-2px); box-shadow: 0 8px 16px rgba(234, 179, 8, 0.15); }
+.jackpot-info { flex: 1; min-width: 0; }
+.jackpot-name { font-weight: 800; color: #fff; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jackpot-team { font-size: 10px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+.jackpot-stats { text-align: right; }
+.jackpot-ev { font-family: monospace; font-weight: 900; color: #eab308; font-size: 14px; }
+.jackpot-bbi { font-family: monospace; font-size: 10px; color: var(--accent); margin-top: 2px; }
+.upload-box { background: var(--bg-card); backdrop-filter: blur(12px); padding: 24px; border-radius: 16px; text-align: center; border: 1px dashed #223e66; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: all 0.3s; }
+.upload-box:hover { border-color: var(--accent); background: rgba(16, 28, 48, 0.9); }
+input[type="file"] { background: var(--bg-dark); padding: 12px 18px; border-radius: 10px; border: 1px solid var(--border); color: #fff; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+input[type="file"]:hover { border-color: #38bdf8; background: #0d192e; }
+.dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 24px; margin-top: 20px; }
+@media(min-width: 1050px) { .dashboard-grid { grid-template-columns: 380px 1fr; } }
+.panel { background: var(--bg-card); backdrop-filter: blur(12px); padding: 24px; border-radius: 16px; border: 1px solid var(--border); height: fit-content; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.02); transition: all 0.3s; }
+.panel:hover { border-color: var(--accent); box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.02); }
+h2 { margin-top: 0; font-size: 14px; font-weight: 800; border-bottom: 1px solid var(--border); padding-bottom: 12px; color: #fff; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+h2::before { content: ''; display: inline-block; width: 6px; height: 14px; background: var(--accent); border-radius: 2px; box-shadow: 0 0 8px var(--accent); animation: flicker 0.6s infinite; }
+@keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+.today-teams-list { display: flex; flex-direction: column; gap: 10px; }
+.today-team-button { width: 100%; min-height: 42px; background: rgba(9, 18, 34, 0.85); border: 1px solid var(--border); color: #f1f5f9; border-radius: 8px; padding: 9px 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; font-size: 12px; font-weight: 800; transition: all 0.2s; }
+.today-team-button:hover { border-color: var(--accent); background: rgba(16, 28, 48, 0.95); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 255, 157, 0.15); }
+.today-team-button.active-team-filter { border-color: var(--accent); background: rgba(0, 255, 157, 0.08); box-shadow: 0 0 12px rgba(0, 255, 157, 0.16); }
+.today-team-name { display: inline-flex; align-items: center; min-width: 0; }
+.today-team-count { color: var(--text-muted); font-family: monospace; font-size: 11px; flex: 0 0 auto; }
+.today-team-empty { color: var(--text-muted); font-size: 12px; line-height: 1.45; }
+.btn-blue { padding: 14px; background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); border: 1px solid #3b82f6; border-radius: 10px; color: white; font-weight: 700; font-size: 13px; cursor: pointer; width: 100%; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3); transition: all 0.2s; }
+.btn-blue:hover { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); box-shadow: 0 6px 20px rgba(29, 78, 216, 0.5); transform: translateY(-2px); }
+.controls-bar { background: var(--bg-card); backdrop-filter: blur(12px); padding: 18px 24px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 18px; align-items: center; box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
+.filter-group { display: flex; flex-direction: column; gap: 6px; }
+.filter-group label { font-size: 11px; font-weight: 800; color: var(--accent); text-transform: uppercase; }
+.search-input { width: 260px; background: var(--bg-dark); border: 1px solid var(--accent); color: #fff; padding: 8px 12px; border-radius: 6px; transition: all 0.2s; }
+.search-input:focus { outline: none; box-shadow: 0 0 12px var(--accent-glow); background: rgba(0, 255, 157, 0.05); }
+.select-input-sm { width: 115px; background: var(--bg-dark); border: 1px solid var(--accent); color: #fff; padding: 8px; border-radius: 6px; cursor: pointer; }
+.parlayTeamSelect { background: var(--bg-dark); border: 1px solid var(--accent); color: #fff; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+.table-wrapper { overflow-x: auto; background: var(--bg-card); backdrop-filter: blur(12px); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 12px 40px rgba(0,0,0,0.4); margin-bottom: 24px; }
+table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
+th, td { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+th { background: rgba(9, 18, 34, 0.9); color: #94a3b8; font-weight: 800; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border); }
+tr:hover { background: rgba(30, 41, 59, 0.6); }
+tr.highlighted-row { background: rgba(0, 255, 157, 0.1); animation: row-highlight 2s ease-out; }
+@keyframes row-highlight { 0% { background: rgba(0, 255, 157, 0.2); } 100% { background: rgba(0, 255, 157, 0.1); } }
+.metric-badge { display: inline-block; font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px; margin-left: 4px; margin-top: 2px; text-transform: uppercase; }
 .badge-barrel { background: linear-gradient(135deg, #ff4500 0%, #ff8c00 100%); color: #fff; }
 .badge-power { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
 .badge-pulledair { background: linear-gradient(135deg, #ff00ff 0%, #cc00cc 100%); color: #fff; }
-.badge-pvf { background: linear-gradient(135deg, #ff1493 0%, #ff69b4 100%); color: #fff; }
 .badge-meatball { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 .badge-angle { background: rgba(217, 70, 239, 0.15); color: #f5d0fe; }
 .badge-gopher { background: rgba(220, 38, 38, 0.2); color: #f87171; animation: pulse 2s infinite; }
@@ -670,531 +148,79 @@ text-transform: uppercase;
 .badge-pitch-brk { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; }
 .badge-lowvolume { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
 .badge-env { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
-@keyframes pulse {
-0% { opacity: 0.8; }
-50% { opacity: 1; }
-100% { opacity: 0.8; }
-}
-.pf-badge {
-display: inline-block;
-font-size: 11px;
-font-weight: 700;
-padding: 2px 6px;
-border-radius: 4px;
-margin-left: 4px;
-}
+@keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+.pf-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 4px; }
 .pf-green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 .pf-red { background: rgba(239, 68, 68, 0.15); color: #f87171; }
 .pf-neutral { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
-.player-clickable {
-cursor: pointer;
-transition: all 0.2s;
-}
-.player-clickable:hover {
-color: var(--accent) !important;
-text-decoration: underline;
-text-decoration-color: var(--accent-glow);
-text-underline-offset: 4px;
-}
-.index-score {
-font-family: monospace;
-font-weight: 900;
-font-size: 20px;
-color: var(--accent);
-background: rgba(0, 255, 157, 0.07);
-border: 2px solid rgba(0, 255, 157, 0.3);
-padding: 6px 14px;
-border-radius: 8px;
-display: inline-block;
-min-width: 40px;
-}
+.player-clickable { cursor: pointer; transition: all 0.2s; }
+.player-clickable:hover { color: var(--accent) !important; text-decoration: underline; text-decoration-color: var(--accent-glow); text-underline-offset: 4px; }
+.index-score { font-family: monospace; font-weight: 900; font-size: 20px; color: var(--accent); background: rgba(0, 255, 157, 0.07); border: 2px solid rgba(0, 255, 157, 0.3); padding: 6px 14px; border-radius: 8px; display: inline-block; min-width: 40px; }
 .parlay-grid { display: flex; flex-direction: column; gap: 12px; }
-.btn-accent {
-margin-top: 14px;
-padding: 14px;
-background: linear-gradient(135deg, #00ff9d 0%, #00d482 100%);
-border: none;
-border-radius: 10px;
-color: #04080f;
-font-weight: 900;
-font-size: 13px;
-cursor: pointer;
-width: 100%;
-text-transform: uppercase;
-letter-spacing: 1px;
-}
-#parlayResults, #optimalResults {
-margin-top: 14px;
-background: #050b14;
-padding: 14px;
-border-radius: 10px;
-font-size: 13px;
-color: var(--text-muted);
-border: 1px solid var(--border);
-}
-.team-logo-img {
-width: 24px;
-height: 24px;
-object-fit: contain;
-vertical-align: middle;
-margin-right: 10px;
-}
-.btn-remove {
-background: rgba(239, 68, 68, 0.1);
-color: #f87171;
-border: 1px solid rgba(239, 68, 68, 0.2);
-padding: 6px 12px;
-border-radius: 6px;
-font-size: 11px;
-font-weight: 700;
-cursor: pointer;
-text-transform: uppercase;
-}
+.btn-accent { margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #00ff9d 0%, #00d482 100%); border: none; border-radius: 10px; color: #04080f; font-weight: 900; font-size: 13px; cursor: pointer; width: 100%; text-transform: uppercase; letter-spacing: 1px; }
+#parlayResults, #optimalResults { margin-top: 14px; background: #050b14; padding: 14px; border-radius: 10px; font-size: 13px; color: var(--text-muted); border: 1px solid var(--border); }
+.team-logo-img { width: 24px; height: 24px; object-fit: contain; vertical-align: middle; margin-right: 10px; }
+.btn-remove { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
 .btn-remove:hover { background: #ef4444; color: white; }
-.btn-restore {
-background: rgba(56, 189, 248, 0.1);
-color: #38bdf8;
-border: 1px solid rgba(56, 189, 248, 0.2);
-padding: 6px 12px;
-border-radius: 6px;
-font-size: 11px;
-font-weight: 700;
-cursor: pointer;
-}
+.btn-restore { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
 .btn-restore:hover { background: #38bdf8; color: #060a13; }
-.btn-lock {
-background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-border: 1px solid #fbbf24;
-color: #fff;
-padding: 6px 12px;
-border-radius: 6px;
-font-size: 11px;
-font-weight: 700;
-cursor: pointer;
-text-transform: uppercase;
-transition: all 0.2s;
-}
-.btn-lock:hover {
-background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-transform: translateY(-1px);
-box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-}
-.btn-lock:disabled {
-background: linear-gradient(135deg, #00ff9d 0%, #00d482 100%);
-border-color: #00ff9d;
-cursor: not-allowed;
-}
-.slider-container {
-display: flex;
-flex-direction: column;
-gap: 4px;
-margin-bottom: 12px;
-}
-.slider-header {
-display: flex;
-justify-content: space-between;
-font-size: 11px;
-font-weight: 700;
-color: #f1f5f9;
-}
-.slider-header span:last-child {
-color: var(--accent);
-font-family: monospace;
-}
-.slider-control {
-width: 100%;
-height: 6px;
-border-radius: 3px;
-background: var(--border);
-cursor: pointer;
--webkit-appearance: none;
-}
-.slider-control::-webkit-slider-thumb {
--webkit-appearance: none;
-width: 14px;
-height: 14px;
-border-radius: 50%;
-background: var(--accent);
-cursor: pointer;
-box-shadow: 0 0 8px var(--accent);
-}
-.toggle-model-group {
-display: flex;
-background: var(--bg-dark);
-border: 1px solid var(--border);
-border-radius: 8px;
-padding: 4px;
-margin-bottom: 14px;
-gap: 4px;
-}
-.toggle-model-btn {
-flex: 1;
-background: transparent;
-border: none;
-color: var(--text-muted);
-padding: 8px;
-font-size: 11px;
-font-weight: 800;
-cursor: pointer;
-border-radius: 6px;
-text-transform: uppercase;
-}
-.toggle-model-btn.active-mode {
-background: var(--border);
-color: var(--accent);
-box-shadow: 0 0 12px rgba(0, 255, 157, 0.2);
-}
-.stat-row {
-display: flex;
-justify-content: space-between;
-margin: 6px 0;
-padding: 4px 0;
-border-bottom: 1px solid rgba(0, 255, 157, 0.1);
-}
-.stat-label { color: var(--text-muted); font-size: 10px; }
-.stat-value { color: var(--accent); font-weight: 700; font-family: monospace; }
-.vulnerability-high {
-color: #ef4444;
-font-weight: bold;
-}
-.diamonds-grid {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-gap: 12px;
-margin-top: 12px;
-}
-.diamond-card {
-background: linear-gradient(135deg, rgba(234, 179, 8, 0.1) 0%, rgba(202, 138, 4, 0.05) 100%);
-border: 1px solid rgba(234, 179, 8, 0.3);
-border-radius: 10px;
-padding: 16px;
-text-align: center;
-transition: all 0.3s;
-}
-.diamond-card:hover {
-border-color: var(--accent);
-transform: translateY(-2px);
-box-shadow: 0 8px 16px rgba(234, 179, 8, 0.2);
-}
-.diamond-icon {
-font-size: 24px;
-margin-bottom: 8px;
-}
-.diamond-name {
-font-weight: 700;
-color: #fff;
-font-size: 13px;
-margin-bottom: 4px;
-}
-.diamond-team {
-color: var(--stadium-lights);
-font-size: 11px;
-font-weight: 600;
-}
-.community-pick-item {
-background: rgba(9, 18, 34, 0.8);
-border: 1px solid var(--border);
-border-radius: 8px;
-padding: 10px 12px;
-margin-bottom: 8px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-}
-.community-pick-name {
-font-weight: 700;
-color: #fff;
-font-size: 12px;
-}
-.community-pick-count {
-font-family: monospace;
-font-weight: 900;
-color: var(--accent);
-font-size: 14px;
-}
-.community-pick-bar {
-height: 4px;
-background: var(--border);
-border-radius: 2px;
-margin-top: 6px;
-overflow: hidden;
-}
-.community-pick-bar-fill {
-height: 100%;
-background: linear-gradient(90deg, var(--accent), var(--stadium-lights));
-border-radius: 2px;
-transition: width 0.3s ease;
-}
-.player-headshot {
-width: 32px;
-height: 32px;
-border-radius: 50%;
-object-fit: cover;
-border: 2px solid var(--accent);
-margin-right: 10px;
-vertical-align: middle;
-background: var(--bg-dark);
-box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-.player-headshot-lg {
-width: 48px;
-height: 48px;
-border-radius: 50%;
-object-fit: cover;
-border: 2px solid var(--accent);
-margin-right: 10px;
-vertical-align: middle;
-background: var(--bg-dark);
-box-shadow: 0 2px 8px rgba(0, 255, 157, 0.2);
-}
-.player-name-with-headshot {
-display: inline-flex;
-align-items: center;
-}
-.pitcher-filter-group {
-display: flex;
-gap: 8px;
-margin-bottom: 16px;
-flex-wrap: wrap;
-}
-.pitcher-filter-btn {
-background: var(--bg-dark);
-border: 1px solid var(--border);
-color: var(--text-muted);
-padding: 8px 16px;
-border-radius: 8px;
-font-size: 12px;
-font-weight: 700;
-cursor: pointer;
-text-transform: uppercase;
-transition: all 0.2s;
-}
-.pitcher-filter-btn:hover {
-border-color: var(--accent);
-color: #fff;
-}
-.pitcher-filter-btn.active {
-background: var(--accent);
-color: #04080f;
-border-color: var(--accent);
-}
-.h2h-search {
-width: 100%;
-max-width: 400px;
-background: var(--bg-dark);
-border: 1px solid var(--accent);
-color: #fff;
-padding: 10px 16px;
-border-radius: 8px;
-font-size: 13px;
-margin-bottom: 16px;
-}
-.h2h-search:focus {
-outline: none;
-box-shadow: 0 0 12px var(--accent-glow);
-}
-.pitcher-name-with-headshot {
-display: inline-flex;
-align-items: center;
-gap: 8px;
-}
-.pitcher-headshot {
-width: 36px;
-height: 36px;
-border-radius: 50%;
-object-fit: cover;
-border: 2px solid var(--stadium-lights);
-background: var(--bg-dark);
-box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-
-/* --- PLAYER PROFILE MODAL STYLES --- */
-.modal-overlay {
-display: none;
-position: fixed;
-top: 0; left: 0; width: 100%; height: 100%;
-background: rgba(6, 12, 22, 0.85);
-backdrop-filter: blur(8px);
-z-index: 9999;
-justify-content: center;
-align-items: center;
-padding: 20px;
-}
-.modal-overlay.active {
-display: flex;
-}
-.modal-card {
-background: linear-gradient(180deg, #091526 0%, #060c16 100%);
-border: 1px solid var(--border);
-border-top: 4px solid var(--accent);
-border-radius: 20px;
-width: 100%;
-max-width: 900px;
-max-height: 90vh;
-display: flex;
-flex-direction: row;
-overflow: hidden;
-box-shadow: 0 25px 50px rgba(0,0,0,0.7), 0 0 40px var(--accent-glow);
-animation: modal-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-position: relative;
-}
-@keyframes modal-pop {
-0% { opacity: 0; transform: scale(0.95) translateY(20px); }
-100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-.modal-close {
-position: absolute;
-top: 16px; right: 16px;
-background: rgba(255,255,255,0.05);
-border: 1px solid var(--border);
-color: var(--text-muted);
-width: 32px; height: 32px;
-border-radius: 50%;
-display: flex; align-items: center; justify-content: center;
-cursor: pointer; z-index: 10;
-font-size: 18px; transition: all 0.2s;
-}
-.modal-close:hover {
-background: rgba(239, 68, 68, 0.2);
-border-color: #ef4444;
-color: #ef4444;
-}
-.modal-left {
-width: 320px;
-flex-shrink: 0;
-background: rgba(9, 18, 34, 0.6);
-border-right: 1px solid var(--border);
-padding: 40px 30px;
-display: flex;
-flex-direction: column;
-align-items: center;
-text-align: center;
-}
-.modal-headshot-container {
-position: relative;
-margin-bottom: 20px;
-}
-.modal-headshot {
-width: 120px; height: 120px;
-border-radius: 50%;
-object-fit: cover;
-border: 3px solid var(--accent);
-box-shadow: 0 0 30px var(--accent-glow);
-background: var(--bg-dark);
-}
-.modal-team-logo {
-width: 36px; height: 36px;
-object-fit: contain;
-position: absolute;
-bottom: 0; right: -5px;
-background: var(--bg-main);
-border-radius: 50%;
-border: 2px solid var(--border);
-padding: 2px;
-}
-.modal-player-name {
-font-size: 24px;
-font-weight: 900;
-color: #fff;
-margin: 0 0 4px 0;
-line-height: 1.2;
-}
-.modal-player-meta {
-font-size: 13px;
-color: var(--stadium-lights);
-font-weight: 600;
-margin-bottom: 24px;
-}
-.modal-bbi-display {
-background: rgba(0, 255, 157, 0.05);
-border: 2px solid rgba(0, 255, 157, 0.3);
-border-radius: 16px;
-padding: 20px;
-width: 100%;
-}
-.modal-bbi-label {
-font-size: 10px;
-font-weight: 800;
-color: var(--text-muted);
-text-transform: uppercase;
-letter-spacing: 2px;
-margin-bottom: 8px;
-}
-.modal-bbi-value {
-font-family: monospace;
-font-size: 48px;
-font-weight: 900;
-color: var(--accent);
-line-height: 1;
-text-shadow: 0 0 20px var(--accent-glow);
-}
-.modal-right {
-flex: 1;
-padding: 30px;
-overflow-y: auto;
-display: flex;
-flex-direction: column;
-gap: 24px;
-}
-.modal-section-title {
-font-size: 12px;
-font-weight: 800;
-color: var(--accent);
-text-transform: uppercase;
-letter-spacing: 1.5px;
-border-bottom: 1px solid var(--border);
-padding-bottom: 8px;
-margin-bottom: 12px;
-display: flex;
-align-items: center;
-gap: 8px;
-}
-.modal-stats-grid {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 10px 20px;
-}
-.modal-stat-item {
-display: flex;
-justify-content: space-between;
-align-items: center;
-padding: 8px 12px;
-background: rgba(255,255,255,0.02);
-border-radius: 8px;
-border: 1px solid transparent;
-transition: all 0.2s;
-}
-.modal-stat-item:hover {
-background: rgba(0, 255, 157, 0.03);
-border-color: rgba(0, 255, 157, 0.1);
-}
-.modal-stat-label {
-font-size: 11px;
-color: var(--text-muted);
-font-weight: 600;
-}
-.modal-stat-val {
-font-family: monospace;
-font-size: 13px;
-font-weight: 800;
-color: #fff;
-}
+.btn-lock { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: 1px solid #fbbf24; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-transform: uppercase; transition: all 0.2s; }
+.btn-lock:hover { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); }
+.slider-container { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.slider-header { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #f1f5f9; }
+.slider-header span:last-child { color: var(--accent); font-family: monospace; }
+.slider-control { width: 100%; height: 6px; border-radius: 3px; background: var(--border); cursor: pointer; -webkit-appearance: none; }
+.slider-control::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 8px var(--accent); }
+.diamonds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+.diamond-card { background: linear-gradient(135deg, rgba(234, 179, 8, 0.1) 0%, rgba(202, 138, 4, 0.05) 100%); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 10px; padding: 16px; text-align: center; transition: all 0.3s; }
+.diamond-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 16px rgba(234, 179, 8, 0.2); }
+.diamond-icon { font-size: 24px; margin-bottom: 8px; }
+.diamond-name { font-weight: 700; color: #fff; font-size: 13px; margin-bottom: 4px; }
+.diamond-team { color: var(--stadium-lights); font-size: 11px; font-weight: 600; }
+.community-pick-item { background: rgba(9, 18, 34, 0.8); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.community-pick-name { font-weight: 700; color: #fff; font-size: 12px; }
+.community-pick-count { font-family: monospace; font-weight: 900; color: var(--accent); font-size: 14px; }
+.community-pick-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.community-pick-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--stadium-lights)); border-radius: 2px; transition: width 0.3s ease; }
+.player-headshot { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); margin-right: 10px; vertical-align: middle; background: var(--bg-dark); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+.player-headshot-lg { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); margin-right: 10px; vertical-align: middle; background: var(--bg-dark); box-shadow: 0 2px 8px rgba(0, 255, 157, 0.2); }
+.player-name-with-headshot { display: inline-flex; align-items: center; }
+.pitcher-filter-group { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.pitcher-filter-btn { background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; transition: all 0.2s; }
+.pitcher-filter-btn:hover { border-color: var(--accent); color: #fff; }
+.pitcher-filter-btn.active { background: var(--accent); color: #04080f; border-color: var(--accent); }
+.h2h-search { width: 100%; max-width: 400px; background: var(--bg-dark); border: 1px solid var(--accent); color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+.h2h-search:focus { outline: none; box-shadow: 0 0 12px var(--accent-glow); }
+.pitcher-name-with-headshot { display: inline-flex; align-items: center; gap: 8px; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(6, 12, 22, 0.85); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+.modal-overlay.active { display: flex; }
+.modal-card { background: linear-gradient(180deg, #091526 0%, #060c16 100%); border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 20px; width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: row; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.7), 0 0 40px var(--accent-glow); animation: modal-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; }
+@keyframes modal-pop { 0% { opacity: 0; transform: scale(0.95) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-close { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; font-size: 18px; transition: all 0.2s; }
+.modal-close:hover { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444; }
+.modal-left { width: 320px; flex-shrink: 0; background: rgba(9, 18, 34, 0.6); border-right: 1px solid var(--border); padding: 40px 30px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.modal-headshot-container { position: relative; margin-bottom: 20px; }
+.modal-headshot { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); box-shadow: 0 0 30px var(--accent-glow); background: var(--bg-dark); }
+.modal-team-logo { width: 36px; height: 36px; object-fit: contain; position: absolute; bottom: 0; right: -5px; background: var(--bg-main); border-radius: 50%; border: 2px solid var(--border); padding: 2px; }
+.modal-player-name { font-size: 24px; font-weight: 900; color: #fff; margin: 0 0 4px 0; line-height: 1.2; }
+.modal-player-meta { font-size: 13px; color: var(--stadium-lights); font-weight: 600; margin-bottom: 24px; }
+.modal-bbi-display { background: rgba(0, 255, 157, 0.05); border: 2px solid rgba(0, 255, 157, 0.3); border-radius: 16px; padding: 20px; width: 100%; }
+.modal-bbi-label { font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.modal-bbi-value { font-family: monospace; font-size: 48px; font-weight: 900; color: var(--accent); line-height: 1; text-shadow: 0 0 20px var(--accent-glow); }
+.modal-right { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+.modal-section-title { font-size: 12px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.modal-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+.modal-stat-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid transparent; transition: all 0.2s; }
+.modal-stat-item:hover { background: rgba(0, 255, 157, 0.03); border-color: rgba(0, 255, 157, 0.1); }
+.modal-stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.modal-stat-val { font-family: monospace; font-size: 13px; font-weight: 800; color: #fff; }
 .modal-stat-val.green { color: #10b981; }
 .modal-stat-val.red { color: #ef4444; }
 .modal-stat-val.yellow { color: #eab308; }
 .modal-stat-val.blue { color: #38bdf8; }
-
 @media(max-width: 850px) {
-.modal-card {
-flex-direction: column;
-max-height: 95vh;
-}
-.modal-left {
-width: 100%;
-padding: 30px 20px 20px;
-border-right: none;
-border-bottom: 1px solid var(--border);
-}
+.modal-card { flex-direction: column; max-height: 95vh; }
+.modal-left { width: 100%; padding: 30px 20px 20px; border-right: none; border-bottom: 1px solid var(--border); }
 .modal-headshot { width: 90px; height: 90px; }
 .modal-player-name { font-size: 20px; }
 .modal-bbi-value { font-size: 36px; }
@@ -1205,20 +231,16 @@ border-bottom: 1px solid var(--border);
 </head>
 <body>
 <div class="container">
-<!-- ENHANCED HEADER -->
 <div class="header-area">
 <div class="header-content-wrapper">
 <div class="header-top-row">
-<div class="main-logo">
-<img id="dashboardLogoSource" src="https://i.imgur.com/Czha5qm.png" alt="Logo" onerror="this.style.display='none';">
-</div>
+<div class="main-logo"><img id="dashboardLogoSource" src="https://i.imgur.com/Czha5qm.png" alt="Logo" onerror="this.style.display='none';"></div>
 <div class="header-title-section">
 <h1>The Daily Run Line's Homerun Index</h1>
 <div class="subtitle">Bowen's Bash Index (BBI)</div>
 <div class="date-display" id="currentDateDisplay"></div>
 </div>
 </div>
-<!-- Stats Ribbon -->
 <div class="stats-ribbon" id="statsRibbon">
 <div class="stat-card featured">
 <div class="stat-icon">🏆</div>
@@ -1247,7 +269,6 @@ border-bottom: 1px solid var(--border);
 </div>
 </div>
 </div>
-<!-- Slate Summary Ticker -->
 <div class="slate-ticker" id="slateTicker">
 <span class="live-dot"></span>
 <span id="tickerText">Waiting for data upload...</span>
@@ -1262,20 +283,13 @@ border-bottom: 1px solid var(--border);
 <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
 <button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
 </div>
-<!-- HOME TAB -->
 <div id="tab-home" class="tab-content active">
 <div id="spotlightTicker" class="spotlight-ticker">
-<div class="spotlight-title">
-<span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>
-Top 12 Homerun Targets
-</div>
+<div class="spotlight-title"><span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>Top 12 Homerun Targets</div>
 <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
 </div>
 <div id="fanaticsJackpotSection" class="jackpot-section">
-<div class="jackpot-title">
-<span></span>
-Top 4 Fanatics Jackpot Picks
-</div>
+<div class="jackpot-title"><span></span>Top 4 Fanatics Jackpot Picks</div>
 <div id="jackpotGrid" class="jackpot-grid"></div>
 </div>
 <div class="upload-box">
@@ -1287,17 +301,11 @@ Top 4 Fanatics Jackpot Picks
 <div class="panel">
 <h2>🔥 The Longball Collective</h2>
 <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Live tracking of what the collective is locking in today</p>
-<div id="communityPicksContainer">
-<div style="text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">
-Loading community data...
-</div>
-</div>
+<div id="communityPicksContainer"><div style="text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Loading community data...</div></div>
 </div>
 <div class="panel">
 <h2>Filter by team</h2>
-<div id="todayTeamsList" class="today-teams-list">
-<div class="today-team-empty">Upload today's workbook to load every team playing today.</div>
-</div>
+<div id="todayTeamsList" class="today-teams-list"><div class="today-team-empty">Upload today's workbook to load every team playing today.</div></div>
 </div>
 <div class="panel" id="graphicsPanel" style="display:none;">
 <h2>Exports</h2>
@@ -1307,23 +315,9 @@ Loading community data...
 </div>
 <div>
 <div class="controls-bar">
-<div class="filter-group">
-<label>Filter Team</label>
-<select id="teamFilter1" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">All Teams</option></select>
-</div>
-<div class="filter-group">
-<label>Filter Bats</label>
-<select id="batsFilter" class="select-input-sm" onchange="applyFiltersAndRender()">
-<option value="ALL">All</option>
-<option value="L">Left</option>
-<option value="R">Right</option>
-<option value="S">Switch</option>
-</select>
-</div>
-<div class="filter-group">
-<label>Search Player Name</label>
-<input type="text" id="searchFilter" class="search-input" placeholder="Type player name..." oninput="applyFiltersAndRender()" />
-</div>
+<div class="filter-group"><label>Filter Team</label><select id="teamFilter1" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">All Teams</option></select></div>
+<div class="filter-group"><label>Filter Bats</label><select id="batsFilter" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">All</option><option value="L">Left</option><option value="R">Right</option><option value="S">Switch</option></select></div>
+<div class="filter-group"><label>Search Player Name</label><input type="text" id="searchFilter" class="search-input" placeholder="Type player name..." oninput="applyFiltersAndRender()" /></div>
 <div class="filter-group" style="margin-left: auto; flex-direction: row; align-items: center; gap: 10px;">
 <input type="checkbox" id="showRemovedCheck" onchange="applyFiltersAndRender()" style="cursor:pointer; width:auto;" />
 <label for="showRemovedCheck" style="cursor:pointer; margin-bottom:0; color:var(--accent);">Show Removed Bench Players</label>
@@ -1331,28 +325,13 @@ Loading community data...
 </div>
 <div class="table-wrapper">
 <table>
-<thead>
-<tr>
-<th style="width: 50px;">Rank</th>
-<th style="text-align: left; padding-left: 20px;">Player</th>
-<th>Team</th>
-<th>Opposing Pitcher</th>
-<th>Weather</th>
-<th>BBI</th>
-<th style="width: 140px;">Action</th>
-</tr>
-</thead>
-<tbody id="tableBody">
-<tr>
-<td colspan="7" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td>
-</tr>
-</tbody>
+<thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Player</th><th>Team</th><th>Opposing Pitcher</th><th>Weather</th><th>BBI</th><th style="width: 140px;">Action</th></tr></thead>
+<tbody id="tableBody"><tr><td colspan="7" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 </div>
 </div>
 </div>
 </div>
-<!-- PITCHERS TAB -->
 <div id="tab-pitchers" class="tab-content">
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
@@ -1366,141 +345,69 @@ Loading community data...
 <button class="pitcher-filter-btn" onclick="filterPitchers('both', this)">Both Sides</button>
 </div>
 <table>
-<thead>
-<tr>
-<th style="width: 50px;">Rank</th>
-<th style="text-align: left; padding-left: 20px;">Pitcher</th>
-<th>Team</th>
-<th>HR/9 vs LHB</th>
-<th>HR/9 vs RHB</th>
-<th>Primary Vulnerability</th>
-</tr>
-</thead>
-<tbody id="allPitchersBody">
-<tr>
-<td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td>
-</tr>
-</tbody>
+<thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Pitcher</th><th>Team</th><th>HR/9 vs LHB</th><th>HR/9 vs RHB</th><th>Primary Vulnerability</th></tr></thead>
+<tbody id="allPitchersBody"><tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 </div>
 </div>
-<!-- HOT BAT TAB -->
 <div id="tab-hotbat" class="tab-content">
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
 <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🔥 Hot Bat - Players On Fire</h2>
 <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Players with 3+ HRs last week OR .450+ wOBA last week</p>
 </div>
-<div style="padding: 12px 20px;">
-<input type="text" class="h2h-search" id="hotbatSearch" placeholder="🔍 Search player name..." oninput="filterHotBatTable()" />
-</div>
+<div style="padding: 12px 20px;"><input type="text" class="h2h-search" id="hotbatSearch" placeholder="🔍 Search player name..." oninput="filterHotBatTable()" /></div>
 <table>
-<thead>
-<tr>
-<th style="text-align: left; padding-left: 20px;">Player</th>
-<th>Team</th>
-<th>Opposing Pitcher</th>
-<th>Last Week HRs</th>
-<th>Last Week wOBA</th>
-<th>BBI Score</th>
-</tr>
-</thead>
-<tbody id="hotbatTableBody">
-<tr>
-<td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td>
-</tr>
-</tbody>
+<thead><tr><th style="text-align: left; padding-left: 20px;">Player</th><th>Team</th><th>Opposing Pitcher</th><th>Last Week HRs</th><th>Last Week wOBA</th><th>BBI Score</th></tr></thead>
+<tbody id="hotbatTableBody"><tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 </div>
 </div>
-<!-- H2H MATCHUPS TAB -->
 <div id="tab-h2h" class="tab-content">
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
 <h2 style="margin:0; border:none; padding:0; font-size: 16px;">⚔️ Head-to-Head Matchups</h2>
 <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Top 25 batter vs pitcher matchups sorted by xSLG</p>
 </div>
-<div style="padding: 12px 20px;">
-<input type="text" class="h2h-search" id="h2hSearch" placeholder="🔍 Search batter or pitcher name..." oninput="filterH2HTable()" />
-</div>
+<div style="padding: 12px 20px;"><input type="text" class="h2h-search" id="h2hSearch" placeholder="🔍 Search batter or pitcher name..." oninput="filterH2HTable()" /></div>
 <table>
-<thead>
-<tr>
-<th style="text-align: left; padding-left: 20px;">Batter</th>
-<th>Team</th>
-<th>Opposing Pitcher</th>
-<th>PAs</th>
-<th>xSLG</th>
-<th>EV</th>
-<th>HRs</th>
-</tr>
-</thead>
-<tbody id="h2hFullTableBody">
-<tr>
-<td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td>
-</tr>
-</tbody>
+<thead><tr><th style="text-align: left; padding-left: 20px;">Batter</th><th>Team</th><th>Opposing Pitcher</th><th>PAs</th><th>xSLG</th><th>EV</th><th>HRs</th></tr></thead>
+<tbody id="h2hFullTableBody"><tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 </div>
 </div>
-<!-- EDGE PLAYS TAB -->
 <div id="tab-edge" class="tab-content">
 <div class="dashboard-grid" style="grid-template-columns: 1fr;">
 <div style="display:flex; flex-direction:column; gap:24px;">
 <div class="panel">
 <h2>💎 Cody's Diamonds</h2>
 <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Diamond's In The Rough</p>
-<div id="codysDiamondsEdge" class="diamonds-grid">
-<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Cody's Diamonds...</div>
-</div>
+<div id="codysDiamondsEdge" class="diamonds-grid"><div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Cody's Diamonds...</div></div>
 </div>
 <div class="panel">
 <h2>⚾ Your Boy's Due</h2>
 <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Zero HRs Last Week</p>
-<div id="hrDueEdge" class="diamonds-grid">
-<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load HR Due candidates...</div>
-</div>
+<div id="hrDueEdge" class="diamonds-grid"><div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load HR Due candidates...</div></div>
 </div>
 <div class="panel">
 <h2>🎰 Jackpot / Longshot</h2>
 <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">High Risk, High Reward +900 or Higher</p>
-<div id="longshotEdge" class="diamonds-grid">
-<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Longshot...</div>
+<div id="longshotEdge" class="diamonds-grid"><div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Longshot...</div></div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<!-- TOOLS & GENERATORS TAB -->
 <div id="tab-tools" class="tab-content">
 <div class="dashboard-grid">
 <div style="display:flex; flex-direction:column; gap:24px;">
 <div class="panel">
 <h2>Live Calibration Station</h2>
-<div class="slider-container">
-<div class="slider-header"><span>HR/FB % Weight</span><span id="valWeightHRFB">100%</span></div>
-<input type="range" id="weightHRFB" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
-</div>
-<div class="slider-container">
-<div class="slider-header"><span>Pitcher HR/9 Weight</span><span id="valWeightPitcherHR9">100%</span></div>
-<input type="range" id="weightPitcherHR9" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
-</div>
-<div class="slider-container">
-<div class="slider-header"><span>Barrel Rate Quality Weight</span><span id="valWeightBarrel">100%</span></div>
-<input type="range" id="weightBarrel" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
-</div>
-<div class="slider-container">
-<div class="slider-header"><span>Park Dimensions Weight</span><span id="valWeightPark">100%</span></div>
-<input type="range" id="weightPark" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
-</div>
-<div class="slider-container">
-<div class="slider-header"><span>Pulled Air % Weight</span><span id="valWeightPulled">100%</span></div>
-<input type="range" id="weightPulled" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
-</div>
-<div class="slider-container">
-<div class="slider-header"><span>Weather Impact Weight</span><span id="valWeightWeather">100%</span></div>
-<input type="range" id="weightWeather" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()">
-</div>
+<div class="slider-container"><div class="slider-header"><span>HR/FB % Weight</span><span id="valWeightHRFB">100%</span></div><input type="range" id="weightHRFB" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
+<div class="slider-container"><div class="slider-header"><span>Pitcher HR/9 Weight</span><span id="valWeightPitcherHR9">100%</span></div><input type="range" id="weightPitcherHR9" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
+<div class="slider-container"><div class="slider-header"><span>Barrel Rate Quality Weight</span><span id="valWeightBarrel">100%</span></div><input type="range" id="weightBarrel" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
+<div class="slider-container"><div class="slider-header"><span>Park Dimensions Weight</span><span id="valWeightPark">100%</span></div><input type="range" id="weightPark" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
+<div class="slider-container"><div class="slider-header"><span>Pulled Air % Weight</span><span id="valWeightPulled">100%</span></div><input type="range" id="weightPulled" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
+<div class="slider-container"><div class="slider-header"><span>Weather Impact Weight</span><span id="valWeightWeather">100%</span></div><input type="range" id="weightWeather" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
 <button onclick="recalculateAllBBIScores()" class="btn-blue" style="padding:10px; font-size:11px; margin-top:6px;">🔄 Force Recalculate Index</button>
 </div>
 <div class="panel">
@@ -1537,8 +444,6 @@ Loading community data...
 </div>
 </div>
 </div>
-
-<!-- PLAYER PROFILE MODAL -->
 <div id="playerModal" class="modal-overlay" onclick="closeModal(event)">
 <div class="modal-card" onclick="event.stopPropagation()">
 <button class="modal-close" onclick="closeModalDirect()">×</button>
@@ -1554,12 +459,9 @@ Loading community data...
 <div id="modalBBI" class="modal-bbi-value">0.0</div>
 </div>
 </div>
-<div class="modal-right" id="modalStatsContainer">
-<!-- Stats injected via JS -->
+<div class="modal-right" id="modalStatsContainer"></div>
 </div>
 </div>
-</div>
-
 <canvas id="graphicCanvas" width="1440" height="1400" style="display:none;"></canvas>
 <canvas id="matrixCanvas" width="1200" height="1600" style="display:none;"></canvas>
 <script>
@@ -1661,14 +563,10 @@ loadCachedData();
 loadCommunityPicks();
 updateDateDisplay();
 setInterval(updateCountdown, 1000);
-// Global escape key listener for modal
 document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalDirect(); });
 });
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
-function normalizeName(s) {
-if (!s) return '';
-return String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
-}
+function normalizeName(s) { if (!s) return ''; return String(s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function saveCachedData() {
 const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap };
 localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
@@ -1849,21 +747,15 @@ if(ampm && ampm.toLowerCase() === 'pm' && hours !== 12) hours += 12;
 if(ampm && ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
 const gameDate = new Date();
 gameDate.setHours(hours, minutes, 0, 0);
-if(!earliestTime || gameDate < earliestTime) {
-earliestTime = gameDate;
-}
+if(!earliestTime || gameDate < earliestTime) earliestTime = gameDate;
 }
 });
 const tickerEl = document.getElementById('tickerText');
-if(!earliestTime) {
-tickerEl.innerText = `${gameMatchups.length} Games Today | No start times found`;
-return;
-}
+if(!earliestTime) { tickerEl.innerText = `${gameMatchups.length} Games Today | No start times found`; return; }
 const now = new Date();
 const diff = earliestTime - now;
-if(diff <= 0) {
-tickerEl.innerHTML = `FIRST PITCH IS LIVE! 🟢`;
-} else {
+if(diff <= 0) { tickerEl.innerHTML = `FIRST PITCH IS LIVE! 🟢`; }
+else {
 const hours = Math.floor(diff / (1000 * 60 * 60));
 const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 const secs = Math.floor((diff % (1000 * 60)) / 1000);
@@ -1929,10 +821,8 @@ if(w.isDome) domes++;
 if(String(w.windDir || '').toLowerCase().includes('out')) windOut++;
 }
 });
-const tickerText = `${Math.round(numGames)} Games Today | ${domes} Domes | ${windOut} Wind Out`;
-document.getElementById('tickerText').innerText = tickerText;
+document.getElementById('tickerText').innerText = `${Math.round(numGames)} Games Today | ${domes} Domes | ${windOut} Wind Out`;
 }
-// --- MODAL FUNCTIONS ---
 function openPlayerModal(player) {
 const modal = document.getElementById('playerModal');
 const headshotUrl = getHeadshotUrl(player.Name);
@@ -1943,7 +833,6 @@ document.getElementById('modalName').innerText = player.Name;
 const bats = String(player['Bats'] || player['Hand'] || 'R').toUpperCase();
 document.getElementById('modalMeta').innerText = `${player.Team} // vs ${player['Opp Pitcher'] || 'Starter'} // ${bats}HB`;
 document.getElementById('modalBBI').innerText = (player.calculatedBBI || 0).toFixed(1);
-// Build stats grid
 const pa = cleanNumber(safeGet(player, 'PA', 'pa', 'PAs', 'Plate Appearances', 'AB')) || 0;
 const totalHR = cleanNumber(player['Total HR'] || 0);
 const credibility = (player.calculatedCredibility || 1.0) * 100;
@@ -1973,36 +862,18 @@ let climate = w && !w.isDome ? `${w.temp}°F, ${w.windSpeed}mph ${w.windDir.toUp
 const stat = (label, val, color = '') => `<div class="modal-stat-item"><span class="modal-stat-label">${label}</span><span class="modal-stat-val ${color}">${val}</span></div>`;
 const section = (title, content) => `<div><div class="modal-section-title">${title}</div><div class="modal-stats-grid">${content}</div></div>`;
 let html = '';
-html += section('⚙️ VOLUME CHECK', 
-stat('PA', pa) + stat('Total HR', totalHR) + stat('Credibility', credibility.toFixed(0)+'%', credibility < 100 ? 'yellow' : 'green') + stat('Park Factor', pf, pf>=106?'green':pf<=94?'red':'')
-);
-html += section('📊 BATTED BALL', 
-stat('Barrel %', barrel+'%', barrel>=14.5?'green':'') + stat('Hard Hit %', hh+'%', hh>=35?'green':'') + stat('Avg EV', ev+' mph') + stat('ISO', iso)
-);
-html += section('⬅️ LAUNCH PROFILE', 
-stat('Pulled Air %', pullAir+'%', pullAir>=25?'green':'') + stat('Fly Ball %', fbRate+'%') + stat('Sweet Spot %', sweetSpot+'%') + stat('Pull %', pullRate+'%')
-);
-html += section('🎯 PITCHER MATCHUP', 
-stat('HR/9', pHR9, pHR9>=1.3?'red':'') + stat('Barrel Allowed', pBarrel+'%') + stat('Hard Hit Allowed', pHH+'%') + stat('FB %', pFB+'%') + stat('GB %', pGB+'%')
-);
-html += section('🚀 MULTIPLIERS', 
-stat('Game Total Mod', envMod+'x', envMod>=1.05?'green':'') + stat('PA/Game Mod', paMod+'x') + stat('xHR Vol Bonus', xhrMod+'x', xhrMod>1?'green':'') + stat('VAA (Rel Z) Mod', vaaMod+'x', vaaMod>=1.1?'green':vaaMod<1?'red':'') + stat('Power Mod', powerMod+'x') + stat('PVF Ratio', pvfMod+'x', pvfMod>=1.2?'red':'')
-);
-html += section('🌤️ ENVIRONMENT', 
-stat('Weather/Park', climate) + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A')
-);
+html += section('⚙️ VOLUME CHECK', stat('PA', pa) + stat('Total HR', totalHR) + stat('Credibility', credibility.toFixed(0)+'%', credibility < 100 ? 'yellow' : 'green') + stat('Park Factor', pf, pf>=106?'green':pf<=94?'red':''));
+html += section('📊 BATTED BALL', stat('Barrel %', barrel+'%', barrel>=14.5?'green':'') + stat('Hard Hit %', hh+'%', hh>=35?'green':'') + stat('Avg EV', ev+' mph') + stat('ISO', iso));
+html += section('⬅️ LAUNCH PROFILE', stat('Pulled Air %', pullAir+'%', pullAir>=25?'green':'') + stat('Fly Ball %', fbRate+'%') + stat('Sweet Spot %', sweetSpot+'%') + stat('Pull %', pullRate+'%'));
+html += section('🎯 PITCHER MATCHUP', stat('HR/9', pHR9, pHR9>=1.3?'red':'') + stat('Barrel Allowed', pBarrel+'%') + stat('Hard Hit Allowed', pHH+'%') + stat('FB %', pFB+'%') + stat('GB %', pGB+'%'));
+html += section('🚀 MULTIPLIERS', stat('Game Total Mod', envMod+'x', envMod>=1.05?'green':'') + stat('PA/Game Mod', paMod+'x') + stat('xHR Vol Bonus', xhrMod+'x', xhrMod>1?'green':'') + stat('VAA (Rel Z) Mod', vaaMod+'x', vaaMod>=1.1?'green':vaaMod<1?'red':'') + stat('Power Mod', powerMod+'x') + stat('PVF Ratio', pvfMod+'x', pvfMod>=1.2?'red':''));
+html += section('🌤️ ENVIRONMENT', stat('Weather/Park', climate) + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A'));
 document.getElementById('modalStatsContainer').innerHTML = html;
 modal.classList.add('active');
 document.body.style.overflow = 'hidden';
 }
-function closeModal(e) {
-if(e.target === document.getElementById('playerModal')) closeModalDirect();
-}
-function closeModalDirect() {
-document.getElementById('playerModal').classList.remove('active');
-document.body.style.overflow = '';
-}
-// --- END MODAL FUNCTIONS ---
+function closeModal(e) { if(e.target === document.getElementById('playerModal')) closeModalDirect(); }
+function closeModalDirect() { document.getElementById('playerModal').classList.remove('active'); document.body.style.overflow = ''; }
 function renderFanaticsJackpot() {
 const section = document.getElementById('fanaticsJackpotSection');
 const grid = document.getElementById('jackpotGrid');
@@ -2041,10 +912,7 @@ hotBatData.push({ player: p, name: p.Name, team: p.Team, pitcher: p['Opp Pitcher
 }
 });
 hotBatData.sort((a, b) => b.bbi - a.bbi);
-if (hotBatData.length === 0) {
-tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No players qualify for Hot Bat (3+ HRs last week OR .450+ wOBA last week)...</td></tr>`;
-return;
-}
+if (hotBatData.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No players qualify for Hot Bat (3+ HRs last week OR .450+ wOBA last week)...</td></tr>`; return; }
 tbody.innerHTML = '';
 hotBatData.forEach(row => {
 const logoUrl = teamLogos[row.team] || '';
@@ -2061,10 +929,7 @@ const tbody = document.getElementById('hotbatTableBody');
 if (!tbody) return;
 let filtered = hotBatData;
 if (searchVal) filtered = hotBatData.filter(r => r.name.toLowerCase().includes(searchVal));
-if (filtered.length === 0) {
-tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No hot bats match your search...</td></tr>`;
-return;
-}
+if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No hot bats match your search...</td></tr>`; return; }
 tbody.innerHTML = '';
 filtered.forEach(row => {
 const logoUrl = teamLogos[row.team] || '';
@@ -2079,20 +944,15 @@ function renderWeatherRankings() {
 const container = document.getElementById('weatherRankContainer');
 if (!container) return;
 const gameIds = [...new Set(playerData.map(p => p.gameId).filter(id => id))];
-if (gameIds.length === 0) {
-container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic;">No game data found...</div>';
-return;
-}
+if (gameIds.length === 0) { container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic;">No game data found...</div>'; return; }
 let gameScores = [];
 gameIds.forEach(gid => {
 const matchup = gameMatchups.find(m => m.id === gid);
 const weather = weatherSettings[gid] || {};
 let score = 100;
 let details = [];
-if (weather.isDome) {
-score = 100;
-details.push('Closed Dome 🏟️');
-} else {
+if (weather.isDome) { score = 100; details.push('Closed Dome 🏟️'); }
+else {
 const temp = Number(weather.temp || 72);
 if (temp >= 85) { score += 15; details.push(`️ ${temp}°F (Hot)`); }
 else if (temp >= 75) { score += 5; details.push(`🌡️ ${temp}°F`); }
@@ -2104,7 +964,7 @@ if (windDir.includes('out')) { score += (windSpeed * 1.5); details.push(`🌬️
 else if (windDir.includes('in')) { score -= (windSpeed * 1.5); details.push(`🌬️ ${windSpeed}mph IN`); }
 else { details.push(`️ ${windSpeed}mph`); }
 const humidity = Number(weather.humidity || 0);
-if (humidity > 60) { score -= 5; details.push(`💧 Humid`); }
+if (humidity > 60) { score += 5; details.push(`💧 Humid (Carry)`); }
 }
 if (matchup) {
 const pfA = parkFactorMap[matchup.teamA]?.pf || 100;
@@ -2134,10 +994,7 @@ function renderAllPitchers(filter = 'all') {
 const tbody = document.getElementById('allPitchersBody');
 if (!tbody) return;
 let rawPitchers = window.top5SheetData || [];
-if (rawPitchers.length === 0) {
-tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No data found in "top5" sheet...</td></tr>`;
-return;
-}
+if (rawPitchers.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No data found in "top5" sheet...</td></tr>`; return; }
 let processed = rawPitchers.map(row => {
 let pName = String(safeGet(row, 'Pitcher', 'Name', 'Player', 'A') || '').trim();
 let pTeam = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
@@ -2145,11 +1002,7 @@ let valC = cleanNumber(safeGet(row, 'HR/9 vs LHB', 'HR/9 vs L', 'HR/9 LHB', 'HR/
 let valD = cleanNumber(safeGet(row, 'HR/9 vs RHB', 'HR/9 vs R', 'HR/9 RHB', 'HR/9 R', 'D'));
 return { name: pName, team: pTeam, lhb: valC, rhb: valD };
 }).filter(p => p.name && p.name !== '');
-processed.sort((a, b) => {
-let maxA = Math.max(a.lhb, a.rhb);
-let maxB = Math.max(b.lhb, b.rhb);
-return maxB - maxA;
-});
+processed.sort((a, b) => { let maxA = Math.max(a.lhb, a.rhb); let maxB = Math.max(b.lhb, b.rhb); return maxB - maxA; });
 if (filter === 'lhb') processed.sort((a, b) => b.lhb - a.lhb);
 else if (filter === 'rhb') processed.sort((a, b) => b.rhb - a.rhb);
 else if (filter === 'both') processed = processed.filter(p => p.lhb > 0 && p.rhb > 0);
@@ -2168,11 +1021,7 @@ tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--t
 tbody.appendChild(tr);
 });
 }
-function filterPitchers(filter, btn) {
-document.querySelectorAll('.pitcher-filter-btn').forEach(b => b.classList.remove('active'));
-btn.classList.add('active');
-renderAllPitchers(filter);
-}
+function filterPitchers(filter, btn) { document.querySelectorAll('.pitcher-filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderAllPitchers(filter); }
 function renderH2HFullTable() {
 const tbody = document.getElementById('h2hFullTableBody');
 if (!tbody) return;
@@ -2190,10 +1039,7 @@ h2hData.push({ batter: p.Name, team: p.Team, pitcher: p['Opp Pitcher'] || p['Opp
 });
 h2hData.sort((a, b) => b.xslg - a.xslg);
 h2hFullData = h2hData.slice(0, 25);
-if (h2hFullData.length === 0) {
-tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No batters meet the criteria (Min 5 PAs, xSLG >= .500)...</td></tr>`;
-return;
-}
+if (h2hFullData.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No batters meet the criteria (Min 5 PAs, xSLG >= .500)...</td></tr>`; return; }
 tbody.innerHTML = '';
 h2hFullData.forEach(row => {
 const logoUrl = teamLogos[row.team] || '';
@@ -2210,10 +1056,7 @@ const tbody = document.getElementById('h2hFullTableBody');
 if (!tbody) return;
 let filtered = h2hFullData;
 if (searchVal) filtered = h2hFullData.filter(r => r.batter.toLowerCase().includes(searchVal) || r.pitcher.toLowerCase().includes(searchVal));
-if (filtered.length === 0) {
-tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No matchups match your search...</td></tr>`;
-return;
-}
+if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No matchups match your search...</td></tr>`; return; }
 tbody.innerHTML = '';
 filtered.forEach(row => {
 const logoUrl = teamLogos[row.team] || '';
@@ -2326,22 +1169,10 @@ weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome, humidity, 
 }
 });
 }
-function cleanNumber(v) {
-if(v === undefined || v === null || v === '') return 0;
-if (typeof v === 'string' && v.includes('%')) return parseFloat(v) / 100;
-return Number(v) || 0;
-}
-function getHitterHandedness(p) {
-const bats = String(p['Bats'] || p['Hand'] || p['Handedness'] || 'R').toUpperCase().substring(0, 1);
-return bats === 'L' ? 'L' : 'R';
-}
-function applyStabilization(actual, leagueAvg, sample, stabilizationPA) {
-if (sample <= 0) return leagueAvg;
-if (sample >= stabilizationPA) return actual;
-const weight = sample / stabilizationPA;
-return (actual * weight) + (leagueAvg * (1 - weight));
-}
-const SCORE_WEIGHTS = { hitterPowerProfile: 0.22, pitcherVulnerability: 0.24, battedBallProfile: 0.10, pitchMatchup: 0.17, recentForm: 0.10, weather: 0.06, park: 0.05, bvp: 0.06 };
+function cleanNumber(v) { if(v === undefined || v === null || v === '') return 0; if (typeof v === 'string' && v.includes('%')) return parseFloat(v) / 100; return Number(v) || 0; }
+function getHitterHandedness(p) { const bats = String(p['Bats'] || p['Hand'] || p['Handedness'] || 'R').toUpperCase().substring(0, 1); return bats === 'L' ? 'L' : 'R'; }
+function applyStabilization(actual, leagueAvg, sample, stabilizationPA) { if (sample <= 0) return leagueAvg; if (sample >= stabilizationPA) return actual; const weight = sample / stabilizationPA; return (actual * weight) + (leagueAvg * (1 - weight)); }
+const SCORE_WEIGHTS = { hitterPowerProfile: 0.19, pitcherVulnerability: 0.24, battedBallProfile: 0.13, pitchMatchup: 0.17, recentForm: 0.09, weather: 0.10, park: 0.02, bvp: 0.08 };
 const SUBWEIGHTS = {
 hitterPowerProfile: { barrelPct: 5, isoVsHand: 3, maxEV: 3, xwOBA: 2, avgEV: 2, hardHitPct: 1, sqUpCon: 1 },
 battedBallProfile: { flyBallPct: 2, pulledAirPct: 2, sweetSpotPct: 1, pullPct: 1 },
@@ -2352,36 +1183,12 @@ weather: { wind: 3, temp: 2 },
 park: { hrParkFactor: 2, fenceDistance: 2 },
 bvp: { xslg: 1, ev: 1, hrHistory: 1 }
 };
-function normalizeSubweights(sub) {
-const total = Object.values(sub).reduce((s, v) => s + (Number(v) || 0), 0);
-const out = {};
-if (total <= 0) { Object.keys(sub).forEach(k => out[k] = 0); return out; }
-Object.keys(sub).forEach(k => out[k] = (Number(sub[k]) || 0) / total);
-return out;
-}
+function normalizeSubweights(sub) { const total = Object.values(sub).reduce((s, v) => s + (Number(v) || 0), 0); const out = {}; if (total <= 0) { Object.keys(sub).forEach(k => out[k] = 0); return out; } Object.keys(sub).forEach(k => out[k] = (Number(sub[k]) || 0) / total); return out; }
 const N_SUB = {};
 Object.keys(SUBWEIGHTS).forEach(cat => { N_SUB[cat] = normalizeSubweights(SUBWEIGHTS[cat]); });
-function ratioToModifier(value, leagueAvg, opts = {}) {
-let ratio = leagueAvg > 0 ? (value / leagueAvg) : (value || 1);
-const minR = opts.min || 0.5;
-const maxR = opts.max || 2.0;
-ratio = Math.max(minR, Math.min(maxR, ratio));
-const sensitivity = opts.sensitivity || 0.9;
-return 1 + ((ratio - 1) * sensitivity);
-}
-function safeGet(obj, ...keys) {
-for (const k of keys) {
-if (obj && (obj[k] !== undefined && obj[k] !== null)) return obj[k];
-}
-return undefined;
-}
-function parseUsageValue(raw) {
-let v = cleanNumber(raw);
-if (!v) return 0;
-if (v > 1 && v <= 100) return v / 100;
-if (v > 100) return v / 100;
-return v;
-}
+function ratioToModifier(value, leagueAvg, opts = {}) { let ratio = leagueAvg > 0 ? (value / leagueAvg) : (value || 1); const minR = opts.min || 0.5; const maxR = opts.max || 2.0; ratio = Math.max(minR, Math.min(maxR, ratio)); const sensitivity = opts.sensitivity || 0.9; return 1 + ((ratio - 1) * sensitivity); }
+function safeGet(obj, ...keys) { for (const k of keys) { if (obj && (obj[k] !== undefined && obj[k] !== null)) return obj[k]; } return undefined; }
+function parseUsageValue(raw) { let v = cleanNumber(raw); if (!v) return 0; if (v > 1 && v <= 100) return v / 100; if (v > 100) return v / 100; return v; }
 function calculateBBI(p, weatherObj) {
 if (!p) return 0.0;
 const baseBarrel = cleanNumber(safeGet(p, 'Barrel %', 'Barrel%'));
@@ -2488,12 +1295,7 @@ const u_pitcherCV = parseUsageValue(raw_pitcherCV);
 const fbUsage = Math.max(0, (u_wFA + u_wFC + u_wSI) || (u_pitcherFB + u_pitcherFC + u_pitcherSNK));
 const breakingUsage = Math.max(0, (u_wSL + u_wCU) || (u_pitcherSL + u_pitcherCV));
 const offspeedUsage = Math.max(0, (u_wFS + u_wFO) || (u_pitcherFS + u_pitcherCH));
-function weightedEV(parts) {
-let totalUsage = parts.reduce((s, it) => s + (it.usage || 0), 0);
-if (totalUsage <= 0) { for (const it of parts) if (it.ev && it.ev > 0) return it.ev; return 88; }
-let sum = parts.reduce((s, it) => s + ((it.ev || 88) * (it.usage || 0)), 0);
-return sum / totalUsage;
-}
+function weightedEV(parts) { let totalUsage = parts.reduce((s, it) => s + (it.usage || 0), 0); if (totalUsage <= 0) { for (const it of parts) if (it.ev && it.ev > 0) return it.ev; return 88; } let sum = parts.reduce((s, it) => s + ((it.ev || 88) * (it.usage || 0)), 0); return sum / totalUsage; }
 const fbParts = [ { usage: u_wFA || u_pitcherFB, ev: vFA }, { usage: u_wFC || u_pitcherFC, ev: vFC }, { usage: u_wSI || u_pitcherSNK, ev: vSI } ];
 const fbEV = weightedEV(fbParts);
 const breakingParts = [ { usage: u_wSL || u_pitcherSL, ev: vSL }, { usage: u_wCU || u_pitcherCV, ev: vCU }, { usage: u_wFC ? 0 : 0, ev: vKC } ];
@@ -2570,7 +1372,9 @@ const adjustedBreakingRV = pl_brkM * brkUsageNorm;
 const adjustedOffspeedRV = pl_offM * offUsageNorm;
 const fbPctNorm = pitcherFB > 1 ? pitcherFB / 100 : pitcherFB;
 const fbPctM = ratioToModifier(fbPctNorm, 0.39, { min: 0.7, max: 1.4, sensitivity: 0.85 });
-const pitchMatchupModifier = ((adjustedFastballRV * pmSub.fastballRV) + (adjustedBreakingRV * pmSub.breakingRV) + (adjustedOffspeedRV * pmSub.offspeedRV) + (pl_stuffM * pmSub.stuffPlus) + (pl_pitchPlusM * pmSub.pitchingPlus) + (fbPctM * pmSub.fastballPct));
+// PITCH MATCHUP +5% BOOST
+let pitchMatchupModifier = ((adjustedFastballRV * pmSub.fastballRV) + (adjustedBreakingRV * pmSub.breakingRV) + (adjustedOffspeedRV * pmSub.offspeedRV) + (pl_stuffM * pmSub.stuffPlus) + (pl_pitchPlusM * pmSub.pitchingPlus) + (fbPctM * pmSub.fastballPct));
+pitchMatchupModifier = pitchMatchupModifier * 1.05;
 const rfSub = N_SUB.recentForm;
 const rf_barrelM = ratioToModifier(lwBarrel, LEAGUE_AVERAGES.barrelRate, { min:0.6, max:2.0 });
 const rf_evM = 1 + Math.max(-0.4, Math.min(0.9, ((lwEV || 0) - 88) / 88));
@@ -2578,42 +1382,102 @@ const rf_xslgM = 1 + Math.max(-0.4, Math.min(0.9, (lwxSLG || 0) - 0.3));
 const rf_hrsM = 1 + Math.max(0, Math.min(0.5, lwHRs * 0.08));
 const rf_hhM = ratioToModifier(lwHardHit, LEAGUE_AVERAGES.hardHitRate, { min:0.7, max:1.6 });
 const recentFormModifier = ((rf_barrelM * rfSub.lastWeekBarrelPct) + (rf_evM * rfSub.lastWeekEV) + (rf_xslgM * rfSub.lastWeekxSLG) + (rf_hrsM * rfSub.lastWeekHRs) + (rf_hhM * rfSub.lastWeekHardHit));
+
+// --- UPDATED DIRECTIONAL PULL-SIDE WEATHER LOGIC ---
 let computedWeatherMod = 1.0;
 if (weatherObj && !weatherObj.isDome) {
-const hitterHand = getHitterHandedness(p);
-const dir = String(weatherObj.windDir || 'neutral').toLowerCase();
-const speed = Number(weatherObj.windSpeed || 0);
-let windEffect = 0;
-if (dir.includes('out') && dir.includes('lf')) windEffect = (hitterHand === 'R') ? 1.0 : 0.3;
-else if (dir.includes('out') && dir.includes('cf')) { let fbRate = cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')) || 0.41; let playerEV = cleanNumber(safeGet(p, 'Avg EV', 'EV')) || 88; let fbEvScale = 1.0 + ((fbRate - 0.41) * 0.5) + ((playerEV - 88) * 0.02); windEffect = 0.8 * fbEvScale; }
-else if (dir.includes('out') && dir.includes('rf')) windEffect = (hitterHand === 'L') ? 1.0 : 0.3;
-else if (dir.includes('in') && dir.includes('lf')) windEffect = (hitterHand === 'R') ? -1.0 : -0.6;
-else if (dir.includes('in') && dir.includes('cf')) windEffect = -0.7;
-else if (dir.includes('in') && dir.includes('rf')) windEffect = (hitterHand === 'L') ? -1.0 : -0.6;
-else if (dir.includes('left') && dir.includes('right') && dir.indexOf('left') < dir.indexOf('right')) windEffect = (hitterHand === 'L') ? 0.5 : 0.1;
-else if (dir.includes('right') && dir.includes('left') && dir.indexOf('right') < dir.indexOf('left')) windEffect = (hitterHand === 'R') ? 0.5 : 0.1;
-else if (dir.includes('out')) windEffect = 0.8;
-else if (dir.includes('in')) windEffect = -0.7;
-let speedMult = 1.0;
-if (speed <= 5) speedMult = 0.3;
-else if (speed <= 10) speedMult = 0.7;
-else if (speed <= 15) speedMult = 1.0;
-else speedMult = 1.35;
-let parkGeoMult = 1.0;
-if (dir.includes('lf') && parkDims.lf < 325) parkGeoMult = 1.15;
-if (dir.includes('rf') && parkDims.rf < 325) parkGeoMult = 1.15;
-if (dir.includes('cf') && parkDims.cf < 390) parkGeoMult = 1.10;
-let finalWindBonus = windEffect * speedMult * parkGeoMult;
-let temp = Number(weatherObj.temp || 72);
-let tempBonus = 0;
-if (temp < 60) tempBonus = -0.15;
-else if (temp >= 60 && temp <= 75) tempBonus = 0.0;
-else if (temp > 75 && temp <= 85) tempBonus = 0.10;
-else if (temp > 85) tempBonus = 0.20;
-let humidity = Number(weatherObj.humidity || 0);
-let humidityBonus = (humidity > 60) ? 0.02 : 0.0;
-computedWeatherMod = 1.0 + finalWindBonus + tempBonus + humidityBonus;
+	const hitterHand = getHitterHandedness(p);
+	const dir = String(weatherObj.windDir || 'neutral').toLowerCase();
+	const speed = Number(weatherObj.windSpeed || 0);
+	let windEffect = 0;
+	
+	// Determine if wind is blowing Out or In, and to/from which field
+	const isOut = dir.includes('out');
+	const isIn = dir.includes('in');
+	const hasLF = dir.includes('lf');
+	const hasRF = dir.includes('rf');
+	const hasCF = dir.includes('cf');
+	
+	if (isOut && hasRF && !hasLF) {
+		// Out to RF: Helps LHB Pull, Hurts RHB Pull
+		windEffect = (hitterHand === 'L') ? 0.08 : -0.035;
+	}
+	else if (isIn && hasRF && !hasLF) {
+		// In from RF: Hurts LHB Pull, Helps RHB Opp
+		windEffect = (hitterHand === 'L') ? -0.07 : 0.02;
+	}
+	else if (isOut && hasLF && !hasRF) {
+		// Out to LF: Helps RHB Pull, Hurts LHB Pull
+		windEffect = (hitterHand === 'R') ? 0.08 : -0.035;
+	}
+	else if (isIn && hasLF && !hasRF) {
+		// In from LF: Hurts RHB Pull, Helps LHB Opp
+		windEffect = (hitterHand === 'R') ? -0.07 : 0.02;
+	}
+	else if (isOut && hasCF) {
+		// Out to CF: Helps both, scaled by fly ball rate
+		let fbRate = cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')) || 0.41;
+		let playerEV = cleanNumber(safeGet(p, 'Avg EV', 'EV')) || 88;
+		let fbEvScale = 1.0 + ((fbRate - 0.41) * 0.5) + ((playerEV - 88) * 0.02);
+		windEffect = 0.03 * fbEvScale;
+	}
+	else if (isIn && hasCF) {
+		// In to CF: Hurts both
+		windEffect = -0.07;
+	}
+	else if (hasLF && hasRF) {
+		// Crosswinds
+		const lfToRf = dir.indexOf('lf') < dir.indexOf('rf');
+		const rfToLf = dir.indexOf('rf') < dir.indexOf('lf');
+		
+		if (lfToRf) {
+			// Crosswind LF→RF: Helps LHB Opp/Center, Hurts RHB Pull
+			windEffect = (hitterHand === 'L') ? 0.03 : -0.03;
+		} else if (rfToLf) {
+			// Crosswind RF→LF: Helps RHB Opp/Center, Hurts LHB Pull
+			windEffect = (hitterHand === 'L') ? -0.03 : 0.03;
+		}
+	}
+	else if (isOut) {
+		// Generic "Out" without direction
+		windEffect = 0.03;
+	}
+	else if (isIn) {
+		// Generic "In" without direction
+		windEffect = -0.07;
+	}
+
+	// Speed Scaling
+	let speedMult = 1.0;
+	if (speed <= 5) speedMult = 0.3;
+	else if (speed <= 10) speedMult = 0.7;
+	else if (speed <= 15) speedMult = 1.0;
+	else speedMult = 1.35;
+
+	// Park Geometry Multiplier
+	let parkGeoMult = 1.0;
+	if (hasLF && parkDims.lf < 325) parkGeoMult = 1.15;
+	if (hasRF && parkDims.rf < 325) parkGeoMult = 1.15;
+	if (hasCF && parkDims.cf < 390) parkGeoMult = 1.10;
+
+	let finalWindBonus = windEffect * speedMult * parkGeoMult;
+
+	// Temperature Bonus
+	let temp = Number(weatherObj.temp || 72);
+	let tempBonus = 0;
+	if (temp < 60) tempBonus = -0.15;
+	else if (temp >= 60 && temp <= 75) tempBonus = 0.0;
+	else if (temp > 75 && temp <= 85) tempBonus = 0.10;
+	else if (temp > 85) tempBonus = 0.20;
+
+	// Humidity Bonus
+	let humidity = Number(weatherObj.humidity || 0);
+	let humidityBonus = (humidity > 60) ? 0.02 : 0.0;
+
+	computedWeatherMod = 1.0 + finalWindBonus + tempBonus + humidityBonus;
 }
+// --- END WEATHER LOGIC ---
+
 let parkDimensionMod = 1.0;
 const hitterHand2 = getHitterHandedness(p);
 if (hitterHand2 === 'R') {
@@ -2683,15 +1547,8 @@ p.calculatedPitchModifier = pitcherFB;
 p.calculatedCredibility = credibilityMultiplier;
 return Math.max(0, finalScore);
 }
-function recalculateAllBBIScores() {
-playerData.forEach(p => { p.calculatedBBI = calculateBBI(p, weatherSettings[p.gameId] || null); });
-applyFiltersAndRender();
-}
-function getTeamsPlayingToday() {
-let teams = new Set();
-playerData.forEach(p => { if(p.Team) teams.add(p.Team); });
-return Array.from(teams).sort();
-}
+function recalculateAllBBIScores() { playerData.forEach(p => { p.calculatedBBI = calculateBBI(p, weatherSettings[p.gameId] || null); }); applyFiltersAndRender(); }
+function getTeamsPlayingToday() { let teams = new Set(); playerData.forEach(p => { if(p.Team) teams.add(p.Team); }); return Array.from(teams).sort(); }
 function applyFiltersAndRender() {
 const f1 = document.getElementById('teamFilter1').value;
 const batsFilter = document.getElementById('batsFilter').value;
@@ -2701,10 +1558,7 @@ let filtered = playerData.filter(p => {
 if (!showRemoved && p.isRemoved) return false;
 if (selectedQuickTeamFilter !== 'ALL' && p.Team !== selectedQuickTeamFilter) return false;
 if (f1 !== 'ALL' && p.Team !== f1) return false;
-if (batsFilter !== 'ALL') {
-let batsVal = String(p['Bats'] || p['bats'] || p['Hand'] || p['Handedness'] || '').toUpperCase().trim();
-if (!batsVal.includes(batsFilter)) return false;
-}
+if (batsFilter !== 'ALL') { let batsVal = String(p['Bats'] || p['bats'] || p['Hand'] || p['Handedness'] || '').toUpperCase().trim(); if (!batsVal.includes(batsFilter)) return false; }
 if (searchVal && !p.Name.toLowerCase().includes(searchVal)) return false;
 return true;
 });
@@ -2715,10 +1569,7 @@ renderFanaticsJackpot();
 }
 function renderMainTableBoard(data) {
 const tbody = document.getElementById('tableBody');
-if (data.length === 0) {
-tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`;
-return;
-}
+if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`; return; }
 tbody.innerHTML = '';
 const globalSlateSorted = [...playerData].filter(p => !p.isRemoved);
 globalSlateSorted.sort((a, b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV']));
@@ -2786,15 +1637,11 @@ let safeName = p.Name.replace(/'/g, "\\'");
 let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
 const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}')">💰 LOCK PICK</button>`;
 const headshotHtml = createHeadshotHtml(p.Name, 'sm');
-// UPDATED: Player cell is now clickable and opens modal instead of hover tooltip
 tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" onclick="openPlayerModal(playerData[${playerData.indexOf(p)}])">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}</td><td><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span></td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
-function toggleBenchPlayer(playerName, shouldRemove) {
-let matched = playerData.find(p => p.Name === playerName);
-if (matched) { matched.isRemoved = shouldRemove; applyFiltersAndRender(); }
-}
+function toggleBenchPlayer(playerName, shouldRemove) { let matched = playerData.find(p => p.Name === playerName); if (matched) { matched.isRemoved = shouldRemove; applyFiltersAndRender(); } }
 function renderTodayTeamsFilter(teams) {
 const list = document.getElementById('todayTeamsList');
 if(!list) return;
@@ -2825,16 +1672,10 @@ const t3 = document.getElementById('parlayTeam3').value;
 let targetTeams = [t1, t2, t3].filter(x => x !== "");
 if (targetTeams.length === 0) { document.getElementById('parlayResults').innerHTML = "Please configure at least one active team selector leg."; return; }
 let finalSelections = [];
-targetTeams.forEach(team => {
-let pool = playerData.filter(p => p.Team === team && !p.isRemoved);
-pool.sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
-if (pool[0]) finalSelections.push(pool[0]);
-});
+targetTeams.forEach(team => { let pool = playerData.filter(p => p.Team === team && !p.isRemoved); pool.sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0)); if (pool[0]) finalSelections.push(pool[0]); });
 if (finalSelections.length === 0) { document.getElementById('parlayResults').innerHTML = "No active players found for the selected team paths."; return; }
 let html = `<div style="font-weight:800; color:#fff; margin-bottom:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--stadium-lights);">Constructed Slip Matrix:</div>`;
-finalSelections.forEach((p, index) => {
-html += `<div style="margin-bottom:6px; color:#f1f5f9; font-size:13px;">Leg ${index+1}: <b style="color:var(--accent);">${p.Name}</b> (${p.Team}) vs ${p['Opp Pitcher'] || 'Pitcher'} <span style="font-family:monospace; color:var(--text-muted);">[BBI ${p.calculatedBBI.toFixed(1)}]</span></div>`;
-});
+finalSelections.forEach((p, index) => { html += `<div style="margin-bottom:6px; color:#f1f5f9; font-size:13px;">Leg ${index+1}: <b style="color:var(--accent);">${p.Name}</b> (${p.Team}) vs ${p['Opp Pitcher'] || 'Pitcher'} <span style="font-family:monospace; color:var(--text-muted);">[BBI ${p.calculatedBBI.toFixed(1)}]</span></div>`; });
 document.getElementById('parlayResults').innerHTML = html;
 }
 function generateOptimalSlip(mode) {
@@ -2846,34 +1687,17 @@ if(mode === 'pack2' || mode === 'pack3') {
 let targetSize = mode === 'pack2' ? 2 : 3;
 let selected = [];
 let usedGames = new Set();
-for(let i = 0; i < activePool.length; i++) {
-let candidate = activePool[i];
-if(!usedGames.has(candidate.gameId)) { selected.push(candidate); usedGames.add(candidate.gameId); }
-if(selected.length === targetSize) break;
-}
+for(let i = 0; i < activePool.length; i++) { let candidate = activePool[i]; if(!usedGames.has(candidate.gameId)) { selected.push(candidate); usedGames.add(candidate.gameId); } if(selected.length === targetSize) break; }
 outputHtml = `<div style="font-weight:800; color:var(--accent); margin-bottom:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase;">AUTO-GENERATED ${targetSize}-PACK:</div>`;
-selected.forEach((p, idx) => {
-outputHtml += `<div style="margin-bottom:6px; color:#fff; font-size:12px;">Leg ${idx+1}: <b>${p.Name}</b> (${p.Team}) <span style="color:var(--stadium-lights);">vs ${p['Opp Pitcher'] || 'Pitcher'}</span> <span style="font-family:monospace; color:var(--text-muted);">[BBI ${p.calculatedBBI.toFixed(1)}]</span></div>`;
-});
+selected.forEach((p, idx) => { outputHtml += `<div style="margin-bottom:6px; color:#fff; font-size:12px;">Leg ${idx+1}: <b>${p.Name}</b> (${p.Team}) <span style="color:var(--stadium-lights);">vs ${p['Opp Pitcher'] || 'Pitcher'}</span> <span style="font-family:monospace; color:var(--text-muted);">[BBI ${p.calculatedBBI.toFixed(1)}]</span></div>`; });
 } else if(mode === 'stack') {
 let teams = getTeamsPlayingToday().filter(t => t !== 'OPP');
-let bestTeam = null;
-let bestSum = -1;
-let bestStackPlayers = [];
-teams.forEach(t => {
-let tPool = activePool.filter(p => p.Team === t);
-tPool.sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
-if(tPool.length >= 3) {
-let currentSum = tPool[0].calculatedBBI + tPool[1].calculatedBBI + tPool[2].calculatedBBI;
-if(currentSum > bestSum) { bestSum = currentSum; bestTeam = t; bestStackPlayers = [tPool[0], tPool[1], tPool[2]]; }
-}
-});
+let bestTeam = null; let bestSum = -1; let bestStackPlayers = [];
+teams.forEach(t => { let tPool = activePool.filter(p => p.Team === t); tPool.sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0)); if(tPool.length >= 3) { let currentSum = tPool[0].calculatedBBI + tPool[1].calculatedBBI + tPool[2].calculatedBBI; if(currentSum > bestSum) { bestSum = currentSum; bestTeam = t; bestStackPlayers = [tPool[0], tPool[1], tPool[2]]; } } });
 if(!bestTeam || bestStackPlayers.length < 3) { document.getElementById('optimalResults').innerHTML = "Insufficient team depth variance discovered to isolate a 3-Batter Same Game Stack profile."; return; }
 outputHtml = `<div style="font-weight:800; color:#ef4444; margin-bottom:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase;">CORRELATED TEAM STACK:</div>`;
 outputHtml += `<div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">vs ${bestStackPlayers[0]['Opp Pitcher'] || 'Starter'}</div>`;
-bestStackPlayers.forEach((p, idx) => {
-outputHtml += `<div style="margin-bottom:4px; color:#fff; font-size:12px;">Slot ${idx+1}: <b>${p.Name}</b> <span style="font-family:monospace; color:var(--accent);">(${p.calculatedBBI.toFixed(1)})</span></div>`;
-});
+bestStackPlayers.forEach((p, idx) => { outputHtml += `<div style="margin-bottom:4px; color:#fff; font-size:12px;">Slot ${idx+1}: <b>${p.Name}</b> <span style="font-family:monospace; color:var(--accent);">(${p.calculatedBBI.toFixed(1)})</span></div>`; });
 }
 document.getElementById('optimalResults').innerHTML = outputHtml;
 }
@@ -2905,49 +1729,22 @@ document.querySelector('.nav-tab').classList.add('active');
 setTimeout(() => {
 const rowId = `player-row-${normalizeName(playerName)}`;
 const row = document.getElementById(rowId);
-if (row) {
-row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-row.classList.add('highlighted-row');
-setTimeout(() => row.classList.remove('highlighted-row'), 2000);
-}
+if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); row.classList.add('highlighted-row'); setTimeout(() => row.classList.remove('highlighted-row'), 2000); }
 }, 100);
 }
 function loadTeamLogoImages(callback) {
 let loadedCount = 0; const imageObjects = {}; const teams = Object.keys(teamLogos);
-teams.forEach(t => {
-const img = new Image(); img.crossOrigin = "anonymous";
-img.onload = () => { loadedCount++; if (loadedCount === teams.length) callback(imageObjects); };
-img.onerror = () => { loadedCount++; if (loadedCount === teams.length) callback(imageObjects); };
-img.src = teamLogos[t]; imageObjects[t] = img;
-});
+teams.forEach(t => { const img = new Image(); img.crossOrigin = "anonymous"; img.onload = () => { loadedCount++; if (loadedCount === teams.length) callback(imageObjects); }; img.onerror = () => { loadedCount++; if (loadedCount === teams.length) callback(imageObjects); }; img.src = teamLogos[t]; imageObjects[t] = img; });
 }
 function loadPlayerHeadshots(items, callback) {
 const headshotObjects = {};
 let loadedCount = 0;
 const totalToLoad = items.length;
-if (totalToLoad === 0) {
-callback(headshotObjects);
-return;
-}
+if (totalToLoad === 0) { callback(headshotObjects); return; }
 items.forEach(p => {
 const url = getHeadshotUrl(p.Name);
-if (url) {
-const img = new Image();
-img.crossOrigin = "anonymous";
-img.onload = () => {
-headshotObjects[p.Name] = img;
-loadedCount++;
-if (loadedCount === totalToLoad) callback(headshotObjects);
-};
-img.onerror = () => {
-loadedCount++;
-if (loadedCount === totalToLoad) callback(headshotObjects);
-};
-img.src = url;
-} else {
-loadedCount++;
-if (loadedCount === totalToLoad) callback(headshotObjects);
-}
+if (url) { const img = new Image(); img.crossOrigin = "anonymous"; img.onload = () => { headshotObjects[p.Name] = img; loadedCount++; if (loadedCount === totalToLoad) callback(headshotObjects); }; img.onerror = () => { loadedCount++; if (loadedCount === totalToLoad) callback(headshotObjects); }; img.src = url; }
+else { loadedCount++; if (loadedCount === totalToLoad) callback(headshotObjects); }
 });
 }
 function generateDailyDingerGraphic() {
@@ -2970,8 +1767,7 @@ ctx.fillStyle = '#ffffff'; ctx.font = 'bold 38px Arial'; ctx.textAlign = 'center
 ctx.fillText("THE DAILY RUN LINE'S HOMERUN INDEX", 720, 95);
 ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 15px Courier New';
 ctx.fillText("TOP 20 HOMERUN TARGETS // PREMIUM ANALYTICS", 720, 130);
-let startY = 200;
-let rowHeight = 90;
+let startY = 200; let rowHeight = 90;
 ctx.fillStyle = 'rgba(9, 18, 34, 0.9)'; ctx.fillRect(40, startY - 32, canvas.width - 80, 26);
 ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'left';
 ctx.fillText("RNK   PLAYER", 55, startY - 14);
@@ -2988,25 +1784,15 @@ ctx.fillStyle = '#6b7c96'; ctx.font = 'bold 18px Courier New'; ctx.textAlign = '
 ctx.fillText(String(idx + 1).padStart(2, '0'), 60, currentY + 30);
 const headshotImg = loadedHeadshots[p.Name];
 if (headshotImg) {
-ctx.save();
-ctx.beginPath();
-ctx.arc(140, currentY + 22, 32, 0, Math.PI * 2);
-ctx.closePath();
-ctx.clip();
+ctx.save(); ctx.beginPath(); ctx.arc(140, currentY + 22, 32, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
 ctx.drawImage(headshotImg, 108, currentY - 10, 64, 64);
 ctx.restore();
-ctx.strokeStyle = '#00ff9d';
-ctx.lineWidth = 2;
-ctx.beginPath();
-ctx.arc(140, currentY + 22, 32, 0, Math.PI * 2);
-ctx.stroke();
+ctx.strokeStyle = '#00ff9d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(140, currentY + 22, 32, 0, Math.PI * 2); ctx.stroke();
 }
 ctx.fillStyle = '#ffffff'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'left';
 ctx.fillText(p.Name.substring(0, 22), 190, currentY + 30);
 const logoImgObj = loadedLogos[p.Team];
-if (logoImgObj) {
-ctx.drawImage(logoImgObj, 470, currentY + 5, 40, 40);
-}
+if (logoImgObj) ctx.drawImage(logoImgObj, 470, currentY + 5, 40, 40);
 ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
 ctx.fillText(p.Team, 540, currentY + 30);
 ctx.fillStyle = '#94a3b8'; ctx.font = '16px Arial'; ctx.textAlign = 'center';
