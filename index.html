@@ -127,6 +127,33 @@ h2::before { content: ''; display: inline-block; width: 6px; height: 14px; backg
 .search-input { width: 260px; background: var(--bg-dark); border: 1px solid var(--accent); color: #fff; padding: 8px 12px; border-radius: 6px; transition: all 0.2s; }
 .search-input:focus { outline: none; box-shadow: 0 0 12px var(--accent-glow); background: rgba(0, 255, 157, 0.05); }
 .select-input-sm { width: 115px; background: var(--bg-dark); border: 1px solid var(--accent); color: #fff; padding: 8px; border-radius: 6px; cursor: pointer; }
+.team-filter-future-wrap { min-width: 210px; }
+.team-filter-future { position: relative; min-width: 210px; }
+.native-team-select { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+.team-filter-trigger {
+  width: 100%; min-height: 42px; display: flex; align-items: center; gap: 10px;
+  background: radial-gradient(circle at 12% 15%, rgba(0,255,157,0.16), transparent 34%), linear-gradient(135deg, rgba(5,11,20,0.98), rgba(17,31,53,0.92));
+  border: 1px solid rgba(0,255,157,0.35); color: #fff; border-radius: 12px; padding: 9px 12px;
+  cursor: pointer; font-size: 12px; font-weight: 1000; text-transform: uppercase; letter-spacing: .8px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.28), 0 0 18px rgba(0,255,157,.08), inset 0 1px 0 rgba(255,255,255,.08);
+  transition: all .22s ease;
+}
+.team-filter-trigger:hover, .team-filter-future.open .team-filter-trigger { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 14px 32px rgba(0,0,0,.34), 0 0 24px rgba(0,255,157,.16), inset 0 1px 0 rgba(255,255,255,.1); }
+.team-filter-orb { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items:center; justify-content:center; background: rgba(0,255,157,.09); border: 1px solid rgba(0,255,157,.26); box-shadow: 0 0 16px rgba(0,255,157,.14); flex: 0 0 auto; }
+.team-filter-orb img { width: 22px; height: 22px; object-fit: contain; }
+#teamFilterLabel { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.team-filter-chevron { color: var(--accent); font-size: 13px; transition: transform .22s ease; }
+.team-filter-future.open .team-filter-chevron { transform: rotate(180deg); }
+.team-logo-dropdown { display: none; position: absolute; top: calc(100% + 8px); left: 0; min-width: 270px; max-height: 310px; overflow-y: auto; z-index: 50; padding: 8px; border-radius: 14px; border: 1px solid rgba(0,255,157,.28); background: linear-gradient(145deg, rgba(5,11,20,.98), rgba(17,31,53,.96)); box-shadow: 0 24px 60px rgba(0,0,0,.58), 0 0 28px rgba(0,255,157,.10); backdrop-filter: blur(18px); }
+.team-filter-future.open .team-logo-dropdown { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.team-logo-option { display:flex; align-items:center; gap:8px; min-height: 38px; border:1px solid rgba(255,255,255,.07); border-radius: 10px; background: rgba(255,255,255,.035); color:#f8fafc; font-size:11px; font-weight:1000; cursor:pointer; padding:7px 9px; text-transform:uppercase; transition: all .18s ease; }
+.team-logo-option:hover, .team-logo-option.active { border-color: var(--accent); background: rgba(0,255,157,.08); transform: translateY(-1px); }
+.team-logo-option img { width: 21px; height: 21px; object-fit: contain; flex: 0 0 auto; }
+.batter-hand-pill { display:inline-flex; align-items:center; justify-content:center; min-width:58px; padding:5px 9px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); color:#e2e8f0; font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.6px; }
+.batter-hand-pill.left { color:#38bdf8; border-color:rgba(56,189,248,.28); background:rgba(56,189,248,.08); }
+.batter-hand-pill.right { color:var(--accent); border-color:rgba(0,255,157,.28); background:rgba(0,255,157,.08); }
+.batter-hand-pill.switch { color:#eab308; border-color:rgba(234,179,8,.28); background:rgba(234,179,8,.08); }
+
 .parlayTeamSelect { background: var(--bg-dark); border: 1px solid var(--accent); color: #fff; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; }
 .table-wrapper { overflow-x: auto; background: var(--bg-card); backdrop-filter: blur(12px); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 12px 40px rgba(0,0,0,0.4); margin-bottom: 24px; }
 table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
@@ -689,6 +716,20 @@ tbody tr.team-heat-row:hover::after { opacity:1; animation: row-stadium-lights 1
 .jr-burns-no { background: linear-gradient(135deg, #00ff9d, #00d482); color: #04080f; box-shadow: 0 10px 24px rgba(0,255,157,.16); }
 .jr-burns-ban { margin-top: 14px; padding: 12px; border-radius: 12px; background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.28); color: #fecaca; font-size: 13px; font-weight: 900; }
 
+
+
+/* =========================
+   DROPDOWN STACKING FIX ONLY
+   Keeps team logo dropdown above rankings table.
+   ========================= */
+.controls-bar { overflow: visible !important; z-index: 10000; }
+.filter-group,
+.team-filter-future-wrap,
+.team-filter-future { position: relative; overflow: visible !important; z-index: 10001; }
+.team-filter-future.open { z-index: 10002; }
+.team-logo-dropdown { z-index: 10003 !important; }
+.table-wrapper { position: relative; z-index: 1; }
+
 </style>
 </head>
 <body>
@@ -773,10 +814,6 @@ tbody tr.team-heat-row:hover::after { opacity:1; animation: row-stadium-lights 1
 <h2>📰 Today's Storylines</h2>
 <div id="todaysStorylines" class="storylines-box"><div class="storyline-empty">Upload today's workbook to generate slate headlines.</div></div>
 </div>
-<div class="panel">
-<h2>Filter by team</h2>
-<div id="todayTeamsList" class="today-teams-list"><div class="today-team-empty">Upload today's workbook to load every team playing today.</div></div>
-</div>
 <div class="panel" id="graphicsPanel" style="display:none;">
 <h2>Exports</h2>
 <button onclick="generateDailyDingerGraphic()" class="btn-blue" style="background: linear-gradient(135deg, #091c36 0%, #0f2b48 100%); border-color:#223e66; margin-bottom:12px;">⚡ Export Daily Top 20 Graphic</button>
@@ -785,7 +822,7 @@ tbody tr.team-heat-row:hover::after { opacity:1; animation: row-stadium-lights 1
 </div>
 <div>
 <div class="controls-bar">
-<div class="filter-group"><label>Filter Team</label><select id="teamFilter1" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">All Teams</option></select></div>
+<div class="filter-group team-filter-future-wrap"><label>Filter Team</label><div class="team-filter-future"><select id="teamFilter1" class="select-input-sm native-team-select" onchange="syncTeamLogoDropdown(); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button type="button" id="teamFilterTrigger" class="team-filter-trigger" onclick="toggleTeamLogoDropdown(event)"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel">All Teams</span><span class="team-filter-chevron">▾</span></button><div id="teamLogoDropdown" class="team-logo-dropdown"></div></div></div>
 <div class="filter-group"><label>Filter Bats</label><select id="batsFilter" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">All</option><option value="L">Left</option><option value="R">Right</option><option value="S">Switch</option></select></div>
 <div class="filter-group"><label>Search Player Name</label><input type="text" id="searchFilter" class="search-input" placeholder="Type player name..." oninput="applyFiltersAndRender()" /></div>
 <div class="filter-group" style="margin-left: auto; flex-direction: row; align-items: center; gap: 10px;">
@@ -795,8 +832,8 @@ tbody tr.team-heat-row:hover::after { opacity:1; animation: row-stadium-lights 1
 </div>
 <div class="table-wrapper">
 <table>
-<thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Player</th><th>Team</th><th>Opposing Pitcher</th><th>Weather</th><th>BBI</th><th style="width: 140px;">Action</th></tr></thead>
-<tbody id="tableBody"><tr><td colspan="7" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
+<thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Player</th><th>Bats</th><th>Team</th><th>Opposing Pitcher</th><th>Weather</th><th>BBI</th><th style="width: 140px;">Action</th></tr></thead>
+<tbody id="tableBody"><tr><td colspan="8" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 </div>
 </div>
@@ -1409,6 +1446,7 @@ el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</
 uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
 }
 });
+rebuildTeamLogoDropdown();
 document.getElementById('graphicsPanel').style.display = 'block';
 recalculateAllBBIScores();
 renderFanaticsJackpot();
@@ -1593,6 +1631,7 @@ el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</
 uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
 }
 });
+rebuildTeamLogoDropdown();
 document.getElementById('graphicsPanel').style.display = 'block';
 recalculateAllBBIScores();
 renderFanaticsJackpot();
@@ -3039,7 +3078,57 @@ function recalculateAllBBIScores() {
   applyFiltersAndRender();
 }
 function getTeamsPlayingToday() { let teams = new Set(); playerData.forEach(p => { if(p.Team) teams.add(p.Team); }); return Array.from(teams).sort(); }
+function getBatterHandDisplay(p) {
+const raw = String(safeGet(p, 'Bats', 'bats', 'Hand', 'Handedness', 'Batter Hand', 'Bat Hand', 'Batter Handedness') || '').trim().toUpperCase();
+if (raw.startsWith('L')) return { label: 'Left', cls: 'left' };
+if (raw.startsWith('R')) return { label: 'Right', cls: 'right' };
+if (raw.startsWith('S')) return { label: 'Switch', cls: 'switch' };
+return { label: '-', cls: '' };
+}
+function syncTeamLogoDropdown() {
+const select = document.getElementById('teamFilter1');
+const label = document.getElementById('teamFilterLabel');
+const orb = document.querySelector('#teamFilterTrigger .team-filter-orb');
+const dropdown = document.getElementById('teamLogoDropdown');
+if (!select || !label || !orb) return;
+const val = select.value || 'ALL';
+label.textContent = val === 'ALL' ? 'All Teams' : val;
+const logoUrl = teamLogos[val] || '';
+orb.innerHTML = logoUrl ? `<img src="${logoUrl}" alt="">` : '⚡';
+if (dropdown) dropdown.querySelectorAll('.team-logo-option').forEach(btn => btn.classList.toggle('active', btn.dataset.team === val));
+}
+function rebuildTeamLogoDropdown() {
+const select = document.getElementById('teamFilter1');
+const dropdown = document.getElementById('teamLogoDropdown');
+if (!select || !dropdown) return;
+dropdown.innerHTML = '';
+Array.from(select.options).forEach(opt => {
+const team = opt.value;
+const btn = document.createElement('button');
+btn.type = 'button';
+btn.className = 'team-logo-option';
+btn.dataset.team = team;
+const logoUrl = teamLogos[team] || '';
+btn.innerHTML = `${logoUrl ? `<img src="${logoUrl}" alt="">` : '<span style="width:21px;text-align:center;">⚡</span>'}<span>${opt.textContent}</span>`;
+btn.onclick = (event) => {
+ event.stopPropagation();
+ select.value = team;
+ document.querySelector('.team-filter-future')?.classList.remove('open');
+ syncTeamLogoDropdown();
+ applyFiltersAndRender();
+};
+dropdown.appendChild(btn);
+});
+syncTeamLogoDropdown();
+}
+function toggleTeamLogoDropdown(event) {
+if (event) event.stopPropagation();
+const wrap = document.querySelector('.team-filter-future');
+if (wrap) wrap.classList.toggle('open');
+}
+document.addEventListener('click', () => { document.querySelector('.team-filter-future')?.classList.remove('open'); });
 function applyFiltersAndRender() {
+syncTeamLogoDropdown();
 const f1 = document.getElementById('teamFilter1').value;
 const batsFilter = document.getElementById('batsFilter').value;
 const searchVal = document.getElementById('searchFilter').value.toLowerCase().trim();
@@ -3064,7 +3153,7 @@ renderTodaysStorylines();
 }
 function renderMainTableBoard(data) {
 const tbody = document.getElementById('tableBody');
-if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`; return; }
+if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`; return; }
 tbody.innerHTML = '';
 const globalSlateSorted = [...playerData].filter(p => !p.isRemoved);
 globalSlateSorted.sort((a, b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV']));
@@ -3135,7 +3224,8 @@ let safeName = p.Name.replace(/'/g, "\\'");
 let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
 const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}', event)">💰 LOCK PICK</button>`;
 const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
-tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}${renderBBIProbabilityMeter(p, true)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
+const batterHand = getBatterHandDisplay(p);
+tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}${renderBBIProbabilityMeter(p, true)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
