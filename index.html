@@ -628,6 +628,7 @@ document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalD
 });
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
 function normalizeName(s) { if (!s) return ''; return String(s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function escJSString(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\"/g, '&quot;'); }
 function saveCachedData() {
 const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps };
 localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
@@ -932,7 +933,12 @@ if(String(w.windDir || '').toLowerCase().includes('out')) windOut++;
 document.getElementById('tickerText').innerText = `${Math.round(numGames)} Games Today | ${domes} Domes | ${windOut} Wind Out`;
 }
 function openPlayerModal(player) {
+try {
+if (!player) return;
 const modal = document.getElementById('playerModal');
+if (!modal) return;
+modal.classList.add('active');
+document.body.style.overflow = 'hidden';
 const headshotUrl = getHeadshotUrl(player.Name);
 const logoUrl = teamLogos[player.Team] || '';
 document.getElementById('modalHeadshot').src = headshotUrl || 'https://via.placeholder.com/120x120/091222/172a46?text=?';
@@ -979,11 +985,18 @@ html += section('🎯 PITCHER MATCHUP', stat('HR/9', pHR9, pHR9>=1.3?'red':'') +
 html += section('🚀 MULTIPLIERS', stat('Game Total Mod', envMod+'x', envMod>=1.05?'green':'') + stat('PA/Game Mod', paMod+'x') + stat('xHR Vol Bonus', xhrMod+'x', xhrMod>1?'green':'') + stat('VAA (Rel Z) Mod', vaaMod+'x', vaaMod>=1.1?'green':vaaMod<1?'red':'') + stat('Power Mod', powerMod+'x') + stat('PVF Ratio', pvfMod+'x', pvfMod>=1.2?'red':'') + stat('Synergy Bonus', synergyPts+' pts / '+synergyMod+'x', synergyPts >= 6 ? 'green' : synergyPts >= 3 ? 'yellow' : ''));
 html += renderHRBlueprint(player);
 html += `<div><div class="modal-section-title">🤝 SYNERGY METER</div>${renderSynergyMeter(player)}</div>`;
-html += renderPlayerAttackMatchup(player);
+// Removed broken/repeated Pitcher Attack Matchup block from popup.
+// It was showing the same FB 0% / C bat values for every player when pitch-level data did not map cleanly.
 html += section('🌤️ ENVIRONMENT', stat('Weather/Park', climate) + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A'));
 document.getElementById('modalStatsContainer').innerHTML = html;
-modal.classList.add('active');
-document.body.style.overflow = 'hidden';
+} catch (err) {
+  console.error('Player popup failed:', err);
+  const box = document.getElementById('modalStatsContainer');
+  if (box) box.innerHTML = '<div class="modal-section-title">Player Details</div><div style="color:var(--text-muted);font-size:13px;line-height:1.5;">Popup opened, but the detailed stat builder hit a script issue. This version patches the modal stat helper so player details can load.</div>';
+  const modal = document.getElementById('playerModal');
+  if (modal) modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
 }
 function closeModal(e) { if(e.target === document.getElementById('playerModal')) closeModalDirect(); }
 function closeModalDirect() { document.getElementById('playerModal').classList.remove('active'); document.body.style.overflow = ''; }
@@ -1193,6 +1206,14 @@ function renderAttackProfileBars(profile) {
   if (!profile || !profile.rows) return '-';
   return `<div class="attack-profile-box">${profile.rows.map(r => `<div class="attack-profile-row"><div class="attack-profile-label">${r.label}</div><div class="attack-profile-track"><div class="attack-profile-fill" style="width:${r.weakness.toFixed(0)}%"></div></div><div class="attack-profile-value">${r.weakness.toFixed(0)}</div></div>`).join('')}<div class="attack-profile-summary">Primary Weakness: ${profile.primary.label}</div></div>`;
 }
+
+// Global popup stat helper used by nested modal renderers.
+// The player popup has its own local stat helper too, but functions like
+// renderPlayerAttackMatchup() need this global version or the details box fails.
+function stat(label, val, color = '') {
+  return `<div class="modal-stat-item"><span class="modal-stat-label">${label}</span><span class="modal-stat-val ${color}">${val}</span></div>`;
+}
+
 function renderPlayerAttackMatchup(player) {
   const lab = player.pitchLabProfile || buildPitchLabProfile(player);
   const pitcherName = String(player['Opp Pitcher'] || player['Opp Pitcher Name'] || 'Starter').trim();
@@ -1229,7 +1250,7 @@ function renderPitchLabTable() {
     const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
     const headshotHtml = createHeadshotHtml(p.Name, 'sm');
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted);">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" onclick="openPlayerModal(playerData[${playerData.indexOf(p)}])">${headshotHtml}<span style="font-weight:800; color:#fff;">${p.Name}</span></div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${profile.pitcherName || 'Starter'}</td><td><div style="font-weight:900; color:#fff;">${top ? top.label : '-'}</div><div style="font-size:10px; color:var(--text-muted);">${top ? pctFmt(top.usage) + ' usage // Stuff+ ' + top.stuff : '-'}</div></td><td style="line-height:2;">${renderPitchMix(profile)}</td><td><span class="index-score ${pitchEdgeClass(profile.score)}">${profile.score.toFixed(0)}</span><div style="font-size:10px; color:var(--text-muted); margin-top:3px;">${profile.grade}</div></td><td>${renderSynergyMeter(p, true)}</td>`;
+    tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted);">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span style="font-weight:800; color:#fff;">${p.Name}</span></div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${profile.pitcherName || 'Starter'}</td><td><div style="font-weight:900; color:#fff;">${top ? top.label : '-'}</div><div style="font-size:10px; color:var(--text-muted);">${top ? pctFmt(top.usage) + ' usage // Stuff+ ' + top.stuff : '-'}</div></td><td style="line-height:2;">${renderPitchMix(profile)}</td><td><span class="index-score ${pitchEdgeClass(profile.score)}">${profile.score.toFixed(0)}</span><div style="font-size:10px; color:var(--text-muted); margin-top:3px;">${profile.grade}</div></td><td>${renderSynergyMeter(p, true)}</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -2143,7 +2164,7 @@ let safeName = p.Name.replace(/'/g, "\\'");
 let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
 const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}')">💰 LOCK PICK</button>`;
 const headshotHtml = createHeadshotHtml(p.Name, 'sm');
-tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" onclick="openPlayerModal(playerData[${playerData.indexOf(p)}])">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}</td><td><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span><br>${renderSynergyMeter(p, true)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
+tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}</td><td><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span><br>${renderSynergyMeter(p, true)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
@@ -2376,6 +2397,41 @@ const dataUrl = canvas.toDataURL('image/png'); const win = window.open();
 win.document.write(`<iframe src="${dataUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
 });
 }
+
+/* === DRL PLAYER POPUP CLICK FIX ===
+   Opens the player modal by player name instead of relying on fragile array indexes. */
+function findPlayerForModalByName(name) {
+  const raw = String(name || '').replace(/PF\s*\d+\s*[✓✗]?/gi, '').trim();
+  const target = normalizeName(raw);
+  if (!target) return null;
+  return playerData.find(p => normalizeName(p.Name) === target)
+      || playerData.find(p => normalizeName(p.Name).includes(target) || target.includes(normalizeName(p.Name)));
+}
+
+function openPlayerModalByName(name) {
+  const player = findPlayerForModalByName(name);
+  if (player) openPlayerModal(player);
+}
+
+document.addEventListener('click', function(e) {
+  const clickable = e.target.closest('.player-clickable');
+  if (!clickable) return;
+  if (e.target.closest('button')) return;
+
+  const explicitName = clickable.getAttribute('data-player-name');
+  const spanName = clickable.querySelector('span') ? clickable.querySelector('span').textContent : '';
+  const name = explicitName || spanName || clickable.textContent;
+  const player = findPlayerForModalByName(name);
+
+  if (player) {
+    e.preventDefault();
+    e.stopPropagation();
+    openPlayerModal(player);
+  }
+});
+
+window.openPlayerModal = openPlayerModal;
+window.openPlayerModalByName = openPlayerModalByName;
 </script>
 </body>
 </html>
