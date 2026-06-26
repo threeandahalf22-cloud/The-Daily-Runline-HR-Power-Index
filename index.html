@@ -489,6 +489,124 @@ box-shadow: 0 0 18px rgba(250,204,21,.22);
 
 
 
+
+/* =========================
+   WHO WE HAMMERIN HR CASHED STATE
+   Manual, real-time, saved locally. Visual-only: no scoring changed.
+   ========================= */
+.community-hr-tools {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 10px;
+}
+.community-reset-hr-btn {
+  border: 1px solid rgba(250,204,21,.30);
+  background: rgba(250,204,21,.08);
+  color: #facc15;
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 10px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(250,204,21,.10);
+}
+.community-reset-hr-btn:hover {
+  background: rgba(250,204,21,.16);
+  border-color: #facc15;
+  transform: translateY(-1px);
+}
+.community-pick-card.hr-hit {
+  border-color: rgba(250,204,21,.86) !important;
+  border-left-color: #facc15 !important;
+  background:
+    radial-gradient(circle at 10% 50%, rgba(250,204,21,.34), transparent 35%),
+    linear-gradient(135deg, rgba(250,204,21,.24), rgba(234,179,8,.11) 46%, rgba(5,11,20,.72)) !important;
+  box-shadow: 0 0 34px rgba(250,204,21,.38), 0 18px 42px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.13) !important;
+}
+.community-pick-card.hr-hit::before {
+  content: '💣';
+  position: absolute;
+  left: -13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #facc15, #f97316);
+  box-shadow: 0 0 24px rgba(250,204,21,.65);
+  z-index: 3;
+  animation: bomb-pop 1.2s ease-in-out infinite alternate;
+}
+@keyframes bomb-pop {
+  0% { transform: translateY(-50%) scale(.96); }
+  100% { transform: translateY(-50%) scale(1.08); }
+}
+.community-pick-card.hr-hit .community-pick-name { color: #fde68a; text-shadow: 0 0 12px rgba(250,204,21,.55); }
+.community-pick-card.hr-hit .community-meter-fill,
+.community-pick-card.hr-hit .community-heat {
+  background: linear-gradient(90deg, #facc15, #f97316) !important;
+  color: #06111d;
+}
+.community-hr-btn {
+  margin-top: 8px;
+  border: 1px solid rgba(250,204,21,.30);
+  background: rgba(250,204,21,.08);
+  color: #facc15;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 9px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: .55px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.community-hr-btn:hover { background: rgba(250,204,21,.18); border-color: #facc15; }
+.community-pick-card.hr-hit .community-hr-btn {
+  background: linear-gradient(135deg, #facc15, #f97316);
+  color: #06111d;
+  border-color: #facc15;
+}
+
+.community-picks-scroll {
+  position: relative;
+  z-index: 1;
+  max-height: 520px;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding: 2px 8px 2px 16px;
+  margin-left: -8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(250,204,21,.65) rgba(255,255,255,.06);
+}
+.community-picks-scroll::-webkit-scrollbar { width: 8px; }
+.community-picks-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,.06); border-radius: 999px; }
+.community-picks-scroll::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #facc15, #f97316); border-radius: 999px; box-shadow: 0 0 12px rgba(250,204,21,.28); }
+.community-picks-scroll .community-pick-card:first-child { margin-top: 0; }
+.community-cashed-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #facc15, #f97316);
+  color: #06111d;
+  font-size: 9px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: .55px;
+  box-shadow: 0 0 16px rgba(250,204,21,.30);
+}
+
+
 /* =========================
    ESPN-STYLE VISUAL UPGRADE PACK
    Visual only: no scoring/weights changed.
@@ -812,6 +930,214 @@ tbody tr.cody-diamond-row:hover td {
   100% { transform: rotate(360deg) scale(1); opacity: 0; }
 }
 
+
+
+/* =========================
+   WHO WE HAMMERIN NAME VISIBILITY FIX
+   Keeps the section scrollable, but stops player names from being clipped.
+   Visual-only: no scoring changed.
+   ========================= */
+.community-picks-scroll .community-pick-card {
+  grid-template-columns: 34px minmax(170px, 1fr) max-content;
+  align-items: center;
+  column-gap: 12px;
+  padding-right: 10px;
+}
+.community-picks-scroll .community-pick-main,
+.community-picks-scroll .community-name-line,
+.community-picks-scroll .community-player-copy {
+  min-width: 0;
+  width: 100%;
+}
+.community-picks-scroll .community-name-line {
+  align-items: flex-start;
+}
+.community-picks-scroll .community-player-copy {
+  flex: 1 1 auto;
+}
+.community-picks-scroll .community-pick-name {
+  display: block;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.2;
+  word-break: normal;
+}
+.community-picks-scroll .community-team-line {
+  white-space: normal;
+  line-height: 1.15;
+}
+.community-picks-scroll .community-pick-side {
+  width: 82px;
+  min-width: 82px;
+  text-align: right;
+  white-space: normal;
+}
+.community-picks-scroll .community-heat,
+.community-picks-scroll .community-cashed-badge,
+.community-picks-scroll .community-hr-btn {
+  max-width: 82px;
+  white-space: normal;
+  line-height: 1.05;
+}
+.community-picks-scroll .community-hr-btn {
+  width: 82px;
+  padding: 5px 5px;
+}
+@media(max-width: 650px) {
+  .community-picks-scroll .community-pick-card {
+    grid-template-columns: 30px minmax(120px, 1fr) 76px;
+    column-gap: 8px;
+  }
+  .community-picks-scroll .community-pick-side {
+    width: 76px;
+    min-width: 76px;
+  }
+  .community-picks-scroll .community-heat,
+  .community-picks-scroll .community-cashed-badge,
+  .community-picks-scroll .community-hr-btn {
+    max-width: 76px;
+  }
+  .community-picks-scroll .community-hr-btn {
+    width: 76px;
+  }
+}
+
+
+
+/* =========================
+   FINAL WHO WE HAMMERIN BOYS FIX
+   Scrollable full list + visible names + manual HR gold state/reset.
+   Visual-only: no scoring changed.
+   ========================= */
+.community-hero {
+  overflow: visible !important;
+}
+#communityPicksContainer,
+#communityPicksContainer .community-hero {
+  max-width: 100%;
+}
+.community-picks-scroll {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 4px 10px 4px 10px !important;
+  margin: 0 !important;
+  border-radius: 14px;
+}
+.community-picks-scroll .community-pick-card {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) 92px !important;
+  gap: 12px !important;
+  align-items: center !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 12px 10px 12px 12px !important;
+  margin: 10px 0 0 !important;
+  overflow: visible !important;
+}
+.community-picks-scroll .community-pick-main,
+.community-picks-scroll .community-name-line,
+.community-picks-scroll .community-player-copy {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+.community-picks-scroll .community-name-line {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+.community-picks-scroll .player-headshot {
+  flex: 0 0 42px !important;
+  width: 42px !important;
+  height: 42px !important;
+  margin-right: 0 !important;
+}
+.community-picks-scroll .community-pick-name {
+  display: block !important;
+  width: 100% !important;
+  color: #fff;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  line-height: 1.18 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+}
+.community-picks-scroll .community-team-line {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  line-height: 1.15 !important;
+  margin-top: 3px !important;
+}
+.community-picks-scroll .community-pick-side {
+  width: 92px !important;
+  min-width: 92px !important;
+  text-align: right !important;
+  white-space: normal !important;
+}
+.community-picks-scroll .community-heat,
+.community-picks-scroll .community-cashed-badge,
+.community-picks-scroll .community-hr-btn {
+  max-width: 92px !important;
+  white-space: normal !important;
+  line-height: 1.05 !important;
+}
+.community-picks-scroll .community-hr-btn {
+  width: 92px !important;
+  padding: 6px 5px !important;
+}
+.community-pick-card.hr-hit {
+  border-color: rgba(250,204,21,.92) !important;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(250,204,21,.30), transparent 36%),
+    linear-gradient(135deg, rgba(250,204,21,.25), rgba(234,179,8,.12) 45%, rgba(5,11,20,.82)) !important;
+  box-shadow: 0 0 34px rgba(250,204,21,.42), 0 18px 42px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.14) !important;
+}
+.community-pick-card.hr-hit::before {
+  left: 6px !important;
+  top: 8px !important;
+  transform: none !important;
+  width: 27px !important;
+  height: 27px !important;
+  font-size: 16px !important;
+  z-index: 5 !important;
+}
+.community-pick-card.hr-hit .player-headshot {
+  border-color: #facc15 !important;
+  filter: sepia(.25) saturate(1.35) brightness(1.12) !important;
+  box-shadow: 0 0 0 5px rgba(250,204,21,.14), 0 0 30px rgba(250,204,21,.55), 0 12px 24px rgba(0,0,0,.44) !important;
+}
+.community-pick-card.hr-hit .community-pick-name {
+  color: #fde68a !important;
+  text-shadow: 0 0 12px rgba(250,204,21,.55) !important;
+}
+@media(max-width: 650px) {
+  .community-picks-scroll .community-pick-card {
+    grid-template-columns: 32px minmax(0, 1fr) 78px !important;
+    gap: 8px !important;
+    padding: 10px 8px !important;
+  }
+  .community-picks-scroll .player-headshot {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
+  }
+  .community-picks-scroll .community-pick-side,
+  .community-picks-scroll .community-hr-btn {
+    width: 78px !important;
+    min-width: 78px !important;
+  }
+  .community-picks-scroll .community-heat,
+  .community-picks-scroll .community-cashed-badge,
+  .community-picks-scroll .community-hr-btn {
+    max-width: 78px !important;
+  }
+}
 </style>
 
 <style id="lock-confirm-style">
@@ -1165,16 +1491,38 @@ btn.innerHTML = '⏳ SAVING...';
 btn.disabled = true;
 savePick(playerName, team).then(() => { btn.innerHTML = '✅ LOCKED'; });
 }
+const COMMUNITY_HR_STORAGE_KEY = 'drlCommunityHrHits';
+let communityHrHits = JSON.parse(localStorage.getItem(COMMUNITY_HR_STORAGE_KEY) || '{}');
+function getCommunityHrKey(playerName, team) {
+return `${String(playerName || '').trim().toLowerCase()}__${String(team || '').trim().toLowerCase()}`;
+}
+function saveCommunityHrHits() {
+localStorage.setItem(COMMUNITY_HR_STORAGE_KEY, JSON.stringify(communityHrHits));
+}
+function toggleCommunityHrHit(playerName, team) {
+const key = getCommunityHrKey(playerName, team);
+if (communityHrHits[key]) delete communityHrHits[key];
+else communityHrHits[key] = { playerName, team, markedAt: Date.now() };
+saveCommunityHrHits();
+renderCommunityPicks();
+}
+function resetCommunityHrHits() {
+communityHrHits = {};
+saveCommunityHrHits();
+renderCommunityPicks();
+}
+
 function renderCommunityPicks() {
 const container = document.getElementById('communityPicksContainer');
 if (!container) return;
-const sortedPicks = Object.entries(communityPicks).sort((a, b) => b[1].count - a[1].count).slice(0, 10);
+const sortedPicks = Object.entries(communityPicks).sort((a, b) => b[1].count - a[1].count);
 const totalPicks = Object.values(communityPicks).reduce((sum, p) => sum + p.count, 0);
+const resetBtn = '<div class="community-hr-tools"><button type="button" class="community-reset-hr-btn" onclick="resetCommunityHrHits()">Reset HR Marks</button></div>';
 if (sortedPicks.length === 0) {
-container.innerHTML = '<div class="community-hero"><div class="community-hero-top"><div><div class="community-total">0</div><div class="community-total-label">Picks submitted</div></div><div class="community-live-pill"><span class="live-dot"></span> Collective Live</div></div><div style="text-align:center; color: var(--text-muted); padding: 18px; font-style: italic; position:relative; z-index:1;">No picks yet. Be the first to lock in a pick for The Longball Collective.</div></div>';
+container.innerHTML = '<div class="community-hero"><div class="community-hero-top"><div><div class="community-total">0</div><div class="community-total-label">Picks submitted</div></div><div class="community-live-pill"><span class="live-dot"></span> Collective Live</div></div>' + resetBtn + '<div style="text-align:center; color: var(--text-muted); padding: 18px; font-style: italic; position:relative; z-index:1;">No picks yet. Be the first to lock in a pick for The Longball Collective.</div></div>';
 return;
 }
-let html = `<div class="community-hero"><div class="community-hero-top"><div><div class="community-total">${totalPicks.toLocaleString()}</div><div class="community-total-label">Collective picks today</div></div><div class="community-live-pill"><span class="live-dot"></span> Crowd Board</div></div>`;
+let html = `<div class="community-hero"><div class="community-hero-top"><div><div class="community-total">${totalPicks.toLocaleString()}</div><div class="community-total-label">Collective picks today</div></div><div class="community-live-pill"><span class="live-dot"></span> Crowd Board</div></div>${resetBtn}<div class="community-picks-scroll">`;
 sortedPicks.forEach(([playerName, data], idx) => {
 const percentage = totalPicks > 0 ? Math.max(2, Math.round((data.count / totalPicks) * 100)) : 0;
 const headshotHtml = createHeadshotHtml(playerName, 'sm', data.team || '');
@@ -1182,9 +1530,15 @@ const rank = idx + 1;
 const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
 const rankText = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
 const heat = percentage >= 35 ? 'Nuclear' : percentage >= 22 ? 'Hot' : percentage >= 12 ? 'Rising' : 'Live';
-html += `<div class="community-pick-card" style="${teamVisualStyle(data.team || '')}"><div class="community-rank-badge ${rankClass}">${rankText}</div><div class="community-pick-main"><div class="community-name-line">${headshotHtml}<div class="community-player-copy"><div class="community-pick-name">${playerName}</div><div class="community-team-line">${data.team || 'DRL pick'}</div></div></div><div class="community-meter"><div class="community-meter-fill" style="width:${percentage}%"></div></div></div><div class="community-pick-side"><div class="community-pick-count">${data.count}</div><div class="community-pick-percent">${percentage}%</div><div class="community-heat">${heat}</div></div></div>`;
+const hrKey = getCommunityHrKey(playerName, data.team || '');
+const didHitHr = !!communityHrHits[hrKey];
+const hrButtonText = didHitHr ? 'Undo HR' : 'Mark HR 💣';
+const cashedBadge = didHitHr ? '<div class="community-cashed-badge">💰 Cashed</div>' : '';
+const playerArg = encodeURIComponent(playerName);
+const teamArg = encodeURIComponent(data.team || '');
+html += `<div class="community-pick-card ${didHitHr ? 'hr-hit' : ''}" style="${teamVisualStyle(data.team || '')}"><div class="community-rank-badge ${rankClass}">${rankText}</div><div class="community-pick-main"><div class="community-name-line">${headshotHtml}<div class="community-player-copy"><div class="community-pick-name">${playerName}</div><div class="community-team-line">${data.team || 'DRL pick'}</div></div></div><div class="community-meter"><div class="community-meter-fill" style="width:${percentage}%"></div></div></div><div class="community-pick-side"><div class="community-pick-count">${data.count}</div><div class="community-pick-percent">${percentage}%</div><div class="community-heat">${heat}</div>${cashedBadge}<button type="button" class="community-hr-btn" onclick="event.stopPropagation(); toggleCommunityHrHit(decodeURIComponent('${playerArg}'), decodeURIComponent('${teamArg}'))">${hrButtonText}</button></div></div>`;
 });
-html += `<div class="community-footer-note">Live crowd picks from users locking in players through your model.</div></div>`;
+html += `</div><div class="community-footer-note">Live crowd picks from users locking in players through your model.</div></div>`;
 container.innerHTML = html;
 }
 
