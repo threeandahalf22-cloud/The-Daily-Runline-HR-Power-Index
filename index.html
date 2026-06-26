@@ -218,6 +218,40 @@ tr.highlighted-row { background: rgba(0, 255, 157, 0.1); animation: row-highligh
 .modal-stat-val.red { color: #ef4444; }
 .modal-stat-val.yellow { color: #eab308; }
 .modal-stat-val.blue { color: #38bdf8; }
+
+.pitch-lab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; padding: 18px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.45); }
+.pitch-lab-card { background: rgba(5, 11, 20, 0.9); border: 1px solid var(--border); border-radius: 12px; padding: 14px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
+.pitch-lab-card:hover { border-color: var(--accent); transform: translateY(-1px); transition: all .2s; }
+.pitch-lab-title { font-size: 11px; color: var(--text-muted); font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.pitch-lab-score { font-family: monospace; font-size: 28px; font-weight: 900; color: var(--accent); line-height: 1; }
+.pitch-lab-sub { font-size: 11px; color: var(--stadium-lights); font-weight: 700; margin-top: 5px; }
+.synergy-stack { display: flex; flex-direction: column; gap: 8px; }
+.synergy-row { display: grid; grid-template-columns: 96px 1fr 42px; gap: 9px; align-items: center; font-size: 11px; }
+.synergy-label { color: var(--text-muted); font-weight: 800; text-transform: uppercase; white-space: nowrap; }
+.synergy-track { height: 8px; background: rgba(107,124,150,0.18); border-radius: 999px; overflow: hidden; border: 1px solid rgba(255,255,255,0.04); }
+.synergy-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--stadium-lights)); box-shadow: 0 0 10px var(--accent-glow); }
+.synergy-value { font-family: monospace; font-weight: 900; color: #fff; text-align: right; }
+.synergy-mini { margin-top: 5px; height: 5px; width: 76px; background: rgba(107,124,150,0.18); border-radius: 999px; overflow: hidden; display: inline-block; }
+.synergy-mini-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--stadium-lights)); border-radius: 999px; }
+.pitch-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 46px; padding: 4px 7px; border-radius: 999px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); font-size: 10px; font-weight: 900; color: #fff; }
+.pitch-edge-good { color: #10b981 !important; }
+.pitch-edge-mid { color: #eab308 !important; }
+.pitch-edge-bad { color: #f87171 !important; }
+
+
+.hr-blueprint-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hr-blueprint-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; padding: 10px 12px; }
+.hr-blueprint-label { font-size: 10px; color: var(--text-muted); font-weight: 900; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 5px; }
+.hr-blueprint-stars { font-size: 13px; color: #eab308; letter-spacing: 1px; white-space: nowrap; }
+.hr-blueprint-score { font-family: monospace; font-size: 32px; font-weight: 900; color: var(--accent); line-height: 1; }
+.attack-profile-box { display: flex; flex-direction: column; gap: 6px; min-width: 190px; }
+.attack-profile-row { display: grid; grid-template-columns: 72px 1fr 38px; gap: 7px; align-items: center; font-size: 10px; }
+.attack-profile-label { color: var(--text-muted); font-weight: 900; text-transform: uppercase; }
+.attack-profile-track { height: 7px; background: rgba(107,124,150,0.18); border-radius: 999px; overflow: hidden; border: 1px solid rgba(255,255,255,0.04); }
+.attack-profile-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #ef4444, #eab308); }
+.attack-profile-value { font-family: monospace; color: #fff; font-weight: 900; text-align:right; }
+.attack-profile-summary { margin-top: 6px; font-size: 10px; color: var(--stadium-lights); font-weight: 800; text-transform: uppercase; letter-spacing:.5px; }
+
 @media(max-width: 850px) {
 .modal-card { flex-direction: column; max-height: 95vh; }
 .modal-left { width: 100%; padding: 30px 20px 20px; border-right: none; border-bottom: 1px solid var(--border); }
@@ -280,12 +314,13 @@ tr.highlighted-row { background: rgba(0, 255, 157, 0.1); animation: row-highligh
 <button class="nav-tab" onclick="switchTab('pitchers', this)">🎯 Pitchers</button>
 <button class="nav-tab" onclick="switchTab('hotbat', this)">🔥 Hot Bat</button>
 <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
+<button class="nav-tab" onclick="switchTab('pitchlab', this)">🧪 Pitch Lab</button>
 <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
 <button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
 </div>
 <div id="tab-home" class="tab-content active">
 <div id="spotlightTicker" class="spotlight-ticker">
-<div class="spotlight-title"><span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>Top 16 Homerun Targets</div>
+<div class="spotlight-title"><span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>Top 12 Homerun Targets</div>
 <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
 </div>
 <div id="fanaticsJackpotSection" class="jackpot-section">
@@ -345,8 +380,8 @@ tr.highlighted-row { background: rgba(0, 255, 157, 0.1); animation: row-highligh
 <button class="pitcher-filter-btn" onclick="filterPitchers('both', this)">Both Sides</button>
 </div>
 <table>
-<thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Pitcher</th><th>Team</th><th>HR/9 vs LHB</th><th>HR/9 vs RHB</th><th>Primary Vulnerability</th></tr></thead>
-<tbody id="allPitchersBody"><tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
+<thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Pitcher</th><th>Team</th><th>HR/9 vs LHB</th><th>HR/9 vs RHB</th><th>Primary Vulnerability</th><th>Attack Profile</th></tr></thead>
+<tbody id="allPitchersBody"><tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 </div>
 </div>
@@ -359,7 +394,7 @@ tr.highlighted-row { background: rgba(0, 255, 157, 0.1); animation: row-highligh
 <div style="padding: 12px 20px;"><input type="text" class="h2h-search" id="hotbatSearch" placeholder="🔍 Search player name..." oninput="filterHotBatTable()" /></div>
 <table>
 <thead><tr><th style="text-align: left; padding-left: 20px;">Player</th><th>Team</th><th>Opposing Pitcher</th><th>Last Week HRs</th><th>Last Week wOBA</th><th>BBI Score</th></tr></thead>
-<tbody id="hotbatTableBody"><tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
+<tbody id="hotbatTableBody"><tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 </div>
 </div>
@@ -376,6 +411,27 @@ tr.highlighted-row { background: rgba(0, 255, 157, 0.1); animation: row-highligh
 </table>
 </div>
 </div>
+
+<div id="tab-pitchlab" class="tab-content">
+<div class="table-wrapper">
+<div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
+<h2 style="margin:0; border:none; padding:0; font-size: 16px;">🧪 Pitch Lab - Batter vs Arsenal</h2>
+<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Combines pitcher pitch usage, pitch Stuff+, and each batter's batted-ball profile vs that pitch type.</p>
+</div>
+<div class="pitch-lab-grid" id="pitchLabSummaryCards">
+<div class="pitch-lab-card"><div class="pitch-lab-title">Arsenal Exploit Leader</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>
+</div>
+<div style="padding: 12px 20px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+<input type="text" class="h2h-search" id="pitchLabSearch" placeholder="🔍 Search batter or pitcher name..." oninput="renderPitchLabTable()" style="margin-bottom:0;" />
+<select id="pitchLabFilter" class="select-input-sm" onchange="renderPitchLabTable()" style="width:160px;"><option value="ALL">All Matchups</option><option value="ELITE">Elite 80+</option><option value="GOOD">Good 65+</option><option value="BAD">Bad Under 45</option></select>
+</div>
+<table>
+<thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Batter</th><th>Team</th><th>Pitcher</th><th>Top Pitch Threat</th><th>Arsenal Mix</th><th>Exploit</th><th>Synergy</th></tr></thead>
+<tbody id="pitchLabTableBody"><tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting workbook upload...</td></tr></tbody>
+</table>
+</div>
+</div>
+
 <div id="tab-edge" class="tab-content">
 <div class="dashboard-grid" style="grid-template-columns: 1fr;">
 <div style="display:flex; flex-direction:column; gap:24px;">
@@ -473,6 +529,7 @@ if (btn) btn.classList.add('active');
 if (tabName === 'pitchers') renderAllPitchers();
 if (tabName === 'hotbat') renderHotBatTable();
 if (tabName === 'h2h') renderH2HFullTable();
+if (tabName === 'pitchlab') renderPitchLabTable();
 if (tabName === 'edge') renderEdgePanels();
 if (tabName === 'tools') renderWeatherRankings();
 }
@@ -538,6 +595,10 @@ let allPitchersData = [];
 let h2hFullData = [];
 let hotBatData = [];
 let fanaticsJackpotData = [];
+let pitchTypeMap = {};
+let stuffMap = {};
+let batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+let pitchLabData = [];
 const teamLogos = {
 ARI:'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',ATL:'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',BAL:'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',BOS:'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',CHC:'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',CHW:'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',CIN:'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',CLE:'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',COL:'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',DET:'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',HOU:'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',KCR:'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',LAA:'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',LAD:'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',MIA:'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',MIL:'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',MIN:'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',NYM:'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',NYY:'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',ATH:'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',PHI:'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',PIT:'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',SDP:'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',SEA:'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',SFG:'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',STL:'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',TBR:'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',TEX:'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',TOR:'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',WSN:'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
 };
@@ -568,7 +629,7 @@ document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalD
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
 function normalizeName(s) { if (!s) return ''; return String(s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function saveCachedData() {
-const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap };
+const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps };
 localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 function loadCachedData() {
@@ -590,6 +651,9 @@ codysDiamondsData = cacheData.codysDiamondsData || [];
 longshotData = cacheData.longshotData || [];
 hrDueData = cacheData.hrDueData || [];
 playerIdMap = cacheData.playerIdMap || {};
+pitchTypeMap = cacheData.pitchTypeMap || {};
+stuffMap = cacheData.stuffMap || {};
+batterPitchMaps = cacheData.batterPitchMaps || { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
 if (playerData.length > 0) {
 const uniqueTeams = getTeamsPlayingToday();
 renderTodayTeamsFilter(uniqueTeams);
@@ -606,6 +670,7 @@ renderFanaticsJackpot();
 renderAllPitchers();
 renderHotBatTable();
 renderH2HFullTable();
+renderPitchLabTable();
 renderEdgePanels();
 renderWeatherRankings();
 updateHeaderStats();
@@ -623,6 +688,37 @@ document.getElementById('valWeightPulled').innerText = document.getElementById('
 document.getElementById('valWeightWeather').innerText = document.getElementById('weightWeather').value + '%';
 recalculateAllBBIScores();
 }
+
+function sheetToJsonSmart(workbook, sheetName, headerKeys = ['Player', 'Name']) {
+  const sheet = workbook.Sheets[sheetName];
+  if (!sheet) return [];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  let headerIndex = rows.findIndex(row => row && row.some(cell => headerKeys.includes(String(cell).trim())));
+  if (headerIndex < 0) headerIndex = 0;
+  const headers = (rows[headerIndex] || []).map((h, idx) => String(h || `Column${idx+1}`).trim() || `Column${idx+1}`);
+  return rows.slice(headerIndex + 1).map(row => {
+    const obj = {};
+    headers.forEach((h, idx) => obj[h] = row[idx]);
+    return obj;
+  }).filter(obj => Object.values(obj).some(v => v !== '' && v !== null && v !== undefined));
+}
+function mapRowsByName(rows) {
+  const out = {};
+  (rows || []).forEach(row => {
+    const raw = String(safeGet(row, 'Player', 'Name') || '').trim();
+    if (raw) out[normalizeName(raw)] = row;
+  });
+  return out;
+}
+function buildPitchTypeMap(rows) {
+  const out = {};
+  (rows || []).forEach(row => {
+    const raw = String(safeGet(row, 'Pitcher', 'Pitcher Name', 'Name', 'Player') || '').trim();
+    if (raw) out[normalizeName(raw)] = row;
+  });
+  return out;
+}
+
 function handleFile(e) {
 const files = e.target.files;
 if(!files || files.length === 0) return;
@@ -632,7 +728,8 @@ reader.onload = function(e) {
 const data = new Uint8Array(e.target.result);
 const workbook = XLSX.read(data, {type: 'array'});
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [];
-teamToGameIdMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; playerIdMap = {};
+let pitchTypeRaw = [], stuffRaw = [], vsFBRaw = [], vsCHRaw = [], vsCVRaw = [], vsSLRaw = [], vsCURaw = [];
+teamToGameIdMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (nameClean === 'HR' || nameClean === 'HOMERUN' || nameClean === 'SHEET1') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -643,6 +740,13 @@ if (nameClean === 'WEATHER') weatherRaw = XLSX.utils.sheet_to_json(workbook.Shee
 if (nameClean === 'BULLPEN') bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'TOP5' || nameClean === 'SHEET3') top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'ID' || nameClean === 'IDS' || nameClean === 'PLAYERID' || nameClean === 'PLAYERIDS') idRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'PITCHTYPE') pitchTypeRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'STUFF') stuffRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'VSFB') vsFBRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSCH') vsCHRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSCV') vsCVRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSSL') vsSLRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSCU') vsCURaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
 if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
 });
 window.top5SheetData = top5Raw;
@@ -656,6 +760,9 @@ if (name && id) playerIdMap[normalizeName(name)] = String(id);
 vpRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) vsPitcherData[normalizeName(raw)] = x; });
 plRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) plDataMap[normalizeName(raw)] = x; });
 lwRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (raw) lastWeekMap[normalizeName(raw)] = x; });
+pitchTypeMap = buildPitchTypeMap(pitchTypeRaw);
+stuffMap = buildPitchTypeMap(stuffRaw);
+batterPitchMaps = { FB: mapRowsByName(vsFBRaw), CH: mapRowsByName(vsCHRaw), CV: mapRowsByName(vsCVRaw), SL: mapRowsByName(vsSLRaw), CU: mapRowsByName(vsCURaw) };
 bullpenRaw.forEach(x => { if(x.Team || x.TeamID) bullpenData[String(x.Team || x.TeamID).trim()] = x; });
 hrRaw.forEach(p => {
 let team = String(p.Team || p.TEAM || 'UNK').trim().toUpperCase();
@@ -722,6 +829,7 @@ renderFanaticsJackpot();
 renderAllPitchers();
 renderHotBatTable();
 renderH2HFullTable();
+renderPitchLabTable();
 renderEdgePanels();
 renderWeatherRankings();
 updateHeaderStats();
@@ -855,6 +963,8 @@ const xhrMod = (player.elitePowerBonus || 1).toFixed(2);
 const vaaMod = (player.releaseModifier || 1).toFixed(2);
 const powerMod = (player.calculatedPowerModifier || 1).toFixed(2);
 const pvfMod = (player.calculatedPVF || 1).toFixed(2);
+const synergyPts = (player.calculatedSynergy || 0).toFixed(1);
+const synergyMod = (player.calculatedSynergyMultiplier || 1).toFixed(2);
 const pf = cleanNumber(player.pf) || 100;
 const gameTotal = cleanNumber(safeGet(player, 'Total', 'Game Total', 'O/U', 'Over/Under'));
 const w = weatherSettings[player.gameId];
@@ -866,7 +976,10 @@ html += section('⚙️ VOLUME CHECK', stat('PA', pa) + stat('Total HR', totalHR
 html += section('📊 BATTED BALL', stat('Barrel %', barrel+'%', barrel>=14.5?'green':'') + stat('Hard Hit %', hh+'%', hh>=35?'green':'') + stat('Avg EV', ev+' mph') + stat('ISO', iso));
 html += section('⬅️ LAUNCH PROFILE', stat('Pulled Air %', pullAir+'%', pullAir>=25?'green':'') + stat('Fly Ball %', fbRate+'%') + stat('Sweet Spot %', sweetSpot+'%') + stat('Pull %', pullRate+'%'));
 html += section('🎯 PITCHER MATCHUP', stat('HR/9', pHR9, pHR9>=1.3?'red':'') + stat('Barrel Allowed', pBarrel+'%') + stat('Hard Hit Allowed', pHH+'%') + stat('FB %', pFB+'%') + stat('GB %', pGB+'%'));
-html += section('🚀 MULTIPLIERS', stat('Game Total Mod', envMod+'x', envMod>=1.05?'green':'') + stat('PA/Game Mod', paMod+'x') + stat('xHR Vol Bonus', xhrMod+'x', xhrMod>1?'green':'') + stat('VAA (Rel Z) Mod', vaaMod+'x', vaaMod>=1.1?'green':vaaMod<1?'red':'') + stat('Power Mod', powerMod+'x') + stat('PVF Ratio', pvfMod+'x', pvfMod>=1.2?'red':''));
+html += section('🚀 MULTIPLIERS', stat('Game Total Mod', envMod+'x', envMod>=1.05?'green':'') + stat('PA/Game Mod', paMod+'x') + stat('xHR Vol Bonus', xhrMod+'x', xhrMod>1?'green':'') + stat('VAA (Rel Z) Mod', vaaMod+'x', vaaMod>=1.1?'green':vaaMod<1?'red':'') + stat('Power Mod', powerMod+'x') + stat('PVF Ratio', pvfMod+'x', pvfMod>=1.2?'red':'') + stat('Synergy Bonus', synergyPts+' pts / '+synergyMod+'x', synergyPts >= 6 ? 'green' : synergyPts >= 3 ? 'yellow' : ''));
+html += renderHRBlueprint(player);
+html += `<div><div class="modal-section-title">🤝 SYNERGY METER</div>${renderSynergyMeter(player)}</div>`;
+html += renderPlayerAttackMatchup(player);
 html += section('🌤️ ENVIRONMENT', stat('Weather/Park', climate) + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A'));
 document.getElementById('modalStatsContainer').innerHTML = html;
 modal.classList.add('active');
@@ -957,6 +1070,170 @@ tr.innerHTML = `<td style="text-align:left; padding-left:20px;"><div class="play
 tbody.appendChild(tr);
 });
 }
+
+const PITCH_LAB_TYPES = [
+  { key:'FA', label:'4-Seam', group:'FB', usageKeys:['FA%','FF%','Pitcher FF %','Pitcher FA %'], stuffKeys:['Stf+ FA'] },
+  { key:'SI', label:'Sinker', group:'FB', usageKeys:['SI%','FT%','Pitcher SNK %','Pitcher SI %'], stuffKeys:['Stf+ SI'] },
+  { key:'FC', label:'Cutter', group:'FB', usageKeys:['FC%','CT%','Pitcher FC %'], stuffKeys:['Stf+ FC'] },
+  { key:'SL', label:'Slider', group:'SL', usageKeys:['SL%','Pitcher SL %'], stuffKeys:['Stf+ SL'] },
+  { key:'CU', label:'Curve', group:'CU', usageKeys:['CU%','KC%','Pitcher CU %','Pitcher CV %'], stuffKeys:['Stf+ CU','Stf+ KC'] },
+  { key:'CH', label:'Change', group:'CH', usageKeys:['CH%','Pitcher CH %'], stuffKeys:['Stf+ CH'] },
+  { key:'FS', label:'Splitter', group:'CH', usageKeys:['FS%','FO%','Pitcher FS %'], stuffKeys:['Stf+ FS','Stf+ FO'] }
+];
+function pctFmt(v) { if (!v && v !== 0) return '-'; return (v * 100).toFixed(0) + '%'; }
+function gradeFromScore(score) { if (score >= 85) return 'A+'; if (score >= 78) return 'A'; if (score >= 70) return 'B+'; if (score >= 62) return 'B'; if (score >= 52) return 'C'; if (score >= 42) return 'D'; return 'F'; }
+function pitchEdgeClass(score) { return score >= 65 ? 'pitch-edge-good' : score >= 45 ? 'pitch-edge-mid' : 'pitch-edge-bad'; }
+function getPitchUsage(row, keys) { for (const k of keys) { const v = parseUsageValue(safeGet(row, k)); if (v) return v; } return 0; }
+function getPitchStuff(row, keys) { for (const k of keys) { const v = cleanNumber(safeGet(row, k)); if (v) return v; } return 100; }
+function batterPitchGrade(playerName, group) {
+  const row = (batterPitchMaps[group] || {})[normalizeName(playerName)] || {};
+  if (!Object.keys(row).length) return { score: 50, grade: 'C', bbe: 0, air: 0, fb: 0, pull: 0, note: 'No pitch sheet data' };
+  const bbe = cleanNumber(safeGet(row, 'BBE'));
+  const air = hybridRate(cleanNumber(safeGet(row, 'AIR %')));
+  const fb = hybridRate(cleanNumber(safeGet(row, 'FB %')));
+  const pull = hybridRate(cleanNumber(safeGet(row, 'Pull %')));
+  const ld = hybridRate(cleanNumber(safeGet(row, 'LD %')));
+  const sample = Math.min(1, bbe / 50);
+  const rawScore = (air * 34) + (fb * 24) + (pull * 24) + (ld * 10) + (sample * 8);
+  const score = Math.max(0, Math.min(100, rawScore));
+  return { score, grade: gradeFromScore(score), bbe, air, fb, pull, note: `${pctFmt(air)} air / ${pctFmt(fb)} FB / ${pctFmt(pull)} pull` };
+}
+function buildPitchLabProfile(player) {
+  if (!player) return null;
+  const pitcherName = String(player['Opp Pitcher'] || player['Opp Pitcher Name'] || '').trim();
+  const pitchRow = pitchTypeMap[normalizeName(pitcherName)] || {};
+  const stuffRow = stuffMap[normalizeName(pitcherName)] || {};
+  let rows = [];
+  PITCH_LAB_TYPES.forEach(pt => {
+    const usage = getPitchUsage(pitchRow, pt.usageKeys);
+    if (!usage || usage < 0.01) return;
+    const stuff = getPitchStuff(stuffRow, pt.stuffKeys);
+    const bat = batterPitchGrade(player.Name, pt.group);
+    const stuffWeakness = Math.max(0, Math.min(100, 100 + (100 - stuff))); // lower stuff helps hitter
+    const edge = Math.max(0, Math.min(100, (bat.score * 0.66) + (stuffWeakness * 0.24) + (Math.min(100, usage * 180) * 0.10)));
+    rows.push({ ...pt, usage, stuff, bat, edge });
+  });
+  if (!rows.length) {
+    ['FB','SL','CH','CU'].forEach(group => { const bat = batterPitchGrade(player.Name, group); rows.push({ key:group, label:group, group, usage:0, stuff:100, bat, edge:bat.score }); });
+  }
+  rows.sort((a,b) => (b.usage * b.edge) - (a.usage * a.edge));
+  const useTotal = rows.reduce((s,r)=>s+r.usage,0);
+  const weighted = useTotal > 0 ? rows.reduce((s,r)=>s+(r.edge*r.usage),0)/useTotal : hybridAvg(rows.map(r=>r.edge));
+  const top = rows[0] || null;
+  return { player, pitcherName, rows, score: Math.max(0, Math.min(100, weighted || 50)), grade: gradeFromScore(weighted || 50), top };
+}
+function synergyItems(player) {
+  const c = player.category || {};
+  const lab = player.pitchLabProfile || buildPitchLabProfile(player) || { score: c.pitchLevel || 50 };
+  const toScore = v => v === null || v === undefined || isNaN(v) ? 50 : Math.max(0, Math.min(100, v));
+  return [
+    ['Power', toScore(c.power)], ['Pitch Match', toScore(lab.score || c.pitchLevel)], ['Pitcher Weakness', toScore(c.pitcher)], ['Weather', toScore(c.weather)], ['Park', toScore(c.park)], ['Recent Form', toScore(c.recent)], ['BvP', toScore(c.bvp)]
+  ];
+}
+function renderSynergyMeter(player, compact=false) {
+  const rows = synergyItems(player);
+  const overall = rows.reduce((s,r)=>s+r[1],0) / rows.length;
+  if (compact) return `<div class="synergy-mini" title="Synergy ${overall.toFixed(0)}%"><div class="synergy-mini-fill" style="width:${overall.toFixed(0)}%"></div></div>`;
+  return `<div class="synergy-stack"><div class="synergy-row"><div class="synergy-label">Overall</div><div class="synergy-track"><div class="synergy-fill" style="width:${overall.toFixed(0)}%"></div></div><div class="synergy-value">${overall.toFixed(0)}%</div></div>` + rows.map(r => `<div class="synergy-row"><div class="synergy-label">${r[0]}</div><div class="synergy-track"><div class="synergy-fill" style="width:${r[1].toFixed(0)}%"></div></div><div class="synergy-value">${r[1].toFixed(0)}%</div></div>`).join('') + `</div>`;
+}
+function renderPitchMix(profile) {
+  if (!profile || !profile.rows) return '-';
+  return profile.rows.slice(0,4).map(r => `<span class="pitch-chip">${r.key} ${pctFmt(r.usage)}</span>`).join(' ');
+}
+
+function starRating(score) {
+  const stars = Math.max(0, Math.min(5, Math.round((Number(score) || 0) / 20)));
+  return '★'.repeat(stars) + '☆'.repeat(5 - stars);
+}
+function buildHRBlueprint(player) {
+  const c = player.category || {};
+  const lab = player.pitchLabProfile || buildPitchLabProfile(player) || { score: c.pitchLevel || 50 };
+  const env = ((Number(c.weather) || 50) * 0.55) + ((Number(c.park) || 50) * 0.45);
+  const metrics = [
+    ['Power Profile', Number(c.power) || 50],
+    ['Barrel Quality', Math.max(Number(c.power) || 50, cleanNumber(safeGet(player, 'Barrel %', 'Barrel%')) * 650)],
+    ['Pitch Matchup', Number(lab.score || c.pitchLevel) || 50],
+    ['Pitcher Weakness', Number(c.pitcher) || 50],
+    ['Recent Form', Number(c.recent) || 50],
+    ['Weather/Park', env],
+    ['BVP Signal', Number(c.bvp) || 50]
+  ].map(([label, score]) => ({ label, score: Math.max(0, Math.min(100, score)) }));
+  const overall = (metrics[0].score * .20) + (metrics[1].score * .16) + (metrics[2].score * .18) + (metrics[3].score * .18) + (metrics[4].score * .10) + (metrics[5].score * .10) + (metrics[6].score * .08);
+  return { metrics, overall: Math.max(0, Math.min(100, overall)) };
+}
+function renderHRBlueprint(player) {
+  const bp = buildHRBlueprint(player);
+  const cards = bp.metrics.map(m => `<div class="hr-blueprint-card"><div class="hr-blueprint-label">${m.label}</div><div class="hr-blueprint-stars">${starRating(m.score)}</div><div style="font-family:monospace; font-size:11px; color:var(--text-muted); margin-top:4px;">${m.score.toFixed(0)}/100</div></div>`).join('');
+  return `<div><div class="modal-section-title">🧬 HR BLUEPRINT</div><div style="display:flex; gap:14px; align-items:stretch; margin-bottom:12px;"><div class="hr-blueprint-card" style="min-width:130px; display:flex; flex-direction:column; justify-content:center; align-items:center;"><div class="hr-blueprint-label">Overall Blueprint</div><div class="hr-blueprint-score">${bp.overall.toFixed(0)}</div><div class="hr-blueprint-stars" style="margin-top:5px;">${starRating(bp.overall)}</div></div><div style="flex:1; color:var(--text-muted); font-size:12px; line-height:1.45; display:flex; align-items:center;">Scouting-card view of power, barrels, pitcher weakness, pitch arsenal fit, recent form, environment, and BVP.</div></div><div class="hr-blueprint-grid">${cards}</div></div>`;
+}
+function buildPitcherAttackProfileByName(pitcherName) {
+  const norm = normalizeName(pitcherName);
+  const pitchRow = pitchTypeMap[norm] || {};
+  const stuffRow = stuffMap[norm] || {};
+  let groups = { FB:{usage:0, weakness:50, stuffTotal:0, count:0}, Breaking:{usage:0, weakness:50, stuffTotal:0, count:0}, Offspeed:{usage:0, weakness:50, stuffTotal:0, count:0} };
+  PITCH_LAB_TYPES.forEach(pt => {
+    const usage = getPitchUsage(pitchRow, pt.usageKeys);
+    const stuff = getPitchStuff(stuffRow, pt.stuffKeys);
+    const bucket = pt.group === 'FB' ? 'FB' : (pt.group === 'SL' || pt.group === 'CU' ? 'Breaking' : 'Offspeed');
+    groups[bucket].usage += usage || 0;
+    groups[bucket].stuffTotal += stuff || 100;
+    groups[bucket].count += 1;
+  });
+  Object.keys(groups).forEach(k => {
+    const g = groups[k];
+    const avgStuff = g.count ? g.stuffTotal / g.count : 100;
+    const stuffWeakness = Math.max(0, Math.min(100, 100 + (100 - avgStuff)));
+    const usagePressure = Math.min(100, (g.usage || 0) * 165);
+    g.weakness = Math.max(0, Math.min(100, (stuffWeakness * .65) + (usagePressure * .35)));
+  });
+  const entries = Object.entries(groups).map(([label, data]) => ({ label, ...data })).sort((a,b)=>b.weakness-a.weakness);
+  return { rows: entries, primary: entries[0] || {label:'N/A', weakness:50, usage:0} };
+}
+function renderAttackProfileBars(profile) {
+  if (!profile || !profile.rows) return '-';
+  return `<div class="attack-profile-box">${profile.rows.map(r => `<div class="attack-profile-row"><div class="attack-profile-label">${r.label}</div><div class="attack-profile-track"><div class="attack-profile-fill" style="width:${r.weakness.toFixed(0)}%"></div></div><div class="attack-profile-value">${r.weakness.toFixed(0)}</div></div>`).join('')}<div class="attack-profile-summary">Primary Weakness: ${profile.primary.label}</div></div>`;
+}
+function renderPlayerAttackMatchup(player) {
+  const lab = player.pitchLabProfile || buildPitchLabProfile(player);
+  const pitcherName = String(player['Opp Pitcher'] || player['Opp Pitcher Name'] || 'Starter').trim();
+  const pitcherProfile = buildPitcherAttackProfileByName(pitcherName);
+  const pitchRows = lab && lab.rows ? lab.rows.slice(0,5).map(r => stat(`${r.label} ${pctFmt(r.usage)}`, `${r.bat.grade} bat / ${r.edge.toFixed(0)} edge`, r.edge>=65?'green':r.edge<45?'red':'yellow')).join('') : '';
+  return `<div><div class="modal-section-title">🎯 PITCHER ATTACK MATCHUP</div><div style="margin-bottom:12px;">${renderAttackProfileBars(pitcherProfile)}</div><div class="modal-stats-grid">${stat('Best Exploit Pitch', lab && lab.top ? lab.top.label : pitcherProfile.primary.label, 'green')}${stat('Arsenal Exploit', lab ? `${lab.score.toFixed(0)} / ${lab.grade}` : 'N/A', lab && lab.score>=65?'green':lab && lab.score<45?'red':'yellow')}${pitchRows}</div></div>`;
+}
+function renderPitchLabTable() {
+  const tbody = document.getElementById('pitchLabTableBody');
+  if (!tbody) return;
+  let data = playerData.filter(p => !p.isRemoved).map(p => p.pitchLabProfile || buildPitchLabProfile(p)).filter(Boolean);
+  pitchLabData = data;
+  const searchEl = document.getElementById('pitchLabSearch');
+  const filterEl = document.getElementById('pitchLabFilter');
+  const searchVal = searchEl ? searchEl.value.toLowerCase().trim() : '';
+  const filter = filterEl ? filterEl.value : 'ALL';
+  if (searchVal) data = data.filter(x => x.player.Name.toLowerCase().includes(searchVal) || String(x.pitcherName || '').toLowerCase().includes(searchVal));
+  if (filter === 'ELITE') data = data.filter(x => x.score >= 80);
+  if (filter === 'GOOD') data = data.filter(x => x.score >= 65);
+  if (filter === 'BAD') data = data.filter(x => x.score < 45);
+  data.sort((a,b) => b.score - a.score);
+  const cardBox = document.getElementById('pitchLabSummaryCards');
+  if (cardBox) {
+    const leader = data[0];
+    const heavy = data.find(x => x.top && x.top.usage >= .35 && x.top.edge >= 65);
+    cardBox.innerHTML = leader ? `<div class="pitch-lab-card"><div class="pitch-lab-title">Arsenal Exploit Leader</div><div class="pitch-lab-score">${leader.score.toFixed(0)}</div><div class="pitch-lab-sub">${leader.player.Name} vs ${leader.pitcherName || 'Starter'} // ${leader.grade}</div></div><div class="pitch-lab-card"><div class="pitch-lab-title">Best Pitch-Specific Edge</div><div class="pitch-lab-score">${leader.top ? leader.top.edge.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${leader.top ? leader.top.label + ' // ' + leader.top.bat.grade + ' batter grade' : 'No data'}</div></div><div class="pitch-lab-card"><div class="pitch-lab-title">Heavy-Use Exploit</div><div class="pitch-lab-score">${heavy ? (heavy.top.usage*100).toFixed(0) : '--'}%</div><div class="pitch-lab-sub">${heavy ? heavy.player.Name + ' gets ' + heavy.top.label + ' often' : 'No strong heavy-use edge found'}</div></div>` : `<div class="pitch-lab-card"><div class="pitch-lab-title">Arsenal Exploit Leader</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>`;
+  }
+  if (!data.length) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No pitch lab profiles matching filters...</td></tr>`; return; }
+  tbody.innerHTML = '';
+  data.slice(0, 80).forEach((profile, idx) => {
+    const p = profile.player;
+    const top = profile.top;
+    const logoUrl = teamLogos[p.Team] || '';
+    const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
+    const headshotHtml = createHeadshotHtml(p.Name, 'sm');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted);">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" onclick="openPlayerModal(playerData[${playerData.indexOf(p)}])">${headshotHtml}<span style="font-weight:800; color:#fff;">${p.Name}</span></div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${profile.pitcherName || 'Starter'}</td><td><div style="font-weight:900; color:#fff;">${top ? top.label : '-'}</div><div style="font-size:10px; color:var(--text-muted);">${top ? pctFmt(top.usage) + ' usage // Stuff+ ' + top.stuff : '-'}</div></td><td style="line-height:2;">${renderPitchMix(profile)}</td><td><span class="index-score ${pitchEdgeClass(profile.score)}">${profile.score.toFixed(0)}</span><div style="font-size:10px; color:var(--text-muted); margin-top:3px;">${profile.grade}</div></td><td>${renderSynergyMeter(p, true)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
 function renderWeatherRankings() {
 const container = document.getElementById('weatherRankContainer');
 if (!container) return;
@@ -1011,7 +1288,7 @@ function renderAllPitchers(filter = 'all') {
 const tbody = document.getElementById('allPitchersBody');
 if (!tbody) return;
 let rawPitchers = window.top5SheetData || [];
-if (rawPitchers.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No data found in "top5" sheet...</td></tr>`; return; }
+if (rawPitchers.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No data found in "top5" sheet...</td></tr>`; return; }
 let processed = rawPitchers.map(row => {
 let pName = String(safeGet(row, 'Pitcher', 'Name', 'Player', 'A') || '').trim();
 let pTeam = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
@@ -1033,8 +1310,9 @@ else if (p.rhb > 0) { vulnText = `Right-Handed Batters (${p.rhb.toFixed(2)} HR/9
 const logoUrl = teamLogos[p.team] || '';
 const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="" style="width:20px; height:20px; margin-right:8px; vertical-align:middle;">` : '';
 const headshotHtml = createHeadshotHtml(p.name, 'sm');
+const attackProfile = buildPitcherAttackProfileByName(p.name);
 const tr = document.createElement('tr');
-tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted);">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="pitcher-name-with-headshot">${headshotHtml}<span style="font-weight:700; color:#fff;">${p.name}</span></div></td><td style="color:#94a3b8; font-weight:600;">${logoImg}${p.team}</td><td style="font-family:monospace; color:#38bdf8; font-weight:700;">${p.lhb > 0 ? p.lhb.toFixed(2) : '-'}</td><td style="font-family:monospace; color:#38bdf8; font-weight:700;">${p.rhb > 0 ? p.rhb.toFixed(2) : '-'}</td><td class="${vulnClass}" style="font-size:12px;">${vulnText}</td>`;
+tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted);">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="pitcher-name-with-headshot">${headshotHtml}<span style="font-weight:700; color:#fff;">${p.name}</span></div></td><td style="color:#94a3b8; font-weight:600;">${logoImg}${p.team}</td><td style="font-family:monospace; color:#38bdf8; font-weight:700;">${p.lhb > 0 ? p.lhb.toFixed(2) : '-'}</td><td style="font-family:monospace; color:#38bdf8; font-weight:700;">${p.rhb > 0 ? p.rhb.toFixed(2) : '-'}</td><td class="${vulnClass}" style="font-size:12px;">${vulnText}</td><td style="text-align:left;">${renderAttackProfileBars(attackProfile)}</td>`;
 tbody.appendChild(tr);
 });
 }
@@ -1189,15 +1467,15 @@ weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome, humidity, 
 function cleanNumber(v) { if(v === undefined || v === null || v === '') return 0; if (typeof v === 'string' && v.includes('%')) return parseFloat(v) / 100; return Number(v) || 0; }
 function getHitterHandedness(p) { const bats = String(p['Bats'] || p['Hand'] || p['Handedness'] || 'R').toUpperCase().substring(0, 1); return bats === 'L' ? 'L' : 'R'; }
 function applyStabilization(actual, leagueAvg, sample, stabilizationPA) { if (sample <= 0) return leagueAvg; if (sample >= stabilizationPA) return actual; const weight = sample / stabilizationPA; return (actual * weight) + (leagueAvg * (1 - weight)); }
-const SCORE_WEIGHTS = { hitterPowerProfile: 0.22, pitcherVulnerability: 0.35, battedBallProfile: 0.06, pitchMatchup: 0.14, recentForm: 0.16, weather: 0.01, park: 0.03, bvp: 0.03 };
+const SCORE_WEIGHTS = { hitterPowerProfile: 0.21, pitcherVulnerability: 0.32, battedBallProfile: 0.09, pitchMatchup: 0.14, recentForm: 0.15, weather: 0.03, park: 0.04, bvp: 0.02 };
 const SUBWEIGHTS = {
 hitterPowerProfile: { barrelPct: 8, isoVsHand: 5, maxEV: 1, xwOBA: 3, avgEV: 2, hardHitPct: 1, sqUpCon: 2 },
-battedBallProfile: { flyBallPct: 2, pulledAirPct: 2, sweetSpotPct: 1, pullPct: 1 },
+battedBallProfile: { flyBallPct: 3, pulledAirPct: 4, sweetSpotPct: 1.5, pullPct: 1.5 },
 pitcherVulnerability: { pitcherHR9: 8, pitcherBarrelAllowed: 7, pitcherGB: 1, pitcherSweetSpot: 4, pitcherHardHitAllowed: 3, pitcherFBpct: 3, pitcherHRFBpct: 3, pitcherEVallowed: 3, pitcherPullAllowed: 3 },
 pitchMatchup: { fastballRV: 6, breakingRV: 4, offspeedRV: 1, stuffPlus: 1, pitchingPlus: 1, fastballPct: 1 },
 recentForm: { lastWeekBarrelPct: 7, lastWeekEV: 3, lastWeekxSLG: 6, lastWeekHRs: 0.5, lastWeekHardHit: 2 },
-weather: { wind: 0.5, temp: 0.5 },
-park: { hrParkFactor: 2, fenceDistance: 1 },
+weather: { wind: 0.7, temp: 0.3 },
+park: { hrParkFactor: 1.5, fenceDistance: 1.5 },
 bvp: { xslg: 1, ev: 1, hrHistory: 1 }
 };
 function normalizeSubweights(sub) { const total = Object.values(sub).reduce((s, v) => s + (Number(v) || 0), 0); const out = {}; if (total <= 0) { Object.keys(sub).forEach(k => out[k] = 0); return out; } Object.keys(sub).forEach(k => out[k] = (Number(sub[k]) || 0) / total); return out; }
@@ -1488,6 +1766,30 @@ const bvp_evM = 1 + Math.max(-0.3, Math.min(0.9, ((vsp_ev || 0) - 88) / 88));
 const bvp_hrM = 1 + Math.max(0, Math.min(0.6, (vsp_hr || 0) * 0.04));
 bvpModifier = (bvp_xslgM * N_SUB.bvp.xslg) + (bvp_evM * N_SUB.bvp.ev) + (bvp_hrM * N_SUB.bvp.hrHistory);
 }
+
+// Synergy bonus: home run picks are strongest when multiple edges line up together,
+// not when one category is carrying the whole score. This rewards stacked conditions
+// while keeping the bonus capped so it cannot overpower the base BBI.
+let synergyPoints = 0;
+const hitterHandSynergy = getHitterHandedness(p);
+const pullSideFence = hitterHandSynergy === 'L' ? (parkDims.rf || 330) : (parkDims.lf || 330);
+const strongPower = hitterPowerModifierWithXhr >= 1.12 || barrelRateStabilized >= 0.115 || isoStabilized >= 0.220;
+const dangerousPitcher = pitcherVulnerabilityWithXhr >= 1.12 || pitcherHR9 >= 1.30 || pitcherBarrelAllowed >= 0.095;
+const pullFlyProfile = battedBallModifier >= 1.08 || (pulledAirStabilized >= 0.22 && flyBallRate >= 0.40);
+const goodPitchFit = pitchMatchupModifier >= 1.08;
+const hotContact = recentFormModifier >= 1.10 || lwBarrel >= 0.12 || lwxSLG >= 0.500;
+const favorablePark = parkModifier >= 1.05 || pullSideFence <= 325 || parkPF >= 105;
+const favorableWeather = computedWeatherMod >= 1.06;
+if (strongPower && dangerousPitcher) synergyPoints += 3.0;
+if (pullFlyProfile && favorablePark) synergyPoints += 2.0;
+if (pullFlyProfile && favorableWeather) synergyPoints += 2.0;
+if (dangerousPitcher && goodPitchFit) synergyPoints += 1.5;
+if (strongPower && hotContact) synergyPoints += 1.5;
+if (dangerousPitcher && favorableWeather) synergyPoints += 1.0;
+if (strongPower && pullFlyProfile && dangerousPitcher && (favorablePark || favorableWeather)) synergyPoints += 3.0;
+synergyPoints = Math.max(0, Math.min(12, synergyPoints));
+const synergyMultiplier = 1 + (synergyPoints / 100);
+
 const combined = ((hitterPowerModifierWithXhr * SCORE_WEIGHTS.hitterPowerProfile) + (battedBallModifier * SCORE_WEIGHTS.battedBallProfile) + (pitcherVulnerabilityWithXhr * SCORE_WEIGHTS.pitcherVulnerability) + (pitchMatchupModifier * SCORE_WEIGHTS.pitchMatchup) + (recentFormModifier * SCORE_WEIGHTS.recentForm) + (computedWeatherMod * SCORE_WEIGHTS.weather) + (parkModifier * SCORE_WEIGHTS.park) + (bvpModifier * SCORE_WEIGHTS.bvp));
 let finalScore = combined * scaleHRFB * scalePitcherHR9 * scaleBarrel * scalePark * scalePulled * scaleWeather;
 finalScore = finalScore * 45;
@@ -1519,7 +1821,9 @@ p.envMultiplier = envMultiplier;
 p.paFactor = paFactor;
 p.elitePowerBonus = elitePowerBonus;
 p.releaseModifier = releaseModifier;
-finalScore = finalScore * envMultiplier * paFactor * elitePowerBonus * releaseModifier;
+p.calculatedSynergy = synergyPoints;
+p.calculatedSynergyMultiplier = synergyMultiplier;
+finalScore = finalScore * envMultiplier * paFactor * elitePowerBonus * releaseModifier * synergyMultiplier;
 if (pitcherHR9 > 1.3) finalScore = finalScore * 1.15;
 if (pitcherHardHitAllowed > 0.40) finalScore = finalScore * 1.10;
 if (vsp && vspPA >= 10 && vsp_xslg > 0.450) finalScore += 25;
@@ -1539,7 +1843,217 @@ console.error('Error calculating BBI for player:', p.Name, error);
 return 0;
 }
 }
-function recalculateAllBBIScores() { playerData.forEach(p => { p.calculatedBBI = calculateBBI(p, weatherSettings[p.gameId] || null); }); applyFiltersAndRender(); }
+// Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
+const HYBRID_CATEGORY_WEIGHTS = {
+  power: 0.22,
+  pitcher: 0.20,
+  pitchLevel: 0.13,
+  recent: 0.12,
+  battedBall: 0.10,
+  bvp: 0.08,
+  bullpen: 0.06,
+  park: 0.04,
+  opportunity: 0.03,
+  discipline: 0.02
+};
+function hybridAvg(arr) { const v = arr.filter(x => x !== null && !isNaN(x)); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; }
+function hybridNorm(v, min, max, reverse=false) {
+  if (v === null || v === undefined || isNaN(v) || min === null || max === null || max === min) return null;
+  let s = ((v - min) / (max - min)) * 100;
+  if (reverse) s = 100 - s;
+  return Math.max(0, Math.min(100, s));
+}
+function hybridSweetSpotLaunchAngle(la) {
+  if (la === null || la === undefined || isNaN(la)) return null;
+  if (la >= 12 && la <= 28) return 100;
+  if (la < 12) return Math.max(0, 100 - ((12 - la) * 6));
+  return Math.max(0, 100 - ((la - 28) * 6));
+}
+function hybridRate(v) { if (v === null || v === undefined || isNaN(v)) return null; return v > 1 ? v / 100 : v; }
+function hybridRaw(p) {
+  const normName = normalizeName(p.Name);
+  const lw = lastWeekMap[normName] || {};
+  const pl = plDataMap[normName] || {};
+  const bvp = vsPitcherData[normName] || {};
+  const weather = weatherSettings[p.gameId] || null;
+  const team = safeGet(p, 'Opp Team', 'Team', 'TEAM') || p.Team;
+  const parkDims = parkFactorMap[team] || { lf: 330, cf: 400, rf: 330, pf: 100 };
+  const hand = getHitterHandedness(p);
+  const pullFence = hand === 'L' ? (parkDims.rf || 330) : (parkDims.lf || 330);
+  let pitchLevelEV = null;
+  const pitchPairs = [
+    ['evFA','Pitcher FF %'], ['evFC','Pitcher FC %'], ['evFS','Pitcher FS %'], ['evSI','Pitcher SNK %'],
+    ['evSL','Pitcher SL %'], ['evCU','Pitcher CU %'], ['evCH','Pitcher CH %']
+  ];
+  let evTotal = 0, useTotal = 0;
+  pitchPairs.forEach(([evK, useK]) => {
+    const ev = cleanNumber(safeGet(pl, evK, evK.toUpperCase()));
+    let usage = cleanNumber(safeGet(pl, useK, useK.replace(' ', ''), useK.replace('Pitcher ', '')));
+    if (ev > 0 && usage > 0) { if (usage <= 1) usage *= 100; evTotal += ev * usage; useTotal += usage; }
+  });
+  if (useTotal > 0) pitchLevelEV = evTotal / useTotal;
+  let weatherScore = 50;
+  if (weather && !weather.isDome) {
+    const dir = String(weather.windDir || 'neutral').toLowerCase();
+    const speed = Number(weather.windSpeed || 0);
+    const temp = Number(weather.temp || 72);
+    const humidity = Number(weather.humidity || 0);
+    const out = dir.includes('out'), inn = dir.includes('in'), lf = dir.includes('lf'), rf = dir.includes('rf'), cf = dir.includes('cf');
+    let wind = 0;
+    if (out && lf && hand === 'R') wind = speed * 2.2;
+    else if (out && rf && hand === 'L') wind = speed * 2.2;
+    else if (out && cf) wind = speed * 1.4;
+    else if (out) wind = speed * 0.9;
+    else if (inn && ((lf && hand === 'R') || (rf && hand === 'L') || cf)) wind = -speed * 2.0;
+    else if (inn) wind = -speed * 1.0;
+    weatherScore += wind;
+    if (temp >= 85) weatherScore += 12; else if (temp >= 75) weatherScore += 5; else if (temp < 60) weatherScore -= 12;
+    if (humidity > 60) weatherScore += 3;
+  } else if (weather && weather.isDome) weatherScore = 55;
+  return {
+    barrel: hybridRate(cleanNumber(safeGet(p, 'Barrel %', 'Barrel%'))),
+    iso: cleanNumber(safeGet(p, 'ISO', 'Iso')),
+    slg: cleanNumber(safeGet(p, 'SLG')),
+    xwoba: cleanNumber(safeGet(p, 'xwOBA', 'Expected wOBA', 'xWOBA')),
+    avgEV: cleanNumber(safeGet(p, 'Avg EV', 'EV')),
+    maxEV: cleanNumber(safeGet(p, 'Max EV', 'MaxEV')),
+    hardHit: hybridRate(cleanNumber(safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%'))),
+    sweetSpot: hybridRate(cleanNumber(safeGet(p, 'Sweet Spot %', 'Sweetspot %'))),
+    xHR: cleanNumber(safeGet(p, 'xHR', 'Expected HR', 'xHR Season')),
+    pitcherHR9: cleanNumber(safeGet(p, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9', 'PHR/9')),
+    pitcherBarrel: hybridRate(cleanNumber(safeGet(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%'))),
+    pitcherEV: cleanNumber(safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV')),
+    pitcherMaxEV: cleanNumber(safeGet(p, 'Pitcher Max EV', 'Pitcher MaxEV')),
+    pitcherHardHit: hybridRate(cleanNumber(safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed'))),
+    pitcherFB: hybridRate(cleanNumber(safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %'))),
+    pitcherPull: hybridRate(cleanNumber(safeGet(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%'))),
+    pitcherGB: hybridRate(cleanNumber(safeGet(p, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB'))),
+    pitcherHRFB: hybridRate(cleanNumber(safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB'))),
+    pitcherSweet: hybridRate(cleanNumber(safeGet(p, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot'))),
+    flyBall: hybridRate(cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %'))),
+    pullAir: hybridRate(cleanNumber(safeGet(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %'))),
+    pull: hybridRate(cleanNumber(safeGet(p, 'Pull %', 'Pull%', 'PullRate'))),
+    launchAngle: cleanNumber(safeGet(p, 'Launch Angle', 'LA')),
+    hrFb: hybridRate(cleanNumber(safeGet(p, 'HR/FB %', 'HR/FB', 'HRFB'))),
+    batSpeed: cleanNumber(safeGet(p, 'BatSpd', 'Bat Speed')),
+    sqUpCon: hybridRate(cleanNumber(safeGet(p, 'SqUpCon%', 'SqUpCon', 'Square-Up Con%', 'Square Up %'))),
+    blastCon: hybridRate(cleanNumber(safeGet(p, 'BlastCon%', 'BlastCon'))),
+    bullpenHR9: cleanNumber(safeGet(p, 'Bullpen HR/9')),
+    bullpenFIP: cleanNumber(safeGet(p, 'Bullpen FIP')),
+    bullpenBarrel: hybridRate(cleanNumber(safeGet(p, 'Bullpen Barrel %'))),
+    bullpenHardHit: hybridRate(cleanNumber(safeGet(p, 'Bullpen Hard Hit %'))),
+    parkFactor: cleanNumber(safeGet(p, 'pf', 'PF', 'ParkFactor', 'Park Factor')) || parkDims.pf || 100,
+    pullFence: pullFence,
+    cf: parkDims.cf || cleanNumber(safeGet(p, 'CF')) || 400,
+    weatherScore: weatherScore,
+    pa: cleanNumber(safeGet(p, 'PA', 'pa', 'PAs', 'Plate Appearances', 'AB')),
+    paPg: cleanNumber(safeGet(p, 'PA PG', 'PA/Game', 'PApg', 'PA per game')),
+    battingOrder: cleanNumber(safeGet(p, 'BO', 'Batting Order', 'Lineup Spot')),
+    teamTotal: cleanNumber(safeGet(p, 'Total', 'Game Total', 'O/U', 'Over/Under')),
+    kRate: hybridRate(cleanNumber(safeGet(p, 'K %', 'K%', 'Strikeout %'))),
+    hSwing: hybridRate(cleanNumber(safeGet(p, 'H-Swing %', 'Hard Swing %'))),
+    hContact: hybridRate(cleanNumber(safeGet(p, 'H-Contact %', 'Hard Contact %'))),
+    lwEV: cleanNumber(safeGet(lw, 'EV', 'Avg EV')),
+    lwMaxEV: cleanNumber(safeGet(lw, 'maxEV', 'Max EV')),
+    lwLA: cleanNumber(safeGet(lw, 'LA', 'Launch Angle')),
+    lwBarrel: hybridRate(cleanNumber(safeGet(lw, 'Barrel%', 'Barrel %'))),
+    lwHardHit: hybridRate(cleanNumber(safeGet(lw, 'HardHit%', 'Hard Hit %'))),
+    lwSLG: cleanNumber(safeGet(lw, 'SLG')),
+    lwXSLG: cleanNumber(safeGet(lw, 'xSLG')),
+    lwXWOBA: cleanNumber(safeGet(lw, 'xwOBA', 'xWOBA')),
+    lwHR: cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR')),
+    lwISO: cleanNumber(safeGet(lw, 'ISO')),
+    pitchLevelEV: pitchLevelEV,
+    bvpPA: cleanNumber(safeGet(bvp, 'vspPA', 'PA', 'PAs', 'AB')),
+    bvpHR: cleanNumber(safeGet(bvp, 'Matchup HR', 'HR', 'HRs')),
+    bvpK: hybridRate(cleanNumber(safeGet(bvp, 'K%', 'K %'))),
+    bvpWhiff: hybridRate(cleanNumber(safeGet(bvp, 'Whiff%', 'Whiff %'))),
+    bvpBA: cleanNumber(safeGet(bvp, 'BA')),
+    bvpXSLG: cleanNumber(safeGet(bvp, 'Matchup xSLG', 'xSLG')),
+    bvpXWOBA: cleanNumber(safeGet(bvp, 'xwOBA', 'xWOBA')),
+    bvpEV: cleanNumber(safeGet(bvp, 'Matchup EV', 'EV', 'Avg EV')),
+    bvpLA: cleanNumber(safeGet(bvp, 'LA', 'Launch Angle'))
+  };
+}
+function buildHybridRanges(players) {
+  const ranges = {};
+  players.forEach(p => { Object.keys(p.hybridRaw || {}).forEach(k => { const v = p.hybridRaw[k]; if (v !== null && v !== undefined && !isNaN(v) && v !== 0) { if (!ranges[k]) ranges[k] = []; ranges[k].push(v); } }); });
+  Object.keys(ranges).forEach(k => { ranges[k] = { min: Math.min(...ranges[k]), max: Math.max(...ranges[k]) }; });
+  return ranges;
+}
+function hybridScoreMetric(raw, ranges, key, reverse=false) { return ranges[key] ? hybridNorm(raw[key], ranges[key].min, ranges[key].max, reverse) : null; }
+function scoreHybridPlayer(p, ranges) {
+  const r = p.hybridRaw;
+  const power = hybridAvg([hybridScoreMetric(r,ranges,'barrel'),hybridScoreMetric(r,ranges,'iso'),hybridScoreMetric(r,ranges,'slg'),hybridScoreMetric(r,ranges,'xwoba'),hybridScoreMetric(r,ranges,'avgEV'),hybridScoreMetric(r,ranges,'maxEV'),hybridScoreMetric(r,ranges,'hardHit'),hybridScoreMetric(r,ranges,'sweetSpot'),hybridScoreMetric(r,ranges,'xHR')]);
+  const pitcher = hybridAvg([hybridScoreMetric(r,ranges,'pitcherHR9'),hybridScoreMetric(r,ranges,'pitcherBarrel'),hybridScoreMetric(r,ranges,'pitcherEV'),hybridScoreMetric(r,ranges,'pitcherMaxEV'),hybridScoreMetric(r,ranges,'pitcherHardHit'),hybridScoreMetric(r,ranges,'pitcherFB'),hybridScoreMetric(r,ranges,'pitcherPull'),hybridScoreMetric(r,ranges,'pitcherGB',true),hybridScoreMetric(r,ranges,'pitcherHRFB'),hybridScoreMetric(r,ranges,'pitcherSweet')]);
+  const pitchLevel = hybridAvg([hybridScoreMetric(r,ranges,'pitchLevelEV')]);
+  const recent = hybridAvg([hybridScoreMetric(r,ranges,'lwEV'),hybridScoreMetric(r,ranges,'lwMaxEV'),hybridScoreMetric(r,ranges,'lwBarrel'),hybridScoreMetric(r,ranges,'lwHardHit'),hybridScoreMetric(r,ranges,'lwSLG'),hybridScoreMetric(r,ranges,'lwXSLG'),hybridScoreMetric(r,ranges,'lwXWOBA'),hybridScoreMetric(r,ranges,'lwHR'),hybridScoreMetric(r,ranges,'lwISO'),hybridSweetSpotLaunchAngle(r.lwLA)]);
+  const battedBall = hybridAvg([hybridScoreMetric(r,ranges,'flyBall'),hybridScoreMetric(r,ranges,'pullAir'),hybridScoreMetric(r,ranges,'pull'),hybridScoreMetric(r,ranges,'hrFb'),hybridScoreMetric(r,ranges,'batSpeed'),hybridScoreMetric(r,ranges,'sqUpCon'),hybridScoreMetric(r,ranges,'blastCon'),hybridSweetSpotLaunchAngle(r.launchAngle)]);
+  let bvp = hybridAvg([hybridScoreMetric(r,ranges,'bvpHR'),hybridScoreMetric(r,ranges,'bvpBA'),hybridScoreMetric(r,ranges,'bvpXSLG'),hybridScoreMetric(r,ranges,'bvpXWOBA'),hybridScoreMetric(r,ranges,'bvpEV'),hybridSweetSpotLaunchAngle(r.bvpLA),hybridScoreMetric(r,ranges,'bvpK',true),hybridScoreMetric(r,ranges,'bvpWhiff',true)]);
+  if (bvp !== null && r.bvpPA !== null && r.bvpPA < 5) bvp *= 0.75;
+  const bullpen = hybridAvg([hybridScoreMetric(r,ranges,'bullpenHR9'),hybridScoreMetric(r,ranges,'bullpenFIP'),hybridScoreMetric(r,ranges,'bullpenBarrel'),hybridScoreMetric(r,ranges,'bullpenHardHit')]);
+  const park = hybridAvg([hybridScoreMetric(r,ranges,'parkFactor'),hybridScoreMetric(r,ranges,'pullFence',true),hybridScoreMetric(r,ranges,'cf',true),hybridScoreMetric(r,ranges,'weatherScore')]);
+  const weather = hybridAvg([hybridScoreMetric(r,ranges,'weatherScore')]);
+  const opportunity = hybridAvg([hybridScoreMetric(r,ranges,'pa'),hybridScoreMetric(r,ranges,'paPg'),hybridScoreMetric(r,ranges,'teamTotal'),hybridScoreMetric(r,ranges,'battingOrder',true)]);
+  const discipline = hybridAvg([hybridScoreMetric(r,ranges,'kRate',true),hybridScoreMetric(r,ranges,'hSwing'),hybridScoreMetric(r,ranges,'hContact')]);
+  p.category = { power, pitcher, pitchLevel, recent, battedBall, bvp, bullpen, park, opportunity, discipline, weather };
+  let total = 0, usedWeight = 0;
+  Object.keys(HYBRID_CATEGORY_WEIGHTS).forEach(cat => { if (p.category[cat] !== null && !isNaN(p.category[cat])) { total += p.category[cat] * HYBRID_CATEGORY_WEIGHTS[cat]; usedWeight += HYBRID_CATEGORY_WEIGHTS[cat]; } });
+  let score = usedWeight ? total / usedWeight : 0;
+  const scaleHRFB = Number(document.getElementById('weightHRFB').value) / 100;
+  const scalePitcherHR9 = Number(document.getElementById('weightPitcherHR9').value) / 100;
+  const scaleBarrel = Number(document.getElementById('weightBarrel').value) / 100;
+  const scalePark = Number(document.getElementById('weightPark').value) / 100;
+  const scalePulled = Number(document.getElementById('weightPulled').value) / 100;
+  const scaleWeather = Number(document.getElementById('weightWeather').value) / 100;
+  const adjustment = 1 + ((scaleHRFB-1)*0.08) + ((scalePitcherHR9-1)*0.14) + ((scaleBarrel-1)*0.12) + ((scalePark-1)*0.07) + ((scalePulled-1)*0.08) + ((scaleWeather-1)*0.08);
+  score *= Math.max(0.65, Math.min(1.35, adjustment));
+  if (r.pa && r.pa < 50 && !r.lwHR) score *= 0.82;
+  if (r.bvpPA && r.bvpPA >= 10 && r.bvpXSLG > 0.450) score += 3;
+
+  // Visible synergy bonus for stacked HR conditions. This uses the normalized category scores,
+  // so it works even when workbook column names differ from the old hand-built engine.
+  let synergyPoints = 0;
+  const goodPower = (power !== null && power >= 60) || (r.barrel !== null && r.barrel >= 0.10) || (r.iso !== null && r.iso >= 0.200);
+  const elitePower = (power !== null && power >= 75) || (r.barrel !== null && r.barrel >= 0.135) || (r.iso !== null && r.iso >= 0.250);
+  const badPitcher = (pitcher !== null && pitcher >= 60) || (r.pitcherHR9 !== null && r.pitcherHR9 >= 1.20) || (r.pitcherBarrel !== null && r.pitcherBarrel >= 0.085);
+  const veryBadPitcher = (pitcher !== null && pitcher >= 75) || (r.pitcherHR9 !== null && r.pitcherHR9 >= 1.50) || (r.pitcherBarrel !== null && r.pitcherBarrel >= 0.105);
+  const goodBattedBall = (battedBall !== null && battedBall >= 58) || (r.pullAir !== null && r.pullAir >= 0.20) || (r.flyBall !== null && r.flyBall >= 0.39);
+  const strongBattedBall = (battedBall !== null && battedBall >= 72) || ((r.pullAir !== null && r.pullAir >= 0.24) && (r.flyBall !== null && r.flyBall >= 0.42));
+  const goodPitchFit = pitchLevel !== null && pitchLevel >= 58;
+  const goodRecent = (recent !== null && recent >= 58) || (r.lwBarrel !== null && r.lwBarrel >= 0.10) || (r.lwXSLG !== null && r.lwXSLG >= 0.475);
+  const goodPark = (park !== null && park >= 58) || (r.pullFence !== null && r.pullFence <= 330) || (r.parkFactor !== null && r.parkFactor >= 102);
+  const goodWeather = (weather !== null && weather >= 58) || (r.weatherScore !== null && r.weatherScore >= 58);
+
+  if (goodPower && badPitcher) synergyPoints += 2.0;
+  if (elitePower && badPitcher) synergyPoints += 1.5;
+  if (veryBadPitcher && goodBattedBall) synergyPoints += 1.5;
+  if (goodBattedBall && goodPark) synergyPoints += 1.25;
+  if (strongBattedBall && goodPark) synergyPoints += 1.25;
+  if (goodBattedBall && goodWeather) synergyPoints += 1.25;
+  if (badPitcher && goodPitchFit) synergyPoints += 1.25;
+  if (goodPower && goodRecent) synergyPoints += 1.0;
+  if (goodPower && goodBattedBall && badPitcher && (goodPark || goodWeather)) synergyPoints += 2.0;
+  synergyPoints = Math.max(0, Math.min(12, synergyPoints));
+  const synergyMultiplier = 1.00; // display-only: keeps updated Synergy Meter without changing Daily RunLine scoring
+  p.calculatedSynergy = synergyPoints;
+  p.calculatedSynergyMultiplier = synergyMultiplier;
+
+  p.calculatedPowerModifier = power !== null ? power / 50 : 1.0;
+  p.calculatedPVF = pitcher !== null ? pitcher / 50 : 1.0;
+  p.calculatedPullModifier = battedBall !== null ? battedBall / 50 : 1.0;
+  p.calculatedPitcherFB = pitcher !== null ? pitcher / 50 : 1.0;
+  p.calculatedQualityModifier = power !== null ? power / 50 : 1.0;
+  p.calculatedBvP = bvp !== null ? bvp / 50 : 1.0;
+  p.calculatedCredibility = (r.pa && r.pa < 50) ? 0.82 : 1.0;
+  return Math.max(0, Math.min(100, score));
+}
+function recalculateAllBBIScores() {
+  playerData.forEach(p => { p.hybridRaw = hybridRaw(p); p.pitchLabProfile = buildPitchLabProfile(p); });
+  const ranges = buildHybridRanges(playerData.filter(p => !p.isRemoved));
+  playerData.forEach(p => { p.calculatedBBI = scoreHybridPlayer(p, ranges); });
+  applyFiltersAndRender();
+}
 function getTeamsPlayingToday() { let teams = new Set(); playerData.forEach(p => { if(p.Team) teams.add(p.Team); }); return Array.from(teams).sort(); }
 function applyFiltersAndRender() {
 const f1 = document.getElementById('teamFilter1').value;
@@ -1629,7 +2143,7 @@ let safeName = p.Name.replace(/'/g, "\\'");
 let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
 const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}')">💰 LOCK PICK</button>`;
 const headshotHtml = createHeadshotHtml(p.Name, 'sm');
-tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" onclick="openPlayerModal(playerData[${playerData.indexOf(p)}])">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}</td><td><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span></td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
+tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" onclick="openPlayerModal(playerData[${playerData.indexOf(p)}])">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}</td><td><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span><br>${renderSynergyMeter(p, true)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
