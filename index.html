@@ -731,6 +731,98 @@ tbody tr.team-heat-row:hover::after { opacity:1; animation: row-stadium-lights 1
 .team-logo-dropdown { z-index: 10003 !important; }
 .table-wrapper { position: relative; z-index: 1; }
 
+
+
+/* =========================
+   ELITE PLAY MICRO-INTERACTIONS
+   Visual only: no scoring/weights changed.
+   ========================= */
+tbody tr.nuclear-row {
+  animation: nuclear-row-pulse 2.8s ease-in-out infinite;
+  box-shadow: inset 5px 0 0 #00ff9d, inset 0 0 32px rgba(0,255,157,0.13), 0 0 18px rgba(0,255,157,0.06);
+}
+tbody tr.nuclear-row:hover {
+  box-shadow: inset 7px 0 0 #00ff9d, inset 0 0 46px rgba(0,255,157,0.23), 0 18px 34px rgba(0,0,0,.28), 0 0 30px rgba(0,255,157,0.16) !important;
+}
+@keyframes nuclear-row-pulse {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(0,255,157,0)); }
+  50% { filter: drop-shadow(0 0 10px rgba(0,255,157,0.22)); }
+}
+.nuclear-badge {
+  background: linear-gradient(135deg, #00ff9d 0%, #00b36f 100%);
+  color: #04100b;
+  border: 1px solid rgba(185,255,224,.55);
+  box-shadow: 0 0 18px rgba(0,255,157,.30);
+  animation: nuclear-badge-glow 1.8s ease-in-out infinite;
+}
+@keyframes nuclear-badge-glow {
+  0%, 100% { box-shadow: 0 0 12px rgba(0,255,157,.22); }
+  50% { box-shadow: 0 0 24px rgba(0,255,157,.48); }
+}
+tr.nuclear-row .index-score {
+  border-color: rgba(0,255,157,.72);
+  background: rgba(0,255,157,.12);
+  text-shadow: 0 0 16px rgba(0,255,157,.46);
+  box-shadow: 0 0 26px rgba(0,255,157,.26), inset 0 1px 0 rgba(255,255,255,.12);
+}
+tbody tr.cody-diamond-row {
+  box-shadow: inset 5px 0 0 #67e8f9, inset 0 0 34px rgba(103,232,249,.14), 0 0 16px rgba(103,232,249,.06);
+}
+tbody tr.cody-diamond-row td {
+  background: linear-gradient(90deg, rgba(103,232,249,.13), rgba(125,211,252,.075) 42%, rgba(5,11,20,.08));
+}
+tbody tr.cody-diamond-row:hover td {
+  background: linear-gradient(90deg, rgba(103,232,249,.20), rgba(125,211,252,.11) 46%, rgba(5,11,20,.04));
+}
+.diamond-row-badge {
+  background: linear-gradient(135deg, #67e8f9 0%, #38bdf8 100%);
+  color: #031520;
+  border: 1px solid rgba(224,255,255,.55);
+  box-shadow: 0 0 18px rgba(103,232,249,.26);
+}
+.player-name-with-headshot.orbit-ready {
+  position: relative;
+}
+.player-name-with-headshot.orbit-ready::after {
+  content: '⚾';
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: 58px;
+  height: 58px;
+  margin-left: -29px;
+  margin-top: -29px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: center center;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,.42));
+}
+.player-name-with-headshot.orbit-ready:hover::after {
+  opacity: 1;
+  animation: baseball-orbit 1.05s ease-out 1;
+}
+@keyframes baseball-orbit {
+  0% { transform: rotate(0deg) scale(.78); opacity: 0; }
+  12% { opacity: 1; }
+  82% { opacity: 1; }
+  100% { transform: rotate(360deg) scale(1); opacity: 0; }
+}
+
+</style>
+
+<style id="lock-confirm-style">
+#lockConfirmOverlay{position:fixed;inset:0;background:rgba(5,11,20,.35);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.25s;z-index:999999}
+#lockConfirmOverlay.show{opacity:1}
+#lockCard{background:linear-gradient(145deg,#091526,#060c16);border:2px solid #00ff9d;border-radius:18px;padding:26px 36px;text-align:center;box-shadow:0 0 40px rgba(0,255,157,.3);transform:scale(.8);transition:.3s}
+#lockConfirmOverlay.show #lockCard{transform:scale(1)}
+#lockHead{width:72px;height:72px;border-radius:50%;border:3px solid #00ff9d;margin:0 auto 10px;background:#111;object-fit:cover}
+#lockTitle{font:900 28px sans-serif;color:#fff}
+#lockSub{color:#00ff9d;font:700 18px monospace}
+#lockBbi{font:900 42px monospace;color:#00ff9d}
 </style>
 </head>
 <body>
@@ -1309,6 +1401,34 @@ function renderWhyRankBox(player) {
   if (!items.length) items.push(['✅', 'Balanced profile across the model categories']);
   return `<div class="why-rank-box" style="${teamVisualStyle(player.Team)}"><div class="modal-section-title" style="margin-bottom:12px; border-bottom:none; padding-bottom:0;">🧠 WHY HE RANKS HERE</div><div class="why-rank-list">${items.slice(0,6).map(([icon,text]) => `<div class="why-rank-item"><span class="why-rank-icon">${icon}</span><span>${text}</span></div>`).join('')}</div></div>`;
 }
+function filterRankingsToSlateGame(awayTeam, homeTeam) {
+  const away = String(awayTeam || '').trim().toUpperCase();
+  const home = String(homeTeam || '').trim().toUpperCase();
+  const team1 = document.getElementById('teamFilter1');
+  const team2 = document.getElementById('teamFilter2');
+  const search = document.getElementById('searchFilter');
+  const bats = document.getElementById('batsFilter');
+
+  selectedQuickTeamFilter = 'ALL';
+  if (team1) team1.value = away || 'ALL';
+  if (team2) team2.value = home || 'ALL';
+  if (search) search.value = '';
+  if (bats) bats.value = 'ALL';
+
+  syncTeamLogoDropdown(1);
+  syncTeamLogoDropdown(2);
+  applyFiltersAndRender();
+
+  const homeTabButton = Array.from(document.querySelectorAll('.nav-tab')).find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("switchTab('home'"));
+  switchTab('home', homeTabButton || null);
+
+  setTimeout(() => {
+    const controls = document.querySelector('.controls-bar');
+    const table = document.querySelector('.table-wrapper');
+    const target = controls || table;
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
+}
 function renderPregameSlateBoard() {
   const board = document.getElementById('pregameSlateBoard');
   if (!board) return;
@@ -1331,7 +1451,7 @@ function renderPregameSlateBoard() {
     const wx = w && !w.isDome ? `${w.windSpeed || 0} MPH ${String(w.windDir || '').toUpperCase()}` : 'DOME / NEUTRAL';
     const tier = avgTop >= 90 ? 'nuclear' : avgTop >= 82 ? 'hot' : '';
     const label = avgTop >= 90 ? '🚀 Nuclear HR Env' : avgTop >= 82 ? '🔥 Hot HR Env' : avgTop >= 74 ? '⚾ Playable Env' : '❄ Pitcher Lean';
-    return `<div class="slate-game-card" style="${teamVisualStyle(home)}" onclick="selectedQuickTeamFilter='ALL'; document.getElementById('teamFilter1').value='ALL'; document.getElementById('searchFilter').value=''; applyFiltersAndRender(); setTimeout(()=>{ const rows=[...document.querySelectorAll('#tableBody tr')].filter(r=>r.textContent.includes('${away}')||r.textContent.includes('${home}')); if(rows[0]) rows[0].scrollIntoView({behavior:'smooth', block:'center'}); },80);"><div class="slate-game-teams">${renderTeamLogo(away,28)}<span>${away}</span><span class="slate-game-at">@</span><span>${home}</span>${renderTeamLogo(home,28)}</div><div class="slate-game-park">🏟️ ${visual.name}</div><div class="slate-game-bottom"><span class="slate-env-pill ${tier}">${label}</span><span class="slate-env-pill">${wx}</span></div></div>`;
+    return `<div class="slate-game-card" style="${teamVisualStyle(home)}" onclick="filterRankingsToSlateGame('${away}', '${home}')"><div class="slate-game-teams">${renderTeamLogo(away,28)}<span>${away}</span><span class="slate-game-at">@</span><span>${home}</span>${renderTeamLogo(home,28)}</div><div class="slate-game-park">🏟️ ${visual.name}</div><div class="slate-game-bottom"><span class="slate-env-pill ${tier}">${label}</span><span class="slate-env-pill">${wx}</span></div></div>`;
   }).join('');
   board.innerHTML = `<div class="slate-board-header"><div><div class="slate-board-title">📡 Pregame Slate Board</div><div class="slate-board-sub">Game tiles built from today's uploaded workbook</div></div><div class="slate-board-sub">${games.size} games loaded</div></div><div class="slate-games-grid">${cards}</div>`;
   board.style.display = 'block';
@@ -3225,7 +3345,15 @@ const vaaReleaseZ = cleanNumber(safeGet(p, 'release_pos_z', 'Release Z', 'Rel Z'
 const vaaFB = cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')) * 100;
 if (vaaReleaseZ > 0 && vaaReleaseZ <= 5.8 && vaaFB >= 38) badgeHtml += `<span class="metric-badge badge-gopher">📉 THE VAA VULTURE</span>`;
 const isCodyDiamond = codysDiamondsData.some(d => d.name.toLowerCase() === p.Name.toLowerCase());
-if (isCodyDiamond) badgeHtml += `<span class="metric-badge badge-jackpot"> CODY'S DIAMOND</span>`;
+const isNuclearPlay = (p.calculatedBBI || 0) >= 70;
+if (isCodyDiamond) {
+  tr.classList.add('cody-diamond-row');
+  badgeHtml += `<span class="metric-badge diamond-row-badge">💎 CODY'S DIAMOND</span>`;
+}
+if (isNuclearPlay) {
+  tr.classList.add('nuclear-row');
+  badgeHtml += `<span class="metric-badge nuclear-badge">☢ NUCLEAR PLAY</span>`;
+}
 const lastWeekStats = lastWeekMap[normalizeName(p.Name)] || {};
 const hrsThisWeek = cleanNumber(safeGet(lastWeekStats, 'HRs', 'HRsLastWeek', 'HR'));
 if (hrsThisWeek >= 3) badgeHtml += `<span class="metric-badge badge-barrel"> ${hrsThisWeek} HRs Last 7 Games </span>`;
@@ -3243,7 +3371,8 @@ let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchP
 const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}', event)">💰 LOCK PICK</button>`;
 const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
 const batterHand = getBatterHandDisplay(p);
-tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}${renderBBIProbabilityMeter(p, true)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
+const orbitClass = idx < 10 ? ' orbit-ready' : '';
+tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}${renderBBIProbabilityMeter(p, true)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
@@ -3512,6 +3641,34 @@ document.addEventListener('click', function(e) {
 
 window.openPlayerModal = openPlayerModal;
 window.openPlayerModalByName = openPlayerModalByName;
+</script>
+
+<script>
+(function(){
+if(document.getElementById('lockConfirmOverlay')) return;
+document.body.insertAdjacentHTML('beforeend',`<div id="lockConfirmOverlay"><div id="lockCard"><img id="lockHead"><div style="font-size:42px">🔒</div><div id="lockTitle">LOCKED IN</div><div id="lockSub"></div><div id="lockBbi"></div></div></div>`);
+const ov=document.getElementById('lockConfirmOverlay');
+function showLock(name,bbi,img){
+ document.getElementById('lockSub').textContent=name||'Player';
+ document.getElementById('lockHead').src=img||'';
+ let val=0,target=parseFloat(bbi)||0;
+ const out=document.getElementById('lockBbi');
+ ov.classList.add('show');
+ const t=setInterval(()=>{val+=Math.max(target/15,1); if(val>=target){val=target;clearInterval(t);} out.textContent='BBI '+val.toFixed(1);},30);
+ setTimeout(()=>{ov.classList.remove('show');},1100);
+}
+document.addEventListener('click',e=>{
+ const btn=e.target.closest('.btn-lock');
+ if(!btn) return;
+ setTimeout(()=>{
+  const row=btn.closest('tr');
+  const name=row?row.querySelector('.player-clickable')?.textContent.trim():'Player';
+  const img=row?row.querySelector('img.player-headshot')?.src:'';
+  const bbi=row?row.querySelector('.index-score')?.textContent:'';
+  showLock(name,bbi,img);
+ },50);
+});
+})();
 </script>
 </body>
 </html>
