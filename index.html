@@ -1189,15 +1189,15 @@ weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome, humidity, 
 function cleanNumber(v) { if(v === undefined || v === null || v === '') return 0; if (typeof v === 'string' && v.includes('%')) return parseFloat(v) / 100; return Number(v) || 0; }
 function getHitterHandedness(p) { const bats = String(p['Bats'] || p['Hand'] || p['Handedness'] || 'R').toUpperCase().substring(0, 1); return bats === 'L' ? 'L' : 'R'; }
 function applyStabilization(actual, leagueAvg, sample, stabilizationPA) { if (sample <= 0) return leagueAvg; if (sample >= stabilizationPA) return actual; const weight = sample / stabilizationPA; return (actual * weight) + (leagueAvg * (1 - weight)); }
-const SCORE_WEIGHTS = { hitterPowerProfile: 0.21, pitcherVulnerability: 0.22, battedBallProfile: 0.16, pitchMatchup: 0.21, recentForm: 0.09, weather: 0.10, park: 0.02, bvp: 0.03 };
+const SCORE_WEIGHTS = { hitterPowerProfile: 0.22, pitcherVulnerability: 0.35, battedBallProfile: 0.06, pitchMatchup: 0.14, recentForm: 0.16, weather: 0.01, park: 0.03, bvp: 0.03 };
 const SUBWEIGHTS = {
-hitterPowerProfile: { barrelPct: 5, isoVsHand: 3, maxEV: 1, xwOBA: 2, avgEV: 4, hardHitPct: 1, sqUpCon: 1 },
+hitterPowerProfile: { barrelPct: 8, isoVsHand: 5, maxEV: 1, xwOBA: 3, avgEV: 2, hardHitPct: 1, sqUpCon: 2 },
 battedBallProfile: { flyBallPct: 2, pulledAirPct: 2, sweetSpotPct: 1, pullPct: 1 },
-pitcherVulnerability: { pitcherHR9: 6, pitcherBarrelAllowed: 5, pitcherGB: 1, pitcherSweetSpot: 4, pitcherHardHitAllowed: 4, pitcherFBpct: 3, pitcherHRFBpct: 3, pitcherEVallowed: 3, pitcherPullAllowed: 3 },
-pitchMatchup: { fastballRV: 3, breakingRV: 3, offspeedRV: 2, stuffPlus: 1, pitchingPlus: 1, fastballPct: 1 },
-recentForm: { lastWeekBarrelPct: 3, lastWeekEV: 3, lastWeekxSLG: 2, lastWeekHRs: 0.5, lastWeekHardHit: 2 },
-weather: { wind: 4, temp: 1 },
-park: { hrParkFactor: 2, fenceDistance: 2 },
+pitcherVulnerability: { pitcherHR9: 8, pitcherBarrelAllowed: 7, pitcherGB: 1, pitcherSweetSpot: 4, pitcherHardHitAllowed: 3, pitcherFBpct: 3, pitcherHRFBpct: 3, pitcherEVallowed: 3, pitcherPullAllowed: 3 },
+pitchMatchup: { fastballRV: 6, breakingRV: 4, offspeedRV: 1, stuffPlus: 1, pitchingPlus: 1, fastballPct: 1 },
+recentForm: { lastWeekBarrelPct: 7, lastWeekEV: 3, lastWeekxSLG: 6, lastWeekHRs: 0.5, lastWeekHardHit: 2 },
+weather: { wind: 0.5, temp: 0.5 },
+park: { hrParkFactor: 2, fenceDistance: 1 },
 bvp: { xslg: 1, ev: 1, hrHistory: 1 }
 };
 function normalizeSubweights(sub) { const total = Object.values(sub).reduce((s, v) => s + (Number(v) || 0), 0); const out = {}; if (total <= 0) { Object.keys(sub).forEach(k => out[k] = 0); return out; } Object.keys(sub).forEach(k => out[k] = (Number(sub[k]) || 0) / total); return out; }
