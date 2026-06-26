@@ -252,6 +252,326 @@ tr.highlighted-row { background: rgba(0, 255, 157, 0.1); animation: row-highligh
 .attack-profile-value { font-family: monospace; color: #fff; font-weight: 900; text-align:right; }
 .attack-profile-summary { margin-top: 6px; font-size: 10px; color: var(--stadium-lights); font-weight: 800; text-transform: uppercase; letter-spacing:.5px; }
 
+
+
+/* =========================
+   VISUAL UPGRADE PACK ONLY
+   Glass UI + premium headshots + animated stadium background + hover polish
+   ========================= */
+body::before,
+body::after {
+content: '';
+position: fixed;
+inset: -20%;
+pointer-events: none;
+z-index: -2;
+}
+body::before {
+background:
+radial-gradient(circle at 15% 20%, rgba(0,255,157,0.10) 0%, transparent 26%),
+radial-gradient(circle at 85% 8%, rgba(56,189,248,0.12) 0%, transparent 24%),
+radial-gradient(circle at 50% 95%, rgba(168,85,247,0.08) 0%, transparent 30%);
+animation: ambient-drift 18s ease-in-out infinite alternate;
+}
+body::after {
+background:
+linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.025) 45%, transparent 60%),
+repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.018) 0 1px, transparent 1px 42px);
+opacity: .75;
+animation: light-sweep 24s linear infinite;
+z-index: -1;
+}
+@keyframes ambient-drift {
+0% { transform: translate3d(-1.5%, -1%, 0) scale(1); filter: hue-rotate(0deg); }
+100% { transform: translate3d(1.5%, 1%, 0) scale(1.06); filter: hue-rotate(8deg); }
+}
+@keyframes light-sweep {
+0% { transform: translateX(-8%) rotate(0deg); opacity: .45; }
+50% { opacity: .8; }
+100% { transform: translateX(8%) rotate(1deg); opacity: .45; }
+}
+.panel,
+.upload-box,
+.controls-bar,
+.table-wrapper,
+.spotlight-ticker,
+.jackpot-section,
+.pitch-lab-card,
+.diamond-card,
+.modal-card {
+background: linear-gradient(145deg, rgba(17, 31, 53, 0.72), rgba(5, 11, 20, 0.72));
+backdrop-filter: blur(18px) saturate(135%);
+-webkit-backdrop-filter: blur(18px) saturate(135%);
+border-color: rgba(255,255,255,0.08);
+box-shadow: 0 18px 55px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.panel::before,
+.upload-box::before,
+.controls-bar::before,
+.table-wrapper::before,
+.spotlight-ticker::before,
+.jackpot-section::before {
+content: '';
+position: absolute;
+inset: 0;
+border-radius: inherit;
+pointer-events: none;
+background: linear-gradient(135deg, rgba(255,255,255,0.10), transparent 34%, transparent 70%, rgba(0,255,157,0.04));
+opacity: .55;
+}
+.panel,
+.upload-box,
+.controls-bar,
+.table-wrapper,
+.spotlight-ticker,
+.jackpot-section { position: relative; overflow: hidden; }
+.panel:hover,
+.table-wrapper:hover,
+.upload-box:hover {
+transform: translateY(-2px);
+border-color: rgba(0,255,157,0.38);
+box-shadow: 0 24px 70px rgba(0,0,0,0.52), 0 0 26px rgba(0,255,157,0.08), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+tbody tr {
+transition: transform .22s ease, background .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+tbody tr:hover {
+background: linear-gradient(90deg, rgba(0,255,157,0.075), rgba(56,189,248,0.045), rgba(30,41,59,0.42));
+transform: translateY(-2px);
+box-shadow: inset 3px 0 0 var(--accent), 0 12px 26px rgba(0,0,0,0.18);
+}
+.player-headshot {
+width: 42px;
+height: 42px;
+border: 2px solid rgba(0,255,157,0.75);
+box-shadow: 0 0 0 4px rgba(0,255,157,0.06), 0 8px 18px rgba(0,0,0,0.36), 0 0 18px rgba(0,255,157,0.18);
+transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.player-headshot-lg {
+width: 64px;
+height: 64px;
+border: 2px solid rgba(0,255,157,0.85);
+box-shadow: 0 0 0 5px rgba(0,255,157,0.08), 0 12px 24px rgba(0,0,0,0.42), 0 0 26px rgba(0,255,157,0.20);
+transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+tr:hover .player-headshot,
+.spotlight-card:hover .player-headshot,
+.jackpot-card:hover .player-headshot,
+.community-pick-card:hover .player-headshot {
+transform: scale(1.08);
+box-shadow: 0 0 0 5px rgba(0,255,157,0.10), 0 12px 26px rgba(0,0,0,0.48), 0 0 28px rgba(0,255,157,0.30);
+}
+.btn-blue,
+.btn-accent,
+.nav-tab,
+.btn-lock,
+.btn-remove,
+.btn-restore,
+.pitcher-filter-btn {
+transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, filter .22s ease;
+}
+.btn-blue:hover,
+.btn-accent:hover,
+.nav-tab:hover,
+.btn-lock:hover,
+.btn-remove:hover,
+.btn-restore:hover,
+.pitcher-filter-btn:hover {
+filter: brightness(1.08);
+transform: translateY(-2px);
+}
+.index-score {
+box-shadow: 0 0 22px rgba(0,255,157,0.14), inset 0 1px 0 rgba(255,255,255,0.07);
+transition: transform .22s ease, box-shadow .22s ease;
+}
+tr:hover .index-score {
+transform: scale(1.05);
+box-shadow: 0 0 28px rgba(0,255,157,0.28), inset 0 1px 0 rgba(255,255,255,0.10);
+}
+.community-hero {
+position: relative;
+border: 1px solid rgba(0,255,157,0.18);
+border-radius: 16px;
+padding: 16px;
+background:
+linear-gradient(145deg, rgba(0,255,157,0.08), rgba(56,189,248,0.04) 42%, rgba(5,11,20,0.72)),
+radial-gradient(circle at 12% 10%, rgba(0,255,157,0.18), transparent 32%);
+box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 34px rgba(0,0,0,0.28);
+overflow: hidden;
+}
+.community-hero::after {
+content: '';
+position: absolute;
+inset: -40% -55%;
+background: linear-gradient(110deg, transparent 42%, rgba(255,255,255,0.08) 50%, transparent 58%);
+animation: collective-shine 6.5s linear infinite;
+pointer-events: none;
+}
+@keyframes collective-shine {
+0% { transform: translateX(-35%); }
+100% { transform: translateX(35%); }
+}
+.community-hero-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; position:relative; z-index:1; }
+.community-total { font-family: monospace; font-weight: 900; font-size: 24px; color:#fff; line-height:1; }
+.community-total-label { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-weight:900; margin-top:3px; }
+.community-live-pill { display:inline-flex; align-items:center; gap:6px; border:1px solid rgba(0,255,157,.22); background:rgba(0,255,157,.08); color:var(--accent); padding:7px 10px; border-radius:999px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.7px; white-space:nowrap; }
+.community-pick-card {
+position:relative;
+z-index:1;
+display:grid;
+grid-template-columns: 34px 1fr auto;
+gap:12px;
+align-items:center;
+background: rgba(5,11,20,0.68);
+border: 1px solid rgba(255,255,255,0.07);
+border-radius: 14px;
+padding: 12px;
+margin-top: 10px;
+box-shadow: 0 10px 24px rgba(0,0,0,.24);
+transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease, background .24s ease;
+}
+.community-pick-card:hover {
+transform: translateY(-3px);
+border-color: rgba(0,255,157,.45);
+background: rgba(0,255,157,0.055);
+box-shadow: 0 16px 36px rgba(0,0,0,.34), 0 0 22px rgba(0,255,157,.10);
+}
+.community-rank-badge {
+width:34px; height:34px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+font-weight: 1000; font-family: monospace; color:#06111d;
+background: linear-gradient(135deg, #facc15, #f97316);
+box-shadow: 0 0 18px rgba(250,204,21,.22);
+}
+.community-rank-badge.rank-2 { background: linear-gradient(135deg, #e2e8f0, #94a3b8); }
+.community-rank-badge.rank-3 { background: linear-gradient(135deg, #fb923c, #9a3412); color:#fff; }
+.community-rank-badge.rank-other { background: rgba(56,189,248,.12); color:#38bdf8; border:1px solid rgba(56,189,248,.22); box-shadow:none; }
+.community-pick-main { min-width:0; }
+.community-name-line { display:flex; align-items:center; gap:9px; min-width:0; }
+.community-player-copy { min-width:0; }
+.community-pick-name { font-size:13px; font-weight:900; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.community-team-line { font-size:10px; color:var(--stadium-lights); font-weight:800; margin-top:2px; text-transform:uppercase; letter-spacing:.45px; }
+.community-meter { margin-top:9px; height:8px; border-radius:999px; background:rgba(107,124,150,.20); overflow:hidden; border:1px solid rgba(255,255,255,.05); }
+.community-meter-fill { height:100%; border-radius:999px; background:linear-gradient(90deg, var(--accent), #38bdf8); box-shadow:0 0 14px rgba(0,255,157,.28); transition:width .45s ease; }
+.community-pick-side { text-align:right; white-space:nowrap; }
+.community-pick-count { font-family:monospace; font-size:17px; font-weight:1000; color:var(--accent); line-height:1; }
+.community-pick-percent { font-size:10px; color:var(--text-muted); font-weight:900; margin-top:4px; }
+.community-heat { display:inline-flex; margin-top:6px; padding:4px 7px; border-radius:999px; font-size:9px; font-weight:1000; letter-spacing:.5px; text-transform:uppercase; color:#06111d; background:linear-gradient(135deg, #00ff9d, #38bdf8); }
+.community-footer-note { position:relative; z-index:1; margin-top:12px; color:var(--text-muted); font-size:10px; font-weight:700; text-align:center; }
+
+
+
+
+/* =========================
+   ESPN-STYLE VISUAL UPGRADE PACK
+   Visual only: no scoring/weights changed.
+   ========================= */
+.top-target-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-left: 5px solid var(--team-color, var(--accent));
+  border-radius: 20px;
+  margin-bottom: 20px;
+  padding: 22px;
+  background:
+    radial-gradient(circle at 18% 20%, var(--team-glow, rgba(0,255,157,.22)), transparent 34%),
+    linear-gradient(135deg, rgba(5,11,20,.96), rgba(9,18,34,.86) 48%, rgba(5,11,20,.92));
+  box-shadow: 0 24px 70px rgba(0,0,0,.48), 0 0 34px var(--team-glow-soft, rgba(0,255,157,.10)), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.top-target-hero::after {
+  content: '';
+  position: absolute;
+  inset: -45% -25%;
+  background: linear-gradient(110deg, transparent 38%, rgba(255,255,255,.08) 50%, transparent 62%);
+  animation: hero-shine 7s linear infinite;
+  pointer-events: none;
+}
+@keyframes hero-shine { 0% { transform: translateX(-45%); } 100% { transform: translateX(45%); } }
+.hero-inner { position: relative; z-index: 1; display: grid; grid-template-columns: 110px 1fr auto; gap: 18px; align-items: center; }
+.hero-headshot-wrap { position: relative; width: 104px; height: 104px; display: flex; align-items: center; justify-content: center; }
+.hero-headshot-wrap .player-headshot-lg { width: 92px; height: 92px; margin: 0; border-color: var(--team-color, var(--accent)); box-shadow: 0 0 0 7px var(--team-glow-soft, rgba(0,255,157,.09)), 0 0 28px var(--team-glow, rgba(0,255,157,.22)); }
+.hero-rank-badge { position: absolute; top: -5px; left: -5px; width: 35px; height: 35px; display:flex; align-items:center; justify-content:center; border-radius: 12px; background: linear-gradient(135deg, #facc15, #f97316); color:#06111d; font-family: monospace; font-weight: 1000; box-shadow:0 0 20px rgba(250,204,21,.28); }
+.hero-title-kicker { font-size: 10px; color: var(--team-color, var(--accent)); font-weight: 1000; text-transform: uppercase; letter-spacing: 1.8px; margin-bottom: 5px; }
+.hero-player-name { font-size: 30px; line-height: 1.05; font-weight: 1000; color:#fff; letter-spacing: -.7px; text-transform: uppercase; }
+.hero-meta { margin-top: 8px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; color:#cbd5e1; font-size:12px; font-weight:800; }
+.hero-meta-chip, .hero-why-chip { border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); padding:6px 9px; border-radius:999px; }
+.hero-why-row { margin-top: 13px; display:flex; flex-wrap:wrap; gap:8px; }
+.hero-why-chip { color:#fff; background: var(--team-glow-soft, rgba(0,255,157,.08)); border-color: var(--team-glow, rgba(0,255,157,.22)); font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.65px; }
+.hero-scorebox { text-align:right; min-width: 150px; }
+.hero-score-label { font-size: 10px; color: var(--text-muted); font-weight:1000; text-transform:uppercase; letter-spacing:1.3px; }
+.hero-score { font-family: monospace; font-size: 54px; line-height:.95; font-weight:1000; color: var(--team-color, var(--accent)); text-shadow:0 0 24px var(--team-glow, rgba(0,255,157,.25)); }
+.hero-score-tier { display:inline-flex; margin-top:8px; padding:6px 10px; border-radius:999px; background:var(--team-color, var(--accent)); color:#06111d; font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.8px; }
+.team-heat-row { --team-color: var(--accent); --team-glow: rgba(0,255,157,.20); --team-glow-soft: rgba(0,255,157,.08); }
+.team-heat-row.heat-elite { box-shadow: inset 5px 0 0 var(--team-color), inset 0 0 34px var(--team-glow-soft); }
+.team-heat-row.heat-strong { box-shadow: inset 4px 0 0 var(--team-color), inset 0 0 22px var(--team-glow-soft); }
+.team-heat-row.heat-watch { box-shadow: inset 3px 0 0 var(--team-glow); }
+tbody tr.team-heat-row:hover { transform: translateY(-3px) scale(1.006); box-shadow: inset 6px 0 0 var(--team-color), 0 18px 34px rgba(0,0,0,.28), 0 0 26px var(--team-glow-soft); }
+.player-headshot, .player-headshot-lg { border-color: var(--team-color, var(--accent)); box-shadow: 0 0 0 4px var(--team-glow-soft, rgba(0,255,157,.08)), 0 10px 22px rgba(0,0,0,.34), 0 0 20px var(--team-glow, rgba(0,255,157,.18)); }
+tr:hover .player-headshot, .spotlight-card:hover .player-headshot, .jackpot-card:hover .player-headshot, .community-pick-card:hover .player-headshot { animation: team-ring-pulse .7s ease-out 1; }
+@keyframes team-ring-pulse { 0% { box-shadow: 0 0 0 3px var(--team-glow-soft), 0 0 12px var(--team-glow); } 60% { box-shadow: 0 0 0 9px transparent, 0 0 30px var(--team-glow); } 100% { box-shadow: 0 0 0 4px var(--team-glow-soft), 0 10px 22px rgba(0,0,0,.34), 0 0 20px var(--team-glow); } }
+.bbi-breakdown { min-width: 128px; margin-top: 6px; display:flex; flex-direction:column; gap:5px; }
+.bbi-breakdown-row { display:grid; grid-template-columns: 47px 1fr 25px; gap:6px; align-items:center; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:.35px; }
+.bbi-breakdown-label { color: var(--text-muted); text-align:left; }
+.bbi-breakdown-track { height:6px; border-radius:999px; background:rgba(107,124,150,.18); overflow:hidden; border:1px solid rgba(255,255,255,.04); }
+.bbi-breakdown-fill { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg, var(--team-color, var(--accent)), #38bdf8); box-shadow:0 0 10px var(--team-glow, rgba(0,255,157,.22)); }
+.bbi-breakdown-value { color:#e2e8f0; font-family:monospace; text-align:right; }
+.storylines-box { display:flex; flex-direction:column; gap:10px; }
+.storyline-card { border:1px solid rgba(255,255,255,.07); background:linear-gradient(135deg, rgba(5,11,20,.74), rgba(17,31,53,.50)); border-left:3px solid var(--team-color, var(--accent)); border-radius:12px; padding:11px 12px; color:#e2e8f0; font-size:12px; font-weight:800; line-height:1.35; box-shadow:0 8px 20px rgba(0,0,0,.22); }
+.storyline-card b { color:#fff; }
+.storyline-empty { text-align:center; color:var(--text-muted); padding:14px; font-style:italic; font-size:12px; }
+.community-pick-card { border-left: 3px solid var(--team-color, var(--accent)); }
+.community-meter-fill, .community-heat { background: linear-gradient(90deg, var(--team-color, var(--accent)), #38bdf8); }
+@media(max-width: 850px) { .hero-inner { grid-template-columns: 1fr; text-align:center; } .hero-headshot-wrap { margin:0 auto; } .hero-scorebox { text-align:center; } .hero-meta, .hero-why-row { justify-content:center; } }
+
+/* =========================
+   STADIUM ROW BACKGROUNDS
+   Uses the actual HOME team's park for both home and away hitters in the same game.
+   Visual-only: no scoring logic changed.
+   ========================= */
+tbody tr.stadium-row {
+  --stadium-color: rgba(0,255,157,0.18);
+  --stadium-color-2: rgba(56,189,248,0.12);
+  --stadium-image: linear-gradient(135deg, rgba(0,255,157,0.12), rgba(56,189,248,0.07));
+  background-image:
+    linear-gradient(90deg, rgba(5,11,20,0.96) 0%, rgba(5,11,20,0.88) 46%, rgba(5,11,20,0.70) 100%),
+    radial-gradient(circle at 86% 50%, var(--stadium-color) 0%, transparent 34%),
+    var(--stadium-image);
+  background-size: cover;
+  background-position: center;
+}
+tbody tr.stadium-row:hover {
+  background-image:
+    linear-gradient(90deg, rgba(0,255,157,0.12) 0%, rgba(5,11,20,0.86) 44%, rgba(5,11,20,0.62) 100%),
+    radial-gradient(circle at 84% 50%, var(--stadium-color) 0%, transparent 38%),
+    var(--stadium-image);
+}
+tbody tr.stadium-row td {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+.stadium-park-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(5,11,20,0.62);
+  color: #cbd5e1;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .55px;
+  text-transform: uppercase;
+  max-width: 185px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.stadium-park-pill b { color: var(--accent); font-family: monospace; }
+
 @media(max-width: 850px) {
 .modal-card { flex-direction: column; max-height: 95vh; }
 .modal-left { width: 100%; padding: 30px 20px 20px; border-right: none; border-bottom: 1px solid var(--border); }
@@ -319,6 +639,7 @@ tr.highlighted-row { background: rgba(0, 255, 157, 0.1); animation: row-highligh
 <button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
 </div>
 <div id="tab-home" class="tab-content active">
+<div id="topTargetHero" class="top-target-hero" style="display:none;"></div>
 <div id="spotlightTicker" class="spotlight-ticker">
 <div class="spotlight-title"><span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>Top 12 Homerun Targets</div>
 <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
@@ -334,9 +655,13 @@ tr.highlighted-row { background: rgba(0, 255, 157, 0.1); animation: row-highligh
 <div class="dashboard-grid">
 <div style="display:flex; flex-direction:column; gap:24px;">
 <div class="panel">
-<h2>🔥 The Longball Collective</h2>
+<h2>🔥 Who We Hammerin' Boys? </h2>
 <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Live tracking of what the collective is locking in today</p>
 <div id="communityPicksContainer"><div style="text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Loading community data...</div></div>
+</div>
+<div class="panel">
+<h2>📰 Today's Storylines</h2>
+<div id="todaysStorylines" class="storylines-box"><div class="storyline-empty">Upload today's workbook to generate slate headlines.</div></div>
 </div>
 <div class="panel">
 <h2>Filter by team</h2>
@@ -563,17 +888,23 @@ if (!container) return;
 const sortedPicks = Object.entries(communityPicks).sort((a, b) => b[1].count - a[1].count).slice(0, 10);
 const totalPicks = Object.values(communityPicks).reduce((sum, p) => sum + p.count, 0);
 if (sortedPicks.length === 0) {
-container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">No picks yet. Be the first to lock in a pick for The Longball Collective!</div>';
+container.innerHTML = '<div class="community-hero"><div class="community-hero-top"><div><div class="community-total">0</div><div class="community-total-label">Picks submitted</div></div><div class="community-live-pill"><span class="live-dot"></span> Collective Live</div></div><div style="text-align:center; color: var(--text-muted); padding: 18px; font-style: italic; position:relative; z-index:1;">No picks yet. Be the first to lock in a pick for The Longball Collective.</div></div>';
 return;
 }
-let html = '';
-sortedPicks.forEach(([playerName, data]) => {
-const percentage = totalPicks > 0 ? ((data.count / totalPicks) * 100).toFixed(0) : 0;
-const headshotHtml = createHeadshotHtml(playerName, 'sm');
-html += `<div class="community-pick-item"><div style="flex: 1; display: flex; align-items: center;"><div class="player-name-with-headshot">${headshotHtml}<div class="community-pick-name">${playerName}</div></div><div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; margin-left: 42px;">${data.team}</div></div><div style="text-align: right; margin-left: 12px;"><div class="community-pick-count">${data.count} picks</div><div style="font-size: 10px; color: var(--text-muted);">${percentage}%</div></div></div><div class="community-pick-bar"><div class="community-pick-bar-fill" style="width: ${percentage}%"></div></div>`;
+let html = `<div class="community-hero"><div class="community-hero-top"><div><div class="community-total">${totalPicks.toLocaleString()}</div><div class="community-total-label">Collective picks today</div></div><div class="community-live-pill"><span class="live-dot"></span> Crowd Board</div></div>`;
+sortedPicks.forEach(([playerName, data], idx) => {
+const percentage = totalPicks > 0 ? Math.max(2, Math.round((data.count / totalPicks) * 100)) : 0;
+const headshotHtml = createHeadshotHtml(playerName, 'sm', data.team || '');
+const rank = idx + 1;
+const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
+const rankText = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+const heat = percentage >= 35 ? 'Nuclear' : percentage >= 22 ? 'Hot' : percentage >= 12 ? 'Rising' : 'Live';
+html += `<div class="community-pick-card" style="${teamVisualStyle(data.team || '')}"><div class="community-rank-badge ${rankClass}">${rankText}</div><div class="community-pick-main"><div class="community-name-line">${headshotHtml}<div class="community-player-copy"><div class="community-pick-name">${playerName}</div><div class="community-team-line">${data.team || 'DRL pick'}</div></div></div><div class="community-meter"><div class="community-meter-fill" style="width:${percentage}%"></div></div></div><div class="community-pick-side"><div class="community-pick-count">${data.count}</div><div class="community-pick-percent">${percentage}%</div><div class="community-heat">${heat}</div></div></div>`;
 });
+html += `<div class="community-footer-note">Live crowd picks from users locking in players through your model.</div></div>`;
 container.innerHTML = html;
 }
+
 setInterval(loadCommunityPicks, 5000);
 const LEAGUE_AVERAGES = { iso: 0.185, barrelRate: 0.083, hardHitRate: 0.35, fbRate: 0.41, pitcherHR9: 1.08, pitcherBarrelAllowed: 0.085, pitcherFBRate: 0.39, pitcherSweetSpot: 0.35 };
 const STABILIZATION = { barrelRate: 150, iso: 250, hrfb: 400, pulledAir: 200, pitcherIP: 60 };
@@ -603,9 +934,189 @@ let pitcherHR9SideMap = {};
 const teamLogos = {
 ARI:'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',ATL:'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',BAL:'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',BOS:'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',CHC:'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',CHW:'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',CIN:'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',CLE:'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',COL:'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',DET:'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',HOU:'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',KCR:'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',LAA:'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',LAD:'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',MIA:'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',MIL:'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',MIN:'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',NYM:'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',NYY:'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',ATH:'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',PHI:'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',PIT:'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',SDP:'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',SEA:'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',SFG:'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',STL:'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',TBR:'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',TEX:'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',TOR:'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',WSN:'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
 };
+
+const stadiumVisuals = {
+ARI:{name:'Chase Field'}, ATL:{name:'Truist Park'}, BAL:{name:'Camden Yards'}, BOS:{name:'Fenway Park'}, CHC:{name:'Wrigley Field'}, CHW:{name:'Rate Field'}, CIN:{name:'Great American Ball Park'}, CLE:{name:'Progressive Field'}, COL:{name:'Coors Field'}, DET:{name:'Comerica Park'}, HOU:{name:'Daikin Park'}, KCR:{name:'Kauffman Stadium'}, LAA:{name:'Angel Stadium'}, LAD:{name:'Dodger Stadium'}, MIA:{name:'loanDepot park'}, MIL:{name:'American Family Field'}, MIN:{name:'Target Field'}, NYM:{name:'Citi Field'}, NYY:{name:'Yankee Stadium'}, ATH:{name:'Sutter Health Park'}, PHI:{name:'Citizens Bank Park'}, PIT:{name:'PNC Park'}, SDP:{name:'Petco Park'}, SEA:{name:'T-Mobile Park'}, SFG:{name:'Oracle Park'}, STL:{name:'Busch Stadium'}, TBR:{name:'Tropicana Field'}, TEX:{name:'Globe Life Field'}, TOR:{name:'Rogers Centre'}, WSN:{name:'Nationals Park'}, UNK:{name:'Ballpark'}
+};
+function hexToRgba(hex, alpha) {
+  const h = String(hex || '#172a46').replace('#','');
+  const n = parseInt(h.length === 3 ? h.split('').map(x=>x+x).join('') : h, 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function getHomeTeamForPlayer(player) {
+  if (!player) return 'UNK';
+  const team = String(player.Team || player.TEAM || 'UNK').trim().toUpperCase();
+  const oppTeam = String(safeGet(player, 'Opp Team', 'OppTeam', 'Opponent', 'OPP', 'Opp') || '').trim().toUpperCase();
+
+  // BEST SOURCE: HR sheet column named exactly "Ball Park Team".
+  // This overrides every matchup fallback so the park/stadium can never flip home/away again.
+  const ballParkTeam = String(safeGet(player, 'Ball Park Team', 'BALL PARK TEAM', 'Ball park team', 'ball park team') || '').trim().toUpperCase();
+  if (ballParkTeam) return ballParkTeam;
+
+  // Secondary accepted HR-sheet park columns.
+  const explicitParkTeam = String(safeGet(player, 'Park Team', 'ParkTeam', 'Stadium Team', 'StadiumTeam', 'Ballpark Team', 'BallparkTeam', 'Venue Team', 'VenueTeam') || '').trim().toUpperCase();
+  if (explicitParkTeam) return explicitParkTeam;
+
+  const explicitHomeTeam = String(safeGet(player, 'Home Team', 'HomeTeam', 'HOME TEAM') || '').trim().toUpperCase();
+  if (explicitHomeTeam) return explicitHomeTeam;
+
+  // If the HR sheet tells us whether the PLAYER'S team is home/away, use that.
+  // Away/Road/@ = opponent's park. Home = player's park.
+  const haRaw = String(safeGet(player, 'Home/Away', 'H/A', 'HA', 'HomeAway', 'Location', 'Site') || '').trim().toUpperCase();
+  if (haRaw) {
+    if (['A','AWAY','ROAD','R','@'].includes(haRaw) || haRaw.includes('AWAY') || haRaw.includes('ROAD') || haRaw.includes('@')) return oppTeam || team;
+    if (['H','HOME'].includes(haRaw) || haRaw.includes('HOME')) return team;
+  }
+
+  // Use the matchup map for the true ballpark. In this workbook's matchup rows,
+  // the current stadium display was reading the away side; the true HOME park is teamA here.
+  // This is visual-only and does not touch scoring/weather math.
+  if (player.gameId) {
+    const matchup = gameMatchups.find(m => m.id === player.gameId);
+    if (matchup) {
+      const trueHome = matchup.trueHomeTeam || matchup.homeTeam || matchup.teamA || team;
+      return String(trueHome).trim().toUpperCase();
+    }
+  }
+
+  // Final visual-only fallback.
+  return oppTeam || team;
+}
+function getStadiumVisualForPlayer(player) {
+  const homeTeam = getHomeTeamForPlayer(player);
+  const visual = stadiumVisuals[homeTeam] || stadiumVisuals.UNK;
+  return { homeTeam, name: visual.name || 'Ballpark', image: visual.image || '', color: teamColors[homeTeam] || teamColors.UNK };
+}
+function applyStadiumRowVisual(rowEl, player) {
+  if (!rowEl || !player) return;
+  const visual = getStadiumVisualForPlayer(player);
+  rowEl.classList.add('stadium-row');
+  rowEl.style.setProperty('--stadium-color', hexToRgba(visual.color, 0.26));
+  rowEl.style.setProperty('--stadium-color-2', hexToRgba(visual.color, 0.14));
+  // If you ever add image URLs to stadiumVisuals, this automatically becomes a real park photo background.
+  const fallback = `linear-gradient(135deg, ${hexToRgba(visual.color, 0.20)}, rgba(56,189,248,0.07)), repeating-linear-gradient(90deg, rgba(255,255,255,0.028) 0 1px, transparent 1px 36px)`;
+  rowEl.style.setProperty('--stadium-image', visual.image ? `url("${visual.image}")` : fallback);
+  rowEl.dataset.homePark = visual.name;
+  rowEl.dataset.homeTeam = visual.homeTeam;
+}
+function renderStadiumParkPill(player) {
+  const visual = getStadiumVisualForPlayer(player);
+  return `<div class="stadium-park-pill">🏟️ <b>${visual.homeTeam}</b> ${visual.name}</div>`;
+}
+
 const teamColors = {
 ARI: '#A71930', ATL: '#CE1141', BAL: '#DF4601', BOS: '#BD3039', CHC: '#0E3386', CHW: '#27251F', CIN: '#C6011F', CLE: '#E31937', COL: '#333366', DET: '#0C2340', HOU: '#EB6E1F', KCR: '#004687', LAA: '#BA0021', LAD: '#005A9C', MIA: '#00A3E0', MIL: '#FFC52F', MIN: '#002B5C', NYM: '#002D62', NYY: '#0C2340', ATH: '#003831', PHI: '#E81828', PIT: '#FDB827', SDP: '#2F241D', SEA: '#0C2C56', SFG: '#FD5A1E', STL: '#C41E3A', TBR: '#092C5C', TEX: '#003278', TOR: '#134A8E', WSN: '#AB0003', UNK: '#172a46'
 };
+
+const teamSecondaryColors = {
+ARI:'#E3D4AD', ATL:'#13274F', BAL:'#000000', BOS:'#0C2340', CHC:'#CC3433', CHW:'#C4CED4', CIN:'#000000', CLE:'#0C2340', COL:'#C4CED4', DET:'#FA4616', HOU:'#002D62', KCR:'#BD9B60', LAA:'#003263', LAD:'#EF3E42', MIA:'#EF3340', MIL:'#12284B', MIN:'#D31145', NYM:'#FF5910', NYY:'#C4CED4', ATH:'#EFB21E', PHI:'#002D72', PIT:'#27251F', SDP:'#FFC425', SEA:'#005C5C', SFG:'#27251F', STL:'#0C2340', TBR:'#8FBCE6', TEX:'#C0111F', TOR:'#E8291C', WSN:'#14225A', UNK:'#38bdf8'
+};
+function getTeamColor(team) { return teamColors[String(team || '').trim().toUpperCase()] || teamColors.UNK; }
+function getTeamSecondaryColor(team) { return teamSecondaryColors[String(team || '').trim().toUpperCase()] || teamSecondaryColors.UNK; }
+function teamVisualStyle(team) {
+  const color = getTeamColor(team);
+  return `--team-color:${color};--team-color-2:${getTeamSecondaryColor(team)};--team-glow:${hexToRgba(color, .34)};--team-glow-soft:${hexToRgba(color, .14)};`;
+}
+function applyTeamVisuals(el, team) {
+  if (!el) return;
+  const color = getTeamColor(team);
+  el.style.setProperty('--team-color', color);
+  el.style.setProperty('--team-color-2', getTeamSecondaryColor(team));
+  el.style.setProperty('--team-glow', hexToRgba(color, .34));
+  el.style.setProperty('--team-glow-soft', hexToRgba(color, .14));
+}
+function applyHeatClass(rowEl, player) {
+  if (!rowEl || !player) return;
+  applyTeamVisuals(rowEl, player.Team);
+  rowEl.classList.add('team-heat-row');
+  const score = cleanNumber(player.calculatedBBI || 0);
+  rowEl.classList.remove('heat-elite','heat-strong','heat-watch');
+  if (score >= 95) rowEl.classList.add('heat-elite');
+  else if (score >= 90) rowEl.classList.add('heat-strong');
+  else if (score >= 85) rowEl.classList.add('heat-watch');
+}
+function renderTeamLogo(team, size=28) {
+  const logoUrl = teamLogos[team] || '';
+  return logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="${team}" style="width:${size}px; height:${size}px; object-fit:contain;">` : '';
+}
+function scoreToMiniPct(v, center=1.0, spread=.55) {
+  const n = cleanNumber(v);
+  if (!isFinite(n) || n <= 0) return 50;
+  return Math.max(4, Math.min(100, Math.round(((n - (center - spread)) / (spread * 2)) * 100)));
+}
+function scoreBarPct(v, fallback=50) {
+  const n = Number(v);
+  if (!isFinite(n)) return fallback;
+  return Math.max(0, Math.min(100, Math.round(n)));
+}
+function renderBBIBreakdown(player) {
+  const cat = player.category || {};
+  // These are the actual 0-100 category scores from the active scoring engine.
+  // The fill percentage now matches the displayed score exactly: Power 80 = 80% filled.
+  const rows = [
+    ['Power', scoreBarPct(cat.power, scoreToMiniPct(player.calculatedPowerModifier || player.calculatedQualityModifier, 1, .55))],
+    ['Pitcher', scoreBarPct(cat.pitcherHRDamage ?? cat.pitcher, scoreToMiniPct(player.calculatedPVF || player.calculatedPitcherFB, 1, .60))],
+    ['Recent', scoreBarPct(cat.recent, 50)],
+    ['Weather', scoreBarPct(cat.weather, 50)],
+    ['BVP', scoreBarPct(cat.bvp, 50)]
+  ];
+  return `<div class="bbi-breakdown">${rows.map(([label, val]) => `<div class="bbi-breakdown-row"><span class="bbi-breakdown-label">${label}</span><span class="bbi-breakdown-track"><span class="bbi-breakdown-fill" style="width:${val}%"></span></span><span class="bbi-breakdown-value">${val}</span></div>`).join('')}</div>`;
+}
+function getPlayerWhyChips(player) {
+  const chips = [];
+  const bbi = cleanNumber(player.calculatedBBI || 0);
+  const barrel = cleanNumber(player['Barrel %']) * 100;
+  const iso = cleanNumber(player['ISO']);
+  const pHR9 = cleanNumber(player['Pitcher HR/9'] || player['P HR/9']);
+  const lw = lastWeekMap[normalizeName(player.Name)] || {};
+  const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR'));
+  if (bbi >= 95) chips.push('Elite BBI grade');
+  if (barrel >= 14) chips.push('Barrel monster');
+  if (iso >= .240) chips.push('Big power profile');
+  if (pHR9 >= 1.5) chips.push('Pitcher HR target');
+  if (lwHRs >= 3) chips.push(`${lwHRs} HR last 7`);
+  if ((player.envMultiplier || 1) >= 1.07) chips.push('Weather boost');
+  if ((player.calculatedSynergy || 0) > 4) chips.push('Pitch lab edge');
+  return chips.slice(0,4);
+}
+function renderTopTargetHero() {
+  const hero = document.getElementById('topTargetHero');
+  if (!hero) return;
+  const candidates = playerData.filter(p => !p.isRemoved).sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+  if (!candidates.length) { hero.style.display = 'none'; return; }
+  const p = candidates[0];
+  applyTeamVisuals(hero, p.Team);
+  const logo = renderTeamLogo(p.Team, 38);
+  const headshot = createHeadshotHtml(p.Name, 'lg', p.Team) || logo;
+  const visual = getStadiumVisualForPlayer(p);
+  const w = weatherSettings[p.gameId];
+  const weather = w && !w.isDome ? `${w.temp}°F • ${w.windSpeed} MPH ${String(w.windDir || '').toUpperCase()}` : 'Closed Dome / Neutral Weather';
+  const chips = getPlayerWhyChips(p).map(c => `<span class="hero-why-chip">${c}</span>`).join('');
+  const tier = (p.calculatedBBI || 0) >= 95 ? 'Nuclear' : (p.calculatedBBI || 0) >= 90 ? 'Elite' : 'Top Target';
+  hero.innerHTML = `<div class="hero-inner"><div class="hero-headshot-wrap"><div class="hero-rank-badge">#1</div>${headshot}</div><div><div class="hero-title-kicker">Today's Top Target</div><div class="hero-player-name">${p.Name}</div><div class="hero-meta"><span class="hero-meta-chip">${logo}${p.Team}</span><span class="hero-meta-chip">vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span><span class="hero-meta-chip">🏟️ ${visual.name}</span><span class="hero-meta-chip">🌤️ ${weather}</span></div><div class="hero-why-row">${chips}</div></div><div class="hero-scorebox"><div class="hero-score-label">BBI Score</div><div class="hero-score">${(p.calculatedBBI || 0).toFixed(1)}</div><span class="hero-score-tier">${tier}</span></div></div>`;
+  hero.style.display = 'block';
+}
+function renderTodaysStorylines() {
+  const box = document.getElementById('todaysStorylines');
+  if (!box) return;
+  const active = playerData.filter(p => !p.isRemoved).sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+  if (!active.length) { box.innerHTML = `<div class="storyline-empty">Upload today's workbook to generate slate headlines.</div>`; return; }
+  const top = active[0];
+  const hot = active.find(p => cleanNumber(safeGet(lastWeekMap[normalizeName(p.Name)] || {}, 'HRs', 'HRsLastWeek', 'HR')) >= 3) || active[1];
+  const pitcherTarget = [...active].sort((a,b) => cleanNumber(b['Pitcher HR/9'] || b['P HR/9']) - cleanNumber(a['Pitcher HR/9'] || a['P HR/9']))[0];
+  const weatherBoost = active.find(p => (p.envMultiplier || 1) >= 1.07);
+  const diamond = active.find(p => codysDiamondsData.some(d => String(d.name || '').toLowerCase() === String(p.Name || '').toLowerCase()));
+  const stories = [];
+  stories.push({team: top.Team, text:`🔥 <b>${top.Name}</b> owns today's top BBI at <b>${(top.calculatedBBI || 0).toFixed(1)}</b>.`});
+  if (pitcherTarget) stories.push({team:pitcherTarget.Team, text:`⚠️ <b>${pitcherTarget['Opp Pitcher'] || pitcherTarget['Opp Pitcher Name'] || 'Starter'}</b> is the biggest HR/9 target on the board.`});
+  if (hot) stories.push({team:hot.Team, text:`📈 <b>${hot.Name}</b> brings the hottest recent power profile into today's slate.`});
+  if (weatherBoost) stories.push({team:weatherBoost.Team, text:`🌬️ <b>${weatherBoost.Name}</b> gets one of the cleaner weather boosts today.`});
+  if (diamond) stories.push({team:diamond.Team, text:`💎 <b>${diamond.Name}</b> is flashing as Cody's Diamond in the Rough.`});
+  stories.push({team:top.Team, text:`🎯 <b>${top.Team}</b> leads the board with a premium team-colored heat profile.`});
+  box.innerHTML = stories.slice(0,5).map(s => `<div class="storyline-card" style="${teamVisualStyle(s.team)}">${s.text}</div>`).join('');
+}
+
 const stadiumCoordinates = {
 ARI: { dome: true }, ATL: { dome: false }, BAL: { dome: false }, BOS: { dome: false }, CHC: { dome: false }, CHW: { dome: false }, CIN: { dome: false }, CLE: { dome: false }, COL: { dome: false }, DET: { dome: false }, HOU: { dome: true }, KCR: { dome: false }, LAA: { dome: false }, LAD: { dome: false }, MIA: { dome: true }, MIL: { dome: true }, MIN: { dome: false }, NYM: { dome: false }, NYY: { dome: false }, ATH: { dome: false }, PHI: { dome: false }, PIT: { dome: false }, SDP: { dome: false }, SEA: { dome: true }, SFG: { dome: false }, STL: { dome: false }, TBR: { dome: true }, TEX: { dome: true }, TOR: { dome: true }, WSN: { dome: false }
 };
@@ -614,11 +1125,12 @@ const id = playerIdMap[normalizeName(playerName)];
 if (!id) return null;
 return `https://img.mlbstatic.com/mlb-photos/image/upload/v1/people/${id}/headshot/67/current`;
 }
-function createHeadshotHtml(playerName, size = 'sm') {
+function createHeadshotHtml(playerName, size = 'sm', team = '') {
 const url = getHeadshotUrl(playerName);
 if (!url) return '';
 const sizeClass = size === 'lg' ? 'player-headshot-lg' : 'player-headshot';
-return `<img class="${sizeClass}" src="${url}" alt="${playerName}" onerror="this.style.display='none'">`;
+const style = team ? ` style="${teamVisualStyle(team)}"` : '';
+return `<img class="${sizeClass}" src="${url}" alt="${playerName}"${style} onerror="this.style.display='none'">`;
 }
 window.addEventListener('DOMContentLoaded', () => {
 loadCachedData();
@@ -807,7 +1319,7 @@ assignFallbackGameIds(playerData);
 parseWeatherMetadataRows(weatherRaw);
 gameMatchups.forEach(m => {
 if (!weatherSettings[m.id]) {
-let homeTeamCode = m.teamB;
+let homeTeamCode = m.trueHomeTeam || m.homeTeam || m.teamA || m.teamB;
 let isDomePreset = stadiumCoordinates[homeTeamCode] ? stadiumCoordinates[homeTeamCode].dome : false;
 weatherSettings[m.id] = { temp: 74, windSpeed: 0, windDir: 'neutral', isDome: isDomePreset };
 }
@@ -903,7 +1415,7 @@ if(activePlayers.length > 0) {
 const sortedByBBI = [...activePlayers].sort((a,b) => (b.calculatedBBI||0) - (a.calculatedBBI||0));
 const topP = sortedByBBI[0];
 document.getElementById('topBBIValue').innerText = topP.calculatedBBI.toFixed(1);
-const hs = createHeadshotHtml(topP.Name, 'sm');
+const hs = createHeadshotHtml(topP.Name, 'sm', topP.Team);
 document.getElementById('topBBIPlayer').innerHTML = `${hs} ${topP.Name}`;
 }
 let hotBatCandidates = activePlayers.filter(p => {
@@ -917,7 +1429,7 @@ if(hotBatCandidates.length > 0) {
 hotBatCandidates.sort((a,b) => (b.calculatedBBI||0) - (a.calculatedBBI||0));
 const hotP = hotBatCandidates[0];
 document.getElementById('hotBatValue').innerText = hotP.calculatedBBI.toFixed(1);
-const hs = createHeadshotHtml(hotP.Name, 'sm');
+const hs = createHeadshotHtml(hotP.Name, 'sm', hotP.Team);
 document.getElementById('hotBatPlayer').innerHTML = `${hs} ${hotP.Name}`;
 } else {
 document.getElementById('hotBatValue').innerText = "--";
@@ -1058,7 +1570,7 @@ fanaticsJackpotData.forEach((p, idx) => {
     const lw = lastWeekMap[normName] || {};
     const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR'));
     const bbi = (p.calculatedBBI || 0).toFixed(1);
-    const headshotHtml = createHeadshotHtml(p.Name, 'lg');
+    const headshotHtml = createHeadshotHtml(p.Name, 'lg', p.Team);
     const logoUrl = teamLogos[p.Team] || '';
     const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:4px; vertical-align:middle;">` : '';
     const card = document.createElement('div');
@@ -1275,7 +1787,7 @@ function renderPitchLabTable() {
     const top = profile.top;
     const logoUrl = teamLogos[p.Team] || '';
     const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
-    const headshotHtml = createHeadshotHtml(p.Name, 'sm');
+    const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
     const tr = document.createElement('tr');
     tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted);">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span style="font-weight:800; color:#fff;">${p.Name}</span></div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${profile.pitcherName || 'Starter'}</td><td><div style="font-weight:900; color:#fff;">${top ? top.label : '-'}</div><div style="font-size:10px; color:var(--text-muted);">${top ? pctFmt(top.usage) + ' usage // Stuff+ ' + top.stuff : '-'}</div></td><td style="line-height:2;">${renderPitchMix(profile)}</td><td><span class="index-score ${pitchEdgeClass(profile.score)}">${profile.score.toFixed(0)}</span><div style="font-size:10px; color:var(--text-muted); margin-top:3px;">${profile.grade}</div></td><td>${renderSynergyMeter(p, true)}</td>`;
     tbody.appendChild(tr);
@@ -1465,12 +1977,17 @@ lsContainer.appendChild(card);
 function processCompareSheetMatchups(rows) {
 if(!rows || !Array.isArray(rows)) return;
 rows.forEach(row => {
-let tA = String(row.Team1 || row.TEAM1 || row.Away || row.AWAY || '').trim().toUpperCase();
-let tB = String(row.Team2 || row.TEAM2 || row.Home || row.HOME || '').trim().toUpperCase();
-if(tA && tB) {
-let gameId = `${tA}_vs_${tB}`;
-teamToGameIdMap[tA] = gameId; teamToGameIdMap[tB] = gameId;
-if (!gameMatchups.some(m => m.id === gameId)) gameMatchups.push({ id: gameId, teamA: tA, teamB: tB, homeTeam: tB });
+// Cody's matchup/odds paste is being displayed backwards by the old logic.
+// Fix: Team1 is the TRUE HOME/PARK team and Team2 is the TRUE AWAY/ROAD team for stadium visuals.
+// Explicit Home/Away columns still work if present, but Team1/Team2 now resolve to the correct park side.
+let explicitHome = String(row.Home || row.HOME || row.HomeTeam || row['Home Team'] || '').trim().toUpperCase();
+let explicitAway = String(row.Away || row.AWAY || row.AwayTeam || row['Away Team'] || '').trim().toUpperCase();
+let homeTeam = explicitHome || String(row.Team1 || row.TEAM1 || '').trim().toUpperCase();
+let awayTeam = explicitAway || String(row.Team2 || row.TEAM2 || '').trim().toUpperCase();
+if(awayTeam && homeTeam) {
+let gameId = `${awayTeam}_vs_${homeTeam}`;
+teamToGameIdMap[awayTeam] = gameId; teamToGameIdMap[homeTeam] = gameId;
+if (!gameMatchups.some(m => m.id === gameId)) gameMatchups.push({ id: gameId, teamA: homeTeam, teamB: awayTeam, trueHomeTeam: homeTeam, homeTeam: homeTeam, awayTeam: awayTeam });
 }
 });
 }
@@ -1491,7 +2008,7 @@ const homeStadiumKey = stadiumCoordinates[teamsAlpha[1]] ? teamsAlpha[1] : (stad
 const isDomePreset = homeStadiumKey ? stadiumCoordinates[homeStadiumKey].dome : false;
 weatherSettings[fallbackId] = { temp: 70, windSpeed: 0, windDir: 'neutral', isDome: isDomePreset };
 }
-if (!gameMatchups.some(m => m.id === fallbackId)) gameMatchups.push({ id: fallbackId, teamA: p.Team, teamB: oppTeam, homeTeam: oppTeam });
+if (!gameMatchups.some(m => m.id === fallbackId)) gameMatchups.push({ id: fallbackId, teamA: oppTeam, teamB: p.Team, trueHomeTeam: oppTeam, homeTeam: oppTeam, awayTeam: p.Team });
 }
 }
 });
@@ -1499,9 +2016,9 @@ if (!gameMatchups.some(m => m.id === fallbackId)) gameMatchups.push({ id: fallba
 function parseWeatherMetadataRows(rows) {
 if(!rows || !Array.isArray(rows)) return;
 rows.forEach(row => {
-let teamKey = String(row.Team || row.TEAM || row.Home || '').trim().toUpperCase();
+let teamKey = String(row.Team || row.TEAM || row.Home || row.HomeTeam || row['Home Team'] || row.ParkTeam || row['Park Team'] || '').trim().toUpperCase();
 let matchingGameId = teamToGameIdMap[teamKey] || null;
-if (!matchingGameId) gameMatchups.forEach(m => { if (m.teamA === teamKey || m.teamB === teamKey) matchingGameId = m.id; });
+if (!matchingGameId) gameMatchups.forEach(m => { if (m.teamA === teamKey || m.teamB === teamKey || m.homeTeam === teamKey) matchingGameId = m.id; });
 if (matchingGameId) {
 let isDome = String(row.Dome || row.DOME || row.Roof || '').toLowerCase().includes('yes') || String(row.Dome || row.DOME || row.Roof || '').toLowerCase().includes('dome') || String(row.Dome || row.DOME || row.Roof || 'false') === 'true';
 let temp = Number(row.Temp || row.Temperature || row.temp || 72) || 72;
@@ -1509,7 +2026,7 @@ let windSpeed = Number(row.Wind || row.WindSpeed || row.Speed || row.wind || row
 let windDir = String(row.Direction || row.Dir || row.winddir || 'neutral').toLowerCase().trim();
 let humidity = Number(row.Humidity || row.humidity || 0);
 let startTime = String(row.GameTime || row.FirstPitch || row.StartTime || row.time || '').trim();
-weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome, humidity, startTime };
+weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome, humidity, startTime }; // do not set homeTeam from weather Team; that column may be the away team
 }
 });
 }
@@ -1894,18 +2411,20 @@ return 0;
 }
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const HYBRID_CATEGORY_WEIGHTS = {
-  // Strongest HR-probability build: true hitter power first, then pitcher damage and HR batted-ball shape.
-  // BVP is intentionally lighter because it is noisy unless the sample is strong.
-  power: 0.26,
-  pitcher: 0.20,
-  battedBall: 0.15,
-  pitchLevel: 0.11,
-  recent: 0.08,
-  park: 0.07,
-  opportunity: 0.05,
-  bullpen: 0.04,
+  // Final HR-probability build: power + pitcher HR damage drive the model,
+  // batted-ball shape and pitch-level fit confirm it, and weather/park provide context.
+  // BVP stays low unless real sample exists because it is noisy in small PA samples.
+  power: 0.25,
+  pitcher: 0.23,
+  battedBall: 0.14,
+  pitchLevel: 0.12,
+  recent: 0.10,
+  weather: 0.04,
+  park: 0.04,
+  opportunity: 0.025,
+  bullpen: 0.02,
   bvp: 0.02,
-  discipline: 0.02
+  discipline: 0.015
 };
 function hybridAvg(arr) { const v = arr.filter(x => x !== null && !isNaN(x)); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; }
 function hybridWeightedAvg(items) {
@@ -1946,8 +2465,10 @@ function hybridRaw(p) {
   const pl = plDataMap[normName] || {};
   const bvp = vsPitcherData[normName] || {};
   const weather = weatherSettings[p.gameId] || null;
-  const team = safeGet(p, 'Opp Team', 'Team', 'TEAM') || p.Team;
-  const parkDims = parkFactorMap[team] || { lf: 330, cf: 400, rf: 330, pf: 100 };
+  // Park dimensions/scoring must follow the actual ballpark, not the hitter's team or the away team.
+  // HR sheet "Ball Park Team" is the preferred source through getHomeTeamForPlayer().
+  const parkTeam = getHomeTeamForPlayer(p);
+  const parkDims = parkFactorMap[parkTeam] || { lf: 330, cf: 400, rf: 330, pf: 100 };
   const hand = getHitterHandedness(p);
   const pullFence = hand === 'L' ? (parkDims.rf || 330) : (parkDims.lf || 330);
   let pitchLevelEV = null;
@@ -2148,10 +2669,10 @@ function scoreHybridPlayer(p, ranges) {
   Object.keys(HYBRID_CATEGORY_WEIGHTS).forEach(cat => { if (p.category[cat] !== null && !isNaN(p.category[cat])) { total += p.category[cat] * HYBRID_CATEGORY_WEIGHTS[cat]; usedWeight += HYBRID_CATEGORY_WEIGHTS[cat]; } });
   let score = usedWeight ? total / usedWeight : 0;
   const coreHRScore = hybridWeightedAvg([
-    { value: power, weight: 0.42 },
-    { value: pitcher, weight: 0.31 },
-    { value: battedBall, weight: 0.19 },
-    { value: pitchLevel, weight: 0.08 }
+    { value: power, weight: 0.40 },
+    { value: pitcher, weight: 0.32 },
+    { value: battedBall, weight: 0.18 },
+    { value: pitchLevel, weight: 0.10 }
   ]);
   if (coreHRScore !== null) score = (score * 0.86) + (coreHRScore * 0.14);
 
@@ -2224,6 +2745,11 @@ function scoreHybridPlayer(p, ranges) {
   p.calculatedQualityModifier = power !== null ? power / 50 : 1.0;
   p.calculatedBvP = bvp !== null ? bvp / 50 : 1.0;
   p.calculatedCredibility = dataConfidence;
+  p.calculatedPowerScore = power;
+  p.calculatedPitcherScore = pitcherHRDamage !== null ? pitcherHRDamage : pitcher;
+  p.calculatedRecentScore = adjustedRecent;
+  p.calculatedWeatherScore = weather;
+  p.calculatedBVPScore = bvp;
   return Math.max(0, Math.min(100, score));
 }
 function recalculateAllBBIScores() {
@@ -2248,8 +2774,10 @@ return true;
 });
 filtered.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
 renderMainTableBoard(filtered);
+renderTopTargetHero();
 renderTopTwelveSpotlightWidget();
 renderFanaticsJackpot();
+renderTodaysStorylines();
 }
 function renderMainTableBoard(data) {
 const tbody = document.getElementById('tableBody');
@@ -2261,6 +2789,8 @@ const jackpotTop4Names = globalSlateSorted.slice(0, 4).map(p => p.Name);
 data.forEach((p, idx) => {
 const tr = document.createElement('tr');
 tr.id = `player-row-${normalizeName(p.Name)}`;
+applyStadiumRowVisual(tr, p);
+applyHeatClass(tr, p);
 let climateString = 'Closed Dome 🏟️';
 let w = weatherSettings[p.gameId];
 if (w && !w.isDome) climateString = `${w.temp}°F // Wind ${w.windSpeed} MPH ${w.windDir.toUpperCase()}`;
@@ -2317,11 +2847,12 @@ if (pFactor >= 106) pfBadge = `<span class="pf-badge pf-green">PF ${pFactor}✓<
 else if (pFactor <= 94) pfBadge = `<span class="pf-badge pf-red">PF ${pFactor}✗</span>`;
 const logoUrl = teamLogos[p.Team] || '';
 const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
+const stadiumPill = renderStadiumParkPill(p);
 let safeName = p.Name.replace(/'/g, "\\'");
 let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
 const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}')">💰 LOCK PICK</button>`;
-const headshotHtml = createHeadshotHtml(p.Name, 'sm');
-tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}</td><td><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span><br>${renderSynergyMeter(p, true)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
+const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
+tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
@@ -2396,11 +2927,12 @@ candidates.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
 candidates.slice(0, 12).forEach((p, index) => {
 const card = document.createElement('div');
 card.className = 'spotlight-card';
+applyTeamVisuals(card, p.Team);
 card.id = `spotlight-card-${normalizeName(p.Name)}`;
 card.onclick = () => scrollToPlayer(p.Name);
 const logoUrl = teamLogos[p.Team] || '';
 const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:28px; height:28px; object-fit:contain; margin-right:10px;">` : '';
-const headshotHtml = createHeadshotHtml(p.Name, 'lg');
+const headshotHtml = createHeadshotHtml(p.Name, 'lg', p.Team);
 card.innerHTML = `<div style="display:flex; align-items:center; min-width:0;">${headshotHtml}<span style="font-family:monospace; font-weight:800; color:var(--stadium-lights); font-size:12px; margin-right:8px; width:20px;">#${index+1}</span>${logoImg}<div style="min-width:0; overflow:hidden; text-overflow:ellipsis;"><div style="font-weight:800; color:#fff; font-size:12px;">${p.Name}</div><div style="font-size:10px; color:var(--text-muted); font-weight:600;">vs ${p['Opp Pitcher'] || 'Pitcher'}</div></div></div><div style="font-family:monospace; font-weight:900; color:var(--accent); font-size:15px; margin-left:8px;">${p.calculatedBBI.toFixed(1)}</div>`;
 grid.appendChild(card);
 });
