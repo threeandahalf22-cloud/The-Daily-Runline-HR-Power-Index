@@ -949,13 +949,13 @@ function getHomeTeamForPlayer(player) {
   const team = String(player.Team || player.TEAM || 'UNK').trim().toUpperCase();
   const oppTeam = String(safeGet(player, 'Opp Team', 'OppTeam', 'Opponent', 'OPP', 'Opp') || '').trim().toUpperCase();
 
-  // BEST SOURCE: HR sheet column named exactly "Ball Park Team".
-  // This overrides every matchup fallback so the park/stadium can never flip home/away again.
-  const ballParkTeam = String(safeGet(player, 'Ball Park Team', 'BALL PARK TEAM', 'Ball park team', 'ball park team') || '').trim().toUpperCase();
+  // BEST SOURCE: HR sheet column N named exactly "Ballpark Team".
+  // This is the game park/home team source and overrides player team/opponent fallbacks.
+  const ballParkTeam = String(safeGet(player, 'Ballpark Team', 'BallparkTeam', 'BALLPARK TEAM') || '').trim().toUpperCase();
   if (ballParkTeam) return ballParkTeam;
 
-  // Secondary accepted HR-sheet park columns.
-  const explicitParkTeam = String(safeGet(player, 'Park Team', 'ParkTeam', 'Stadium Team', 'StadiumTeam', 'Ballpark Team', 'BallparkTeam', 'Venue Team', 'VenueTeam') || '').trim().toUpperCase();
+  // Secondary accepted park aliases only if the exact workbook column is not present.
+  const explicitParkTeam = String(safeGet(player, 'Ball Park Team', 'BALL PARK TEAM', 'Ball park team', 'ball park team', 'Park Team', 'ParkTeam', 'Stadium Team', 'StadiumTeam', 'Venue Team', 'VenueTeam') || '').trim().toUpperCase();
   if (explicitParkTeam) return explicitParkTeam;
 
   const explicitHomeTeam = String(safeGet(player, 'Home Team', 'HomeTeam', 'HOME TEAM') || '').trim().toUpperCase();
@@ -2434,7 +2434,7 @@ function hybridWeightedAvg(items) {
 }
 function hybridPresent(raw, key) {
   const v = raw ? raw[key] : null;
-  return !(v === null || v === undefined || isNaN(v) || Number(v) === 0);
+  return !(v === null || v === undefined || isNaN(v));
 }
 function hybridCoverage(raw, groups) {
   const validGroups = groups.filter(g => g && Array.isArray(g.keys) && g.keys.length && g.weight > 0);
@@ -2459,6 +2459,26 @@ function hybridSweetSpotLaunchAngle(la) {
   return Math.max(0, 100 - ((la - 28) * 6));
 }
 function hybridRate(v) { if (v === null || v === undefined || isNaN(v)) return null; return v > 1 ? v / 100 : v; }
+function cleanNumberOrNull(v) {
+  // This is the scoring-safe parser: blank cells stay missing, while a true numeric 0 stays 0.
+  if (v === undefined || v === null) return null;
+  if (typeof v === 'string') {
+    const trimmed = v.trim();
+    if (trimmed === '' || trimmed.toLowerCase() === 'not found' || trimmed === '-' || trimmed.toLowerCase() === 'na' || trimmed.toLowerCase() === 'n/a') return null;
+    if (trimmed.includes('%')) {
+      const pct = parseFloat(trimmed.replace('%',''));
+      return isNaN(pct) ? null : pct / 100;
+    }
+    const n = Number(trimmed.replace(/,/g, ''));
+    return isNaN(n) ? null : n;
+  }
+  const n = Number(v);
+  return isNaN(n) ? null : n;
+}
+function rawNumber(obj, ...keys) { return cleanNumberOrNull(safeGet(obj, ...keys)); }
+function rawRate(obj, ...keys) { return hybridRate(rawNumber(obj, ...keys)); }
+function firstValidNumber(...vals) { for (const v of vals) { if (v !== null && v !== undefined && !isNaN(v)) return v; } return null; }
+function positiveOrFallback(v, fallback) { return (v !== null && v !== undefined && !isNaN(v) && Number(v) > 0) ? Number(v) : fallback; }
 function hybridRaw(p) {
   const normName = normalizeName(p.Name);
   const lw = lastWeekMap[normName] || {};
@@ -2466,7 +2486,7 @@ function hybridRaw(p) {
   const bvp = vsPitcherData[normName] || {};
   const weather = weatherSettings[p.gameId] || null;
   // Park dimensions/scoring must follow the actual ballpark, not the hitter's team or the away team.
-  // HR sheet "Ball Park Team" is the preferred source through getHomeTeamForPlayer().
+  // HR sheet column N "Ballpark Team" is the preferred source through getHomeTeamForPlayer().
   const parkTeam = getHomeTeamForPlayer(p);
   const parkDims = parkFactorMap[parkTeam] || { lf: 330, cf: 400, rf: 330, pf: 100 };
   const hand = getHitterHandedness(p);
@@ -2502,83 +2522,80 @@ function hybridRaw(p) {
     if (humidity > 60) weatherScore += 3;
   } else if (weather && weather.isDome) weatherScore = 55;
   return {
-    barrel: hybridRate(cleanNumber(safeGet(p, 'Barrel %', 'Barrel%'))),
-    iso: cleanNumber(safeGet(p, 'ISO', 'Iso')),
-    slg: cleanNumber(safeGet(p, 'SLG')),
-    xwoba: cleanNumber(safeGet(p, 'xwOBA', 'Expected wOBA', 'xWOBA')),
-    avgEV: cleanNumber(safeGet(p, 'Avg EV', 'AVG EV', 'EV')),
-    maxEV: cleanNumber(safeGet(p, 'Max EV', 'MaxEV')),
-    hardHit: hybridRate(cleanNumber(safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%'))),
-    sweetSpot: hybridRate(cleanNumber(safeGet(p, 'Sweet Spot %', 'Sweetspot %'))),
-    xHR: cleanNumber(safeGet(p, 'xHR', 'Expected HR', 'xHR Season')),
-    pitcherHR9: cleanNumber(safeGet(p, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9', 'PHR/9')),
-    pitcherBarrel: hybridRate(cleanNumber(safeGet(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%'))),
-    pitcherEV: cleanNumber(safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV')),
-    pitcherMaxEV: cleanNumber(safeGet(p, 'Pitcher Max EV', 'Pitcher MaxEV')),
-    pitcherHardHit: hybridRate(cleanNumber(safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed'))),
-    pitcherFB: hybridRate(cleanNumber(safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %'))),
-    pitcherPull: hybridRate(cleanNumber(safeGet(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%'))),
-    pitcherGB: hybridRate(cleanNumber(safeGet(p, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB'))),
-    pitcherHRFB: hybridRate(cleanNumber(safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB'))),
-    pitcherSweet: hybridRate(cleanNumber(safeGet(p, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot'))),
-    flyBall: hybridRate(cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %'))),
-    pullAir: hybridRate(cleanNumber(safeGet(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %'))),
-    pull: hybridRate(cleanNumber(safeGet(p, 'Pull %', 'Pull%', 'PullRate'))),
-    launchAngle: cleanNumber(safeGet(p, 'Launch Angle', 'LA')),
-    hrFb: hybridRate(cleanNumber(safeGet(p, 'HR/FB %', 'HR/FB', 'HRFB'))),
-    batSpeed: cleanNumber(safeGet(p, 'BatSpd', 'Bat Speed')),
-    sqUpCon: hybridRate(cleanNumber(safeGet(p, 'SqUpCon%', 'SqUpCon', 'Square-Up Con%', 'Square Up %'))),
-    blastCon: hybridRate(cleanNumber(safeGet(p, 'BlastCon%', 'BlastCon'))),
-    bullpenHR9: cleanNumber(safeGet(p, 'Bullpen HR/9')),
-    bullpenFIP: cleanNumber(safeGet(p, 'Bullpen FIP')),
-    bullpenBarrel: hybridRate(cleanNumber(safeGet(p, 'Bullpen Barrel %'))),
-    bullpenHardHit: hybridRate(cleanNumber(safeGet(p, 'Bullpen Hard Hit %'))),
-    parkFactor: cleanNumber(safeGet(p, 'pf', 'PF', 'ParkFactor', 'Park Factor')) || parkDims.pf || 100,
+    barrel: rawRate(p, 'Barrel %', 'Barrel%'),
+    iso: rawNumber(p, 'ISO', 'Iso'),
+    slg: rawNumber(p, 'SLG'),
+    xwoba: rawNumber(p, 'xwOBA', 'Expected wOBA', 'xWOBA'),
+    avgEV: rawNumber(p, 'Avg EV', 'AVG EV', 'EV'),
+    maxEV: rawNumber(p, 'Max EV', 'MaxEV'),
+    hardHit: rawRate(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%'),
+    sweetSpot: rawRate(p, 'Sweet Spot %', 'Sweetspot %'),
+    xHR: rawNumber(p, 'xHR', 'Expected HR', 'xHR Season'),
+    pitcherHR9: rawNumber(p, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9', 'PHR/9'),
+    pitcherBarrel: rawRate(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%'),
+    pitcherEV: rawNumber(p, 'Pitcher EV Allowed', 'Pitcher EV'),
+    pitcherMaxEV: rawNumber(p, 'Pitcher Max EV', 'Pitcher MaxEV'),
+    pitcherHardHit: rawRate(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed'),
+    pitcherFB: rawRate(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %'),
+    pitcherPull: rawRate(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%'),
+    pitcherGB: rawRate(p, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB'),
+    pitcherHRFB: rawRate(p, 'Pitcher HR/FB %', 'Pitcher HRFB'),
+    pitcherSweet: rawRate(p, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot'),
+    flyBall: rawRate(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %'),
+    pullAir: rawRate(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %'),
+    pull: rawRate(p, 'Pull %', 'Pull%', 'PullRate'),
+    launchAngle: rawNumber(p, 'Launch Angle', 'LA'),
+    hrFb: rawRate(p, 'HR/FB %', 'HR/FB', 'HRFB'),
+    batSpeed: rawNumber(p, 'BatSpd', 'Bat Speed'),
+    sqUpCon: rawRate(p, 'SqUpCon%', 'SqUpCon', 'Square-Up Con%', 'Square Up %'),
+    blastCon: rawRate(p, 'BlastCon%', 'BlastCon'),
+    bullpenHR9: rawNumber(p, 'Bullpen HR/9'),
+    bullpenFIP: rawNumber(p, 'Bullpen FIP'),
+    bullpenBarrel: rawRate(p, 'Bullpen Barrel %'),
+    bullpenHardHit: rawRate(p, 'Bullpen Hard Hit %'),
+    parkFactor: positiveOrFallback(rawNumber(p, 'pf', 'PF', 'ParkFactor', 'Park Factor'), parkDims.pf || 100),
     pullFence: pullFence,
-    cf: parkDims.cf || cleanNumber(safeGet(p, 'CF')) || 400,
+    cf: positiveOrFallback(parkDims.cf, positiveOrFallback(rawNumber(p, 'CF'), 400)),
     weatherScore: weatherScore,
-    pa: cleanNumber(safeGet(p, 'PA', 'pa', 'PAs', 'Plate Appearances', 'AB')),
-    paPg: cleanNumber(safeGet(p, 'PA PG', 'PA/Game', 'PApg', 'PA per game')),
-    battingOrder: cleanNumber(safeGet(p, 'BO', 'Batting Order', 'Lineup Spot')),
-    teamTotal: cleanNumber(safeGet(p, 'Total', 'Game Total', 'O/U', 'Over/Under')),
-    kRate: hybridRate(cleanNumber(safeGet(p, 'K %', 'K%', 'Strikeout %'))),
-    hSwing: hybridRate(cleanNumber(safeGet(p, 'H-Swing %', 'Hard Swing %'))),
-    hContact: hybridRate(cleanNumber(safeGet(p, 'H-Contact %', 'Hard Contact %'))),
-    lwEV: cleanNumber(safeGet(lw, 'EV', 'Avg EV', 'AVG EV')),
-    lwMaxEV: cleanNumber(safeGet(lw, 'maxEV', 'Max EV')),
-    lwLA: cleanNumber(safeGet(lw, 'LA', 'Launch Angle')),
-    lwBarrel: hybridRate(cleanNumber(safeGet(lw, 'Barrel%', 'Barrel %'))),
-    lwHardHit: hybridRate(cleanNumber(safeGet(lw, 'HardHit%', 'Hard Hit %', 'HardHi t%'))),
-    lwSLG: cleanNumber(safeGet(lw, 'SLG')),
-    lwXSLG: cleanNumber(safeGet(lw, 'xSLG')),
-    lwXWOBA: cleanNumber(safeGet(lw, 'xwOBA', 'xWOBA')),
-    lwHR: cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR')),
-    lwISO: cleanNumber(safeGet(lw, 'ISO')),
+    pa: rawNumber(p, 'PA', 'pa', 'PAs', 'Plate Appearances', 'AB'),
+    paPg: rawNumber(p, 'PA PG', 'PA/Game', 'PApg', 'PA per game'),
+    battingOrder: rawNumber(p, 'BO', 'Batting Order', 'Lineup Spot'),
+    teamTotal: rawNumber(p, 'Total', 'Game Total', 'O/U', 'Over/Under'),
+    kRate: rawRate(p, 'K %', 'K%', 'Strikeout %'),
+    hSwing: rawRate(p, 'H-Swing %', 'Hard Swing %'),
+    hContact: rawRate(p, 'H-Contact %', 'Hard Contact %'),
+    lwEV: rawNumber(lw, 'EV', 'Avg EV', 'AVG EV'),
+    lwMaxEV: rawNumber(lw, 'maxEV', 'Max EV'),
+    lwLA: rawNumber(lw, 'LA', 'Launch Angle'),
+    lwBarrel: rawRate(lw, 'Barrel%', 'Barrel %'),
+    lwHardHit: rawRate(lw, 'HardHit%', 'Hard Hit %', 'HardHi t%'),
+    lwSLG: rawNumber(lw, 'SLG'),
+    lwXSLG: rawNumber(lw, 'xSLG'),
+    lwXWOBA: rawNumber(lw, 'xwOBA', 'xWOBA'),
+    lwHR: rawNumber(lw, 'HRs', 'HRsLastWeek', 'HR'),
+    lwISO: rawNumber(lw, 'ISO'),
     pitchLevelEV: pitchLevelEV,
-    bvpPA: cleanNumber(safeGet(bvp, 'vspPA', 'PA', 'PAs', 'AB')),
-    bvpHR: cleanNumber(safeGet(bvp, 'Matchup HR', 'HR', 'HRs')),
-    bvpK: hybridRate(cleanNumber(safeGet(bvp, 'K%', 'K %'))),
-    bvpWhiff: hybridRate(cleanNumber(safeGet(bvp, 'Whiff%', 'Whiff %'))),
-    bvpBA: cleanNumber(safeGet(bvp, 'BA')),
-    bvpXSLG: cleanNumber(safeGet(bvp, 'Matchup xSLG', 'xSLG')),
-    bvpXWOBA: cleanNumber(safeGet(bvp, 'xwOBA', 'xWOBA')),
-    bvpEV: cleanNumber(safeGet(bvp, 'Matchup EV', 'EV', 'Avg EV')),
-    bvpLA: cleanNumber(safeGet(bvp, 'LA', 'Launch Angle'))
+    bvpPA: rawNumber(bvp, 'vspPA', 'PA', 'PAs', 'AB'),
+    bvpHR: rawNumber(bvp, 'Matchup HR', 'HR', 'HRs'),
+    bvpK: rawRate(bvp, 'K%', 'K %'),
+    bvpWhiff: rawRate(bvp, 'Whiff%', 'Whiff %'),
+    bvpBA: rawNumber(bvp, 'BA'),
+    bvpXSLG: rawNumber(bvp, 'Matchup xSLG', 'xSLG'),
+    bvpXWOBA: rawNumber(bvp, 'xwOBA', 'xWOBA'),
+    bvpEV: rawNumber(bvp, 'Matchup EV', 'EV', 'Avg EV'),
+    bvpLA: rawNumber(bvp, 'LA', 'Launch Angle')
   };
 }
 function buildHybridRanges(players) {
   const ranges = {};
-  players.forEach(p => { Object.keys(p.hybridRaw || {}).forEach(k => { const v = p.hybridRaw[k]; if (v !== null && v !== undefined && !isNaN(v) && v !== 0) { if (!ranges[k]) ranges[k] = []; ranges[k].push(v); } }); });
+  players.forEach(p => { Object.keys(p.hybridRaw || {}).forEach(k => { const v = p.hybridRaw[k]; if (v !== null && v !== undefined && !isNaN(v)) { if (!ranges[k]) ranges[k] = []; ranges[k].push(v); } }); });
   Object.keys(ranges).forEach(k => { ranges[k] = { min: Math.min(...ranges[k]), max: Math.max(...ranges[k]) }; });
   return ranges;
 }
-const HYBRID_ZERO_VALID_METRICS = new Set(['weatherScore']);
 function hybridScoreMetric(raw, ranges, key, reverse=false) {
-  // Most workbook blanks are parsed as 0. Treat those as missing, not terrible,
-  // otherwise power bats can get buried by a blank EV/Pitch Lab/BVP cell.
+  // Blank cells are null and ignored. A real 0 remains a real 0 and gets scored.
   const v = raw ? raw[key] : null;
   if (v === null || v === undefined || isNaN(v)) return null;
-  if (Number(v) === 0 && !HYBRID_ZERO_VALID_METRICS.has(key)) return null;
   return ranges[key] ? hybridNorm(v, ranges[key].min, ranges[key].max, reverse) : null;
 }
 function hybridClampLow(value, floor) {
