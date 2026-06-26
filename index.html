@@ -581,6 +581,114 @@ tbody tr.stadium-row td {
 .modal-right { padding: 20px; }
 .modal-stats-grid { grid-template-columns: 1fr; }
 }
+
+
+/* =========================
+   PREMIUM GAME DAY VISUAL PACK
+   Visual-only: no scoring/weights changed.
+   ========================= */
+.slate-board {
+  display:none;
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.09);
+  border-left:5px solid var(--stadium-lights);
+  border-radius:18px;
+  padding:16px 18px 18px;
+  margin-bottom:20px;
+  background:linear-gradient(145deg, rgba(5,11,20,.92), rgba(17,31,53,.72));
+  box-shadow:0 18px 50px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.slate-board::after {
+  content:''; position:absolute; inset:-45% -25%; pointer-events:none;
+  background:linear-gradient(110deg, transparent 40%, rgba(255,255,255,.06) 50%, transparent 60%);
+  animation: slate-shine 9s linear infinite;
+}
+@keyframes slate-shine { 0%{transform:translateX(-40%)} 100%{transform:translateX(40%)} }
+.slate-board-header { position:relative; z-index:1; display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; }
+.slate-board-title { font-size:12px; font-weight:1000; color:#fff; text-transform:uppercase; letter-spacing:1.7px; display:flex; align-items:center; gap:8px; }
+.slate-board-sub { color:var(--text-muted); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.7px; }
+.slate-games-grid { position:relative; z-index:1; display:grid; grid-template-columns:repeat(auto-fit, minmax(235px, 1fr)); gap:12px; }
+.slate-game-card { --team-color: var(--accent); --team-glow: rgba(0,255,157,.20); border:1px solid rgba(255,255,255,.08); border-left:4px solid var(--team-color); border-radius:15px; padding:13px; cursor:pointer; background:radial-gradient(circle at 92% 10%, var(--team-glow), transparent 32%), rgba(5,11,20,.74); transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
+.slate-game-card:hover { transform:translateY(-3px); border-color:var(--team-color); box-shadow:0 14px 32px rgba(0,0,0,.34), 0 0 26px var(--team-glow); }
+.slate-game-teams { display:flex; align-items:center; justify-content:center; gap:10px; color:#fff; font-size:17px; font-weight:1000; letter-spacing:.5px; }
+.slate-game-teams img { width:28px; height:28px; object-fit:contain; }
+.slate-game-at { color:var(--text-muted); font-size:11px; font-weight:900; }
+.slate-game-park { margin-top:9px; color:var(--stadium-lights); font-size:10px; font-weight:900; text-align:center; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.slate-game-bottom { margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.slate-env-pill { border-radius:999px; padding:5px 8px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); color:#cbd5e1; font-size:9px; font-weight:1000; text-transform:uppercase; }
+.slate-env-pill.hot { background:rgba(239,68,68,.13); color:#fca5a5; border-color:rgba(239,68,68,.25); }
+.slate-env-pill.nuclear { background:linear-gradient(135deg, #facc15, #f97316); color:#06111d; border-color:rgba(250,204,21,.40); }
+.top12-carousel-wrap { margin-bottom:20px; display:none; }
+.top12-carousel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:0 2px; }
+.top12-carousel-title { color:#fff; font-size:12px; font-weight:1000; text-transform:uppercase; letter-spacing:1.4px; }
+.top12-carousel-sub { color:var(--text-muted); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; }
+.top12-carousel { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:13px; padding:5px 2px 15px; overflow:visible; }
+.top12-card { --team-color:var(--accent); --team-glow:rgba(0,255,157,.18); cursor:pointer; position:relative; overflow:hidden; border-radius:18px; border:1px solid rgba(255,255,255,.09); border-top:4px solid var(--team-color); padding:16px; background:radial-gradient(circle at 50% -5%, var(--team-glow), transparent 36%), linear-gradient(145deg, rgba(17,31,53,.88), rgba(5,11,20,.94)); box-shadow:0 16px 38px rgba(0,0,0,.34); transition:transform .24s ease, box-shadow .24s ease, border-color .24s ease; }
+.top12-card:hover { transform:translateY(-4px) scale(1.015); border-color:var(--team-color); box-shadow:0 22px 52px rgba(0,0,0,.42), 0 0 28px var(--team-glow); }
+.top12-rank { position:absolute; top:10px; left:10px; background:linear-gradient(135deg,#facc15,#f97316); color:#06111d; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:12px; font-family:monospace; font-weight:1000; }
+.top12-head { display:flex; justify-content:center; margin:10px 0 12px; }
+.top12-head .player-headshot-lg { width:76px; height:76px; margin:0; }
+.top12-name { text-align:center; color:#fff; font-weight:1000; font-size:15px; text-transform:uppercase; line-height:1.08; min-height:32px; }
+.top12-meta { text-align:center; margin-top:5px; color:var(--text-muted); font-size:10px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.top12-score-row { display:flex; justify-content:space-between; align-items:end; margin-top:14px; }
+.top12-score-label { color:var(--text-muted); font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:1px; }
+.top12-score { color:var(--team-color); font-family:monospace; font-size:31px; font-weight:1000; line-height:.9; text-shadow:0 0 18px var(--team-glow); }
+.bbi-prob-meter { margin-top:8px; min-width:128px; }
+.bbi-prob-top { display:flex; justify-content:space-between; color:#cbd5e1; font-size:9px; font-weight:1000; text-transform:uppercase; }
+.bbi-prob-track { margin-top:4px; height:7px; border-radius:999px; overflow:hidden; background:rgba(107,124,150,.18); border:1px solid rgba(255,255,255,.05); }
+.bbi-prob-fill { height:100%; border-radius:999px; background:linear-gradient(90deg, var(--team-color, var(--accent)), #38bdf8); box-shadow:0 0 12px var(--team-glow, rgba(0,255,157,.22)); }
+.bbi-tier-pill { display:inline-flex; margin-top:6px; padding:4px 7px; border-radius:999px; background:var(--team-color,var(--accent)); color:#06111d; font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:.65px; }
+.why-rank-box { border:1px solid rgba(255,255,255,.07); border-left:4px solid var(--team-color, var(--accent)); border-radius:14px; padding:13px; background:linear-gradient(135deg, rgba(0,255,157,.055), rgba(5,11,20,.70)); box-shadow:0 12px 26px rgba(0,0,0,.22); }
+.why-rank-list { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.why-rank-item { display:flex; align-items:center; gap:8px; border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:9px 10px; background:rgba(5,11,20,.55); color:#e2e8f0; font-size:12px; font-weight:800; }
+.why-rank-icon { width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:8px; background:var(--team-glow-soft, rgba(0,255,157,.08)); }
+tr.team-heat-row::after { content:''; position:absolute; inset:0; pointer-events:none; opacity:0; background:linear-gradient(105deg, transparent 0%, rgba(255,255,255,.075) 40%, transparent 58%); transform:translateX(-45%); }
+tbody tr.team-heat-row { position:relative; overflow:hidden; }
+tbody tr.team-heat-row:hover::after { opacity:1; animation: row-stadium-lights 1.6s ease-out infinite; }
+@keyframes row-stadium-lights { 0% { transform:translateX(-45%); } 100% { transform:translateX(45%); } }
+@media(max-width:1100px){ .top12-carousel{grid-template-columns:repeat(3, minmax(0, 1fr));} }
+@media(max-width:850px){ .why-rank-list{grid-template-columns:1fr;} .slate-games-grid{grid-template-columns:1fr;} .top12-carousel{grid-template-columns:repeat(2, minmax(0, 1fr));} }
+@media(max-width:560px){ .top12-carousel{grid-template-columns:1fr;} }
+
+
+/* =========================
+   JAMES WOOD / JR BURNS LOCK-IN GATE
+   Funny quirk only: no scoring logic changed.
+   ========================= */
+.jr-burns-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(6, 12, 22, 0.86);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+.jr-burns-card {
+  width: min(430px, 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-top: 4px solid #f59e0b;
+  background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.20), transparent 38%), linear-gradient(180deg, #091526 0%, #060c16 100%);
+  box-shadow: 0 28px 70px rgba(0,0,0,.70), 0 0 38px rgba(245,158,11,.18);
+  padding: 26px;
+  text-align: center;
+  animation: modal-pop .24s ease-out;
+}
+.jr-burns-emoji { font-size: 42px; margin-bottom: 10px; }
+.jr-burns-title { color: #fff; font-size: 24px; font-weight: 1000; text-transform: uppercase; letter-spacing: -.4px; margin-bottom: 8px; }
+.jr-burns-copy { color: var(--text-muted); font-size: 13px; font-weight: 700; line-height: 1.45; margin-bottom: 18px; }
+.jr-burns-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.jr-burns-btn { border: 0; border-radius: 12px; padding: 13px 14px; font-size: 12px; font-weight: 1000; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: transform .18s ease, filter .18s ease, box-shadow .18s ease; }
+.jr-burns-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.jr-burns-yes { background: linear-gradient(135deg, #ef4444, #991b1b); color: white; box-shadow: 0 10px 24px rgba(239,68,68,.20); }
+.jr-burns-no { background: linear-gradient(135deg, #00ff9d, #00d482); color: #04080f; box-shadow: 0 10px 24px rgba(0,255,157,.16); }
+.jr-burns-ban { margin-top: 14px; padding: 12px; border-radius: 12px; background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.28); color: #fecaca; font-size: 13px; font-weight: 900; }
+
 </style>
 </head>
 <body>
@@ -639,8 +747,10 @@ tbody tr.stadium-row td {
 <button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
 </div>
 <div id="tab-home" class="tab-content active">
+<div id="pregameSlateBoard" class="slate-board"></div>
 <div id="topTargetHero" class="top-target-hero" style="display:none;"></div>
-<div id="spotlightTicker" class="spotlight-ticker">
+<div id="top12CarouselWrap" class="top12-carousel-wrap"><div class="top12-carousel-head"><div class="top12-carousel-title">💣 Top 12 Longball Carousel</div><div class="top12-carousel-sub">Player card board • Click any card</div></div><div id="top12Carousel" class="top12-carousel"></div></div>
+<div id="spotlightTicker" class="spotlight-ticker" style="display:none !important;">
 <div class="spotlight-title"><span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>Top 12 Homerun Targets</div>
 <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
 </div>
@@ -875,9 +985,51 @@ await fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({ playerName, tea
 setTimeout(loadCommunityPicks, 1000);
 } catch (error) { console.log('Error saving pick:', error); }
 }
-function lockInPick(playerName, team) {
-const btn = event.target;
-if (btn.disabled) return;
+
+function normalizePlayerNameForGate(name) {
+return String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+function showJamesWoodGate() {
+return new Promise((resolve) => {
+const oldGate = document.getElementById('jrBurnsGate');
+if (oldGate) oldGate.remove();
+const overlay = document.createElement('div');
+overlay.id = 'jrBurnsGate';
+overlay.className = 'jr-burns-overlay';
+overlay.innerHTML = `
+  <div class="jr-burns-card" onclick="event.stopPropagation()">
+    <div class="jr-burns-emoji">🪵🚨</div>
+    <div class="jr-burns-title">Are you JR Burns?</div>
+    <div class="jr-burns-copy">Security check before locking in James Wood.</div>
+    <div class="jr-burns-actions">
+      <button class="jr-burns-btn jr-burns-yes" data-answer="yes">Yes</button>
+      <button class="jr-burns-btn jr-burns-no" data-answer="no">No</button>
+    </div>
+    <div id="jrBurnsBanMsg" class="jr-burns-ban" style="display:none;">You're banned from betting him.</div>
+  </div>`;
+document.body.appendChild(overlay);
+overlay.addEventListener('click', (e) => {
+  if (e.target === overlay) { overlay.remove(); resolve(false); }
+});
+overlay.querySelector('[data-answer="yes"]').addEventListener('click', () => {
+  const msg = document.getElementById('jrBurnsBanMsg');
+  if (msg) msg.style.display = 'block';
+  setTimeout(() => { overlay.remove(); resolve(false); }, 1350);
+});
+overlay.querySelector('[data-answer="no"]').addEventListener('click', () => {
+  overlay.remove();
+  resolve(true);
+});
+});
+}
+
+async function lockInPick(playerName, team, clickEvent) {
+const btn = (clickEvent && clickEvent.currentTarget) || (typeof event !== 'undefined' ? event.target : null);
+if (!btn || btn.disabled) return;
+if (normalizePlayerNameForGate(playerName) === 'james wood') {
+const allowedToLock = await showJamesWoodGate();
+if (!allowedToLock) return;
+}
 btn.innerHTML = '⏳ SAVING...';
 btn.disabled = true;
 savePick(playerName, team).then(() => { btn.innerHTML = '✅ LOCKED'; });
@@ -916,6 +1068,7 @@ let bullpenData = {};
 let gameMatchups = [];
 let weatherSettings = {};
 let teamToGameIdMap = {};
+let teamHomeParkMap = {};
 let parkFactorMap = {};
 let selectedQuickTeamFilter = 'ALL';
 let codysDiamondsData = [];
@@ -949,35 +1102,32 @@ function getHomeTeamForPlayer(player) {
   const team = String(player.Team || player.TEAM || 'UNK').trim().toUpperCase();
   const oppTeam = String(safeGet(player, 'Opp Team', 'OppTeam', 'Opponent', 'OPP', 'Opp') || '').trim().toUpperCase();
 
-  // BEST SOURCE: HR sheet column N named exactly "Ballpark Team".
-  // This is the game park/home team source and overrides player team/opponent fallbacks.
-  const ballParkTeam = String(safeGet(player, 'Ballpark Team', 'BallparkTeam', 'BALLPARK TEAM') || '').trim().toUpperCase();
-  if (ballParkTeam) return ballParkTeam;
+  // BEST SOURCE: HA sheet. Column A is the true HOME/PARK team, Column B is the AWAY team.
+  // Every team in the same HA row gets assigned Column A as the ballpark/home team.
+  if (teamHomeParkMap[team]) return String(teamHomeParkMap[team]).trim().toUpperCase();
 
-  // Secondary accepted park aliases only if the exact workbook column is not present.
-  const explicitParkTeam = String(safeGet(player, 'Ball Park Team', 'BALL PARK TEAM', 'Ball park team', 'ball park team', 'Park Team', 'ParkTeam', 'Stadium Team', 'StadiumTeam', 'Venue Team', 'VenueTeam') || '').trim().toUpperCase();
-  if (explicitParkTeam) return explicitParkTeam;
-
-  const explicitHomeTeam = String(safeGet(player, 'Home Team', 'HomeTeam', 'HOME TEAM') || '').trim().toUpperCase();
-  if (explicitHomeTeam) return explicitHomeTeam;
-
-  // If the HR sheet tells us whether the PLAYER'S team is home/away, use that.
-  // Away/Road/@ = opponent's park. Home = player's park.
-  const haRaw = String(safeGet(player, 'Home/Away', 'H/A', 'HA', 'HomeAway', 'Location', 'Site') || '').trim().toUpperCase();
-  if (haRaw) {
-    if (['A','AWAY','ROAD','R','@'].includes(haRaw) || haRaw.includes('AWAY') || haRaw.includes('ROAD') || haRaw.includes('@')) return oppTeam || team;
-    if (['H','HOME'].includes(haRaw) || haRaw.includes('HOME')) return team;
-  }
-
-  // Use the matchup map for the true ballpark. In this workbook's matchup rows,
-  // the current stadium display was reading the away side; the true HOME park is teamA here.
-  // This is visual-only and does not touch scoring/weather math.
   if (player.gameId) {
     const matchup = gameMatchups.find(m => m.id === player.gameId);
     if (matchup) {
       const trueHome = matchup.trueHomeTeam || matchup.homeTeam || matchup.teamA || team;
       return String(trueHome).trim().toUpperCase();
     }
+  }
+
+  // HR-sheet fields are fallback only. The HA sheet overrides these because it is the clean matchup source.
+  const ballParkTeam = String(safeGet(player, 'Ballpark Team', 'BallparkTeam', 'BALLPARK TEAM') || '').trim().toUpperCase();
+  if (ballParkTeam) return ballParkTeam;
+
+  const explicitParkTeam = String(safeGet(player, 'Ball Park Team', 'BALL PARK TEAM', 'Ball park team', 'ball park team', 'Park Team', 'ParkTeam', 'Stadium Team', 'StadiumTeam', 'Venue Team', 'VenueTeam') || '').trim().toUpperCase();
+  if (explicitParkTeam) return explicitParkTeam;
+
+  const explicitHomeTeam = String(safeGet(player, 'Home Team', 'HomeTeam', 'HOME TEAM') || '').trim().toUpperCase();
+  if (explicitHomeTeam) return explicitHomeTeam;
+
+  const haRaw = String(safeGet(player, 'Home/Away', 'H/A', 'HA', 'HomeAway', 'Location', 'Site') || '').trim().toUpperCase();
+  if (haRaw) {
+    if (['A','AWAY','ROAD','R','@'].includes(haRaw) || haRaw.includes('AWAY') || haRaw.includes('ROAD') || haRaw.includes('@')) return oppTeam || team;
+    if (['H','HOME'].includes(haRaw) || haRaw.includes('HOME')) return team;
   }
 
   // Final visual-only fallback.
@@ -1080,6 +1230,86 @@ function getPlayerWhyChips(player) {
   if ((player.calculatedSynergy || 0) > 4) chips.push('Pitch lab edge');
   return chips.slice(0,4);
 }
+
+function bbiTierLabel(score) {
+  const n = cleanNumber(score || 0);
+  if (n >= 95) return 'Nuclear';
+  if (n >= 90) return 'Elite';
+  if (n >= 84) return 'Strong';
+  if (n >= 76) return 'Watch';
+  return 'Tracked';
+}
+function bbiDisplayProbability(score) {
+  // Visual-only translation of BBI into an easy-read meter. Does not affect scoring.
+  const n = Math.max(0, Math.min(100, cleanNumber(score || 0)));
+  return Math.round(28 + (n * 0.50));
+}
+function renderBBIProbabilityMeter(player, compact=false) {
+  const pct = bbiDisplayProbability(player.calculatedBBI || 0);
+  const tier = bbiTierLabel(player.calculatedBBI || 0);
+  return `<div class="bbi-prob-meter"><div class="bbi-prob-top"><span>${compact ? 'HR Meter' : 'Model HR Meter'}</span><span>${pct}%</span></div><div class="bbi-prob-track"><div class="bbi-prob-fill" style="width:${pct}%"></div></div><span class="bbi-tier-pill">${tier}</span></div>`;
+}
+function renderWhyRankBox(player) {
+  const items = [];
+  const barrel = cleanNumber(player['Barrel %']) * 100;
+  const iso = cleanNumber(player['ISO']);
+  const pHR9 = cleanNumber(player['Pitcher HR/9'] || player['P HR/9']);
+  const pBarrel = cleanNumber(player['Pitcher Barrel % Allowed'] || player['Pitcher Barrel Allowed']) * 100;
+  const lw = lastWeekMap[normalizeName(player.Name)] || {};
+  const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR'));
+  const lwXSLG = cleanNumber(safeGet(lw, 'xSLG', 'xSLG Last Week', 'xSLG%'));
+  if (barrel >= 14) items.push(['🔥', `Elite barrel rate: ${barrel.toFixed(1)}%`]);
+  else if (barrel > 0) items.push(['🔥', `Barrel rate in play: ${barrel.toFixed(1)}%`]);
+  if (iso >= .240) items.push(['💣', `Big ISO power: ${iso.toFixed(3)}`]);
+  if (pHR9 >= 1.35) items.push(['🎯', `Pitcher HR/9 target: ${pHR9.toFixed(2)}`]);
+  if (pBarrel >= 9) items.push(['⚠️', `Pitcher barrel damage: ${pBarrel.toFixed(1)}%`]);
+  if ((player.envMultiplier || 1) >= 1.06) items.push(['🌬️', `Weather/park boost: ${(player.envMultiplier || 1).toFixed(2)}x`]);
+  if ((player.calculatedSynergy || 0) >= 2.5) items.push(['🧪', `Pitch Lab synergy: ${(player.calculatedSynergy || 0).toFixed(1)} pts`]);
+  if (lwHRs >= 2) items.push(['📈', `Recent pop: ${lwHRs} HR last 7`]);
+  if (lwXSLG >= .500) items.push(['📊', `Recent xSLG: ${lwXSLG.toFixed(3)}`]);
+  if (!items.length) items.push(['✅', 'Balanced profile across the model categories']);
+  return `<div class="why-rank-box" style="${teamVisualStyle(player.Team)}"><div class="modal-section-title" style="margin-bottom:12px; border-bottom:none; padding-bottom:0;">🧠 WHY HE RANKS HERE</div><div class="why-rank-list">${items.slice(0,6).map(([icon,text]) => `<div class="why-rank-item"><span class="why-rank-icon">${icon}</span><span>${text}</span></div>`).join('')}</div></div>`;
+}
+function renderPregameSlateBoard() {
+  const board = document.getElementById('pregameSlateBoard');
+  if (!board) return;
+  const active = playerData.filter(p => !p.isRemoved && p.Team);
+  if (!active.length) { board.style.display = 'none'; return; }
+  const games = new Map();
+  active.forEach(p => {
+    const key = p.gameId || getHomeTeamForPlayer(p) || p.Team;
+    if (!games.has(key)) games.set(key, []);
+    games.get(key).push(p);
+  });
+  const cards = Array.from(games.entries()).map(([gid, players]) => {
+    const home = getHomeTeamForPlayer(players[0]) || players[0].Team;
+    const teams = Array.from(new Set(players.map(x => x.Team).filter(Boolean)));
+    let away = teams.find(t => t !== home) || teams[0] || 'TBD';
+    const top = [...players].sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0))[0];
+    const avgTop = [...players].sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0)).slice(0,3).reduce((sum,p)=>sum+(p.calculatedBBI||0),0) / Math.max(1, Math.min(3, players.length));
+    const visual = getStadiumVisualForPlayer(top || players[0]);
+    const w = weatherSettings[(top || players[0]).gameId];
+    const wx = w && !w.isDome ? `${w.windSpeed || 0} MPH ${String(w.windDir || '').toUpperCase()}` : 'DOME / NEUTRAL';
+    const tier = avgTop >= 90 ? 'nuclear' : avgTop >= 82 ? 'hot' : '';
+    const label = avgTop >= 90 ? '🚀 Nuclear HR Env' : avgTop >= 82 ? '🔥 Hot HR Env' : avgTop >= 74 ? '⚾ Playable Env' : '❄ Pitcher Lean';
+    return `<div class="slate-game-card" style="${teamVisualStyle(home)}" onclick="selectedQuickTeamFilter='ALL'; document.getElementById('teamFilter1').value='ALL'; document.getElementById('searchFilter').value=''; applyFiltersAndRender(); setTimeout(()=>{ const rows=[...document.querySelectorAll('#tableBody tr')].filter(r=>r.textContent.includes('${away}')||r.textContent.includes('${home}')); if(rows[0]) rows[0].scrollIntoView({behavior:'smooth', block:'center'}); },80);"><div class="slate-game-teams">${renderTeamLogo(away,28)}<span>${away}</span><span class="slate-game-at">@</span><span>${home}</span>${renderTeamLogo(home,28)}</div><div class="slate-game-park">🏟️ ${visual.name}</div><div class="slate-game-bottom"><span class="slate-env-pill ${tier}">${label}</span><span class="slate-env-pill">${wx}</span></div></div>`;
+  }).join('');
+  board.innerHTML = `<div class="slate-board-header"><div><div class="slate-board-title">📡 Pregame Slate Board</div><div class="slate-board-sub">Game tiles built from today's uploaded workbook</div></div><div class="slate-board-sub">${games.size} games loaded</div></div><div class="slate-games-grid">${cards}</div>`;
+  board.style.display = 'block';
+}
+function renderTop12Carousel() {
+  const wrap = document.getElementById('top12CarouselWrap');
+  const rail = document.getElementById('top12Carousel');
+  if (!wrap || !rail) return;
+  const candidates = playerData.filter(p => !p.isRemoved).sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0)).slice(0,12);
+  if (!candidates.length) { wrap.style.display='none'; return; }
+  rail.innerHTML = candidates.map((p,i) => {
+    const hs = createHeadshotHtml(p.Name, 'lg', p.Team);
+    return `<div class="top12-card" style="${teamVisualStyle(p.Team)}" onclick="scrollToPlayer('${String(p.Name).replace(/'/g,"\'")}')"><div class="top12-rank">#${i+1}</div><div class="top12-head">${hs}</div><div class="top12-name">${p.Name}</div><div class="top12-meta">${p.Team} • vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</div><div class="top12-score-row"><div><div class="top12-score-label">BBI</div><div class="top12-score">${(p.calculatedBBI||0).toFixed(1)}</div></div>${renderBBIProbabilityMeter(p, true)}</div></div>`;
+  }).join('');
+  wrap.style.display='block';
+}
+
 function renderTopTargetHero() {
   const hero = document.getElementById('topTargetHero');
   if (!hero) return;
@@ -1094,7 +1324,7 @@ function renderTopTargetHero() {
   const weather = w && !w.isDome ? `${w.temp}°F • ${w.windSpeed} MPH ${String(w.windDir || '').toUpperCase()}` : 'Closed Dome / Neutral Weather';
   const chips = getPlayerWhyChips(p).map(c => `<span class="hero-why-chip">${c}</span>`).join('');
   const tier = (p.calculatedBBI || 0) >= 95 ? 'Nuclear' : (p.calculatedBBI || 0) >= 90 ? 'Elite' : 'Top Target';
-  hero.innerHTML = `<div class="hero-inner"><div class="hero-headshot-wrap"><div class="hero-rank-badge">#1</div>${headshot}</div><div><div class="hero-title-kicker">Today's Top Target</div><div class="hero-player-name">${p.Name}</div><div class="hero-meta"><span class="hero-meta-chip">${logo}${p.Team}</span><span class="hero-meta-chip">vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span><span class="hero-meta-chip">🏟️ ${visual.name}</span><span class="hero-meta-chip">🌤️ ${weather}</span></div><div class="hero-why-row">${chips}</div></div><div class="hero-scorebox"><div class="hero-score-label">BBI Score</div><div class="hero-score">${(p.calculatedBBI || 0).toFixed(1)}</div><span class="hero-score-tier">${tier}</span></div></div>`;
+  hero.innerHTML = `<div class="hero-inner"><div class="hero-headshot-wrap"><div class="hero-rank-badge">#1</div>${headshot}</div><div><div class="hero-title-kicker">Today's Top Target</div><div class="hero-player-name">${p.Name}</div><div class="hero-meta"><span class="hero-meta-chip">${logo}${p.Team}</span><span class="hero-meta-chip">vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span><span class="hero-meta-chip">🏟️ ${visual.name}</span><span class="hero-meta-chip">🌤️ ${weather}</span></div><div class="hero-why-row">${chips}</div></div><div class="hero-scorebox"><div class="hero-score-label">BBI Score</div><div class="hero-score">${(p.calculatedBBI || 0).toFixed(1)}</div><span class="hero-score-tier">${tier}</span>${renderBBIProbabilityMeter(p)}</div></div>`;
   hero.style.display = 'block';
 }
 function renderTodaysStorylines() {
@@ -1143,7 +1373,7 @@ document.getElementById('excelFile').addEventListener('change', handleFile, fals
 function normalizeName(s) { if (!s) return ''; return String(s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function escJSString(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\"/g, '&quot;'); }
 function saveCachedData() {
-const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps };
+const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps };
 localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 function loadCachedData() {
@@ -1159,6 +1389,7 @@ bullpenData = cacheData.bullpenData || {};
 gameMatchups = cacheData.gameMatchups || [];
 weatherSettings = cacheData.weatherSettings || {};
 teamToGameIdMap = cacheData.teamToGameIdMap || {};
+teamHomeParkMap = cacheData.teamHomeParkMap || {};
 parkFactorMap = cacheData.parkFactorMap || {};
 selectedQuickTeamFilter = cacheData.selectedQuickTeamFilter || 'ALL';
 codysDiamondsData = cacheData.codysDiamondsData || [];
@@ -1267,7 +1498,7 @@ const data = new Uint8Array(e.target.result);
 const workbook = XLSX.read(data, {type: 'array'});
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], vsFBRaw = [], vsCHRaw = [], vsCVRaw = [], vsSLRaw = [], vsCURaw = [];
-teamToGameIdMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (nameClean === 'HR' || nameClean === 'HOMERUN' || nameClean === 'SHEET1') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -1517,6 +1748,7 @@ let climate = w && !w.isDome ? `${w.temp}°F, ${w.windSpeed}mph ${w.windDir.toUp
 const stat = (label, val, color = '') => `<div class="modal-stat-item"><span class="modal-stat-label">${label}</span><span class="modal-stat-val ${color}">${val}</span></div>`;
 const section = (title, content) => `<div><div class="modal-section-title">${title}</div><div class="modal-stats-grid">${content}</div></div>`;
 let html = '';
+html += renderWhyRankBox(player);
 html += section('⚙️ VOLUME CHECK', stat('PA', pa) + stat('Total HR', totalHR) + stat('Credibility', credibility.toFixed(0)+'%', credibility < 100 ? 'yellow' : 'green') + stat('Park Factor', pf, pf>=106?'green':pf<=94?'red':''));
 html += section('📊 BATTED BALL', stat('Barrel %', barrel+'%', barrel>=14.5?'green':'') + stat('Hard Hit %', hh+'%', hh>=35?'green':'') + stat('Avg EV', ev+' mph') + stat('ISO', iso));
 html += section('⬅️ LAUNCH PROFILE', stat('Pulled Air %', pullAir+'%', pullAir>=25?'green':'') + stat('Fly Ball %', fbRate+'%') + stat('Sweet Spot %', sweetSpot+'%') + stat('Pull %', pullRate+'%'));
@@ -1987,6 +2219,8 @@ let awayTeam = explicitAway || String(row.Team2 || row.TEAM2 || '').trim().toUpp
 if(awayTeam && homeTeam) {
 let gameId = `${awayTeam}_vs_${homeTeam}`;
 teamToGameIdMap[awayTeam] = gameId; teamToGameIdMap[homeTeam] = gameId;
+teamHomeParkMap[homeTeam] = homeTeam;
+teamHomeParkMap[awayTeam] = homeTeam;
 if (!gameMatchups.some(m => m.id === gameId)) gameMatchups.push({ id: gameId, teamA: homeTeam, teamB: awayTeam, trueHomeTeam: homeTeam, homeTeam: homeTeam, awayTeam: awayTeam });
 }
 });
@@ -2008,6 +2242,8 @@ const homeStadiumKey = stadiumCoordinates[teamsAlpha[1]] ? teamsAlpha[1] : (stad
 const isDomePreset = homeStadiumKey ? stadiumCoordinates[homeStadiumKey].dome : false;
 weatherSettings[fallbackId] = { temp: 70, windSpeed: 0, windDir: 'neutral', isDome: isDomePreset };
 }
+teamHomeParkMap[oppTeam] = oppTeam;
+teamHomeParkMap[p.Team] = oppTeam;
 if (!gameMatchups.some(m => m.id === fallbackId)) gameMatchups.push({ id: fallbackId, teamA: oppTeam, teamB: p.Team, trueHomeTeam: oppTeam, homeTeam: oppTeam, awayTeam: p.Team });
 }
 }
@@ -2593,10 +2829,37 @@ function buildHybridRanges(players) {
   return ranges;
 }
 function hybridScoreMetric(raw, ranges, key, reverse=false) {
-  // Blank cells are null and ignored. A real 0 remains a real 0 and gets scored.
+  // Scoring-safe missing data: blanks, dashes, and "Not Found" are parsed as null upstream.
+  // For scoring, missing stat cells become neutral 50 instead of zero or being dropped.
+  // A true numeric 0 still remains a true 0 and gets scored against the slate range.
   const v = raw ? raw[key] : null;
-  if (v === null || v === undefined || isNaN(v)) return null;
-  return ranges[key] ? hybridNorm(v, ranges[key].min, ranges[key].max, reverse) : null;
+  if (v === null || v === undefined || isNaN(v)) return 50;
+  return ranges[key] ? hybridNorm(v, ranges[key].min, ranges[key].max, reverse) : 50;
+}
+function hybridNeutralScore(value) {
+  return (value === null || value === undefined || isNaN(value)) ? 50 : value;
+}
+function hybridDiminishingWeightedAvg(items) {
+  // Reduces double-counting among overlapping HR traits.
+  // Missing values are neutral 50; positive edge above 50 gets slightly compressed
+  // as more elite metrics stack together. Negative/weak traits are not softened.
+  const v = items.filter(x => x && x.value !== null && x.value !== undefined && !isNaN(x.value) && x.weight > 0)
+    .map(x => ({ value: hybridNeutralScore(x.value), weight: x.weight }));
+  if (!v.length) return null;
+  const sortedPositive = v
+    .filter(x => x.value > 50)
+    .sort((a,b) => b.value - a.value);
+  const factorMap = new Map();
+  sortedPositive.forEach((x, idx) => {
+    const factor = Math.max(0.75, 1 - (idx * 0.05));
+    factorMap.set(x, factor);
+  });
+  const adjusted = v.map(x => {
+    const factor = factorMap.get(x) || 1;
+    return { value: x.value > 50 ? 50 + ((x.value - 50) * factor) : x.value, weight: x.weight };
+  });
+  const totalWeight = adjusted.reduce((s,x)=>s+x.weight,0);
+  return totalWeight ? adjusted.reduce((s,x)=>s+(x.value*x.weight),0)/totalWeight : null;
 }
 function hybridClampLow(value, floor) {
   if (value === null || value === undefined || isNaN(value)) return null;
@@ -2604,7 +2867,7 @@ function hybridClampLow(value, floor) {
 }
 function scoreHybridPlayer(p, ranges) {
   const r = p.hybridRaw;
-  const power = hybridWeightedAvg([
+  const power = hybridDiminishingWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'barrel'), weight: 0.24 },
     { value: hybridScoreMetric(r,ranges,'iso'), weight: 0.18 },
     { value: hybridScoreMetric(r,ranges,'xHR'), weight: 0.16 },
@@ -2630,7 +2893,7 @@ function scoreHybridPlayer(p, ranges) {
     { value: pitcherContactQuality, weight: 0.38 }
   ]);
   const pitchLevel = hybridAvg([hybridScoreMetric(r,ranges,'pitchLevelEV')]);
-  const recent = hybridWeightedAvg([
+  const recent = hybridDiminishingWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'lwBarrel'), weight: 0.22 },
     { value: hybridScoreMetric(r,ranges,'lwXSLG'), weight: 0.18 },
     { value: hybridScoreMetric(r,ranges,'lwEV'), weight: 0.14 },
@@ -2640,13 +2903,13 @@ function scoreHybridPlayer(p, ranges) {
     { value: hybridScoreMetric(r,ranges,'lwHR'), weight: 0.06 },
     { value: hybridScoreMetric(r,ranges,'lwSLG'), weight: 0.05 },
     { value: hybridScoreMetric(r,ranges,'lwXWOBA'), weight: 0.03 },
-    { value: hybridSweetSpotLaunchAngle(r.lwLA), weight: 0.02 }
+    { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.lwLA)), weight: 0.02 }
   ]);
-  const battedBall = hybridWeightedAvg([
+  const battedBall = hybridDiminishingWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.24 },
     { value: hybridScoreMetric(r,ranges,'flyBall'), weight: 0.20 },
     { value: hybridScoreMetric(r,ranges,'hrFb'), weight: 0.18 },
-    { value: hybridSweetSpotLaunchAngle(r.launchAngle), weight: 0.13 },
+    { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.launchAngle)), weight: 0.13 },
     { value: hybridScoreMetric(r,ranges,'pull'), weight: 0.10 },
     { value: hybridScoreMetric(r,ranges,'batSpeed'), weight: 0.07 },
     { value: hybridScoreMetric(r,ranges,'sqUpCon'), weight: 0.05 },
@@ -2693,11 +2956,11 @@ function scoreHybridPlayer(p, ranges) {
   ]);
   if (coreHRScore !== null) score = (score * 0.86) + (coreHRScore * 0.14);
 
-  // Data-confidence penalty: missing workbook cells are still ignored instead of treated as zero,
-  // but incomplete profiles no longer float too high just because weak categories are absent.
-  if (dataConfidence < 0.40) score -= 6.0;
-  else if (dataConfidence < 0.55) score -= 4.0;
-  else if (dataConfidence < 0.70) score -= 2.0;
+  // Data-confidence penalty: missing workbook cells score as neutral 50, not zero.
+  // Confidence still matters, but the max penalty is capped so rookies/prospects are not buried.
+  if (dataConfidence < 0.40) score -= 3.0;
+  else if (dataConfidence < 0.55) score -= 2.0;
+  else if (dataConfidence < 0.70) score -= 1.0;
 
   const scaleHRFB = Number(document.getElementById('weightHRFB').value) / 100;
   const scalePitcherHR9 = Number(document.getElementById('weightPitcherHR9').value) / 100;
@@ -2791,8 +3054,11 @@ return true;
 });
 filtered.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
 renderMainTableBoard(filtered);
+renderPregameSlateBoard();
 renderTopTargetHero();
-renderTopTwelveSpotlightWidget();
+renderTop12Carousel();
+// Replaced old Top 12 HR Targets strip with the Top 12 Longball Carousel card board.
+// renderTopTwelveSpotlightWidget();
 renderFanaticsJackpot();
 renderTodaysStorylines();
 }
@@ -2867,9 +3133,9 @@ const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` 
 const stadiumPill = renderStadiumParkPill(p);
 let safeName = p.Name.replace(/'/g, "\\'");
 let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
-const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}')">💰 LOCK PICK</button>`;
+const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}', event)">💰 LOCK PICK</button>`;
 const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
-tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
+tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}${renderBBIProbabilityMeter(p, true)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
