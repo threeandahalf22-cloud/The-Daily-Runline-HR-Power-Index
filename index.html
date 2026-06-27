@@ -1150,6 +1150,280 @@ tbody tr.cody-diamond-row:hover td {
 #lockSub{color:#00ff9d;font:700 18px monospace}
 #lockBbi{font:900 42px monospace;color:#00ff9d}
 </style>
+<style>
+
+/* =========================
+   WHO WE HAMMERIN CLEAN CARD SPACING FIX
+   Layout only: gives names room, prevents bunching, keeps scroll + HR tools.
+   ========================= */
+.community-picks-scroll {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 6px 10px 8px 12px !important;
+}
+.community-picks-scroll .community-pick-card {
+  display: grid !important;
+  grid-template-columns: 36px minmax(0, 1fr) 82px !important;
+  gap: 14px !important;
+  align-items: center !important;
+  min-height: 98px !important;
+  padding: 16px 12px 16px 14px !important;
+  margin: 12px 0 0 !important;
+  box-sizing: border-box !important;
+}
+.community-picks-scroll .community-pick-main {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+.community-picks-scroll .community-name-line {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+.community-picks-scroll .player-headshot {
+  flex: 0 0 46px !important;
+  width: 46px !important;
+  height: 46px !important;
+  margin-right: 0 !important;
+}
+.community-picks-scroll .community-player-copy {
+  min-width: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+.community-picks-scroll .community-pick-name {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  line-height: 1.28 !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+}
+.community-picks-scroll .community-team-line {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.2 !important;
+  margin-top: 2px !important;
+}
+.community-picks-scroll .community-meter {
+  margin-top: 11px !important;
+}
+.community-picks-scroll .community-pick-side {
+  width: 82px !important;
+  min-width: 82px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  text-align: right !important;
+}
+.community-picks-scroll .community-heat,
+.community-picks-scroll .community-cashed-badge,
+.community-picks-scroll .community-hr-btn {
+  max-width: 82px !important;
+  white-space: normal !important;
+  line-height: 1.1 !important;
+}
+.community-picks-scroll .community-hr-btn {
+  width: 82px !important;
+  margin-top: 2px !important;
+  padding: 6px 6px !important;
+}
+.community-pick-card.hr-hit::before {
+  left: 6px !important;
+  top: 8px !important;
+}
+@media(max-width: 650px) {
+  .community-picks-scroll .community-pick-card {
+    grid-template-columns: 30px minmax(0, 1fr) 72px !important;
+    gap: 9px !important;
+    min-height: 96px !important;
+    padding: 14px 8px 14px 10px !important;
+  }
+  .community-picks-scroll .player-headshot {
+    width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px !important;
+  }
+  .community-picks-scroll .community-pick-name {
+    font-size: 12.5px !important;
+    line-height: 1.25 !important;
+  }
+  .community-picks-scroll .community-pick-side,
+  .community-picks-scroll .community-hr-btn {
+    width: 72px !important;
+    min-width: 72px !important;
+  }
+  .community-picks-scroll .community-heat,
+  .community-picks-scroll .community-cashed-badge,
+  .community-picks-scroll .community-hr-btn {
+    max-width: 72px !important;
+  }
+}
+</style>
+
+<style id="who-hammerin-one-line-final-fix">
+/* =========================
+   WHO WE HAMMERIN — ONE LINE CLEAN NAME FIX
+   Layout only. Scoring/functionality untouched.
+   ========================= */
+.community-picks-scroll {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 8px 12px 10px 12px !important;
+}
+.community-picks-scroll .community-pick-card {
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+  grid-template-areas:
+    "rank main"
+    "rank side" !important;
+  column-gap: 14px !important;
+  row-gap: 10px !important;
+  align-items: center !important;
+  min-height: 106px !important;
+  padding: 15px 16px !important;
+  margin: 12px 0 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+.community-picks-scroll .community-rank-badge {
+  grid-area: rank !important;
+  align-self: center !important;
+}
+.community-picks-scroll .community-pick-main {
+  grid-area: main !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+.community-picks-scroll .community-name-line {
+  display: grid !important;
+  grid-template-columns: 48px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.community-picks-scroll .player-headshot {
+  width: 48px !important;
+  height: 48px !important;
+  flex: none !important;
+  margin: 0 !important;
+}
+.community-picks-scroll .community-player-copy {
+  min-width: 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+.community-picks-scroll .community-pick-name {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  line-height: 1.15 !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+  letter-spacing: .1px !important;
+}
+.community-picks-scroll .community-team-line {
+  display: block !important;
+  width: 100% !important;
+  margin-top: 4px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.1 !important;
+  font-size: 10px !important;
+}
+.community-picks-scroll .community-meter {
+  margin-top: 9px !important;
+}
+.community-picks-scroll .community-pick-side {
+  grid-area: side !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: auto auto 1fr auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+.community-picks-scroll .community-pick-count,
+.community-picks-scroll .community-pick-percent {
+  line-height: 1 !important;
+}
+.community-picks-scroll .community-heat,
+.community-picks-scroll .community-cashed-badge {
+  width: fit-content !important;
+  max-width: none !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+.community-picks-scroll .community-hr-btn {
+  width: auto !important;
+  min-width: 78px !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 6px 10px !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+.community-pick-card.hr-hit::before {
+  left: 7px !important;
+  top: 7px !important;
+  transform: none !important;
+}
+@media(max-width: 650px) {
+  .community-picks-scroll .community-pick-card {
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    column-gap: 10px !important;
+    min-height: 106px !important;
+    padding: 14px 10px !important;
+  }
+  .community-picks-scroll .community-name-line {
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+  .community-picks-scroll .player-headshot {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  .community-picks-scroll .community-pick-name {
+    font-size: 13.5px !important;
+  }
+  .community-picks-scroll .community-pick-side {
+    grid-template-columns: auto auto 1fr !important;
+    gap: 6px !important;
+  }
+  .community-picks-scroll .community-hr-btn {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+    margin-top: 2px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="container">
@@ -1569,6 +1843,7 @@ let stuffMap = {};
 let batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
 let pitchLabData = [];
 let pitcherHR9SideMap = {};
+let pitcherTeamMap = {};
 const teamLogos = {
 ARI:'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',ATL:'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',BAL:'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',BOS:'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',CHC:'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',CHW:'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',CIN:'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',CLE:'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',COL:'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',DET:'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',HOU:'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',KCR:'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',LAA:'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',LAD:'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',MIA:'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',MIL:'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',MIN:'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',NYM:'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',NYY:'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',ATH:'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',PHI:'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',PIT:'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',SDP:'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',SEA:'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',SFG:'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',STL:'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',TBR:'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',TEX:'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',TOR:'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',WSN:'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
 };
@@ -1885,8 +2160,37 @@ document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalD
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
 function normalizeName(s) { if (!s) return ''; return String(s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function escJSString(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\"/g, '&quot;'); }
+function getOpponentTeamForPlayer(player) {
+  if (!player || !player.Team) return '';
+  const team = String(player.Team || '').trim().toUpperCase();
+  const gid = player.gameId || teamToGameIdMap[team] || '';
+  const matchup = gameMatchups.find(m => m.id === gid || m.homeTeam === team || m.awayTeam === team || m.teamA === team || m.teamB === team);
+  if (matchup) {
+    const home = String(matchup.trueHomeTeam || matchup.homeTeam || matchup.teamA || '').trim().toUpperCase();
+    const away = String(matchup.awayTeam || matchup.teamB || '').trim().toUpperCase();
+    if (team === home && away) return away;
+    if (team === away && home) return home;
+    if (String(matchup.teamA || '').trim().toUpperCase() === team) return String(matchup.teamB || '').trim().toUpperCase();
+    if (String(matchup.teamB || '').trim().toUpperCase() === team) return String(matchup.teamA || '').trim().toUpperCase();
+  }
+  return '';
+}
+function buildPitcherTeamMapFromPlayers(rows) {
+  const out = {};
+  (rows || []).forEach(player => {
+    const pitcher = String(safeGet(player, 'Opp Pitcher', 'Opposing Pitcher', 'Opp Pitcher Name', 'Pitcher Facing') || '').trim();
+    if (!pitcher) return;
+    const pitcherTeam = getOpponentTeamForPlayer(player);
+    if (pitcherTeam && pitcherTeam !== 'OPP') out[normalizeName(pitcher)] = pitcherTeam;
+  });
+  return out;
+}
+function resolvePitcherOwnTeam(pitcherName, fallbackTeam) {
+  const mapped = pitcherTeamMap[normalizeName(pitcherName)];
+  return mapped || String(fallbackTeam || '').trim().toUpperCase();
+}
 function saveCachedData() {
-const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps };
+const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps, pitcherTeamMap };
 localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 function loadCachedData() {
@@ -1912,6 +2216,7 @@ playerIdMap = cacheData.playerIdMap || {};
 pitchTypeMap = cacheData.pitchTypeMap || {};
 stuffMap = cacheData.stuffMap || {};
 batterPitchMaps = cacheData.batterPitchMaps || { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+pitcherTeamMap = cacheData.pitcherTeamMap || buildPitcherTeamMapFromPlayers(playerData);
 if (playerData.length > 0) {
 const uniqueTeams = getTeamsPlayingToday();
 renderTodayTeamsFilter(uniqueTeams);
@@ -2012,7 +2317,7 @@ const data = new Uint8Array(e.target.result);
 const workbook = XLSX.read(data, {type: 'array'});
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], vsFBRaw = [], vsCHRaw = [], vsCVRaw = [], vsSLRaw = [], vsCURaw = [];
-teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (nameClean === 'HR' || nameClean === 'HOMERUN' || nameClean === 'SHEET1') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -2061,6 +2366,7 @@ return { ...p, Name: name, Team: team, isRemoved: false };
 }).filter(p => p.Name !== 'Unknown Player');
 pitcherHR9SideMap = buildPitcherHR9SideMapFromHR(hrRaw);
 assignFallbackGameIds(playerData);
+pitcherTeamMap = buildPitcherTeamMapFromPlayers(playerData);
 parseWeatherMetadataRows(weatherRaw);
 gameMatchups.forEach(m => {
 if (!weatherSettings[m.id]) {
@@ -2185,7 +2491,8 @@ let rawPitchers = window.top5SheetData || [];
 if(rawPitchers.length > 0) {
 let processed = rawPitchers.map(row => {
 let pName = String(safeGet(row, 'Pitcher', 'Name', 'Player', 'A') || '').trim();
-let pTeam = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
+let pTeamRaw = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
+let pTeam = resolvePitcherOwnTeam(pName, pTeamRaw);
 let valC = cleanNumber(safeGet(row, 'HR/9 vs LHB', 'HR/9 vs L', 'HR/9 LHB', 'HR/9 L', 'C'));
 let valD = cleanNumber(safeGet(row, 'HR/9 vs RHB', 'HR/9 vs R', 'HR/9 RHB', 'HR/9 R', 'D'));
 const filledSides = fillPitcherHR9SidesFromHR(pName, valC, valD);
@@ -2602,7 +2909,8 @@ let rawPitchers = window.top5SheetData || [];
 if (rawPitchers.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No data found in "top5" sheet...</td></tr>`; return; }
 let processed = rawPitchers.map(row => {
 let pName = String(safeGet(row, 'Pitcher', 'Name', 'Player', 'A') || '').trim();
-let pTeam = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
+let pTeamRaw = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
+let pTeam = resolvePitcherOwnTeam(pName, pTeamRaw);
 let valC = cleanNumber(safeGet(row, 'HR/9 vs LHB', 'HR/9 vs L', 'HR/9 LHB', 'HR/9 L', 'C'));
 let valD = cleanNumber(safeGet(row, 'HR/9 vs RHB', 'HR/9 vs R', 'HR/9 RHB', 'HR/9 R', 'D'));
 const filledSides = fillPitcherHR9SidesFromHR(pName, valC, valD);
