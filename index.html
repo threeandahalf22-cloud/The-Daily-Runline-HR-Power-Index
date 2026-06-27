@@ -3474,20 +3474,20 @@ return 0;
 }
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const HYBRID_CATEGORY_WEIGHTS = {
-  // Final HR-probability build: power + pitcher HR damage drive the model,
-  // batted-ball shape and pitch-level fit confirm it, and weather/park provide context.
-  // BVP stays low unless real sample exists because it is noisy in small PA samples.
-  power: 0.25,
-  pitcher: 0.23,
-  battedBall: 0.14,
-  pitchLevel: 0.12,
-  recent: 0.10,
+  // Final HR-probability build: pitcher HR damage now leads the model,
+  // power + batted-ball shape + pitch-level fit confirm the homer profile.
+  // Recent/BVP/discipline are reduced to limit noisy short-sample boosts.
+  power: 0.24,
+  pitcher: 0.28,
+  battedBall: 0.15,
+  pitchLevel: 0.13,
+  recent: 0.07,
   weather: 0.04,
-  park: 0.04,
-  opportunity: 0.025,
-  bullpen: 0.02,
-  bvp: 0.02,
-  discipline: 0.015
+  park: 0.03,
+  opportunity: 0.03,
+  bullpen: 0.015,
+  bvp: 0.01,
+  discipline: 0.005
 };
 function hybridAvg(arr) { const v = arr.filter(x => x !== null && !isNaN(x)); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; }
 function hybridWeightedAvg(items) {
