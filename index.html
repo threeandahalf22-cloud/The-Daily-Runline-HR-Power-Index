@@ -1140,6 +1140,38 @@ tbody tr.cody-diamond-row:hover td {
 }
 </style>
 
+
+<style id="best-betting-edges-style">
+/* =========================
+   BEST BETTING EDGES SIDE PANEL
+   Compact sidebar board. Keeps rankings table clean.
+   ========================= */
+.best-edges-list { display:flex; flex-direction:column; gap:10px; }
+.best-edge-card {
+  position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.08); border-left:4px solid var(--team-color, var(--accent));
+  border-radius:14px; padding:11px 12px; background:linear-gradient(135deg, rgba(5,11,20,.78), rgba(17,31,53,.56));
+  box-shadow:0 10px 24px rgba(0,0,0,.24); cursor:pointer; transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.best-edge-card:hover { transform:translateY(-2px); border-color:var(--team-color, var(--accent)); box-shadow:0 16px 34px rgba(0,0,0,.34), 0 0 22px var(--team-glow-soft, rgba(0,255,157,.10)); }
+.best-edge-top { display:grid; grid-template-columns:28px 36px minmax(0,1fr); gap:9px; align-items:center; }
+.best-edge-rank { width:28px; height:28px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:monospace; font-size:12px; font-weight:1000; color:#06111d; background:linear-gradient(135deg,#facc15,#f97316); }
+.best-edge-face { width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid var(--team-color, var(--accent)); background:var(--bg-dark); box-shadow:0 0 0 3px var(--team-glow-soft, rgba(0,255,157,.08)), 0 6px 14px rgba(0,0,0,.34); flex:0 0 auto; }
+.best-edge-face-placeholder { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); color:var(--text-muted); font-size:13px; font-weight:1000; }
+.best-edge-main { min-width:0; }
+.best-edge-name { color:#fff; font-size:13px; font-weight:1000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.best-edge-meta { margin-top:2px; color:var(--stadium-lights); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.45px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.best-edge-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:10px; }
+.best-edge-stat { border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.035); border-radius:9px; padding:7px 5px; text-align:center; min-width:0; }
+.best-edge-label { color:var(--text-muted); font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.55px; }
+.best-edge-value { margin-top:3px; color:#fff; font-family:monospace; font-size:12px; font-weight:1000; }
+.best-edge-value.edge-pos { color:#10b981; }
+.best-edge-value.edge-neg { color:#f87171; }
+.edge-cell { font-family:monospace; font-weight:1000; font-size:13px; white-space:nowrap; }
+.edge-cell.edge-pos { color:#10b981; }
+.edge-cell.edge-neg { color:#f87171; }
+.odds-cell { font-family:monospace; font-weight:1000; color:#eab308; white-space:nowrap; }
+.hrprob-cell { font-family:monospace; font-weight:1000; color:var(--accent); white-space:nowrap; }
+</style>
 <style id="lock-confirm-style">
 #lockConfirmOverlay{position:fixed;inset:0;background:rgba(5,11,20,.35);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.25s;z-index:999999}
 #lockConfirmOverlay.show{opacity:1}
@@ -1488,10 +1520,6 @@ tbody tr.cody-diamond-row:hover td {
 <div class="spotlight-title"><span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>Top 12 Homerun Targets</div>
 <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
 </div>
-<div id="fanaticsJackpotSection" class="jackpot-section">
-<div class="jackpot-title"><span>🔥</span>Top HRs Last 7 Days</div>
-<div id="jackpotGrid" class="jackpot-grid"></div>
-</div>
 <div class="upload-box">
 <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
 <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">Upload your workbook with HR, vsPitcher, PLdata, lastweek, weather, <b>ID</b>, and <b>top5</b> sheets</div>
@@ -1499,9 +1527,9 @@ tbody tr.cody-diamond-row:hover td {
 <div class="dashboard-grid">
 <div style="display:flex; flex-direction:column; gap:24px;">
 <div class="panel">
-<h2>🔥 Who We Hammerin' Boys? </h2>
-<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Live tracking of what the collective is locking in today</p>
-<div id="communityPicksContainer"><div style="text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Loading community data...</div></div>
+<h2>📈 Best Betting Edges</h2>
+<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Top 10 market values from model probability vs sportsbook implied odds</p>
+<div id="bestBettingEdgesContainer"><div style="text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook with Odds sheet to load edge plays...</div></div>
 </div>
 <div class="panel">
 <h2>📰 Today's Storylines</h2>
@@ -1526,8 +1554,8 @@ tbody tr.cody-diamond-row:hover td {
 </div>
 <div class="table-wrapper">
 <table>
-<thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Player</th><th>Bats</th><th>Team</th><th>Opposing Pitcher</th><th>Weather</th><th>BBI</th><th style="width: 140px;">Action</th></tr></thead>
-<tbody id="tableBody"><tr><td colspan="8" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
+<thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Player</th><th>Bats</th><th>Team</th><th>Opposing Pitcher</th><th>Weather</th><th>Score</th><th>HR %</th><th>Odds</th><th>Edge</th><th style="width: 140px;">Action</th></tr></thead>
+<tbody id="tableBody"><tr><td colspan="11" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 </div>
 </div>
@@ -1816,7 +1844,7 @@ html += `</div><div class="community-footer-note">Live crowd picks from users lo
 container.innerHTML = html;
 }
 
-setInterval(loadCommunityPicks, 5000);
+
 const LEAGUE_AVERAGES = { iso: 0.185, barrelRate: 0.083, hardHitRate: 0.35, fbRate: 0.41, pitcherHR9: 1.08, pitcherBarrelAllowed: 0.085, pitcherFBRate: 0.39, pitcherSweetSpot: 0.35 };
 const STABILIZATION = { barrelRate: 150, iso: 250, hrfb: 400, pulledAir: 200, pitcherIP: 60 };
 let playerData = [];
@@ -1841,9 +1869,113 @@ let fanaticsJackpotData = [];
 let pitchTypeMap = {};
 let stuffMap = {};
 let batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+let batTrackingMaps = { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
+let statSheetMaps = {};
+let oddsMap = {};
 let pitchLabData = [];
-let pitcherHR9SideMap = {};
+let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {};
 let pitcherTeamMap = {};
+const STAT_MODEL_SHEETS = ['BARRELL','SS','SCASTL','SCASTR','PAL','PAR','RHPBB','LHPBB','ISO','ISOR','ISOL','ISOX','PXHR','PITCHERBB','PSS','PITCHMAX','PITCHER','PITCHERR','PITCHERL','PITCHERFB','PITCHERBBL','PITCHERBBR','LASTST','BULLPENEV','LINEUPS','PA','PARKFACTOR','RZ'];
+function normalizedKey(k) { return String(k || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function lookupStat(sheetKey, name) { return (statSheetMaps[String(sheetKey || '').toUpperCase()] || {})[normalizeName(name)] || {}; }
+function findByTeam(sheetKey, team) {
+  const map = statSheetMaps[String(sheetKey || '').toUpperCase()] || {};
+  const wanted = String(team || '').trim().toUpperCase();
+  for (const k in map) {
+    const row = map[k];
+    const rt = String(safeGet(row, 'Team', 'Tm', 'TEAM') || '').trim().toUpperCase();
+    if (rt === wanted) return row;
+  }
+  return {};
+}
+function firstValue(...vals) { for (const v of vals) { if (v !== undefined && v !== null && v !== '' && !(typeof v === 'number' && isNaN(v))) return v; } return undefined; }
+function firstNumber(...vals) { for (const v of vals) { const n = cleanNumberOrNull(v); if (n !== null && n !== undefined && !isNaN(n)) return n; } return null; }
+function firstRate(...vals) { const n = firstNumber(...vals); return n === null ? null : hybridRate(n); }
+function modelHRProbability(score, player) {
+  // Market-facing HR probability calibration.
+  // The model's daily BBI scale usually tops out near 70, so 70 is treated as elite for that slate.
+  // This changes probability calibration only; it does NOT change ranking order or the BBI scoring engine.
+  const s = Math.max(0, Math.min(100, cleanNumber(score || 0)));
+  const curve = [
+    [0, 1.5], [35, 5.0], [40, 6.8], [45, 8.8], [50, 12.0],
+    [55, 16.0], [60, 21.0], [65, 27.0], [70, 34.0],
+    [75, 38.0], [80, 41.0], [90, 44.0], [100, 46.0]
+  ];
+  let pct = curve[curve.length - 1][1];
+  for (let i = 0; i < curve.length - 1; i++) {
+    const [x1, y1] = curve[i];
+    const [x2, y2] = curve[i + 1];
+    if (s >= x1 && s <= x2) {
+      pct = y1 + ((s - x1) / Math.max(1, x2 - x1)) * (y2 - y1);
+      break;
+    }
+  }
+  const conf = cleanNumber(player && player.calculatedDataConfidence);
+  if (conf && conf < 0.55) pct *= 0.96;
+  if (player && player.category && player.category.opportunity !== null && player.category.opportunity < 38) pct *= 0.94;
+  return Math.max(1.0, Math.min(46.0, pct));
+}
+function americanOddsToImplied(oddsRaw) {
+  if (oddsRaw === undefined || oddsRaw === null || oddsRaw === '') return null;
+  let txt = String(oddsRaw).trim().replace(/−/g, '-');
+  let n = Number(txt.replace(/[^0-9+\-\.]/g, ''));
+  if (!isFinite(n) || n === 0) return null;
+  if (n > 0) return (100 / (n + 100)) * 100;
+  n = Math.abs(n);
+  return (n / (n + 100)) * 100;
+}
+function formatAmericanOdds(v) {
+  if (v === undefined || v === null || v === '') return '-';
+  const txt = String(v).trim().replace(/−/g, '-');
+  if (txt.startsWith('+') || txt.startsWith('-')) return txt;
+  const n = Number(txt.replace(/[^0-9\.\-]/g, ''));
+  if (!isFinite(n) || n === 0) return '-';
+  return n > 0 ? `+${n}` : `${n}`;
+}
+function edgeTier(edge) {
+  if (edge === null || edge === undefined || isNaN(edge)) return { label:'No Odds', cls:'neutral' };
+  if (edge >= 5) return { label:'A+ Edge', cls:'good' };
+  if (edge >= 3) return { label:'A Edge', cls:'good' };
+  if (edge >= 1) return { label:'B Edge', cls:'watch' };
+  if (edge >= -1) return { label:'Fair', cls:'neutral' };
+  return { label:'No Edge', cls:'bad' };
+}
+function americanOddsProfitPer100(oddsRaw) {
+  if (oddsRaw === undefined || oddsRaw === null || oddsRaw === '') return null;
+  let txt = String(oddsRaw).trim().replace(/−/g, '-');
+  let n = Number(txt.replace(/[^0-9+\-\.]/g, ''));
+  if (!isFinite(n) || n === 0) return null;
+  return n > 0 ? n : (10000 / Math.abs(n));
+}
+function calculateExpectedValuePct(modelPct, oddsRaw) {
+  const profit = americanOddsProfitPer100(oddsRaw);
+  if (profit === null || modelPct === null || modelPct === undefined || isNaN(modelPct)) return null;
+  const p = modelPct / 100;
+  return (p * profit) - ((1 - p) * 100);
+}
+function getBetGrade(modelPct, edge, evPct, bbi) {
+  if (edge === null || edge === undefined || evPct === null || evPct === undefined || isNaN(edge) || isNaN(evPct)) return 'Pass';
+  const confidence = cleanNumber(bbi || 0);
+  if (modelPct >= 30 && edge >= 8 && evPct >= 25 && confidence >= 64) return 'S+';
+  if (modelPct >= 24 && edge >= 5 && evPct >= 12 && confidence >= 58) return 'A';
+  if (modelPct >= 18 && edge >= 2.5 && evPct >= 5 && confidence >= 52) return 'B';
+  if (edge >= 0 && evPct >= 0) return 'C';
+  return 'Pass';
+}
+function attachOddsAndEdge(p) {
+  const row = oddsMap[normalizeName(p.Name)] || {};
+  const odds = safeGet(row, 'Best Odds', 'Best HR Odds', 'Betting Odds', 'HR Odds', 'Odds', 'Home Run Odds', 'HR');
+  const implied = americanOddsToImplied(odds);
+  const hrProb = modelHRProbability(p.calculatedBBI || 0, p);
+  const evPct = calculateExpectedValuePct(hrProb, odds);
+  p.calculatedHRProbability = hrProb;
+  p.bettingOdds = odds !== undefined ? formatAmericanOdds(odds) : '-';
+  p.impliedProbability = implied;
+  p.bettingEdge = implied === null ? null : hrProb - implied;
+  p.expectedValuePct = evPct;
+  p.betGrade = getBetGrade(hrProb, p.bettingEdge, evPct, p.calculatedBBI || 0);
+  p.edgeTier = edgeTier(p.bettingEdge);
+}
 const teamLogos = {
 ARI:'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',ATL:'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',BAL:'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',BOS:'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',CHC:'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',CHW:'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',CIN:'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',CLE:'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',COL:'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',DET:'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',HOU:'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',KCR:'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',LAA:'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',LAD:'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',MIA:'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',MIL:'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',MIN:'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',NYM:'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',NYY:'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',ATH:'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',PHI:'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',PIT:'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',SDP:'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',SEA:'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',SFG:'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',STL:'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',TBR:'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',TEX:'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',TOR:'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',WSN:'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
 };
@@ -2005,7 +2137,7 @@ function bbiDisplayProbability(score) {
   return Math.round(28 + (n * 0.50));
 }
 function renderBBIProbabilityMeter(player, compact=false) {
-  const pct = bbiDisplayProbability(player.calculatedBBI || 0);
+  const pct = player.calculatedHRProbability !== undefined ? Math.round(player.calculatedHRProbability) : bbiDisplayProbability(player.calculatedBBI || 0);
   const tier = bbiTierLabel(player.calculatedBBI || 0);
   return `<div class="bbi-prob-meter"><div class="bbi-prob-top"><span>${compact ? 'HR Meter' : 'Model HR Meter'}</span><span>${pct}%</span></div><div class="bbi-prob-track"><div class="bbi-prob-fill" style="width:${pct}%"></div></div><span class="bbi-tier-pill">${tier}</span></div>`;
 }
@@ -2152,13 +2284,30 @@ return `<img class="${sizeClass}" src="${url}" alt="${playerName}"${style} onerr
 }
 window.addEventListener('DOMContentLoaded', () => {
 loadCachedData();
-loadCommunityPicks();
 updateDateDisplay();
 setInterval(updateCountdown, 1000);
 document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalDirect(); });
 });
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
-function normalizeName(s) { if (!s) return ''; return String(s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function normalizeName(s) {
+  if (!s) return '';
+  let n = String(s)
+    .replace(/\u00A0/g, ' ')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\./g, '')
+    .replace(/\s+/g, ' ');
+
+  // Match Savant format "Last, First" to workbook format "First Last".
+  if (n.includes(',')) {
+    const parts = n.split(',').map(x => x.trim()).filter(Boolean);
+    if (parts.length >= 2) n = `${parts.slice(1).join(' ')} ${parts[0]}`;
+  }
+
+  n = n.replace(/\b(jr|sr|ii|iii|iv|v)\b/gi, '');
+  return n.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
 function escJSString(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\"/g, '&quot;'); }
 function getOpponentTeamForPlayer(player) {
   if (!player || !player.Team) return '';
@@ -2190,7 +2339,7 @@ function resolvePitcherOwnTeam(pitcherName, fallbackTeam) {
   return mapped || String(fallbackTeam || '').trim().toUpperCase();
 }
 function saveCachedData() {
-const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps, pitcherTeamMap };
+const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps, batTrackingMaps, pitcherTeamMap };
 localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 function loadCachedData() {
@@ -2216,6 +2365,7 @@ playerIdMap = cacheData.playerIdMap || {};
 pitchTypeMap = cacheData.pitchTypeMap || {};
 stuffMap = cacheData.stuffMap || {};
 batterPitchMaps = cacheData.batterPitchMaps || { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+batTrackingMaps = cacheData.batTrackingMaps || { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
 pitcherTeamMap = cacheData.pitcherTeamMap || buildPitcherTeamMapFromPlayers(playerData);
 if (playerData.length > 0) {
 const uniqueTeams = getTeamsPlayingToday();
@@ -2236,6 +2386,7 @@ renderHotBatTable();
 renderH2HFullTable();
 renderPitchLabTable();
 renderEdgePanels();
+renderBestBettingEdges();
 renderWeatherRankings();
 updateHeaderStats();
 updateSlateTicker();
@@ -2271,6 +2422,24 @@ function mapRowsByName(rows) {
   (rows || []).forEach(row => {
     const raw = String(safeGet(row, 'Player', 'Name') || '').trim();
     if (raw) out[normalizeName(raw)] = row;
+  });
+  return out;
+}
+function buildBatTrackingMap(workbook, sheetName) {
+  // Savant bat-tracking exports use stacked headers; do not trust row 1/header names.
+  // Fixed columns: B=Player, E=Avg Bat Speed, I=Squared-Up % Swing, L=Blast % Swing.
+  const sheet = workbook.Sheets[sheetName];
+  if (!sheet) return {};
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const out = {};
+  rows.forEach(row => {
+    const player = String(row[1] || '').replace(/ /g, ' ').trim();
+    if (!player || /^player$/i.test(player)) return;
+    const batSpeed = cleanNumber(row[4]);
+    const squaredSwing = cleanNumber(row[8]);
+    const blastSwing = cleanNumber(row[11]);
+    if (!player || (!batSpeed && !squaredSwing && !blastSwing)) return;
+    out[normalizeName(player)] = { player, batSpeed, squaredSwing, blastSwing };
   });
   return out;
 }
@@ -2315,18 +2484,24 @@ const reader = new FileReader();
 reader.onload = function(e) {
 const data = new Uint8Array(e.target.result);
 const workbook = XLSX.read(data, {type: 'array'});
-let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [];
+let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], vsFBRaw = [], vsCHRaw = [], vsCVRaw = [], vsSLRaw = [], vsCURaw = [];
-teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+let batTrackingSheetNames = {}; 
+teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
-if (nameClean === 'HR' || nameClean === 'HOMERUN' || nameClean === 'SHEET1') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'VSPITCHER' || nameClean === 'BVP' || nameClean === 'SHEET2') vpRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
+if (nameClean === 'ODDS') oddsRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name']);
+if (nameClean === 'HR' || nameClean === 'HOMERUN') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'SHEET1' && (!hrRaw || hrRaw.length === 0)) hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'VSPITCHER' || nameClean === 'BVP') vpRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'SHEET2' && (!vpRaw || vpRaw.length === 0)) vpRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'PLDATA' || nameClean === 'PL') plRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'LASTWEEK') lwRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'WEATHER') weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'BULLPEN') bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'TOP5' || nameClean === 'SHEET3') top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'TOP5') top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'SHEET3' && (!top5Raw || top5Raw.length === 0)) top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'ID' || nameClean === 'IDS' || nameClean === 'PLAYERID' || nameClean === 'PLAYERIDS') idRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'PITCHTYPE') pitchTypeRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'STUFF') stuffRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -2335,8 +2510,10 @@ if (nameClean === 'VSCH') vsCHRaw = sheetToJsonSmart(workbook, sheetName, ['Play
 if (nameClean === 'VSCV') vsCVRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
 if (nameClean === 'VSSL') vsSLRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
 if (nameClean === 'VSCU') vsCURaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (['FBL','FBR','BBL','BBR','OSL','OSR'].includes(nameClean)) batTrackingSheetNames[nameClean] = sheetName;
 if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
 });
+oddsRaw.forEach(row => { const nm = String(safeGet(row, 'Player', 'Name') || '').trim(); if (nm) oddsMap[normalizeName(nm)] = row; });
 window.top5SheetData = top5Raw;
 if (idRaw && idRaw.length > 0) {
 idRaw.forEach(row => {
@@ -2351,6 +2528,8 @@ lwRaw.forEach(x => { const raw = String(x.Player || x.Name || '').trim(); if (ra
 pitchTypeMap = buildPitchTypeMap(pitchTypeRaw);
 stuffMap = buildPitchTypeMap(stuffRaw);
 batterPitchMaps = { FB: mapRowsByName(vsFBRaw), CH: mapRowsByName(vsCHRaw), CV: mapRowsByName(vsCVRaw), SL: mapRowsByName(vsSLRaw), CU: mapRowsByName(vsCURaw) };
+batTrackingMaps = { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
+['FBL','FBR','BBL','BBR','OSL','OSR'].forEach(k => { if (batTrackingSheetNames[k]) batTrackingMaps[k] = buildBatTrackingMap(workbook, batTrackingSheetNames[k]); });
 bullpenRaw.forEach(x => { if(x.Team || x.TeamID) bullpenData[String(x.Team || x.TeamID).trim()] = x; });
 hrRaw.forEach(p => {
 let team = String(p.Team || p.TEAM || 'UNK').trim().toUpperCase();
@@ -2422,6 +2601,7 @@ renderHotBatTable();
 renderH2HFullTable();
 renderPitchLabTable();
 renderEdgePanels();
+renderBestBettingEdges();
 renderWeatherRankings();
 updateHeaderStats();
 updateSlateTicker();
@@ -2582,7 +2762,8 @@ html += renderHRBlueprint(player);
 html += `<div><div class="modal-section-title">🤝 SYNERGY METER</div>${renderSynergyMeter(player)}</div>`;
 // Removed broken/repeated Pitcher Attack Matchup block from popup.
 // It was showing the same FB 0% / C bat values for every player when pitch-level data did not map cleanly.
-html += section('🌤️ ENVIRONMENT', stat('Weather/Park', climate) + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A'));
+html += section('🌤️ ENVIRONMENT', stat('Weather/Park', climate) + stat('Weather Side Used', player.weatherSideUsed || 'N/A') + stat('Weather Score', player.weatherScoreUsed !== undefined ? Number(player.weatherScoreUsed).toFixed(1) : 'N/A', (player.weatherScoreUsed || 50) >= 65 ? 'green' : (player.weatherScoreUsed || 50) <= 40 ? 'red' : '') + stat('Weather Multiplier', player.weatherImpactMultiplier ? Number(player.weatherImpactMultiplier).toFixed(3)+'x' : '1.000x') + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A'));
+html += `<div><div class="modal-section-title">🌬️ WEATHER WHY</div><div style="color:#cbd5e1;font-size:12px;line-height:1.45;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;">${player.weatherBoostReason || 'Neutral weather impact.'}</div></div>`;
 document.getElementById('modalStatsContainer').innerHTML = html;
 } catch (err) {
   console.error('Player popup failed:', err);
@@ -2695,22 +2876,53 @@ function gradeFromScore(score) { if (score >= 85) return 'A+'; if (score >= 78) 
 function pitchEdgeClass(score) { return score >= 65 ? 'pitch-edge-good' : score >= 45 ? 'pitch-edge-mid' : 'pitch-edge-bad'; }
 function getPitchUsage(row, keys) { for (const k of keys) { const v = parseUsageValue(safeGet(row, k)); if (v) return v; } return 0; }
 function getPitchStuff(row, keys) { for (const k of keys) { const v = cleanNumber(safeGet(row, k)); if (v) return v; } return 100; }
-function batterPitchGrade(playerName, group) {
+function batTrackingGroupKey(pitchGroup, pitcherHand) {
+  const hand = String(pitcherHand || '').trim().toUpperCase().startsWith('L') ? 'L' : 'R';
+  const g = String(pitchGroup || '').toUpperCase();
+  if (g === 'FB') return hand === 'L' ? 'FBL' : 'FBR';
+  if (g === 'SL' || g === 'CU' || g === 'CV' || g === 'BREAKING' || g === 'BB') return hand === 'L' ? 'BBL' : 'BBR';
+  if (g === 'CH' || g === 'OS' || g === 'OFFSPEED') return hand === 'L' ? 'OSL' : 'OSR';
+  return hand === 'L' ? 'FBL' : 'FBR';
+}
+function batSpeedScore(v) {
+  if (v === null || v === undefined || isNaN(v) || v <= 0) return 50;
+  // Most MLB bat-speed leaderboards live roughly 66-78 mph. Keep extremes capped.
+  return Math.max(0, Math.min(100, ((v - 66) / 12) * 100));
+}
+function batTrackingPitchGrade(playerName, group, pitcherHand) {
+  const sheetKey = batTrackingGroupKey(group, pitcherHand);
+  const row = (batTrackingMaps[sheetKey] || {})[normalizeName(playerName)] || null;
+  if (!row) return { score: 50, grade: 'C', sheet: sheetKey, batSpeed: 0, squaredSwing: 0, blastSwing: 0, note: 'No bat tracking data' };
+  const blast = hybridRate(row.blastSwing);
+  const squared = hybridRate(row.squaredSwing);
+  const speed = batSpeedScore(cleanNumber(row.batSpeed));
+  // HR swing-quality blend: Blast %/Swing leads, Squared-Up %/Swing confirms, Bat Speed supplies raw ceiling.
+  const score = Math.max(0, Math.min(100, (blast * 100 * 0.45) + (squared * 100 * 0.35) + (speed * 0.20)));
+  return { score, grade: gradeFromScore(score), sheet: sheetKey, batSpeed: row.batSpeed, squaredSwing: squared, blastSwing: blast, note: `${sheetKey}: ${pctFmt(blast)} blast / ${pctFmt(squared)} sq / ${cleanNumber(row.batSpeed).toFixed(1)} mph` };
+}
+function batterPitchGrade(playerName, group, pitcherHand) {
   const row = (batterPitchMaps[group] || {})[normalizeName(playerName)] || {};
-  if (!Object.keys(row).length) return { score: 50, grade: 'C', bbe: 0, air: 0, fb: 0, pull: 0, note: 'No pitch sheet data' };
-  const bbe = cleanNumber(safeGet(row, 'BBE'));
-  const air = hybridRate(cleanNumber(safeGet(row, 'AIR %')));
-  const fb = hybridRate(cleanNumber(safeGet(row, 'FB %')));
-  const pull = hybridRate(cleanNumber(safeGet(row, 'Pull %')));
-  const ld = hybridRate(cleanNumber(safeGet(row, 'LD %')));
-  const sample = Math.min(1, bbe / 50);
-  const rawScore = (air * 34) + (fb * 24) + (pull * 24) + (ld * 10) + (sample * 8);
-  const score = Math.max(0, Math.min(100, rawScore));
-  return { score, grade: gradeFromScore(score), bbe, air, fb, pull, note: `${pctFmt(air)} air / ${pctFmt(fb)} FB / ${pctFmt(pull)} pull` };
+  let existing = { score: 50, grade: 'C', bbe: 0, air: 0, fb: 0, pull: 0, note: 'No pitch sheet data' };
+  if (Object.keys(row).length) {
+    const bbe = cleanNumber(safeGet(row, 'BBE'));
+    const air = hybridRate(cleanNumber(safeGet(row, 'AIR %')));
+    const fb = hybridRate(cleanNumber(safeGet(row, 'FB %')));
+    const pull = hybridRate(cleanNumber(safeGet(row, 'Pull %')));
+    const ld = hybridRate(cleanNumber(safeGet(row, 'LD %')));
+    const sample = Math.min(1, bbe / 50);
+    const rawScore = (air * 34) + (fb * 24) + (pull * 24) + (ld * 10) + (sample * 8);
+    const score = Math.max(0, Math.min(100, rawScore));
+    existing = { score, grade: gradeFromScore(score), bbe, air, fb, pull, note: `${pctFmt(air)} air / ${pctFmt(fb)} FB / ${pctFmt(pull)} pull` };
+  }
+  const tracking = batTrackingPitchGrade(playerName, group, pitcherHand);
+  // Keep the category stable: old pitch-production still drives 60%, Savant bat tracking refines 40%.
+  const blendedScore = Math.max(0, Math.min(100, (existing.score * 0.60) + (tracking.score * 0.40)));
+  return { ...existing, score: blendedScore, grade: gradeFromScore(blendedScore), traditional: existing, tracking, note: `${existing.note} | ${tracking.note}` };
 }
 function buildPitchLabProfile(player) {
   if (!player) return null;
   const pitcherName = String(player['Opp Pitcher'] || player['Opp Pitcher Name'] || '').trim();
+  const pitcherHand = String(safeGet(player, 'Opp Pitcher Throws', 'Opp Throws', 'Pitcher Throws', 'Pitcher Hand', 'P Throws', 'L/R', 'LR') || '').trim().toUpperCase();
   const pitchRow = pitchTypeMap[normalizeName(pitcherName)] || {};
   const stuffRow = stuffMap[normalizeName(pitcherName)] || {};
   let rows = [];
@@ -2718,19 +2930,20 @@ function buildPitchLabProfile(player) {
     const usage = getPitchUsage(pitchRow, pt.usageKeys);
     if (!usage || usage < 0.01) return;
     const stuff = getPitchStuff(stuffRow, pt.stuffKeys);
-    const bat = batterPitchGrade(player.Name, pt.group);
+    const bat = batterPitchGrade(player.Name, pt.group, pitcherHand);
     const stuffWeakness = Math.max(0, Math.min(100, 100 + (100 - stuff))); // lower stuff helps hitter
     const edge = Math.max(0, Math.min(100, (bat.score * 0.66) + (stuffWeakness * 0.24) + (Math.min(100, usage * 180) * 0.10)));
     rows.push({ ...pt, usage, stuff, bat, edge });
   });
   if (!rows.length) {
-    ['FB','SL','CH','CU'].forEach(group => { const bat = batterPitchGrade(player.Name, group); rows.push({ key:group, label:group, group, usage:0, stuff:100, bat, edge:bat.score }); });
+    ['FB','SL','CH','CU'].forEach(group => { const bat = batterPitchGrade(player.Name, group, pitcherHand); rows.push({ key:group, label:group, group, usage:0, stuff:100, bat, edge:bat.score }); });
   }
   rows.sort((a,b) => (b.usage * b.edge) - (a.usage * a.edge));
   const useTotal = rows.reduce((s,r)=>s+r.usage,0);
   const weighted = useTotal > 0 ? rows.reduce((s,r)=>s+(r.edge*r.usage),0)/useTotal : hybridAvg(rows.map(r=>r.edge));
+  const batTrackingWeighted = useTotal > 0 ? rows.reduce((s,r)=>s+((r.bat && r.bat.tracking ? r.bat.tracking.score : 50)*r.usage),0)/useTotal : hybridAvg(rows.map(r => r.bat && r.bat.tracking ? r.bat.tracking.score : 50));
   const top = rows[0] || null;
-  return { player, pitcherName, rows, score: Math.max(0, Math.min(100, weighted || 50)), grade: gradeFromScore(weighted || 50), top };
+  return { player, pitcherName, pitcherHand, rows, score: Math.max(0, Math.min(100, weighted || 50)), batTrackingScore: Math.max(0, Math.min(100, batTrackingWeighted || 50)), grade: gradeFromScore(weighted || 50), top };
 }
 function synergyItems(player) {
   const c = player.category || {};
@@ -2982,6 +3195,50 @@ tr.innerHTML = `<td style="text-align:left; padding-left:20px;"><div class="play
 tbody.appendChild(tr);
 });
 }
+function formatPctValue(v, digits = 1) {
+  if (v === null || v === undefined || isNaN(v)) return '-';
+  return `${v >= 0 ? '+' : ''}${Number(v).toFixed(digits)}%`;
+}
+function formatPlainPct(v, digits = 1) {
+  if (v === null || v === undefined || isNaN(v)) return '-';
+  return `${Number(v).toFixed(digits)}%`;
+}
+function renderBestBettingEdges() {
+  const container = document.getElementById('bestBettingEdgesContainer');
+  if (!container) return;
+  const plays = playerData
+    .filter(p => !p.isRemoved && p.bettingOdds && p.bettingOdds !== '-' && p.bettingEdge !== null && p.bettingEdge !== undefined && !isNaN(p.bettingEdge))
+    .sort((a, b) => {
+      const edgeDiff = (b.bettingEdge || -999) - (a.bettingEdge || -999);
+      if (Math.abs(edgeDiff) > 0.001) return edgeDiff;
+      return (b.expectedValuePct || -999) - (a.expectedValuePct || -999);
+    })
+    .slice(0, 10);
+  if (!plays.length) {
+    container.innerHTML = '<div style="text-align:center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook with an Odds sheet to calculate top betting edges.</div>';
+    return;
+  }
+  container.innerHTML = `<div class="best-edges-list">${plays.map((p, idx) => {
+    const edgeCls = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
+    const evCls = (p.expectedValuePct || 0) >= 0 ? 'edge-pos' : 'edge-neg';
+    const pitcher = p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter';
+    const faceUrl = getHeadshotUrl(p.Name);
+    const faceHtml = faceUrl ? `<img class="best-edge-face" src="${faceUrl}" alt="${p.Name}" onerror="this.outerHTML='<div class=&quot;best-edge-face-placeholder&quot;>⚾</div>'">` : `<div class="best-edge-face-placeholder">⚾</div>`;
+    return `<div class="best-edge-card" style="${teamVisualStyle(p.Team)}" onclick="openPlayerModalByName('${escJSString(p.Name)}')">
+      <div class="best-edge-top">
+        <div class="best-edge-rank">#${idx + 1}</div>
+        ${faceHtml}
+        <div class="best-edge-main"><div class="best-edge-name">${p.Name}</div><div class="best-edge-meta">${p.Team} • ${p.bettingOdds} • vs ${pitcher}</div></div>
+      </div>
+      <div class="best-edge-stats">
+        <div class="best-edge-stat"><div class="best-edge-label">Model</div><div class="best-edge-value">${formatPlainPct(p.calculatedHRProbability)}</div></div>
+        <div class="best-edge-stat"><div class="best-edge-label">Imp</div><div class="best-edge-value">${formatPlainPct(p.impliedProbability)}</div></div>
+        <div class="best-edge-stat"><div class="best-edge-label">Edge</div><div class="best-edge-value ${edgeCls}">${formatPctValue(p.bettingEdge)}</div></div>
+        <div class="best-edge-stat"><div class="best-edge-label">EV</div><div class="best-edge-value ${evCls}">${formatPctValue(p.expectedValuePct)}</div></div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
 function renderEdgePanels() {
 const cdContainer = document.getElementById('codysDiamondsEdge');
 if (cdContainer) {
@@ -3111,7 +3368,21 @@ function normalizeSubweights(sub) { const total = Object.values(sub).reduce((s, 
 const N_SUB = {};
 Object.keys(SUBWEIGHTS).forEach(cat => { N_SUB[cat] = normalizeSubweights(SUBWEIGHTS[cat]); });
 function ratioToModifier(value, leagueAvg, opts = {}) { let ratio = leagueAvg > 0 ? (value / leagueAvg) : (value || 1); const minR = opts.min || 0.5; const maxR = opts.max || 2.0; ratio = Math.max(minR, Math.min(maxR, ratio)); const sensitivity = opts.sensitivity || 0.9; return 1 + ((ratio - 1) * sensitivity); }
-function safeGet(obj, ...keys) { for (const k of keys) { if (obj && (obj[k] !== undefined && obj[k] !== null)) return obj[k]; } return undefined; }
+function safeGet(obj, ...keys) {
+  if (!obj) return undefined;
+  for (const k of keys) { if (obj[k] !== undefined && obj[k] !== null) return obj[k]; }
+  const objKeys = Object.keys(obj);
+  const normMap = {};
+  objKeys.forEach(ok => { normMap[normalizedKey(ok)] = ok; });
+  for (const k of keys) {
+    const nk = normalizedKey(k);
+    if (normMap[nk] !== undefined) {
+      const val = obj[normMap[nk]];
+      if (val !== undefined && val !== null) return val;
+    }
+  }
+  return undefined;
+}
 function parseUsageValue(raw) { let v = cleanNumber(raw); if (!v) return 0; if (v > 1 && v <= 100) return v / 100; if (v > 100) return v / 100; return v; }
 function calculateBBI(p, weatherObj) {
 if (!p) return 0.0;
@@ -3474,20 +3745,22 @@ return 0;
 }
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const HYBRID_CATEGORY_WEIGHTS = {
-  // Final HR-probability build: pitcher HR damage now leads the model,
-  // power + batted-ball shape + pitch-level fit confirm the homer profile.
-  // Recent/BVP/discipline are reduced to limit noisy short-sample boosts.
-  power: 0.24,
-  pitcher: 0.28,
-  battedBall: 0.15,
-  pitchLevel: 0.13,
-  recent: 0.07,
-  weather: 0.04,
-  park: 0.03,
-  opportunity: 0.03,
-  bullpen: 0.015,
-  bvp: 0.01,
-  discipline: 0.005
+  // Version 32 blueprint: score the event profile, not just the best hitter.
+  // Main buckets: Power 22, Pitch Matchup 23, Pitcher Weakness 21, HR Shape 14,
+  // Environment 8 split between weather/park, Opportunity 7, Recent/BvP/PXHR 5.
+  power: 0.22,
+  pitchLevel: 0.23,
+  pitcher: 0.21,
+  battedBall: 0.13,
+  // Weather upgraded from generic 4% to side-specific 7%.
+  // RHB and LHB now receive separate pull-side weather scores.
+  weather: 0.07,
+  park: 0.035,
+  opportunity: 0.07,
+  recent: 0.025,
+  bvp: 0.005,
+  bullpen: 0.005,
+  discipline: 0
 };
 function hybridAvg(arr) { const v = arr.filter(x => x !== null && !isNaN(x)); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; }
 function hybridWeightedAvg(items) {
@@ -3541,12 +3814,142 @@ function cleanNumberOrNull(v) {
 function rawNumber(obj, ...keys) { return cleanNumberOrNull(safeGet(obj, ...keys)); }
 function rawRate(obj, ...keys) { return hybridRate(rawNumber(obj, ...keys)); }
 function firstValidNumber(...vals) { for (const v of vals) { if (v !== null && v !== undefined && !isNaN(v)) return v; } return null; }
+
+function weatherClampScore(v) { return Math.max(0, Math.min(100, Number(v) || 0)); }
+function weatherScaleBetween(v, low, high) {
+  if (v === null || v === undefined || isNaN(v)) return 0.50;
+  const n = Number(v);
+  if (n <= low) return 0;
+  if (n >= high) return 1;
+  return (n - low) / (high - low);
+}
+function weatherSweetLaunchFit(la) {
+  if (la === null || la === undefined || isNaN(la)) return 0.50;
+  const n = Number(la);
+  if (n >= 16 && n <= 28) return 1.0;
+  if (n >= 12 && n < 16) return 0.75;
+  if (n > 28 && n <= 34) return 0.70;
+  if (n >= 8 && n < 12) return 0.45;
+  return 0.20;
+}
+function windDirectionSideFit(dirRaw, hand, speed) {
+  const dir = String(dirRaw || 'neutral').toLowerCase();
+  const s = Number(speed || 0);
+  const out = dir.includes('out');
+  const inn = dir.includes('in');
+  const lf = dir.includes('lf') || dir.includes('left');
+  const rf = dir.includes('rf') || dir.includes('right');
+  const cf = dir.includes('cf') || dir.includes('center') || dir.includes('centre');
+  const lcf = dir.includes('lcf') || dir.includes('left-center') || dir.includes('left center');
+  const rcf = dir.includes('rcf') || dir.includes('right-center') || dir.includes('right center');
+  let fit = 0;
+  if (out) {
+    if (hand === 'R') {
+      if (lf) fit = 1.00;
+      else if (lcf) fit = 0.85;
+      else if (cf) fit = 0.62;
+      else if (rcf) fit = 0.28;
+      else if (rf) fit = 0.15;
+      else fit = 0.45;
+    } else {
+      if (rf) fit = 1.00;
+      else if (rcf) fit = 0.85;
+      else if (cf) fit = 0.62;
+      else if (lcf) fit = 0.28;
+      else if (lf) fit = 0.15;
+      else fit = 0.45;
+    }
+  } else if (inn) {
+    if ((hand === 'R' && (lf || lcf)) || (hand === 'L' && (rf || rcf)) || cf) fit = -1.00;
+    else fit = -0.55;
+  }
+  const speedImpact = Math.min(1.35, Math.max(0, s) / 18);
+  return { fit, speedImpact, out, inn, lf, rf, cf, lcf, rcf };
+}
+function buildSideWeatherImpact({ weather, hand, pull, pullAir, flyBall, launchAngle, barrel, maxEV, pitcherFB, pitcherHRFB, pitcherBarrel, pitcherHardHit, pitcherEV, pullFence, cf, parkFactor }) {
+  if (!weather) return { score: 50, multiplier: 1.0, side: hand, reason: 'No weather data found; neutral weather score.', components: {} };
+  if (weather.isDome) return { score: 55, multiplier: 1.005, side: hand, reason: `${hand}HB dome/roof game: neutral carry, no wind penalty.`, components: {} };
+  const temp = Number(weather.temp || 72);
+  const humidity = Number(weather.humidity || 0);
+  const wind = windDirectionSideFit(weather.windDir, hand, weather.windSpeed);
+  const pullFit = weatherScaleBetween(pull, 0.34, 0.48);
+  const pullAirFit = weatherScaleBetween(pullAir, 0.10, 0.24);
+  const flyBallFit = weatherScaleBetween(flyBall, 0.30, 0.45);
+  const launchFit = weatherSweetLaunchFit(launchAngle);
+  const barrelFit = weatherScaleBetween(barrel, 0.075, 0.145);
+  const maxEVFit = weatherScaleBetween(maxEV, 106, 113);
+  const hitterShape = (pullFit * 0.24) + (pullAirFit * 0.28) + (flyBallFit * 0.20) + (launchFit * 0.12) + (barrelFit * 0.10) + (maxEVFit * 0.06);
+  const pitcherAir = (weatherScaleBetween(pitcherFB, 0.32, 0.45) * 0.34) + (weatherScaleBetween(pitcherHRFB, 0.09, 0.18) * 0.24) + (weatherScaleBetween(pitcherBarrel, 0.075, 0.115) * 0.18) + (weatherScaleBetween(pitcherHardHit, 0.34, 0.44) * 0.14) + (weatherScaleBetween(pitcherEV, 88, 91.5) * 0.10);
+  const fenceTarget = hand === 'R' ? positiveOrFallback(pullFence, 330) : positiveOrFallback(pullFence, 330);
+  const fenceFit = 1 - weatherScaleBetween(fenceTarget, 315, 350);
+  const cfFit = 1 - weatherScaleBetween(cf, 390, 420);
+  const pfFit = weatherScaleBetween(parkFactor, 96, 106);
+  const parkCarry = (fenceFit * 0.45) + (cfFit * 0.20) + (pfFit * 0.35);
+  let tempScore = 0;
+  if (temp >= 90) tempScore = 8;
+  else if (temp >= 82) tempScore = 6;
+  else if (temp >= 75) tempScore = 3;
+  else if (temp < 55) tempScore = -8;
+  else if (temp < 62) tempScore = -4;
+  let humidityScore = humidity >= 70 ? 2 : humidity >= 60 ? 1 : 0;
+  let windPoints = 0;
+  if (wind.out) {
+    const rawWind = 26 * wind.fit * wind.speedImpact;
+    // Strong wind only becomes a strong bump when hitter shape and pitcher air-contact actually line up.
+    const contextGate = 0.35 + (hitterShape * 0.45) + (pitcherAir * 0.20);
+    windPoints = rawWind * contextGate;
+  } else if (wind.inn) {
+    const rawWind = 22 * Math.abs(wind.fit) * wind.speedImpact;
+    const airPenaltyGate = 0.65 + (hitterShape * 0.20) + (pitcherAir * 0.15);
+    windPoints = -rawWind * airPenaltyGate;
+  }
+  const shapePoints = wind.out ? (hitterShape - 0.50) * 10 : 0;
+  const pitcherPoints = wind.out ? (pitcherAir - 0.50) * 7 : 0;
+  const parkPoints = (parkCarry - 0.50) * 6;
+  const score = weatherClampScore(50 + windPoints + shapePoints + pitcherPoints + parkPoints + tempScore + humidityScore);
+  const multiplier = Math.max(0.955, Math.min(1.055, 1 + ((score - 50) / 900)));
+  const sideLabel = hand === 'R' ? 'RHB' : 'LHB';
+  const pullPct = pull !== null && !isNaN(pull) ? `${Math.round(pull * 100)}% Pull` : 'Pull N/A';
+  const airPct = pullAir !== null && !isNaN(pullAir) ? `${Math.round(pullAir * 100)}% Pulled Air` : 'Pulled Air N/A';
+  const fbPct = flyBall !== null && !isNaN(flyBall) ? `${Math.round(flyBall * 100)}% FB` : 'FB N/A';
+  const pfbPct = pitcherFB !== null && !isNaN(pitcherFB) ? `${Math.round(pitcherFB * 100)}% pitcher FB` : 'pitcher FB N/A';
+  const reason = `${sideLabel} weather: ${weather.windSpeed || 0} MPH ${String(weather.windDir || 'neutral').toUpperCase()}, ${pullPct}, ${airPct}, ${fbPct}, ${pfbPct}.`;
+  return { score, multiplier, side: sideLabel, reason, components: { windPoints, hitterShape, pitcherAir, parkCarry, tempScore, humidityScore } };
+}
+function getWeatherHandForPlayer(p, pitcherHandRaw) {
+  const hand = getHitterHandedness(p);
+  if (hand === 'S') {
+    const ph = String(pitcherHandRaw || '').trim().toUpperCase();
+    return ph.startsWith('L') ? 'R' : 'L';
+  }
+  return hand === 'L' ? 'L' : 'R';
+}
 function positiveOrFallback(v, fallback) { return (v !== null && v !== undefined && !isNaN(v) && Number(v) > 0) ? Number(v) : fallback; }
 function hybridRaw(p) {
   const normName = normalizeName(p.Name);
   const lw = lastWeekMap[normName] || {};
   const pl = plDataMap[normName] || {};
   const bvp = vsPitcherData[normName] || {};
+  const pitcherName = String(safeGet(p, 'Opp Pitcher', 'Opp Pitcher Name', 'Pitcher', 'Pitcher Name') || '').trim();
+  const pitcherNorm = normalizeName(pitcherName);
+  const pitcherHandRaw = String(safeGet(p, 'Opp Pitcher Throws', 'Opp Throws', 'Pitcher Throws', 'Pitcher Hand', 'P Throws', 'Throws', 'L/R', 'LR') || '').trim().toUpperCase();
+  const vsLefty = pitcherHandRaw.startsWith('L');
+  const barrellRow = lookupStat('BARRELL', p.Name);
+  const ssRow = lookupStat('SS', p.Name);
+  const scastRow = lookupStat(vsLefty ? 'SCASTL' : 'SCASTR', p.Name);
+  const pulledRow = lookupStat(vsLefty ? 'PAL' : 'PAR', p.Name);
+  const bbHandRow = lookupStat(vsLefty ? 'LHPBB' : 'RHPBB', p.Name);
+  const isoHandRow = lookupStat(vsLefty ? 'ISOL' : 'ISOR', p.Name);
+  const pxhrRow = lookupStat('PXHR', p.Name);
+  const pitcherBBRow = lookupStat('PITCHERBB', pitcherName);
+  const pssRow = lookupStat('PSS', pitcherName);
+  const pitchMaxRow = lookupStat('PITCHMAX', pitcherName);
+  const pitcherOverallRow = lookupStat('PITCHER', pitcherName);
+  const pitcherSplitRow = lookupStat(getHitterHandedness(p) === 'L' ? 'PITCHERL' : 'PITCHERR', pitcherName);
+  const pitcherFBRow = lookupStat('PITCHERFB', pitcherName);
+  const lastStartRow = lookupStat('LASTST', pitcherName);
+  const rzRow = lookupStat('RZ', pitcherName);
+  const bullpenEvRow = findByTeam('BULLPENEV', getOpponentTeamForPlayer(p));
   const weather = weatherSettings[p.gameId] || null;
   // Park dimensions/scoring must follow the actual ballpark, not the hitter's team or the away team.
   // HR sheet column N "Ballpark Team" is the preferred source through getHomeTeamForPlayer().
@@ -3566,64 +3969,85 @@ function hybridRaw(p) {
     if (ev > 0 && usage > 0) { if (usage <= 1) usage *= 100; evTotal += ev * usage; useTotal += usage; }
   });
   if (useTotal > 0) pitchLevelEV = evTotal / useTotal;
-  let weatherScore = 50;
-  if (weather && !weather.isDome) {
-    const dir = String(weather.windDir || 'neutral').toLowerCase();
-    const speed = Number(weather.windSpeed || 0);
-    const temp = Number(weather.temp || 72);
-    const humidity = Number(weather.humidity || 0);
-    const out = dir.includes('out'), inn = dir.includes('in'), lf = dir.includes('lf'), rf = dir.includes('rf'), cf = dir.includes('cf');
-    let wind = 0;
-    if (out && lf && hand === 'R') wind = speed * 2.2;
-    else if (out && rf && hand === 'L') wind = speed * 2.2;
-    else if (out && cf) wind = speed * 1.4;
-    else if (out) wind = speed * 0.9;
-    else if (inn && ((lf && hand === 'R') || (rf && hand === 'L') || cf)) wind = -speed * 2.0;
-    else if (inn) wind = -speed * 1.0;
-    weatherScore += wind;
-    if (temp >= 85) weatherScore += 12; else if (temp >= 75) weatherScore += 5; else if (temp < 60) weatherScore -= 12;
-    if (humidity > 60) weatherScore += 3;
-  } else if (weather && weather.isDome) weatherScore = 55;
+  const weatherHand = getWeatherHandForPlayer(p, pitcherHandRaw);
+  const wxBarrel = firstRate(safeGet(barrellRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(ssRow, 'Brls/BBE %'), safeGet(scastRow, 'Brls/BBE %'), safeGet(p, 'Barrel %', 'Barrel%'));
+  const wxMaxEV = firstNumber(safeGet(ssRow, 'Max', 'Max EV', 'MaxEV'), safeGet(barrellRow, 'maxEV', 'Max EV', 'MaxEV'), safeGet(scastRow, 'Max', 'Max EV'), safeGet(p, 'Max EV', 'MaxEV'));
+  const wxFlyBall = firstRate(safeGet(pulledRow, 'FB %', 'FB%'), safeGet(bbHandRow, 'FB%', 'FB %'), safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %'));
+  const wxPullAir = firstRate(safeGet(pulledRow, 'Pulled Air %', 'Pull Air %', 'Air Pull %', 'Pull Air'), safeGet(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %'));
+  const wxPull = firstRate(safeGet(pulledRow, 'Pull %', 'Pull%'), safeGet(bbHandRow, 'Pull%', 'Pull %'), safeGet(p, 'Pull %', 'Pull%', 'PullRate'));
+  const wxLaunchAngle = firstNumber(safeGet(ssRow, 'LA (°)', 'LA', 'Launch Angle'), safeGet(scastRow, 'LA (°)', 'LA', 'Launch Angle'), safeGet(p, 'Launch Angle', 'LA'));
+  const wxPitcherFB = firstRate(safeGet(pitcherFBRow, 'FB%', 'Fly Ball %'), safeGet(pitcherSplitRow, 'FB%', 'Fly Ball %'), safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %'));
+  const wxPitcherHRFB = firstRate(safeGet(pitcherFBRow, 'HR/FB', 'HR/FB %'), safeGet(pitcherSplitRow, 'HR/FB', 'HR/FB %'), safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB'));
+  const wxPitcherBarrel = firstRate(safeGet(pitcherBBRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(pssRow, 'Brls/BBE %'), safeGet(pitchMaxRow, 'Brls/BBE %'), safeGet(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%'));
+  const wxPitcherHardHit = firstRate(safeGet(pitcherBBRow, 'HardHit%', 'Hard Hit %'), safeGet(pitchMaxRow, 'HardHit%', 'Hard Hit %'), safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed'));
+  const wxPitcherEV = firstNumber(safeGet(pitcherBBRow, 'EV', 'Avg EV', 'Average EV'), safeGet(pssRow, 'Avg', 'Avg EV'), safeGet(pitchMaxRow, 'Avg', 'Avg EV'), safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV'));
+  const wxParkFactor = positiveOrFallback(firstNumber(safeGet(p, 'pf', 'PF', 'ParkFactor', 'Park Factor'), safeGet(lookupStat('PARKFACTOR', parkTeam), 'HR', 'Park Factor')), parkDims.pf || 100);
+  const weatherImpact = buildSideWeatherImpact({ weather, hand: weatherHand, pull: wxPull, pullAir: wxPullAir, flyBall: wxFlyBall, launchAngle: wxLaunchAngle, barrel: wxBarrel, maxEV: wxMaxEV, pitcherFB: wxPitcherFB, pitcherHRFB: wxPitcherHRFB, pitcherBarrel: wxPitcherBarrel, pitcherHardHit: wxPitcherHardHit, pitcherEV: wxPitcherEV, pullFence, cf: parkDims.cf || 400, parkFactor: wxParkFactor });
+  const weatherScore = weatherImpact.score;
+  p.weatherScoreUsed = weatherImpact.score;
+  p.weatherSideUsed = weatherImpact.side;
+  p.weatherBoostReason = weatherImpact.reason;
+  p.weatherImpactMultiplier = weatherImpact.multiplier;
+  p.weatherImpactComponents = weatherImpact.components;
   return {
-    barrel: rawRate(p, 'Barrel %', 'Barrel%'),
-    iso: rawNumber(p, 'ISO', 'Iso'),
-    slg: rawNumber(p, 'SLG'),
-    xwoba: rawNumber(p, 'xwOBA', 'Expected wOBA', 'xWOBA'),
-    avgEV: rawNumber(p, 'Avg EV', 'AVG EV', 'EV'),
-    maxEV: rawNumber(p, 'Max EV', 'MaxEV'),
-    hardHit: rawRate(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%'),
-    sweetSpot: rawRate(p, 'Sweet Spot %', 'Sweetspot %'),
-    xHR: rawNumber(p, 'xHR', 'Expected HR', 'xHR Season'),
-    pitcherHR9: rawNumber(p, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9', 'PHR/9'),
-    pitcherBarrel: rawRate(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%'),
-    pitcherEV: rawNumber(p, 'Pitcher EV Allowed', 'Pitcher EV'),
-    pitcherMaxEV: rawNumber(p, 'Pitcher Max EV', 'Pitcher MaxEV'),
-    pitcherHardHit: rawRate(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed'),
-    pitcherFB: rawRate(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %'),
-    pitcherPull: rawRate(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%'),
-    pitcherGB: rawRate(p, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB'),
-    pitcherHRFB: rawRate(p, 'Pitcher HR/FB %', 'Pitcher HRFB'),
-    pitcherSweet: rawRate(p, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot'),
-    flyBall: rawRate(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %'),
-    pullAir: rawRate(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %'),
-    pull: rawRate(p, 'Pull %', 'Pull%', 'PullRate'),
-    launchAngle: rawNumber(p, 'Launch Angle', 'LA'),
-    hrFb: rawRate(p, 'HR/FB %', 'HR/FB', 'HRFB'),
-    batSpeed: rawNumber(p, 'BatSpd', 'Bat Speed'),
-    sqUpCon: rawRate(p, 'SqUpCon%', 'SqUpCon', 'Square-Up Con%', 'Square Up %'),
-    blastCon: rawRate(p, 'BlastCon%', 'BlastCon'),
-    bullpenHR9: rawNumber(p, 'Bullpen HR/9'),
-    bullpenFIP: rawNumber(p, 'Bullpen FIP'),
-    bullpenBarrel: rawRate(p, 'Bullpen Barrel %'),
-    bullpenHardHit: rawRate(p, 'Bullpen Hard Hit %'),
-    parkFactor: positiveOrFallback(rawNumber(p, 'pf', 'PF', 'ParkFactor', 'Park Factor'), parkDims.pf || 100),
+    barrel: firstRate(safeGet(barrellRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(ssRow, 'Brls/BBE %'), safeGet(scastRow, 'Brls/BBE %'), safeGet(p, 'Barrel %', 'Barrel%')),
+    brlsPA: firstRate(safeGet(barrellRow, 'Brls/PA %', 'Barrels/PA %'), safeGet(ssRow, 'Brls/PA %'), safeGet(scastRow, 'Brls/PA %')),
+    iso: firstNumber(safeGet(isoHandRow, 'ISO'), safeGet(p, 'ISO', 'Iso')),
+    slg: firstNumber(safeGet(p, 'SLG'), safeGet(isoHandRow, 'SLG')),
+    xwoba: firstNumber(safeGet(barrellRow, 'xwOBA', 'xWOBA'), safeGet(p, 'xwOBA', 'Expected wOBA', 'xWOBA')),
+    avgEV: firstNumber(safeGet(ssRow, 'Avg', 'Avg EV', 'Average EV'), safeGet(barrellRow, 'EV', 'Avg EV', 'Average EV'), safeGet(scastRow, 'Avg', 'Avg EV', 'Average EV'), safeGet(p, 'Avg EV', 'AVG EV', 'EV')),
+    ev50: firstNumber(safeGet(ssRow, 'EV50'), safeGet(scastRow, 'EV50')),
+    ev90: firstNumber(safeGet(barrellRow, 'EV90'), safeGet(pitcherBBRow, 'EV90')),
+    maxEV: firstNumber(safeGet(ssRow, 'Max', 'Max EV', 'MaxEV'), safeGet(barrellRow, 'maxEV', 'Max EV', 'MaxEV'), safeGet(scastRow, 'Max', 'Max EV'), safeGet(p, 'Max EV', 'MaxEV')),
+    hardHit: firstRate(safeGet(barrellRow, 'HardHit%', 'Hard Hit %', 'Hard Hit'), safeGet(scastRow, 'Hard Hit %', 'HardHit%'), safeGet(bbHandRow, 'Hard%', 'Hard %'), safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%')),
+    sweetSpot: firstRate(safeGet(ssRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(scastRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(p, 'Sweet Spot %', 'Sweetspot %')),
+    mph95: firstRate(safeGet(ssRow, '95 MPH+ %', '95+ %', '95 MPH+'), safeGet(scastRow, '95 MPH+ %', '95+ %')),
+    avgDistance: firstNumber(safeGet(scastRow, 'Avg HR', 'Avg Distance', 'Distance'), safeGet(pxhrRow, 'Avg HR Distance', 'Avg Distance')),
+    xHR: firstNumber(safeGet(pxhrRow, 'xHR', 'Expected HR'), safeGet(p, 'xHR', 'Expected HR', 'xHR Season')),
+    hrMinusXhr: firstNumber(safeGet(pxhrRow, 'HR-xHR', 'HR - xHR')),
+    noDoubter: firstRate(safeGet(pxhrRow, 'No Doubter %', 'No Doubter%', 'No Doubters %')),
+    pitcherHR9: firstNumber(safeGet(pitcherSplitRow, 'HR/9'), safeGet(pitcherOverallRow, 'HR/9'), safeGet(p, 'Pitcher HR/9', 'P HR/9', 'Pitcher HR9', 'PHR/9')),
+    pitcherBarrel: firstRate(safeGet(pitcherBBRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(pssRow, 'Brls/BBE %'), safeGet(pitchMaxRow, 'Brls/BBE %'), safeGet(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%')),
+    pitcherEV: firstNumber(safeGet(pitcherBBRow, 'EV', 'Avg EV', 'Average EV'), safeGet(pssRow, 'Avg', 'Avg EV'), safeGet(pitchMaxRow, 'Avg', 'Avg EV'), safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV')),
+    pitcherEV90: firstNumber(safeGet(pitcherBBRow, 'EV90'), safeGet(pitchMaxRow, 'EV90')),
+    pitcherEV50: firstNumber(safeGet(pssRow, 'EV50'), safeGet(pitchMaxRow, 'EV50')),
+    pitcher95: firstRate(safeGet(pssRow, '95 MPH+ %', '95+ %'), safeGet(pitchMaxRow, '95 MPH+ %', '95+ %')),
+    pitcherMaxEV: firstNumber(safeGet(pitcherBBRow, 'maxEV', 'Max EV', 'Max'), safeGet(pssRow, 'Max', 'Max EV'), safeGet(pitchMaxRow, 'Max', 'Max EV'), safeGet(p, 'Pitcher Max EV', 'Pitcher MaxEV')),
+    pitcherHardHit: firstRate(safeGet(pitcherBBRow, 'HardHit%', 'Hard Hit %'), safeGet(pitchMaxRow, 'HardHit%', 'Hard Hit %'), safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed')),
+    pitcherFB: firstRate(safeGet(pitcherFBRow, 'FB%', 'Fly Ball %'), safeGet(pitcherSplitRow, 'FB%', 'Fly Ball %'), safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %')),
+    pitcherPull: firstRate(safeGet(pitcherFBRow, 'Pull%', 'Pull %'), safeGet(pitcherSplitRow, 'Pull%', 'Pull %'), safeGet(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%')),
+    pitcherGB: firstRate(safeGet(pitcherSplitRow, 'GB%', 'GB %'), safeGet(pitcherOverallRow, 'GB%', 'GB %'), safeGet(p, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB')),
+    pitcherHRFB: firstRate(safeGet(pitcherFBRow, 'HR/FB', 'HR/FB %'), safeGet(pitcherSplitRow, 'HR/FB', 'HR/FB %'), safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB')),
+    pitcherSweet: firstRate(safeGet(pssRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(p, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot')),
+    pitcherFBLD: firstRate(safeGet(pssRow, 'FB/LD'), safeGet(pitchMaxRow, 'FB/LD')),
+    pitcherXERA: firstNumber(safeGet(pitcherBBRow, 'xERA'), safeGet(pitcherOverallRow, 'xERA'), safeGet(pitcherSplitRow, 'xERA')),
+    pitcherStuff: firstNumber(safeGet(stuffMap[pitcherNorm] || {}, 'Stuff+', 'Stuff'), safeGet(stuffMap[pitcherNorm] || {}, 'Pitching+')),
+    armAngle: firstNumber(safeGet(rzRow, 'Arm Angle', 'ArmAngle', 'RZ')),
+    flyBall: firstRate(safeGet(pulledRow, 'FB %', 'FB%'), safeGet(bbHandRow, 'FB%', 'FB %'), safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')),
+    lineDrive: firstRate(safeGet(pulledRow, 'LD %', 'LD%'), safeGet(bbHandRow, 'LD%', 'LD %')),
+    fbld: firstRate(safeGet(ssRow, 'FB/LD'), safeGet(scastRow, 'FB/LD')),
+    air: firstRate(safeGet(pulledRow, 'AIR %', 'Air %')),
+    pullAir: firstRate(safeGet(pulledRow, 'Pulled Air %', 'Pull Air %', 'Air Pull %', 'Pull Air'), safeGet(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %')),
+    pull: firstRate(safeGet(pulledRow, 'Pull %', 'Pull%'), safeGet(bbHandRow, 'Pull%', 'Pull %'), safeGet(p, 'Pull %', 'Pull%', 'PullRate')),
+    launchAngle: firstNumber(safeGet(ssRow, 'LA (°)', 'LA', 'Launch Angle'), safeGet(scastRow, 'LA (°)', 'LA', 'Launch Angle'), safeGet(p, 'Launch Angle', 'LA')),
+    hrFb: firstRate(safeGet(bbHandRow, 'HR/FB', 'HR/FB %'), safeGet(p, 'HR/FB %', 'HR/FB', 'HRFB')),
+    batSpeed: firstNumber(safeGet(p, 'BatSpd', 'Bat Speed')),
+    sqUpCon: firstRate(safeGet(p, 'SqUpCon%', 'SqUpCon', 'Square-Up Con%', 'Square Up %')),
+    blastCon: firstRate(safeGet(p, 'BlastCon%', 'BlastCon')),
+    bullpenHR9: firstNumber(safeGet(p, 'Bullpen HR/9')),
+    bullpenFIP: firstNumber(safeGet(p, 'Bullpen FIP')),
+    bullpenBarrel: firstRate(safeGet(bullpenEvRow, 'Barrel %', 'Barrel%'), safeGet(p, 'Bullpen Barrel %')),
+    bullpenHardHit: firstRate(safeGet(bullpenEvRow, 'HardHit%', 'Hard Hit %'), safeGet(p, 'Bullpen Hard Hit %')),
+    bullpenEV: firstNumber(safeGet(bullpenEvRow, 'EV', 'Avg EV')),
+    parkFactor: wxParkFactor,
     pullFence: pullFence,
     cf: positiveOrFallback(parkDims.cf, positiveOrFallback(rawNumber(p, 'CF'), 400)),
     weatherScore: weatherScore,
-    pa: rawNumber(p, 'PA', 'pa', 'PAs', 'Plate Appearances', 'AB'),
-    paPg: rawNumber(p, 'PA PG', 'PA/Game', 'PApg', 'PA per game'),
-    battingOrder: rawNumber(p, 'BO', 'Batting Order', 'Lineup Spot'),
-    teamTotal: rawNumber(p, 'Total', 'Game Total', 'O/U', 'Over/Under'),
+    weatherImpactMultiplier: weatherImpact.multiplier,
+    pa: firstNumber(safeGet(lookupStat('PA', p.Name), 'PA', 'PAs'), safeGet(p, 'PA', 'pa', 'PAs', 'Plate Appearances', 'AB')),
+    paPg: firstNumber(safeGet(lookupStat('PA', p.Name), 'PA/G', 'PA PG', 'PA/Game'), safeGet(p, 'PA PG', 'PA/Game', 'PApg', 'PA per game')),
+    battingOrder: firstNumber(safeGet(lookupStat('LINEUPS', p.Name), 'Spot', 'BO', 'Batting Order'), safeGet(p, 'BO', 'Batting Order', 'Lineup Spot')),
+    teamTotal: firstNumber(safeGet(p, 'Total', 'Team Total', 'Game Total', 'O/U', 'Over/Under')),
     kRate: rawRate(p, 'K %', 'K%', 'Strikeout %'),
     hSwing: rawRate(p, 'H-Swing %', 'Hard Swing %'),
     hContact: rawRate(p, 'H-Contact %', 'Hard Contact %'),
@@ -3695,31 +4119,49 @@ function hybridClampLow(value, floor) {
 function scoreHybridPlayer(p, ranges) {
   const r = p.hybridRaw;
   const power = hybridDiminishingWeightedAvg([
-    { value: hybridScoreMetric(r,ranges,'barrel'), weight: 0.24 },
-    { value: hybridScoreMetric(r,ranges,'iso'), weight: 0.18 },
-    { value: hybridScoreMetric(r,ranges,'xHR'), weight: 0.16 },
-    { value: hybridScoreMetric(r,ranges,'maxEV'), weight: 0.12 },
+    { value: hybridScoreMetric(r,ranges,'barrel'), weight: 0.22 },
+    { value: hybridScoreMetric(r,ranges,'brlsPA'), weight: 0.16 },
+    { value: hybridScoreMetric(r,ranges,'hardHit'), weight: 0.14 },
+    { value: hybridScoreMetric(r,ranges,'ev50'), weight: 0.14 },
     { value: hybridScoreMetric(r,ranges,'avgEV'), weight: 0.10 },
-    { value: hybridScoreMetric(r,ranges,'hardHit'), weight: 0.08 },
-    { value: hybridScoreMetric(r,ranges,'xwoba'), weight: 0.07 },
-    { value: hybridScoreMetric(r,ranges,'slg'), weight: 0.03 },
-    { value: hybridScoreMetric(r,ranges,'sweetSpot'), weight: 0.02 }
+    { value: hybridScoreMetric(r,ranges,'sweetSpot'), weight: 0.09 },
+    { value: hybridScoreMetric(r,ranges,'mph95'), weight: 0.07 },
+    { value: hybridScoreMetric(r,ranges,'xHR'), weight: 0.05 },
+    { value: hybridScoreMetric(r,ranges,'maxEV'), weight: 0.03 }
   ]);
   const pitcherHR9Score = hybridScoreMetric(r,ranges,'pitcherHR9');
   const pitcherHRDamage = hybridWeightedAvg([
-    { value: pitcherHR9Score, weight: 0.34 },
-    { value: hybridScoreMetric(r,ranges,'pitcherHRFB'), weight: 0.18 },
+    { value: pitcherHR9Score, weight: 0.30 },
+    { value: hybridScoreMetric(r,ranges,'pitcherHRFB'), weight: 0.16 },
     { value: hybridScoreMetric(r,ranges,'pitcherFB'), weight: 0.14 },
-    { value: hybridScoreMetric(r,ranges,'pitcherPull'), weight: 0.12 },
-    { value: hybridScoreMetric(r,ranges,'pitcherSweet'), weight: 0.10 },
-    { value: hybridScoreMetric(r,ranges,'pitcherGB',true), weight: 0.12 }
+    { value: hybridScoreMetric(r,ranges,'pitcherPull'), weight: 0.10 },
+    { value: hybridScoreMetric(r,ranges,'pitcherSweet'), weight: 0.12 },
+    { value: hybridScoreMetric(r,ranges,'pitcherGB',true), weight: 0.10 },
+    { value: hybridScoreMetric(r,ranges,'pitcherFBLD'), weight: 0.08 }
   ]);
-  const pitcherContactQuality = hybridAvg([hybridScoreMetric(r,ranges,'pitcherBarrel'),hybridScoreMetric(r,ranges,'pitcherEV'),hybridScoreMetric(r,ranges,'pitcherMaxEV'),hybridScoreMetric(r,ranges,'pitcherHardHit')]);
+  const pitcherContactQuality = hybridWeightedAvg([
+    { value: hybridScoreMetric(r,ranges,'pitcherBarrel'), weight: 0.24 },
+    { value: hybridScoreMetric(r,ranges,'pitcherHardHit'), weight: 0.18 },
+    { value: hybridScoreMetric(r,ranges,'pitcherEV'), weight: 0.16 },
+    { value: hybridScoreMetric(r,ranges,'pitcherEV90'), weight: 0.12 },
+    { value: hybridScoreMetric(r,ranges,'pitcherEV50'), weight: 0.12 },
+    { value: hybridScoreMetric(r,ranges,'pitcher95'), weight: 0.10 },
+    { value: hybridScoreMetric(r,ranges,'pitcherMaxEV'), weight: 0.08 }
+  ]);
+  const pitcherQualityPenalty = hybridWeightedAvg([
+    { value: hybridScoreMetric(r,ranges,'pitcherXERA'), weight: 0.55 },
+    { value: hybridScoreMetric(r,ranges,'pitcherStuff', true), weight: 0.45 }
+  ]);
   const pitcher = hybridWeightedAvg([
-    { value: pitcherHRDamage, weight: 0.62 },
-    { value: pitcherContactQuality, weight: 0.38 }
+    { value: pitcherHRDamage, weight: 0.42 },
+    { value: pitcherContactQuality, weight: 0.43 },
+    { value: pitcherQualityPenalty, weight: 0.15 }
   ]);
-  const pitchLevel = hybridAvg([hybridScoreMetric(r,ranges,'pitchLevelEV')]);
+  const pitchLabScore = p.pitchLabProfile ? cleanNumber(p.pitchLabProfile.score) : null;
+  const pitchLevel = hybridWeightedAvg([
+    { value: hybridScoreMetric(r,ranges,'pitchLevelEV'), weight: 0.40 },
+    { value: (pitchLabScore && pitchLabScore > 0) ? pitchLabScore : null, weight: 0.60 }
+  ]);
   const recent = hybridDiminishingWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'lwBarrel'), weight: 0.22 },
     { value: hybridScoreMetric(r,ranges,'lwXSLG'), weight: 0.18 },
@@ -3733,14 +4175,11 @@ function scoreHybridPlayer(p, ranges) {
     { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.lwLA)), weight: 0.02 }
   ]);
   const battedBall = hybridDiminishingWeightedAvg([
-    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.24 },
-    { value: hybridScoreMetric(r,ranges,'flyBall'), weight: 0.20 },
-    { value: hybridScoreMetric(r,ranges,'hrFb'), weight: 0.18 },
-    { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.launchAngle)), weight: 0.13 },
-    { value: hybridScoreMetric(r,ranges,'pull'), weight: 0.10 },
-    { value: hybridScoreMetric(r,ranges,'batSpeed'), weight: 0.07 },
-    { value: hybridScoreMetric(r,ranges,'sqUpCon'), weight: 0.05 },
-    { value: hybridScoreMetric(r,ranges,'blastCon'), weight: 0.03 }
+    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.35 },
+    { value: hybridScoreMetric(r,ranges,'fbld'), weight: 0.20 },
+    { value: hybridScoreMetric(r,ranges,'flyBall'), weight: 0.15 },
+    { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.launchAngle)), weight: 0.15 },
+    { value: hybridScoreMetric(r,ranges,'avgDistance'), weight: 0.15 }
   ]);
   let bvp = null;
   // BVP is noisy and often blank. Only score it when there is actual sample.
@@ -3798,6 +4237,12 @@ function scoreHybridPlayer(p, ranges) {
   const adjustment = 1 + ((scaleHRFB-1)*0.08) + ((scalePitcherHR9-1)*0.14) + ((scaleBarrel-1)*0.12) + ((scalePark-1)*0.07) + ((scalePulled-1)*0.08) + ((scaleWeather-1)*0.08);
   score *= Math.max(0.65, Math.min(1.35, adjustment));
 
+  // Side-specific weather multiplier: small but real. RHB/LHB score was already used as a category;
+  // this lets true wind + hitter shape + pitcher air-contact conditions add a controlled bump.
+  const sideWeatherMultiplier = Math.max(0.955, Math.min(1.055, r.weatherImpactMultiplier || 1));
+  score *= sideWeatherMultiplier;
+  p.envMultiplier = sideWeatherMultiplier;
+
   // Balanced HR/9 damage boost: HR/9 matters, but it is gated so one bad pitcher
   // does not push an entire lineup to the top. The hitter needs power/shape/support.
   const hr9PowerGate = (power !== null && power >= 58) || (r.barrel !== null && r.barrel >= 0.09) || (r.iso !== null && r.iso >= 0.185) || (r.maxEV !== null && r.maxEV >= 110);
@@ -3837,8 +4282,8 @@ function scoreHybridPlayer(p, ranges) {
   if (badPitcher && goodPitchFit) synergyPoints += 1.25;
   if (goodPower && goodRecent) synergyPoints += 1.0;
   if (goodPower && goodBattedBall && badPitcher && (goodPark || goodWeather)) synergyPoints += 2.0;
-  synergyPoints = Math.max(0, Math.min(12, synergyPoints));
-  const synergyBonusPoints = (synergyPoints / 12) * 3.5;
+  synergyPoints = Math.max(0, Math.min(16, synergyPoints));
+  const synergyBonusPoints = (synergyPoints / 16) * 8;
   score += synergyBonusPoints;
   const synergyMultiplier = 1 + (synergyBonusPoints / 100);
   p.calculatedSynergy = synergyBonusPoints;
@@ -3862,7 +4307,7 @@ function scoreHybridPlayer(p, ranges) {
 function recalculateAllBBIScores() {
   playerData.forEach(p => { p.hybridRaw = hybridRaw(p); p.pitchLabProfile = buildPitchLabProfile(p); });
   const ranges = buildHybridRanges(playerData.filter(p => !p.isRemoved));
-  playerData.forEach(p => { p.calculatedBBI = scoreHybridPlayer(p, ranges); });
+  playerData.forEach(p => { p.calculatedBBI = scoreHybridPlayer(p, ranges); attachOddsAndEdge(p); });
   applyFiltersAndRender();
 }
 function getTeamsPlayingToday() { let teams = new Set(); playerData.forEach(p => { if(p.Team) teams.add(p.Team); }); return Array.from(teams).sort(); }
@@ -3950,10 +4395,11 @@ renderTop12Carousel();
 // renderTopTwelveSpotlightWidget();
 renderFanaticsJackpot();
 renderTodaysStorylines();
+renderBestBettingEdges();
 }
 function renderMainTableBoard(data) {
 const tbody = document.getElementById('tableBody');
-if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`; return; }
+if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="11" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`; return; }
 tbody.innerHTML = '';
 const globalSlateSorted = [...playerData].filter(p => !p.isRemoved);
 globalSlateSorted.sort((a, b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV']));
@@ -3985,7 +4431,8 @@ if (pitcherFBMod > 1.25) badgeHtml += `<span class="metric-badge badge-meatball"
 if (flyBallRate >= 40 && pullRate >= 40) badgeHtml += `<span class="metric-badge badge-angle">📐 LAUNCH ANGLE KING</span>`;
 if (pHR9 >= 1.6) badgeHtml += `<span class="metric-badge badge-gopher">⚠️ PITCHER TARGET</span>`;
 if (jackpotTop4Names.includes(p.Name)) badgeHtml += `<span class="metric-badge badge-jackpot">🎯 FANATICS JACKPOT TARGET</span>`;
-if (p.envMultiplier >= 1.07) badgeHtml += `<span class="metric-badge badge-env">🌤️ SHOOTOUT</span>`;
+if ((p.weatherScoreUsed || 50) >= 70) badgeHtml += `<span class="metric-badge badge-env">🌬️ ${p.weatherSideUsed || ''} WEATHER</span>`;
+if (p.envMultiplier >= 1.04) badgeHtml += `<span class="metric-badge badge-env">🌤️ CARRY</span>`;
 if (p.releaseModifier >= 1.15) badgeHtml += `<span class="metric-badge badge-gopher">📉 VAA TARGET</span>`;
 if (p.matchupHR >= 1) badgeHtml += `<span class="metric-badge badge-jackpot">🎯 ${p.matchupHR} HR vs Pitcher</span>`;
 if (p.matchupHR >= 2) badgeHtml += `<span class="metric-badge badge-bvp">🩸 BLOOD IN THE WATER</span>`;
@@ -4034,7 +4481,8 @@ const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.
 const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
 const batterHand = getBatterHandDisplay(p);
 const orbitClass = idx < 10 ? ' orbit-ready' : '';
-tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}${renderBBIProbabilityMeter(p, true)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
+const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
+tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${p.bettingOdds || '-'}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
