@@ -5093,7 +5093,7 @@ const BACKTEST_DB_NAME = 'DailyRunlineBacktestDB';
 const BACKTEST_STORE_NAME = 'state';
 const BACKTEST_HISTORY_KEY = 'backtestHistory';
 const BACKTEST_BOMBS_KEY = 'drlBacktestBombsCurrentSlate';
-const BACKTEST_MODEL_VERSION = '34.1_WEIGHTED_RAW_BACKTEST_VIEW';
+const BACKTEST_MODEL_VERSION = '34.2_COMPLETE_WEIGHTED_RAW_BACKTEST_VIEW';
 let backtestHistory = [];
 let currentBacktestBombs = JSON.parse(localStorage.getItem(BACKTEST_BOMBS_KEY) || '{}');
 
@@ -5171,6 +5171,13 @@ function getBacktestHandedParkFactor(p) {
   const raw = p.hybridRawSnapshot || p.hybridRaw || {};
   return backtestNum(raw.parkFactor || p.handedParkFactor || p.pf || p.ParkFactor || safeGet(p, 'ParkFactor', 'PF'));
 }
+function getPitchLabRowValue(profile, keys, valueKey) {
+  if (!profile || !Array.isArray(profile.rows)) return null;
+  const wanted = (keys || []).map(k => String(k || '').trim().toUpperCase());
+  const row = profile.rows.find(r => wanted.includes(String(r.key || '').trim().toUpperCase()) || wanted.includes(String(r.group || '').trim().toUpperCase()) || wanted.includes(String(r.label || '').trim().toUpperCase()));
+  if (!row) return null;
+  return row[valueKey];
+}
 function flattenBacktestObject(prefix, obj, out) {
   if (!obj || typeof obj !== 'object') return;
   Object.keys(obj).forEach(k => {
@@ -5245,7 +5252,37 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     BVP_Modifier: backtestNum(p.calculatedBvP),
     PitchLab_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.score),
     PitchLab_TopThreat: p.pitchLabProfile && p.pitchLabProfile.topPitch ? p.pitchLabProfile.topPitch : '',
-    PitchLab_Summary: p.pitchLabProfile && p.pitchLabProfile.summary ? p.pitchLabProfile.summary : ''
+    PitchLab_Summary: p.pitchLabProfile && p.pitchLabProfile.summary ? p.pitchLabProfile.summary : '',
+    PitchLab_Mix_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.pitchMixScore),
+    PitchLab_Zone_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zoneScore),
+    PitchLab_Pitch_Quality_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.pitchQualityScore),
+    PitchLab_Bat_Tracking_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.batTrackingScore),
+    PitchLab_FB_Edge: backtestNum(getPitchLabRowValue(p.pitchLabProfile, ['FB','FF','FA'], 'edge')),
+    PitchLab_SL_Edge: backtestNum(getPitchLabRowValue(p.pitchLabProfile, ['SL'], 'edge')),
+    PitchLab_CH_Edge: backtestNum(getPitchLabRowValue(p.pitchLabProfile, ['CH'], 'edge')),
+    PitchLab_CU_Edge: backtestNum(getPitchLabRowValue(p.pitchLabProfile, ['CU','CB','CV'], 'edge')),
+    PitchLab_FC_Edge: backtestNum(getPitchLabRowValue(p.pitchLabProfile, ['FC','CT'], 'edge')),
+    PitchLab_SI_Edge: backtestNum(getPitchLabRowValue(p.pitchLabProfile, ['SI','SNK'], 'edge')),
+    PitchLab_FS_Edge: backtestNum(getPitchLabRowValue(p.pitchLabProfile, ['FS','SPL'], 'edge')),
+    Zone_Heart_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.components && p.pitchLabProfile.zone.components.heart),
+    Zone_Shadow_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.components && p.pitchLabProfile.zone.components.shadow),
+    Zone_Chase_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.components && p.pitchLabProfile.zone.components.chase),
+    Zone_Waste_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.components && p.pitchLabProfile.zone.components.waste),
+    Zone_Batter_Heart_Contact: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.raw && p.pitchLabProfile.zone.raw.bHeartContact),
+    Zone_Batter_Heart_Swing: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.raw && p.pitchLabProfile.zone.raw.bHeartSwing),
+    Zone_Pitcher_Heart_Zone: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.raw && p.pitchLabProfile.zone.raw.pHeartZone),
+    Zone_Batter_Shadow_Contact: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.raw && p.pitchLabProfile.zone.raw.bShadowContact),
+    Zone_Batter_Shadow_Swing: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.raw && p.pitchLabProfile.zone.raw.bShadowSwing),
+    Zone_Pitcher_Shadow_Zone: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.raw && p.pitchLabProfile.zone.raw.pShadowZone),
+    Zone_Batter_Chase_Swing: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.raw && p.pitchLabProfile.zone.raw.bChaseSwing),
+    Zone_Batter_Chase_Contact: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.raw && p.pitchLabProfile.zone.raw.bChaseContact),
+    Zone_Pitcher_Chase_Zone: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zone && p.pitchLabProfile.zone.raw && p.pitchLabProfile.zone.raw.pChaseZone),
+    Weather_Wind_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.windPoints),
+    Weather_Hitter_Shape: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.hitterShape),
+    Weather_Pitcher_Air: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.pitcherAir),
+    Weather_Park_Carry: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.parkCarry),
+    Weather_Temp_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.tempScore),
+    Weather_Humidity_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.humidityScore)
   };
   flattenBacktestObject('Raw', p.hybridRawSnapshot || p.hybridRaw || {}, row);
   flattenBacktestObject('PitchLab', p.pitchLabProfile || {}, row);
@@ -5343,32 +5380,155 @@ function getSuggestedWeights(rows) {
 
 const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
   { bucket:'Power', type:'Power scoring stat', keys:[
-    ['Raw_barrel','Barrel %'], ['Raw_brlsPA','Brls/PA %'], ['Raw_hardHit','Hard Hit %'], ['Raw_ev50','EV50'], ['Raw_avgEV','Avg EV'], ['Raw_sweetSpot','Sweet Spot %'], ['Raw_mph95','95+ MPH %'], ['Raw_xHR','xHR'], ['Raw_maxEV','Max EV']
+    ['Raw_barrel','Barrel %'],
+    ['Raw_brlsPA','Brls/PA %'],
+    ['Raw_hardHit','Hard Hit %'],
+    ['Raw_ev50','EV50'],
+    ['Raw_avgEV','Avg EV'],
+    ['Raw_sweetSpot','Sweet Spot %'],
+    ['Raw_mph95','95+ MPH %'],
+    ['Raw_xHR','xHR'],
+    ['Raw_maxEV','Max EV'],
+    // Stored for audit because these are used in gates/synergy even when not direct power-subweight rows.
+    ['Raw_iso','ISO'],
+    ['Raw_slg','SLG'],
+    ['Raw_xwoba','xwOBA'],
+    ['Raw_ev90','EV90'],
+    ['Raw_noDoubter','No Doubter %'],
+    ['Raw_hrMinusXhr','HR - xHR']
   ]},
   { bucket:'Pitcher Vulnerability', type:'Pitcher scoring stat', keys:[
-    ['Raw_pitcherHR9','Pitcher HR/9'], ['Raw_pitcherHRFB','Pitcher HR/FB'], ['Raw_pitcherFB','Pitcher FB %'], ['Raw_pitcherPull','Pitcher Pull Allowed %'], ['Raw_pitcherSweet','Pitcher Sweet Spot %'], ['Raw_pitcherGB','Pitcher GB %'], ['Raw_pitcherFBLD','Pitcher FB/LD'],
-    ['Raw_pitcherBarrel','Pitcher Barrel Allowed %'], ['Raw_pitcherHardHit','Pitcher Hard Hit Allowed %'], ['Raw_pitcherEV','Pitcher EV Allowed'], ['Raw_pitcherEV90','Pitcher EV90 Allowed'], ['Raw_pitcherEV50','Pitcher EV50 Allowed'], ['Raw_pitcher95','Pitcher 95+ MPH Allowed %'], ['Raw_pitcherMaxEV','Pitcher Max EV Allowed'], ['Raw_pitcherXERA','Pitcher xERA'], ['Raw_pitcherStuff','Pitcher Stuff+']
+    ['Raw_pitcherHR9','Pitcher HR/9'],
+    ['Raw_pitcherHRFB','Pitcher HR/FB'],
+    ['Raw_pitcherFB','Pitcher FB %'],
+    ['Raw_pitcherPull','Pitcher Pull Allowed %'],
+    ['Raw_pitcherSweet','Pitcher Sweet Spot %'],
+    ['Raw_pitcherGB','Pitcher GB %'],
+    ['Raw_pitcherFBLD','Pitcher FB/LD'],
+    ['Raw_pitcherBarrel','Pitcher Barrel Allowed %'],
+    ['Raw_pitcherHardHit','Pitcher Hard Hit Allowed %'],
+    ['Raw_pitcherEV','Pitcher EV Allowed'],
+    ['Raw_pitcherEV90','Pitcher EV90 Allowed'],
+    ['Raw_pitcherEV50','Pitcher EV50 Allowed'],
+    ['Raw_pitcher95','Pitcher 95+ MPH Allowed %'],
+    ['Raw_pitcherMaxEV','Pitcher Max EV Allowed'],
+    ['Raw_pitcherXERA','Pitcher xERA'],
+    ['Raw_pitcherStuff','Pitcher Stuff+'],
+    ['Raw_armAngle','Pitcher Arm Angle / RZ']
   ]},
   { bucket:'Batted Ball', type:'Batted-ball scoring stat', keys:[
-    ['Raw_pullAir','Pulled Air %'], ['Raw_fbld','FB/LD'], ['Raw_flyBall','Fly Ball %'], ['Raw_launchAngle','Launch Angle'], ['Raw_avgDistance','Avg Distance']
+    ['Raw_pullAir','Pulled Air %'],
+    ['Raw_fbld','FB/LD'],
+    ['Raw_flyBall','Fly Ball %'],
+    ['Raw_launchAngle','Launch Angle'],
+    ['Raw_avgDistance','Avg Distance'],
+    // Additional batted-ball inputs that affect gates, weather fit, and context bonuses.
+    ['Raw_lineDrive','Line Drive %'],
+    ['Raw_air','Air %'],
+    ['Raw_pull','Pull %'],
+    ['Raw_hrFb','HR/FB %'],
+    ['Raw_batSpeed','Bat Speed'],
+    ['Raw_sqUpCon','Squared-Up Contact %'],
+    ['Raw_blastCon','Blast Contact %']
   ]},
   { bucket:'Pitch Lab', type:'Pitch Lab scoring stat', keys:[
-    ['PitchLab_Score','Pitch Lab Score'], ['Raw_pitchLevelEV','Pitch-Level EV']
+    ['PitchLab_Score','Pitch Lab Score'],
+    ['Raw_pitchLevelEV','Pitch-Level EV'],
+    ['PitchLab_Mix_Score','Pitch Mix Score'],
+    ['PitchLab_Zone_Score','Zone Score'],
+    ['PitchLab_Pitch_Quality_Score','Pitch Quality Score'],
+    ['PitchLab_Bat_Tracking_Score','Bat Tracking Score'],
+    ['PitchLab_FB_Edge','Fastball Grade'],
+    ['PitchLab_SL_Edge','Slider Grade'],
+    ['PitchLab_CH_Edge','Changeup Grade'],
+    ['PitchLab_CU_Edge','Curve Grade'],
+    ['PitchLab_FC_Edge','Cutter Grade'],
+    ['PitchLab_SI_Edge','Sinker Grade'],
+    ['PitchLab_FS_Edge','Splitter Grade'],
+    ['Zone_Heart_Score','Zone Heart Score'],
+    ['Zone_Shadow_Score','Zone Shadow Score'],
+    ['Zone_Chase_Score','Zone Chase Score'],
+    ['Zone_Batter_Heart_Contact','Batter Heart Contact %'],
+    ['Zone_Batter_Heart_Swing','Batter Heart Swing %'],
+    ['Zone_Pitcher_Heart_Zone','Pitcher Heart Zone %'],
+    ['Zone_Batter_Shadow_Contact','Batter Shadow Contact %'],
+    ['Zone_Batter_Shadow_Swing','Batter Shadow Swing %'],
+    ['Zone_Pitcher_Shadow_Zone','Pitcher Shadow Zone %'],
+    ['Zone_Batter_Chase_Swing','Batter Chase Swing %'],
+    ['Zone_Batter_Chase_Contact','Batter Chase Contact %'],
+    ['Zone_Pitcher_Chase_Zone','Pitcher Chase Zone %']
   ]},
   { bucket:'Recent Form', type:'Recent form scoring stat', keys:[
-    ['Raw_lwBarrel','Last Week Barrel %'], ['Raw_lwXSLG','Last Week xSLG'], ['Raw_lwEV','Last Week EV'], ['Raw_lwMaxEV','Last Week Max EV'], ['Raw_lwHardHit','Last Week Hard Hit %'], ['Raw_lwISO','Last Week ISO'], ['Raw_lwHR','Last Week HR'], ['Raw_lwSLG','Last Week SLG'], ['Raw_lwXWOBA','Last Week xwOBA'], ['Raw_lwLA','Last Week Launch Angle']
+    ['Raw_lwBarrel','Last Week Barrel %'],
+    ['Raw_lwXSLG','Last Week xSLG'],
+    ['Raw_lwEV','Last Week EV'],
+    ['Raw_lwMaxEV','Last Week Max EV'],
+    ['Raw_lwHardHit','Last Week Hard Hit %'],
+    ['Raw_lwISO','Last Week ISO'],
+    ['Raw_lwHR','Last Week HR'],
+    ['Raw_lwSLG','Last Week SLG'],
+    ['Raw_lwXWOBA','Last Week xwOBA'],
+    ['Raw_lwLA','Last Week Launch Angle']
   ]},
   { bucket:'BvP', type:'BvP scoring stat', keys:[
-    ['Raw_bvpPA','BvP PA'], ['Raw_bvpHR','BvP HR'], ['Raw_bvpBA','BvP BA'], ['Raw_bvpXSLG','BvP xSLG'], ['Raw_bvpXWOBA','BvP xwOBA'], ['Raw_bvpEV','BvP EV'], ['Raw_bvpLA','BvP Launch Angle'], ['Raw_bvpK','BvP K%'], ['Raw_bvpWhiff','BvP Whiff%']
+    ['Raw_bvpPA','BvP PA'],
+    ['Raw_bvpHR','BvP HR'],
+    ['Raw_bvpBA','BvP BA'],
+    ['Raw_bvpXSLG','BvP xSLG'],
+    ['Raw_bvpXWOBA','BvP xwOBA'],
+    ['Raw_bvpEV','BvP EV'],
+    ['Raw_bvpLA','BvP Launch Angle'],
+    ['Raw_bvpK','BvP K%'],
+    ['Raw_bvpWhiff','BvP Whiff%'],
+    ['BVP_Modifier','BvP Modifier'],
+    ['Input_calculatedBvPConfidence','BvP Confidence'],
+    ['Input_calculatedBvPRawScore','BvP Raw Score']
   ]},
   { bucket:'Opportunity', type:'Opportunity scoring stat', keys:[
-    ['Raw_pa','PA'], ['Raw_paPg','PA/G'], ['Raw_teamTotal','Team Total'], ['Raw_battingOrder','Batting Order']
+    ['Raw_pa','PA'],
+    ['Raw_paPg','PA/G'],
+    ['Raw_teamTotal','Team Total'],
+    ['Raw_battingOrder','Batting Order']
   ]},
   { bucket:'Weather', type:'Weather scoring stat', keys:[
-    ['Raw_weatherScore','Weather Score'], ['Raw_weatherImpactMultiplier','Weather Impact Multiplier'], ['Weather_Temp','Temperature'], ['Weather_WindSpeed','Wind Speed'], ['Weather_Score_Used','Weather Score Used'], ['Weather_Multiplier','Weather Multiplier']
+    ['Raw_weatherScore','Weather Score'],
+    ['Raw_weatherImpactMultiplier','Weather Impact Multiplier'],
+    ['Weather_Temp','Temperature'],
+    ['Weather_WindSpeed','Wind Speed'],
+    ['Weather_Score_Used','Weather Score Used'],
+    ['Weather_Multiplier','Weather Multiplier'],
+    ['Weather_Wind_Points','Wind Points'],
+    ['Weather_Hitter_Shape','Weather Hitter Shape'],
+    ['Weather_Pitcher_Air','Weather Pitcher Air'],
+    ['Weather_Park_Carry','Weather Park Carry'],
+    ['Weather_Temp_Points','Temperature Points'],
+    ['Weather_Humidity_Points','Humidity Points']
   ]},
   { bucket:'Park', type:'Park scoring stat', keys:[
-    ['Raw_parkFactor','Park Factor'], ['Raw_pullFence','Pull-Side Fence'], ['Raw_cf','Center Field Distance'], ['Raw_weatherScore','Weather Score'], ['Handed_Park_Factor','Handed Park Factor'], ['ParkFactorL_or_R_Used','Park Factor L/R Used']
+    ['Raw_parkFactor','Park Factor'],
+    ['Raw_pullFence','Pull-Side Fence'],
+    ['Raw_cf','Center Field Distance'],
+    ['Handed_Park_Factor','Handed Park Factor'],
+    ['ParkFactorL_or_R_Used','Park Factor L/R Used']
+  ]},
+  { bucket:'Bullpen / Discipline', type:'Secondary scoring stat', keys:[
+    ['Raw_bullpenHR9','Bullpen HR/9'],
+    ['Raw_bullpenFIP','Bullpen FIP'],
+    ['Raw_bullpenBarrel','Bullpen Barrel %'],
+    ['Raw_bullpenHardHit','Bullpen Hard Hit %'],
+    ['Raw_bullpenEV','Bullpen EV Allowed'],
+    ['Raw_kRate','K%'],
+    ['Raw_hSwing','H-Swing %'],
+    ['Raw_hContact','H-Contact %']
+  ]},
+  { bucket:'Model Context / Bonuses', type:'Scoring context stat', keys:[
+    ['Synergy_Bonus','Synergy Bonus'],
+    ['Synergy_Raw','Raw Synergy Points'],
+    ['Power_Modifier','Power Modifier'],
+    ['Pitcher_Modifier','Pitcher Modifier'],
+    ['Pull_Modifier','Pull / Batted-Ball Modifier'],
+    ['Quality_Modifier','Quality Modifier'],
+    ['Data_Confidence','Data Confidence']
   ]}
 ];
 
@@ -5504,13 +5664,9 @@ function renderBacktestLab() {
   // This reads the existing saved backtest rows, so past finalized slates are preserved.
   const dynamicMetrics = buildWeightedBacktestMetrics(rows);
   const rawSignals = dynamicMetrics
-    .map(metric => ({ label: metric.label, type: metric.type, ...getSignalStats(rows, metric.key, metric) }))
-    .filter(s => s.count >= 10 && s.hitCount > 0 && s.missCount > 0)
-    .sort((a,b) => {
-      const aConf = a.confidence === 'Usable' ? 2 : a.confidence === 'Building' ? 1 : 0;
-      const bConf = b.confidence === 'Usable' ? 2 : b.confidence === 'Building' ? 1 : 0;
-      return (bConf - aConf) || (b.strength - a.strength);
-    });
+    .map((metric, idx) => ({ label: metric.label, type: metric.type, bucket: metric.bucket, sourceOrder: idx, ...getSignalStats(rows, metric.key, metric) }))
+    .filter(s => s.count > 0)
+    .sort((a,b) => (a.sourceOrder - b.sourceOrder));
 
   const weights = getSuggestedWeights(rows);
   const labels = { power:'Hitter Power', pitchLevel:'Pitch Lab', pitcher:'Pitcher Vulnerability', battedBall:'Batted Ball Shape', weather:'Weather', park:'Park Factor', opportunity:'Opportunity', recent:'Recent Form', bvp:'BVP' };
@@ -5525,7 +5681,7 @@ function renderBacktestLab() {
   }).join('');
 
   const categoryRows = renderBacktestSignalRows(categorySignals, 18);
-  const rawRows = renderBacktestSignalRows(rawSignals, 45);
+  const rawRows = renderBacktestSignalRows(rawSignals, 120);
 
   const strongestRaw = rawSignals[0];
   const strongestCategory = categorySignals[0];
@@ -5547,7 +5703,7 @@ function renderBacktestLab() {
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${categoryRows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before category signals are useful.</td></tr>'}</tbody></table></div>
 
     <h2>🔬 Individual Raw Stat Analysis</h2>
-    <p class="backtest-note">This now shows only the individual stats that feed the weighted BBI scoring buckets. It reads your existing saved backtest snapshots, so changing this view does not delete or reset past finalized data. If an older snapshot did not save a specific stat, that stat simply stays out until enough saved rows exist.</p>
+    <p class="backtest-note">This now shows every available individual stat that feeds the weighted BBI scoring buckets, including pitcher HR/9, hitter EV/barrel data, batted-ball shape, pitch lab, BvP, weather, park, and scoring context. It reads your existing saved backtest snapshots, so changing this view does not delete or reset past finalized data. Older snapshots that did not save a specific stat will simply show fewer rows until new finalized slates add those fields.</p>
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
   `;
 }
