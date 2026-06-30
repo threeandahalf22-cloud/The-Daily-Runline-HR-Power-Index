@@ -4985,7 +4985,7 @@ const BACKTEST_DB_NAME = 'DailyRunlineBacktestDB';
 const BACKTEST_STORE_NAME = 'state';
 const BACKTEST_HISTORY_KEY = 'backtestHistory';
 const BACKTEST_BOMBS_KEY = 'drlBacktestBombsCurrentSlate';
-const BACKTEST_MODEL_VERSION = '33.5_RESET_LAST_BACKTEST_UPLOAD';
+const BACKTEST_MODEL_VERSION = '33.7_RAW_STAT_SIGNAL_LAB';
 let backtestHistory = [];
 let currentBacktestBombs = JSON.parse(localStorage.getItem(BACKTEST_BOMBS_KEY) || '{}');
 
@@ -5170,27 +5170,44 @@ async function finalizeTodayBacktest() {
 }
 function getBacktestRows() { return backtestHistory.flatMap(s => s.rows || []); }
 function mean(arr) { const nums = arr.map(Number).filter(n => isFinite(n)); return nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : null; }
-function calcUnits(row) {
-  const hit = Number(row.HR_Result) === 1;
-  const odds = row.Best_Odds || row.Input_bettingOdds || '';
-  const profit = americanOddsProfitPer100(odds);
-  if (profit === null) return hit ? 0 : -1;
-  return hit ? profit / 100 : -1;
-}
 function fmtBack(v, digits=1, suffix='') { if (v === null || v === undefined || isNaN(v)) return '-'; return `${Number(v).toFixed(digits)}${suffix}`; }
-function getSignalStats(rows, key) {
+function backtestMetricDisplayValue(v, metric) {
+  if (v === null || v === undefined || isNaN(v)) return null;
+  let n = Number(v);
+  if (metric && metric.format === 'percent') {
+    // Workbook rates are usually stored as decimals. Convert 0.152 to 15.2% for display/analysis.
+    if (Math.abs(n) <= 1) n *= 100;
+  }
+  return n;
+}
+function fmtSignalValue(v, metric, digitsOverride) {
+  const n = backtestMetricDisplayValue(v, metric);
+  if (n === null) return '-';
+  const digits = digitsOverride !== undefined ? digitsOverride : (metric && metric.format === 'score' ? 1 : metric && metric.format === 'percent' ? 2 : 2);
+  const suffix = metric && metric.format === 'percent' ? '%' : '';
+  return `${Number(n).toFixed(digits)}${suffix}`;
+}
+function getBacktestMetricConfidence(validCount, hitCount, missCount, totalRows) {
+  if (validCount < 50 || hitCount < 5 || missCount < 25) return 'Low sample';
+  if (validCount < Math.max(200, totalRows * 0.65) || hitCount < 15) return 'Building';
+  return 'Usable';
+}
+function getSignalStats(rows, key, metric) {
   const valid = rows.filter(r => r[key] !== '' && r[key] !== null && r[key] !== undefined && isFinite(Number(r[key])));
-  const hits = valid.filter(r => Number(r.HR_Result) === 1);
-  const misses = valid.filter(r => Number(r.HR_Result) !== 1);
-  const hitAvg = mean(hits.map(r => Number(r[key])));
-  const missAvg = mean(misses.map(r => Number(r[key])));
+  const values = valid.map(r => ({ row: r, value: backtestMetricDisplayValue(Number(r[key]), metric) })).filter(x => x.value !== null && isFinite(x.value));
+  const hits = values.filter(x => Number(x.row.HR_Result) === 1);
+  const misses = values.filter(x => Number(x.row.HR_Result) !== 1);
+  const hitAvg = mean(hits.map(x => x.value));
+  const missAvg = mean(misses.map(x => x.value));
   const diff = (hitAvg !== null && missAvg !== null) ? hitAvg - missAvg : null;
   const overallStd = (() => {
-    const vals = valid.map(r => Number(r[key])); const m = mean(vals); if (m === null || vals.length < 2) return null;
+    const vals = values.map(x => x.value); const m = mean(vals); if (m === null || vals.length < 2) return null;
     return Math.sqrt(vals.reduce((s,v)=>s+Math.pow(v-m,2),0)/(vals.length-1));
   })();
   const strength = (diff !== null && overallStd && overallStd > 0) ? Math.abs(diff / overallStd) : 0;
-  return { key, count: valid.length, hitCount: hits.length, hitRate: valid.length ? (hits.length / valid.length) * 100 : null, hitAvg, missAvg, diff, strength };
+  const confidence = getBacktestMetricConfidence(values.length, hits.length, misses.length, rows.length);
+  const direction = diff === null ? '-' : diff > 0 ? 'Higher in HRs' : diff < 0 ? 'Lower in HRs' : 'No separation';
+  return { key, count: values.length, hitCount: hits.length, missCount: misses.length, hitRate: values.length ? (hits.length / values.length) * 100 : null, hitAvg, missAvg, diff, strength, confidence, direction, metric };
 }
 function getSuggestedWeights(rows) {
   const current = {
@@ -5207,13 +5224,94 @@ function getSuggestedWeights(rows) {
   const keyMap = {
     power: 'Category_Power', pitchLevel: 'Category_PitchLab', pitcher: 'Category_Pitcher', battedBall: 'Category_BattedBall', weather: 'Category_Weather', park: 'Category_Park', opportunity: 'Category_Opportunity', recent: 'Category_Recent', bvp: 'Category_BVP'
   };
-  const strengths = Object.keys(current).map(cat => ({ cat, strength: getSignalStats(rows, keyMap[cat]).strength || 0.01 }));
+  const strengths = Object.keys(current).map(cat => ({ cat, strength: getSignalStats(rows, keyMap[cat], { format:'score' }).strength || 0.01 }));
   const totalStrength = strengths.reduce((s,x)=>s+x.strength,0) || 1;
   const totalCurrent = Object.values(current).reduce((s,x)=>s+x,0) || 1;
   const suggested = {};
   strengths.forEach(x => suggested[x.cat] = (x.strength / totalStrength) * totalCurrent);
   return { current, suggested, keyMap };
 }
+
+function backtestPrettyLabel(key) {
+  let s = String(key || '')
+    .replace(/^Raw_/, '')
+    .replace(/^Input_/, '')
+    .replace(/^PitchLab_/, 'Pitch Lab ')
+    .replace(/^Category_/, 'Category ')
+    .replace(/^Contribution_/, 'Contribution ')
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\bavg\b/ig, 'Avg')
+    .replace(/\bev\b/ig, 'EV')
+    .replace(/\biso\b/ig, 'ISO')
+    .replace(/\bhr\b/ig, 'HR')
+    .replace(/\bbvp\b/ig, 'BVP')
+    .replace(/\bpa\b/ig, 'PA')
+    .replace(/\bfb\b/ig, 'FB')
+    .replace(/\bxwoba\b/ig, 'xwOBA')
+    .replace(/\bxslg\b/ig, 'xSLG')
+    .replace(/\bk\b/ig, 'K')
+    .replace(/\bbb\b/ig, 'BB')
+    .trim();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function inferBacktestMetricFormat(key) {
+  const k = String(key || '').toLowerCase();
+  if (k.includes('category_') || k.includes('contribution_') || k.includes('score') || k.includes('modifier') || k.includes('bbi')) return 'score';
+  if (k.includes('percent') || k.includes('pct') || k.includes('rate') || k.includes('barrel') || k.includes('hardhit') || k.includes('hard_hit') || k.includes('pullair') || k.includes('pulled_air') || k.includes('hrfb') || k.includes('sweetspot') || k.includes('whiff') || k.includes('chase') || k.includes('contact') || k.includes('usage')) return 'percent';
+  return 'number';
+}
+function getBacktestMetricType(key) {
+  const k = String(key || '');
+  if (k.startsWith('Category_')) return 'Category score';
+  if (k.startsWith('Contribution_')) return 'Score contribution';
+  if (k.startsWith('PitchLab_')) return 'Pitch Lab detail';
+  if (k.startsWith('Raw_pitcher') || k.toLowerCase().includes('pitcher')) return 'Pitcher raw stat';
+  if (k.startsWith('Raw_')) return 'Raw scoring stat';
+  if (k.startsWith('Weather_')) return 'Weather / park';
+  if (k.includes('Park')) return 'Weather / park';
+  if (k.startsWith('Input_')) return 'Workbook input';
+  return 'Stored stat';
+}
+function shouldAnalyzeBacktestColumn(key, rows) {
+  const k = String(key || '');
+  const lower = k.toLowerCase();
+  if (!k) return false;
+  const deny = [
+    'hr_result','slate_id','finalized_at','date','model_version','player','team','opponent','opposing_pitcher','batter_hand','pitcher_hand','ballpark','best_odds','bet_grade','weather_winddir','weather_roof_dome','pitchlab_summary','pitchlab_topthreat','home_park_team',
+    'input_name','input_player','input_team','input_opp','input_gameid','input_game_id','input_mlbid','input_playerid','input_id','raw_player','raw_name','raw_team','raw_pitcher','raw_batter','raw_throws','raw_hand','raw_pitcherhand'
+  ];
+  if (deny.includes(lower)) return false;
+  if (lower.includes('id') && !lower.includes('grid')) return false;
+  if (lower.includes('url') || lower.includes('image') || lower.includes('logo') || lower.includes('headshot')) return false;
+  // Keep model outputs out of the raw signal board; category table already handles category scores.
+  if (['rank','bbi','hr_probability','implied_probability','betting_edge','expected_value_pct','data_confidence'].includes(lower)) return false;
+  const valid = rows.filter(r => r[k] !== '' && r[k] !== null && r[k] !== undefined && isFinite(Number(r[k])));
+  return valid.length >= 10;
+}
+function buildDynamicBacktestMetrics(rows, options={}) {
+  const sampleKeys = new Set();
+  rows.forEach(r => Object.keys(r || {}).forEach(k => sampleKeys.add(k)));
+  const includeCategories = !!options.includeCategories;
+  const includeContrib = !!options.includeContrib;
+  const metrics = [];
+  sampleKeys.forEach(key => {
+    if (!shouldAnalyzeBacktestColumn(key, rows)) return;
+    if (!includeCategories && String(key).startsWith('Category_')) return;
+    if (!includeContrib && String(key).startsWith('Contribution_')) return;
+    const metric = { key, label: backtestPrettyLabel(key), format: inferBacktestMetricFormat(key), type: getBacktestMetricType(key) };
+    metrics.push(metric);
+  });
+  return metrics;
+}
+function renderBacktestSignalRows(signals, limit=35) {
+  return signals.slice(0, limit).map(s => {
+    const cls = s.diff > 0 ? 'signal-positive' : s.diff < 0 ? 'signal-negative' : 'signal-neutral';
+    const sign = s.diff > 0 ? '+' : '';
+    return `<tr><td>${s.label}</td><td>${s.type || '-'}</td><td>${s.count}</td><td>${s.hitCount}</td><td>${fmtBack(s.hitRate,2,'%')}</td><td>${fmtSignalValue(s.hitAvg, s.metric)}</td><td>${fmtSignalValue(s.missAvg, s.metric)}</td><td class="${cls}">${sign}${fmtSignalValue(s.diff, s.metric)}</td><td>${s.direction}</td><td>${fmtBack(s.strength,2)}</td><td>${s.confidence}</td></tr>`;
+  }).join('');
+}
+
 function renderBacktestLab() {
   const container = document.getElementById('backtestLabContainer');
   if (!container) return;
@@ -5224,41 +5322,76 @@ function renderBacktestLab() {
   }
   const slates = backtestHistory.length;
   const hrs = rows.filter(r => Number(r.HR_Result) === 1).length;
-  const units = rows.reduce((s,r)=>s+calcUnits(r),0);
   const hitRate = rows.length ? (hrs / rows.length) * 100 : 0;
   const latest = backtestHistory[backtestHistory.length - 1];
-  const signalKeys = [
-    ['Category_Power','Power category'], ['Category_PitchLab','Pitch Lab category'], ['Category_Pitcher','Pitcher category'], ['Category_BattedBall','Batted-ball category'], ['Raw_barrel','Raw barrel'], ['Raw_avgEV','Raw avg EV'], ['Raw_maxEV','Raw max EV'], ['Raw_iso','Raw ISO'], ['Raw_pullAir','Raw pulled air'], ['Raw_hrFb','Raw HR/FB'], ['Raw_pitcherHR9','Pitcher HR/9'], ['Raw_pitcherBarrel','Pitcher barrel allowed'], ['Handed_Park_Factor','Handed park factor'], ['Weather_Score_Used','Weather score'], ['Lineup_Spot','Lineup spot']
+
+  const categoryMetrics = [
+    { key:'Category_Power', label:'Power category', format:'score', type:'Category score' },
+    { key:'Category_PitchLab', label:'Pitch Lab category', format:'score', type:'Category score' },
+    { key:'Category_Pitcher', label:'Pitcher category', format:'score', type:'Category score' },
+    { key:'Category_BattedBall', label:'Batted-ball category', format:'score', type:'Category score' },
+    { key:'Category_Weather', label:'Weather category', format:'score', type:'Category score' },
+    { key:'Category_Park', label:'Park category', format:'score', type:'Category score' },
+    { key:'Category_Opportunity', label:'Opportunity category', format:'score', type:'Category score' },
+    { key:'Category_Recent', label:'Recent form category', format:'score', type:'Category score' },
+    { key:'Category_BVP', label:'BVP category', format:'score', type:'Category score' },
+    { key:'Category_Bullpen', label:'Bullpen category', format:'score', type:'Category score' },
+    { key:'Category_Discipline', label:'Discipline category', format:'score', type:'Category score' }
   ];
-  const signals = signalKeys.map(([key,label]) => ({ label, ...getSignalStats(rows, key) })).filter(s => s.count >= 10).sort((a,b)=>b.strength-a.strength);
+
+  const categorySignals = categoryMetrics
+    .map(metric => ({ label: metric.label, type: metric.type, ...getSignalStats(rows, metric.key, metric) }))
+    .filter(s => s.count >= 10 && s.hitCount > 0 && s.missCount > 0)
+    .sort((a,b) => (b.strength - a.strength));
+
+  // Dynamic raw stat scan: every numeric raw/input/pitch-level stat saved in the backtest rows gets evaluated here.
+  const dynamicMetrics = buildDynamicBacktestMetrics(rows, { includeCategories:false, includeContrib:false });
+  const rawSignals = dynamicMetrics
+    .map(metric => ({ label: metric.label, type: metric.type, ...getSignalStats(rows, metric.key, metric) }))
+    .filter(s => s.count >= 10 && s.hitCount > 0 && s.missCount > 0)
+    .sort((a,b) => {
+      const aConf = a.confidence === 'Usable' ? 2 : a.confidence === 'Building' ? 1 : 0;
+      const bConf = b.confidence === 'Usable' ? 2 : b.confidence === 'Building' ? 1 : 0;
+      return (bConf - aConf) || (b.strength - a.strength);
+    });
+
   const weights = getSuggestedWeights(rows);
   const labels = { power:'Hitter Power', pitchLevel:'Pitch Lab', pitcher:'Pitcher Vulnerability', battedBall:'Batted Ball Shape', weather:'Weather', park:'Park Factor', opportunity:'Opportunity', recent:'Recent Form', bvp:'BVP' };
   const weightRows = Object.keys(weights.current).map(cat => {
     const cur = weights.current[cat] * 100;
     const sug = weights.suggested[cat] * 100;
     const delta = sug - cur;
-    const stat = getSignalStats(rows, weights.keyMap[cat]);
+    const stat = getSignalStats(rows, weights.keyMap[cat], { format:'score' });
     const cls = delta > 0.75 ? 'signal-positive' : delta < -0.75 ? 'signal-negative' : 'signal-neutral';
     const sepCls = stat.diff > 0 ? 'signal-positive' : stat.diff < 0 ? 'signal-negative' : 'signal-neutral';
-    return `<tr><td>${labels[cat] || cat}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(stat.hitAvg,2)}</td><td>${fmtBack(stat.missAvg,2)}</td><td class="${sepCls}">${stat.diff >= 0 ? '+' : ''}${fmtBack(stat.diff,2)}</td><td>${fmtBack(stat.strength,2)}</td></tr>`;
+    return `<tr><td>${labels[cat] || cat}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(stat.hitAvg,2)}</td><td>${fmtBack(stat.missAvg,2)}</td><td class="${sepCls}">${stat.diff >= 0 ? '+' : ''}${fmtBack(stat.diff,2)}</td><td>${fmtBack(stat.strength,2)}</td><td>${stat.confidence}</td></tr>`;
   }).join('');
-  const signalRows = signals.slice(0,18).map(s => {
-    const cls = s.diff > 0 ? 'signal-positive' : s.diff < 0 ? 'signal-negative' : 'signal-neutral';
-    return `<tr><td>${s.label}</td><td>${s.count}</td><td>${fmtBack(s.hitRate,2,'%')}</td><td>${fmtBack(s.hitAvg,3)}</td><td>${fmtBack(s.missAvg,3)}</td><td class="${cls}">${s.diff >= 0 ? '+' : ''}${fmtBack(s.diff,3)}</td><td>${fmtBack(s.strength,2)}</td></tr>`;
-  }).join('');
+
+  const categoryRows = renderBacktestSignalRows(categorySignals, 18);
+  const rawRows = renderBacktestSignalRows(rawSignals, 45);
+
+  const strongestRaw = rawSignals[0];
+  const strongestCategory = categorySignals[0];
+
   container.innerHTML = `
     <div class="backtest-kpi-grid">
       <div class="backtest-kpi"><div class="backtest-kpi-label">Finalized slates</div><div class="backtest-kpi-value">${slates}</div><div class="backtest-kpi-sub">Latest: ${latest ? new Date(latest.finalizedAt).toLocaleString() : '-'}</div></div>
       <div class="backtest-kpi"><div class="backtest-kpi-label">Player snapshots</div><div class="backtest-kpi-value">${rows.length.toLocaleString()}</div><div class="backtest-kpi-sub">Every scoring input frozen</div></div>
       <div class="backtest-kpi"><div class="backtest-kpi-label">HR winners marked</div><div class="backtest-kpi-value">${hrs}</div><div class="backtest-kpi-sub">Hit rate ${fmtBack(hitRate,2,'%')}</div></div>
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Flat-bet units</div><div class="backtest-kpi-value">${units >= 0 ? '+' : ''}${fmtBack(units,1)}</div><div class="backtest-kpi-sub">1u on every tracked row with odds</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Strongest raw signal</div><div class="backtest-kpi-value" style="font-size:18px;">${strongestRaw ? strongestRaw.label : '-'}</div><div class="backtest-kpi-sub">Strength ${strongestRaw ? fmtBack(strongestRaw.strength,2) : '-'}</div></div>
     </div>
+
     <h2>🧠 Current vs Suggested Weights</h2>
     <p class="backtest-note">Suggested weights are calculated from historical separation between HR hitters and non-HR hitters. They are reference-only and do not alter live scoring. The HR Avg and Miss Avg columns show why a category is being rewarded or faded.</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Category</th><th>Current Weight</th><th>Suggested Weight</th><th>Difference</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Separation</th><th>Signal Strength</th></tr></thead><tbody>${weightRows}</tbody></table></div>
-    <h2>🔬 Stat Signal Board</h2>
-    <p class="backtest-note">This compares each stat's average for HR hitters vs non-HR hitters. Bigger positive separation means that input has been showing up more often in HR results.</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Rows</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Strength</th></tr></thead><tbody>${signalRows || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before signal board is useful.</td></tr>'}</tbody></table></div>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Category</th><th>Current Weight</th><th>Suggested Weight</th><th>Difference</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Separation</th><th>Signal Strength</th><th>Sample</th></tr></thead><tbody>${weightRows}</tbody></table></div>
+
+    <h2>📊 Category Signal Board</h2>
+    <p class="backtest-note">This is only the broad model-category view. It explains how the major scoring buckets are separating HR hitters from misses, but it is not enough by itself to change weights.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${categoryRows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before category signals are useful.</td></tr>'}</tbody></table></div>
+
+    <h2>🔬 Individual Raw Stat Analysis</h2>
+    <p class="backtest-note">This scans every numeric stat saved in your frozen player snapshots, including raw hitter stats, pitcher stats, pitch-level inputs, weather, park, and workbook inputs. This is the main research board for learning what actually predicts HRs over time.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
   `;
 }
 
