@@ -1632,7 +1632,8 @@ tbody tr.cody-diamond-row:hover td {
 .signal-table-wrapper { overflow-x:auto; border:1px solid var(--border); border-radius:14px; background:rgba(5,11,20,.50); margin-bottom:20px; }
 .signal-table { width:100%; border-collapse:collapse; font-size:12px; }
 .signal-table th, .signal-table td { padding:11px 12px; border-bottom:1px solid rgba(255,255,255,.06); text-align:center; white-space:nowrap; }
-.signal-table th { color:#94a3b8; background:rgba(9,18,34,.78); font-size:10px; text-transform:uppercase; letter-spacing:.8px; }
+.signal-table th { color:#94a3b8; background:rgba(9,18,34,.78); font-size:10px; text-transform:uppercase; letter-spacing:.8px; cursor:pointer; user-select:none; }
+.signal-table th:hover, .signal-table th.signal-sorted { color:#fff; background:rgba(0,255,157,.08); }
 .signal-table td:first-child, .signal-table th:first-child { text-align:left; }
 .signal-positive { color:#10b981; font-family:monospace; font-weight:1000; }
 .signal-negative { color:#f87171; font-family:monospace; font-weight:1000; }
@@ -6163,11 +6164,58 @@ function backtestMetricDisplayValue(v, metric) {
   return n;
 }
 function fmtSignalValue(v, metric, digitsOverride) {
-  const n = backtestMetricDisplayValue(v, metric);
-  if (n === null) return '-';
+  // getSignalStats already converts percent-like source values once for analysis/display.
+  // Do NOT run backtestMetricDisplayValue here again, or small percentage differences
+  // like 0.736 percentage points become a fake 73.60% separation.
+  if (v === null || v === undefined || isNaN(v)) return '-';
+  const n = Number(v);
   const digits = digitsOverride !== undefined ? digitsOverride : (metric && metric.format === 'score' ? 1 : metric && metric.format === 'percent' ? 2 : 2);
   const suffix = metric && metric.format === 'percent' ? '%' : '';
-  return `${Number(n).toFixed(digits)}${suffix}`;
+  return `${n.toFixed(digits)}${suffix}`;
+}
+
+function parseSignalSortValue(text) {
+  const raw = String(text || '').trim();
+  if (!raw || raw === '-') return { type: 'empty', value: -Infinity, text: '' };
+  const cleaned = raw.replace(/,/g, '').replace(/%/g, '').replace(/[^0-9+\-.]/g, '');
+  const num = Number(cleaned);
+  if (cleaned && isFinite(num)) return { type: 'number', value: num, text: raw.toLowerCase() };
+  return { type: 'text', value: NaN, text: raw.toLowerCase() };
+}
+function sortSignalTable(table, colIndex) {
+  if (!table || !table.tBodies || !table.tBodies[0]) return;
+  const tbody = table.tBodies[0];
+  const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.children.length > 1);
+  if (!rows.length) return;
+  const currentCol = Number(table.dataset.sortCol || -1);
+  const currentDir = table.dataset.sortDir || 'desc';
+  const nextDir = currentCol === colIndex && currentDir === 'desc' ? 'asc' : 'desc';
+  table.dataset.sortCol = String(colIndex);
+  table.dataset.sortDir = nextDir;
+  rows.sort((a,b) => {
+    const av = parseSignalSortValue(a.children[colIndex] ? a.children[colIndex].textContent : '');
+    const bv = parseSignalSortValue(b.children[colIndex] ? b.children[colIndex].textContent : '');
+    let cmp;
+    if (av.type === 'number' && bv.type === 'number') cmp = av.value - bv.value;
+    else cmp = av.text.localeCompare(bv.text);
+    return nextDir === 'asc' ? cmp : -cmp;
+  });
+  rows.forEach(r => tbody.appendChild(r));
+  table.querySelectorAll('th').forEach((th, idx) => {
+    th.classList.toggle('signal-sorted', idx === colIndex);
+    th.querySelectorAll('.stats-sort-arrow').forEach(el => el.remove());
+    if (idx === colIndex) th.insertAdjacentHTML('beforeend', `<span class="stats-sort-arrow">${nextDir === 'asc' ? '▲' : '▼'}</span>`);
+  });
+}
+function initSortableSignalTables(scope) {
+  const root = scope || document;
+  root.querySelectorAll('.signal-table').forEach(table => {
+    table.querySelectorAll('thead th').forEach((th, idx) => {
+      th.style.cursor = 'pointer';
+      th.title = 'Click to sort';
+      th.onclick = () => sortSignalTable(table, idx);
+    });
+  });
 }
 function getBacktestMetricConfidence(validCount, hitCount, missCount, totalRows) {
   if (validCount < 50 || hitCount < 5 || missCount < 25) return 'Low sample';
@@ -6543,6 +6591,7 @@ function renderBacktestLab() {
     <p class="backtest-note">This now shows every available individual stat that feeds the weighted BBI scoring buckets, including pitcher HR/9, hitter EV/barrel data, batted-ball shape, pitch lab, BvP, weather, park, and scoring context. It reads your existing saved backtest snapshots, so changing this view does not delete or reset past finalized data. Older snapshots that did not save a specific stat will simply show fewer rows until new finalized slates add those fields.</p>
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
   `;
+  initSortableSignalTables(container);
 }
 
 async function resetLastBacktestUpload() {
