@@ -1495,6 +1495,81 @@ tbody tr.cody-diamond-row:hover td {
 .signal-neutral { color:#eab308; font-family:monospace; font-weight:1000; }
 .backtest-note { color:var(--text-muted); font-size:12px; line-height:1.45; margin:0 0 12px; }
 </style>
+
+<style id="mlbhr-twitter-sidebar-style">
+/* =========================
+   MLBHR X FEED SIDEBAR
+   Visual/add-on only: no scoring or backtest logic changed.
+   ========================= */
+.edge-page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 24px;
+  align-items: start;
+}
+.mlbhr-feed-panel {
+  position: sticky;
+  top: 18px;
+  max-height: calc(100vh - 36px);
+  overflow: hidden;
+}
+.mlbhr-feed-shell {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(5,11,20,.70);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.mlbhr-feed-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  background: linear-gradient(135deg, rgba(0,255,157,.08), rgba(56,189,248,.05));
+}
+.mlbhr-feed-title {
+  color:#fff;
+  font-size:12px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+.mlbhr-feed-link {
+  color: var(--accent);
+  font-size:10px;
+  font-weight:1000;
+  text-transform:uppercase;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.mlbhr-feed-link:hover { text-decoration: underline; }
+.mlbhr-feed-body {
+  max-height: 720px;
+  overflow-y: auto;
+  padding: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,255,157,.55) rgba(255,255,255,.06);
+}
+.mlbhr-feed-body::-webkit-scrollbar { width: 8px; }
+.mlbhr-feed-body::-webkit-scrollbar-track { background: rgba(255,255,255,.06); border-radius: 999px; }
+.mlbhr-feed-body::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--accent), #38bdf8); border-radius: 999px; }
+.mlbhr-feed-fallback {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 14px;
+  border: 1px dashed rgba(255,255,255,.10);
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+}
+@media(max-width: 1100px) {
+  .edge-page-grid { grid-template-columns: 1fr; }
+  .mlbhr-feed-panel { position: relative; top: auto; max-height: none; }
+  .mlbhr-feed-body { max-height: 560px; }
+}
+</style>
 </head>
 <body>
 <div class="container">
@@ -1671,7 +1746,7 @@ tbody tr.cody-diamond-row:hover td {
 </div>
 
 <div id="tab-edge" class="tab-content">
-<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+<div class="edge-page-grid">
 <div style="display:flex; flex-direction:column; gap:24px;">
 <div class="panel">
 <h2>💎 Cody's Diamonds</h2>
@@ -1687,6 +1762,20 @@ tbody tr.cody-diamond-row:hover td {
 <h2>🎰 Jackpot / Longshot</h2>
 <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">High Risk, High Reward +900 or Higher</p>
 <div id="longshotEdge" class="diamonds-grid"><div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Longshot...</div></div>
+</div>
+</div>
+<div class="panel mlbhr-feed-panel">
+<h2>🐦 MLB HR Feed</h2>
+<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Live @MLBHR timeline for quick homer news/reference.</p>
+<div class="mlbhr-feed-shell">
+  <div class="mlbhr-feed-header">
+    <div class="mlbhr-feed-title">@MLBHR</div>
+    <a class="mlbhr-feed-link" href="https://x.com/MLBHR?lang=en" target="_blank" rel="noopener noreferrer">Open X</a>
+  </div>
+  <div class="mlbhr-feed-body">
+    <a class="twitter-timeline" data-theme="dark" data-height="700" data-chrome="noheader nofooter noborders transparent" href="https://twitter.com/MLBHR?ref_src=twsrc%5Etfw">Tweets by MLBHR</a>
+    <div class="mlbhr-feed-fallback">If the live X feed does not load, use the Open X link above. Some browsers block embedded X timelines because of privacy or ad-block settings.</div>
+  </div>
 </div>
 </div>
 </div>
@@ -1742,13 +1831,13 @@ tbody tr.cody-diamond-row:hover td {
 <div id="tab-backtest" class="tab-content">
   <div class="panel">
     <h2>📊 Backtest / Model Research Lab</h2>
-    <p class="backtest-note">This tab stores finalized slate snapshots and studies which scoring inputs actually separate HR hitters from non-HR hitters. Suggested weights are reference-only and never change the live model.</p>
+    <p class="backtest-note">This tab keeps adding finalized slate snapshots over time and studies which scoring inputs actually separate HR hitters from non-HR hitters. Suggested weights are reference-only and never change the live model.</p>
     <div class="backtest-tools">
       <button class="backtest-tool-btn" onclick="renderBacktestLab()">🔄 Refresh Lab</button>
+      <button class="backtest-tool-btn" onclick="resetLastBacktestUpload()">↩ Reset Last Upload</button>
       <button class="backtest-tool-btn" onclick="exportBacktestMasterXLSX()">⬇ Export Backtest_Master</button>
       <button class="backtest-tool-btn" onclick="exportBacktestJSON()">🧰 Export Backup JSON</button>
       <button class="backtest-tool-btn" onclick="document.getElementById('backtestImportFile').click()">⬆ Import Backup JSON</button>
-      <button class="backtest-tool-btn backtest-warning-btn" onclick="clearBacktestHistoryConfirm()">🗑 Clear Backtest Data</button>
       <input id="backtestImportFile" class="backtest-file-input" type="file" accept=".json" onchange="importBacktestJSON(event)">
     </div>
     <div id="backtestLabContainer"><div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No finalized backtests yet. Mark HR hitters with 💣 on the rankings page, then click Finalize Today's Backtest at the bottom.</div></div>
@@ -4896,7 +4985,7 @@ const BACKTEST_DB_NAME = 'DailyRunlineBacktestDB';
 const BACKTEST_STORE_NAME = 'state';
 const BACKTEST_HISTORY_KEY = 'backtestHistory';
 const BACKTEST_BOMBS_KEY = 'drlBacktestBombsCurrentSlate';
-const BACKTEST_MODEL_VERSION = '33.2_BACKTEST_RESEARCH_LAB';
+const BACKTEST_MODEL_VERSION = '33.5_RESET_LAST_BACKTEST_UPLOAD';
 let backtestHistory = [];
 let currentBacktestBombs = JSON.parse(localStorage.getItem(BACKTEST_BOMBS_KEY) || '{}');
 
@@ -5148,8 +5237,10 @@ function renderBacktestLab() {
     const cur = weights.current[cat] * 100;
     const sug = weights.suggested[cat] * 100;
     const delta = sug - cur;
+    const stat = getSignalStats(rows, weights.keyMap[cat]);
     const cls = delta > 0.75 ? 'signal-positive' : delta < -0.75 ? 'signal-negative' : 'signal-neutral';
-    return `<tr><td>${labels[cat] || cat}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(getSignalStats(rows, weights.keyMap[cat]).strength,2)}</td></tr>`;
+    const sepCls = stat.diff > 0 ? 'signal-positive' : stat.diff < 0 ? 'signal-negative' : 'signal-neutral';
+    return `<tr><td>${labels[cat] || cat}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(stat.hitAvg,2)}</td><td>${fmtBack(stat.missAvg,2)}</td><td class="${sepCls}">${stat.diff >= 0 ? '+' : ''}${fmtBack(stat.diff,2)}</td><td>${fmtBack(stat.strength,2)}</td></tr>`;
   }).join('');
   const signalRows = signals.slice(0,18).map(s => {
     const cls = s.diff > 0 ? 'signal-positive' : s.diff < 0 ? 'signal-negative' : 'signal-neutral';
@@ -5163,13 +5254,34 @@ function renderBacktestLab() {
       <div class="backtest-kpi"><div class="backtest-kpi-label">Flat-bet units</div><div class="backtest-kpi-value">${units >= 0 ? '+' : ''}${fmtBack(units,1)}</div><div class="backtest-kpi-sub">1u on every tracked row with odds</div></div>
     </div>
     <h2>🧠 Current vs Suggested Weights</h2>
-    <p class="backtest-note">Suggested weights are calculated from historical separation between HR hitters and non-HR hitters. They are reference-only and do not alter live scoring.</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Category</th><th>Current Weight</th><th>Suggested Weight</th><th>Difference</th><th>Signal Strength</th></tr></thead><tbody>${weightRows}</tbody></table></div>
+    <p class="backtest-note">Suggested weights are calculated from historical separation between HR hitters and non-HR hitters. They are reference-only and do not alter live scoring. The HR Avg and Miss Avg columns show why a category is being rewarded or faded.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Category</th><th>Current Weight</th><th>Suggested Weight</th><th>Difference</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Separation</th><th>Signal Strength</th></tr></thead><tbody>${weightRows}</tbody></table></div>
     <h2>🔬 Stat Signal Board</h2>
     <p class="backtest-note">This compares each stat's average for HR hitters vs non-HR hitters. Bigger positive separation means that input has been showing up more often in HR results.</p>
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Rows</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Strength</th></tr></thead><tbody>${signalRows || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before signal board is useful.</td></tr>'}</tbody></table></div>
   `;
 }
+
+async function resetLastBacktestUpload() {
+  if (!backtestHistory || !backtestHistory.length) {
+    alert('No finalized backtest uploads to reset.');
+    return;
+  }
+  const last = backtestHistory[backtestHistory.length - 1] || {};
+  const playerCount = last.playerCount || ((last.rows || []).length) || 0;
+  const hrCount = last.hrCount || ((last.rows || []).filter(r => Number(r.HR_Result) === 1).length) || 0;
+  const finalizedText = last.finalizedAt ? new Date(last.finalizedAt).toLocaleString() : 'latest upload';
+  const ok = confirm(`Reset the LAST finalized backtest upload?\n\nFinalized: ${finalizedText}\nPlayers: ${playerCount}\nHR marked: ${hrCount}\n\nThis only removes the most recent saved slate. Older backtest history stays saved.`);
+  if (!ok) return;
+  backtestHistory.pop();
+  await saveBacktestHistory();
+  currentBacktestBombs = {};
+  saveBacktestBombs();
+  renderBacktestLab();
+  if (typeof applyFiltersAndRender === 'function') applyFiltersAndRender();
+  alert('Last finalized backtest upload was removed. Current bomb marks were cleared so you can re-mark the HR hitters and finalize again.');
+}
+
 function exportBacktestMasterXLSX() {
   const rows = getBacktestRows();
   if (!rows.length) { alert('No backtest rows to export yet.'); return; }
@@ -5203,22 +5315,25 @@ async function importBacktestJSON(event) {
     const parsed = JSON.parse(text);
     const imported = Array.isArray(parsed) ? parsed : parsed.backtestHistory;
     if (!Array.isArray(imported)) throw new Error('Invalid backup file');
-    const merge = confirm(`Import ${imported.length} slates?\n\nOK = merge with current history\nCancel = replace current history`);
-    backtestHistory = merge ? [...backtestHistory, ...imported] : imported;
+    const ok = confirm(`Import ${imported.length} slates?
+
+This will MERGE with current history. It will not replace or erase saved backtest data.`);
+    if (!ok) return;
+    const existingIds = new Set((backtestHistory || []).map(s => s && s.slateId).filter(Boolean));
+    const uniqueImported = imported.filter(s => !s || !s.slateId || !existingIds.has(s.slateId));
+    backtestHistory = [...backtestHistory, ...uniqueImported];
     await saveBacktestHistory();
     renderBacktestLab();
-    alert('Backtest backup imported.');
+    alert(`Backtest backup imported. Added ${uniqueImported.length} new slates. Existing data was kept.`);
   } catch (e) { alert('Could not import this JSON backup.'); }
   event.target.value = '';
 }
 async function clearBacktestHistoryConfirm() {
-  const ok = confirm('This clears all saved backtest data from this browser. Export a backup first if you want to keep it. Continue?');
-  if (!ok) return;
-  backtestHistory = [];
-  await saveBacktestHistory();
-  renderBacktestLab();
+  alert('Clear Backtest Data is disabled in this version so saved research history is not accidentally reset. Export a backup JSON if you want an external copy.');
 }
 window.addEventListener('DOMContentLoaded', () => { setTimeout(loadBacktestHistory, 250); });
 </script>
+
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 </body>
 </html>
