@@ -2021,6 +2021,8 @@ let fanaticsJackpotData = [];
 let pitchTypeMap = {};
 let stuffMap = {};
 let batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+let zoneBMap = {};
+let zonePMap = {};
 let batTrackingMaps = { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
 let statSheetMaps = {};
 let oddsMap = {};
@@ -2491,7 +2493,7 @@ function resolvePitcherOwnTeam(pitcherName, fallbackTeam) {
   return mapped || String(fallbackTeam || '').trim().toUpperCase();
 }
 function saveCachedData() {
-const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps, batTrackingMaps, pitcherTeamMap };
+const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps, zoneBMap, zonePMap, batTrackingMaps, pitcherTeamMap };
 localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 function loadCachedData() {
@@ -2519,6 +2521,8 @@ playerIdMap = cacheData.playerIdMap || {};
 pitchTypeMap = cacheData.pitchTypeMap || {};
 stuffMap = cacheData.stuffMap || {};
 batterPitchMaps = cacheData.batterPitchMaps || { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+zoneBMap = cacheData.zoneBMap || {};
+zonePMap = cacheData.zonePMap || {};
 batTrackingMaps = cacheData.batTrackingMaps || { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
 pitcherTeamMap = cacheData.pitcherTeamMap || buildPitcherTeamMapFromPlayers(playerData);
 if (playerData.length > 0) {
@@ -2669,7 +2673,7 @@ const workbook = XLSX.read(data, {type: 'array'});
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], vsFBRaw = [], vsCHRaw = [], vsCVRaw = [], vsSLRaw = [], vsCURaw = [];
 let batTrackingSheetNames = {}; 
-teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} }; zoneBMap = {}; zonePMap = {};
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
@@ -2694,6 +2698,8 @@ if (nameClean === 'VSCH') vsCHRaw = sheetToJsonSmart(workbook, sheetName, ['Play
 if (nameClean === 'VSCV') vsCVRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
 if (nameClean === 'VSSL') vsSLRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
 if (nameClean === 'VSCU') vsCURaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'ZONEB') zoneBMap = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name']));
+if (nameClean === 'ZONEP') zonePMap = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Pitcher','Player','Name']));
 if (['FBL','FBR','BBL','BBR','OSL','OSR'].includes(nameClean)) batTrackingSheetNames[nameClean] = sheetName;
 if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
 });
@@ -3103,12 +3109,86 @@ function batterPitchGrade(playerName, group, pitcherHand) {
   const blendedScore = Math.max(0, Math.min(100, (existing.score * 0.60) + (tracking.score * 0.40)));
   return { ...existing, score: blendedScore, grade: gradeFromScore(blendedScore), traditional: existing, tracking, note: `${existing.note} | ${tracking.note}` };
 }
+
+function zoneRateValue(row, keys) {
+  if (!row) return null;
+  for (const k of keys) {
+    const v = safeGet(row, k);
+    const n = cleanNumberOrNull(v);
+    if (n !== null && n !== undefined && !isNaN(n)) return hybridRate(n);
+  }
+  return null;
+}
+function zoneClampScore(v, min, max, reverse=false) {
+  if (v === null || v === undefined || isNaN(v)) return 50;
+  let s = ((v - min) / Math.max(0.0001, max - min)) * 100;
+  if (reverse) s = 100 - s;
+  return Math.max(0, Math.min(100, s));
+}
+function zoneAvgScores(items) {
+  const vals = items.filter(x => x !== null && x !== undefined && !isNaN(x));
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 50;
+}
+function buildZoneMatchupProfile(playerName, pitcherName) {
+  const b = zoneBMap[normalizeName(playerName)] || null;
+  const p = zonePMap[normalizeName(pitcherName)] || null;
+  if (!b && !p) return { score: 50, grade: 'C', confidence: 0, note: 'No ZoneB/ZoneP data', components: { heart:50, shadow:50, chase:50, waste:50 } };
+
+  const bHeartContact = zoneRateValue(b, ['H-Contact%','Heart Contact%','Heart Contact','Heart Contact %','H Contact%','H Contact']);
+  const bHeartSwing = zoneRateValue(b, ['H-Swing%','Heart Swing%','Heart Swing','Heart Swing %','H Swing%','H Swing']);
+  const pHeartZone = zoneRateValue(p, ['H-Zone%','Heart Zone%','Heart Zone','Heart Zone %','H Zone%','H Zone']);
+
+  const bShadowContact = zoneRateValue(b, ['S-Contact%','Shadow Contact%','Shadow Contact','Shadow Contact %','S Contact%','S Contact']);
+  const bShadowSwing = zoneRateValue(b, ['S-Swing%','Shadow Swing%','Shadow Swing','Shadow Swing %','S Swing%','S Swing']);
+  const pShadowZone = zoneRateValue(p, ['S-Zone%','Shadow Zone%','Shadow Zone','Shadow Zone %','S Zone%','S Zone']);
+
+  const bChaseSwing = zoneRateValue(b, ['C-Swing%','Chase Swing%','Chase Swing','Chase Swing %','C Swing%','C Swing']);
+  const bChaseContact = zoneRateValue(b, ['C-Contact%','Chase Contact%','Chase Contact','Chase Contact %','C Contact%','C Contact']);
+  const pChaseZone = zoneRateValue(p, ['C-Zone%','Chase Zone%','Chase Zone','Chase Zone %','C Zone%','C Zone']);
+
+  const bWasteSwing = zoneRateValue(b, ['W-Swing%','Waste Swing%','Waste Swing','Waste Swing %','W Swing%','W Swing']);
+  const pWasteZone = zoneRateValue(p, ['W-Zone%','Waste Zone%','Waste Zone','Waste Zone %','W Zone%','W Zone']);
+
+  // Heart is the mistake/damage zone: high pitcher Heart% + strong batter Heart contact/swing = green light.
+  const heart = zoneAvgScores([
+    zoneClampScore(pHeartZone, 0.22, 0.34),
+    zoneClampScore(bHeartContact, 0.78, 0.96),
+    zoneClampScore(bHeartSwing, 0.55, 0.85)
+  ]);
+  // Shadow is more pitcher-friendly: reward hitters who can handle it and pitchers who do not live there.
+  const shadow = zoneAvgScores([
+    zoneClampScore(bShadowContact, 0.45, 0.75),
+    zoneClampScore(bShadowSwing, 0.35, 0.62, true),
+    zoneClampScore(pShadowZone, 0.38, 0.55, true)
+  ]);
+  // Chase/Waste are discipline modifiers: low chase/waste swing is better for HR opportunity quality.
+  const chase = zoneAvgScores([
+    zoneClampScore(bChaseSwing, 0.18, 0.38, true),
+    zoneClampScore(bChaseContact, 0.35, 0.62),
+    zoneClampScore(pChaseZone, 0.18, 0.32, true)
+  ]);
+  const waste = zoneAvgScores([
+    zoneClampScore(bWasteSwing, 0.04, 0.16, true),
+    zoneClampScore(pWasteZone, 0.04, 0.16, true)
+  ]);
+  const score = Math.max(0, Math.min(100, (heart * 0.50) + (shadow * 0.25) + (chase * 0.15) + (waste * 0.10)));
+  const present = [bHeartContact,bHeartSwing,pHeartZone,bShadowContact,bShadowSwing,pShadowZone,bChaseSwing,bChaseContact,pChaseZone,bWasteSwing,pWasteZone].filter(x => x !== null && x !== undefined && !isNaN(x)).length;
+  const confidence = Math.min(1, present / 11);
+  return {
+    score, grade: gradeFromScore(score), confidence,
+    components: { heart, shadow, chase, waste },
+    raw: { bHeartContact, bHeartSwing, pHeartZone, bShadowContact, bShadowSwing, pShadowZone, bChaseSwing, bChaseContact, pChaseZone, bWasteSwing, pWasteZone },
+    note: `Heart ${scoreBarPct(heart)} / Shadow ${scoreBarPct(shadow)} / Chase ${scoreBarPct(chase)} / Waste ${scoreBarPct(waste)}`
+  };
+}
+
 function buildPitchLabProfile(player) {
   if (!player) return null;
   const pitcherName = String(player['Opp Pitcher'] || player['Opp Pitcher Name'] || '').trim();
   const pitcherHand = String(safeGet(player, 'Opp Pitcher Throws', 'Opp Throws', 'Pitcher Throws', 'Pitcher Hand', 'P Throws', 'L/R', 'LR') || '').trim().toUpperCase();
   const pitchRow = pitchTypeMap[normalizeName(pitcherName)] || {};
   const stuffRow = stuffMap[normalizeName(pitcherName)] || {};
+  const zone = buildZoneMatchupProfile(player.Name, pitcherName);
   let rows = [];
   PITCH_LAB_TYPES.forEach(pt => {
     const usage = getPitchUsage(pitchRow, pt.usageKeys);
@@ -3116,18 +3196,43 @@ function buildPitchLabProfile(player) {
     const stuff = getPitchStuff(stuffRow, pt.stuffKeys);
     const bat = batterPitchGrade(player.Name, pt.group, pitcherHand);
     const stuffWeakness = Math.max(0, Math.min(100, 100 + (100 - stuff))); // lower stuff helps hitter
-    const edge = Math.max(0, Math.min(100, (bat.score * 0.66) + (stuffWeakness * 0.24) + (Math.min(100, usage * 180) * 0.10)));
-    rows.push({ ...pt, usage, stuff, bat, edge });
+    const usageExposure = Math.max(0, Math.min(100, usage * 180));
+    // Edge for this pitch type: hitter production vs pitch type leads, pitcher pitch quality and usage refine it.
+    const edge = Math.max(0, Math.min(100, (bat.score * 0.70) + (stuffWeakness * 0.22) + (usageExposure * 0.08)));
+    rows.push({ ...pt, usage, stuff, stuffWeakness, bat, edge });
   });
   if (!rows.length) {
-    ['FB','SL','CH','CU'].forEach(group => { const bat = batterPitchGrade(player.Name, group, pitcherHand); rows.push({ key:group, label:group, group, usage:0, stuff:100, bat, edge:bat.score }); });
+    ['FB','SL','CH','CU'].forEach(group => {
+      const bat = batterPitchGrade(player.Name, group, pitcherHand);
+      rows.push({ key:group, label:group, group, usage:0, stuff:100, stuffWeakness:50, bat, edge:bat.score });
+    });
   }
   rows.sort((a,b) => (b.usage * b.edge) - (a.usage * a.edge));
   const useTotal = rows.reduce((s,r)=>s+r.usage,0);
-  const weighted = useTotal > 0 ? rows.reduce((s,r)=>s+(r.edge*r.usage),0)/useTotal : hybridAvg(rows.map(r=>r.edge));
+  // Pitcher's actual pitch mix controls how much each hitter pitch grade matters.
+  const pitchMixScore = useTotal > 0 ? rows.reduce((s,r)=>s+(r.edge*r.usage),0)/useTotal : hybridAvg(rows.map(r=>r.edge));
+  const pitchQualityScore = useTotal > 0 ? rows.reduce((s,r)=>s+((r.stuffWeakness || 50)*r.usage),0)/useTotal : hybridAvg(rows.map(r=>r.stuffWeakness || 50));
   const batTrackingWeighted = useTotal > 0 ? rows.reduce((s,r)=>s+((r.bat && r.bat.tracking ? r.bat.tracking.score : 50)*r.usage),0)/useTotal : hybridAvg(rows.map(r => r.bat && r.bat.tracking ? r.bat.tracking.score : 50));
+  // Rebuilt Pitch Lab: expected pitch mix + attack zone fit + pitcher pitch quality + bat tracking.
+  // No sequence/location-coordinate data is assumed; ZoneB/ZoneP provide the command/attack-zone layer.
+  const finalScore = Math.max(0, Math.min(100,
+    ((pitchMixScore || 50) * 0.50) +
+    ((zone.score || 50) * 0.25) +
+    ((pitchQualityScore || 50) * 0.15) +
+    ((batTrackingWeighted || 50) * 0.10)
+  ));
   const top = rows[0] || null;
-  return { player, pitcherName, pitcherHand, rows, score: Math.max(0, Math.min(100, weighted || 50)), batTrackingScore: Math.max(0, Math.min(100, batTrackingWeighted || 50)), grade: gradeFromScore(weighted || 50), top };
+  return {
+    player, pitcherName, pitcherHand, rows,
+    score: finalScore,
+    pitchMixScore: Math.max(0, Math.min(100, pitchMixScore || 50)),
+    zoneScore: Math.max(0, Math.min(100, zone.score || 50)),
+    pitchQualityScore: Math.max(0, Math.min(100, pitchQualityScore || 50)),
+    batTrackingScore: Math.max(0, Math.min(100, batTrackingWeighted || 50)),
+    zone,
+    grade: gradeFromScore(finalScore), top,
+    note: `Mix ${scoreBarPct(pitchMixScore || 50)} / Zone ${scoreBarPct(zone.score || 50)} / Quality ${scoreBarPct(pitchQualityScore || 50)} / Tracking ${scoreBarPct(batTrackingWeighted || 50)}`
+  };
 }
 function synergyItems(player) {
   const c = player.category || {};
@@ -3929,22 +4034,18 @@ return 0;
 }
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const HYBRID_CATEGORY_WEIGHTS = {
-  // Version 32 blueprint: score the event profile, not just the best hitter.
-  // Main buckets: Power 22, Pitch Matchup 23, Pitcher Weakness 21, HR Shape 14,
-  // Environment 8 split between weather/park, Opportunity 7, Recent/BvP/PXHR 5.
+  // Version 34: conservative backtest-guided reweight.
+  // Power 22, Pitcher 19, Batted Ball 17, rebuilt Pitch Lab 16,
+  // Opportunity 10, BvP 6, Recent 5, Weather 3, Park 2. Total = 100%.
   power: 0.22,
-  pitchLevel: 0.23,
-  pitcher: 0.21,
-  battedBall: 0.13,
-  // Weather upgraded from generic 4% to side-specific 7%.
-  // RHB and LHB now receive separate pull-side weather scores.
-  weather: 0.07,
-  park: 0.035,
-  opportunity: 0.07,
-  recent: 0.025,
-  bvp: 0.005,
-  bullpen: 0.005,
-  discipline: 0
+  pitcher: 0.19,
+  battedBall: 0.17,
+  pitchLevel: 0.16,
+  opportunity: 0.10,
+  bvp: 0.06,
+  recent: 0.05,
+  weather: 0.03,
+  park: 0.02
 };
 function hybridAvg(arr) { const v = arr.filter(x => x !== null && !isNaN(x)); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; }
 function hybridWeightedAvg(items) {
@@ -4345,8 +4446,8 @@ function scoreHybridPlayer(p, ranges) {
   ]);
   const pitchLabScore = p.pitchLabProfile ? cleanNumber(p.pitchLabProfile.score) : null;
   const pitchLevel = hybridWeightedAvg([
-    { value: hybridScoreMetric(r,ranges,'pitchLevelEV'), weight: 0.40 },
-    { value: (pitchLabScore && pitchLabScore > 0) ? pitchLabScore : null, weight: 0.60 }
+    { value: hybridScoreMetric(r,ranges,'pitchLevelEV'), weight: 0.20 },
+    { value: (pitchLabScore && pitchLabScore > 0) ? pitchLabScore : null, weight: 0.80 }
   ]);
   const recent = hybridDiminishingWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'lwBarrel'), weight: 0.22 },
@@ -4368,11 +4469,18 @@ function scoreHybridPlayer(p, ranges) {
     { value: hybridScoreMetric(r,ranges,'avgDistance'), weight: 0.15 }
   ]);
   let bvp = null;
-  // BVP is noisy and often blank. Only score it when there is actual sample.
-  // Otherwise it is ignored instead of becoming a hidden zero.
-  if (r.bvpPA !== null && r.bvpPA !== undefined && r.bvpPA >= 5) {
-    bvp = hybridAvg([hybridScoreMetric(r,ranges,'bvpHR'),hybridScoreMetric(r,ranges,'bvpBA'),hybridScoreMetric(r,ranges,'bvpXSLG'),hybridScoreMetric(r,ranges,'bvpXWOBA'),hybridScoreMetric(r,ranges,'bvpEV'),hybridSweetSpotLaunchAngle(r.bvpLA),hybridScoreMetric(r,ranges,'bvpK',true),hybridScoreMetric(r,ranges,'bvpWhiff',true)]);
-    if (bvp !== null && r.bvpPA < 10) bvp *= 0.90;
+  // BvP confidence scaling: ignore 0-3 PA, then gradually trust the signal more as PA builds.
+  // The score is blended toward neutral 50 so a tiny good sample helps only a little instead of becoming full-strength.
+  if (r.bvpPA !== null && r.bvpPA !== undefined && r.bvpPA >= 4) {
+    const bvpRaw = hybridAvg([hybridScoreMetric(r,ranges,'bvpHR'),hybridScoreMetric(r,ranges,'bvpBA'),hybridScoreMetric(r,ranges,'bvpXSLG'),hybridScoreMetric(r,ranges,'bvpXWOBA'),hybridScoreMetric(r,ranges,'bvpEV'),hybridSweetSpotLaunchAngle(r.bvpLA),hybridScoreMetric(r,ranges,'bvpK',true),hybridScoreMetric(r,ranges,'bvpWhiff',true)]);
+    let bvpConfidence = 0;
+    if (r.bvpPA >= 20) bvpConfidence = 1.00;
+    else if (r.bvpPA >= 13) bvpConfidence = 0.90;
+    else if (r.bvpPA >= 8) bvpConfidence = 0.70;
+    else if (r.bvpPA >= 4) bvpConfidence = 0.40;
+    bvp = bvpRaw !== null ? 50 + ((bvpRaw - 50) * bvpConfidence) : null;
+    p.calculatedBvPConfidence = bvpConfidence;
+    p.calculatedBvPRawScore = bvpRaw;
   }
   const bullpen = hybridAvg([hybridScoreMetric(r,ranges,'bullpenHR9'),hybridScoreMetric(r,ranges,'bullpenFIP'),hybridScoreMetric(r,ranges,'bullpenBarrel'),hybridScoreMetric(r,ranges,'bullpenHardHit')]);
   const park = hybridAvg([hybridScoreMetric(r,ranges,'parkFactor'),hybridScoreMetric(r,ranges,'pullFence',true),hybridScoreMetric(r,ranges,'cf',true),hybridScoreMetric(r,ranges,'weatherScore')]);
