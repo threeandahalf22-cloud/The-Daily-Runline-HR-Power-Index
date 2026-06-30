@@ -3884,7 +3884,7 @@ const STATS_VIEW_COLUMNS = {
     {key:'rank', label:'Rank'}, {key:'calculatedBBI', label:'BBI'}, {key:'calculatedHRProbability', label:'HR %'}, {key:'bettingOdds', label:'Odds'}, {key:'bettingEdge', label:'Edge'}, {key:'sample', label:'PA/AB'}, {key:'lineup', label:'Lineup'}, {key:'pitcher', label:'Opp Pitcher'}, {key:'pitcherHand', label:'P Hand'}
   ],
   power: [
-    {key:'barrel', label:'Barrel %'}, {key:'hardhit', label:'Hard Hit %'}, {key:'avgEV', label:'Avg EV'}, {key:'maxEV', label:'Max EV'}, {key:'launchAngle', label:'Launch'}, {key:'sweetSpot', label:'Sweet Spot %'}, {key:'pull', label:'Pull %'}, {key:'fbRate', label:'FB %'}, {key:'hrfb', label:'HR/FB %'}, {key:'iso', label:'ISO'}, {key:'slg', label:'SLG'}
+    {key:'totalHR', label:'HR'}, {key:'barrel', label:'Barrel %'}, {key:'hardhit', label:'Hard Hit %'}, {key:'avgEV', label:'Avg EV'}, {key:'maxEV', label:'Max EV'}, {key:'launchAngle', label:'Launch'}, {key:'sweetSpot', label:'Sweet Spot %'}, {key:'pull', label:'Pull %'}, {key:'fbRate', label:'FB %'}, {key:'hrfb', label:'HR/FB %'}, {key:'iso', label:'ISO'}, {key:'slg', label:'SLG'}
   ],
   pitchlab: [
     {key:'pitchLabScore', label:'Pitch Lab'}, {key:'topPitch', label:'Top Pitch'}, {key:'topPitchEdge', label:'Top Edge'}, {key:'fbGrade', label:'FB Grade'}, {key:'slGrade', label:'SL Grade'}, {key:'chGrade', label:'CH Grade'}, {key:'cvGrade', label:'CB/CV Grade'}, {key:'cuGrade', label:'CU Grade'}, {key:'sample', label:'PA/AB'}
@@ -3918,12 +3918,21 @@ function getPlainStat(player, ...aliases) {
 function findPitchRow(profile, codes) {
   if (!profile || !profile.rows) return null;
   const wanted = codes.map(x => String(x).toUpperCase());
-  return profile.rows.find(r => wanted.includes(String(r.code || r.label || '').toUpperCase()) || wanted.includes(String(r.label || '').toUpperCase().slice(0,2)));
+  return profile.rows.find(r => {
+    const key = String(r.key || '').toUpperCase();
+    const code = String(r.code || '').toUpperCase();
+    const group = String(r.group || '').toUpperCase();
+    const label = String(r.label || '').toUpperCase();
+    const label2 = label.slice(0, 2);
+    // Important: fastballs are created as key FA / label 4-Seam / group FB,
+    // so the Stats tab must check key AND group instead of only code/label.
+    return wanted.includes(key) || wanted.includes(code) || wanted.includes(group) || wanted.includes(label) || wanted.includes(label2);
+  });
 }
 function gradeFromPitch(profile, codes) {
   const row = findPitchRow(profile, codes);
   if (!row) return null;
-  return firstNumber(row.edge, row.score, row.bat && row.bat.grade);
+  return firstNumber(row.edge, row.score, row.bat && row.bat.score);
 }
 function getStatsValue(player, key, rank) {
   const lw = lastWeekMap[normalizeName(player.Name)] || {};
@@ -3961,6 +3970,16 @@ function getStatsValue(player, key, rank) {
     case 'bettingOdds': return {raw: cleanNumber(String(player.bettingOdds||'').replace('+','')), display: player.bettingOdds || '-', cls:'stats-mid'};
     case 'bettingEdge': return val(cleanNumber(player.bettingEdge), player.bettingEdge == null ? '-' : `${player.bettingEdge >= 0 ? '+' : ''}${player.bettingEdge.toFixed(1)}%`, player.bettingEdge >= 2 ? 'stats-good' : player.bettingEdge >= 0 ? 'stats-mid' : 'stats-bad');
     case 'betGrade': return {raw: String(player.betGrade||'').toLowerCase(), display: player.betGrade || '-', cls: ['S+','A','B'].includes(player.betGrade) ? 'stats-good' : player.betGrade === 'C' ? 'stats-mid' : 'stats-bad'};
+    case 'totalHR': {
+      const n = firstNumber(
+        r.hr, r.HR, r.homeRuns, r.totalHR,
+        safeGet(barrellRow,'HR','Home Runs','Homeruns','Home Runs Total','Total HR'),
+        safeGet(isoHandRow,'HR','Home Runs','Homeruns'),
+        safeGet(isoRow,'HR','Home Runs','Homeruns'),
+        safeGet(player,'HR','Home Runs','Homeruns','Home Runs Total','Total HR','Season HR')
+      );
+      return val(n, n === null ? '-' : Math.round(n), pctClass(n, 20, 10));
+    }
     case 'barrel': { const n = fromRateSources(r.barrel, safeGet(barrellRow,'Barrel%','Barrel %','Brls/BBE %'), safeGet(player,'Barrel %','Barrel%','Barrel Rate')); return val(n, fmtPct(n), pctClass(n, 14, 9)); }
     case 'hardhit': { const n = fromRateSources(r.hardHit, safeGet(barrellRow,'HardHit%','Hard Hit %'), safeGet(player,'Hard Hit %','HardHit%','Hard Hit Rate')); return val(n, fmtPct(n), pctClass(n, 48, 40)); }
     case 'avgEV': { const n = firstNumber(r.avgEV, safeGet(barrellRow,'EV','Avg EV','Average EV'), safeGet(ssRow,'Avg','Avg EV'), safeGet(player,'EV','Avg EV','Average EV','Exit Velocity')); return val(n, fmtNum(n,1), pctClass(n, 92, 89)); }
