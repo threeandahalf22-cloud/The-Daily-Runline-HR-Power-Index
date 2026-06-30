@@ -1935,6 +1935,66 @@ tbody tr.cody-diamond-row:hover td {
 .stats-qual-note { color:var(--text-muted); font-size:11px; font-weight:800; line-height:1.35; }
 </style>
 
+
+
+<style id="player-compare-style">
+/* =========================
+   PLAYER COMPARE MODAL
+   Homepage add-on only. No scoring changes.
+   ========================= */
+.compare-launch-card {
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  margin-bottom:20px; padding:16px 18px; border-radius:16px;
+  border:1px solid rgba(255,255,255,.09); border-left:5px solid var(--accent);
+  background:radial-gradient(circle at 92% 10%, rgba(0,255,157,.15), transparent 34%), linear-gradient(145deg, rgba(5,11,20,.86), rgba(17,31,53,.62));
+  box-shadow:0 16px 42px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.compare-launch-title { color:#fff; font-size:14px; font-weight:1000; text-transform:uppercase; letter-spacing:1px; }
+.compare-launch-sub { color:var(--text-muted); font-size:11px; font-weight:800; margin-top:4px; }
+.compare-launch-btn {
+  border:0; border-radius:12px; padding:13px 16px; cursor:pointer;
+  background:linear-gradient(135deg, var(--accent), #38bdf8); color:#04100b;
+  font-size:12px; font-weight:1000; text-transform:uppercase; letter-spacing:.9px;
+  box-shadow:0 12px 28px rgba(0,255,157,.18); white-space:nowrap; transition:all .2s ease;
+}
+.compare-launch-btn:hover { transform:translateY(-2px); filter:brightness(1.06); box-shadow:0 18px 36px rgba(0,255,157,.28); }
+.compare-modal-card { max-width:1240px; width:min(1240px, 96vw); max-height:92vh; flex-direction:column; overflow:hidden; }
+.compare-modal-header { padding:22px 26px 16px; border-bottom:1px solid var(--border); background:linear-gradient(135deg, rgba(0,255,157,.08), rgba(56,189,248,.04)); }
+.compare-modal-title { color:#fff; font-size:22px; font-weight:1000; text-transform:uppercase; letter-spacing:.5px; }
+.compare-modal-sub { margin-top:5px; color:var(--text-muted); font-size:12px; font-weight:800; }
+.compare-modal-body { padding:18px 22px 22px; overflow-y:auto; }
+.compare-control-grid { display:grid; grid-template-columns:repeat(4, minmax(190px, 1fr)); gap:12px; margin-bottom:16px; }
+.compare-select-card { border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; background:rgba(5,11,20,.58); }
+.compare-select-label { color:var(--accent); font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.8px; margin-bottom:7px; }
+.compare-player-select { width:100%; background:#07101d; color:#fff; border:1px solid rgba(0,255,157,.35); border-radius:10px; padding:10px 9px; font-size:12px; font-weight:800; }
+.compare-actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.compare-mini-note { color:var(--text-muted); font-size:11px; font-weight:800; }
+.compare-clear-btn { border:1px solid rgba(239,68,68,.28); background:rgba(239,68,68,.10); color:#fecaca; border-radius:10px; padding:9px 11px; font-size:10px; font-weight:1000; text-transform:uppercase; cursor:pointer; }
+.compare-clear-btn:hover { border-color:#ef4444; background:rgba(239,68,68,.18); }
+.compare-card-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(235px, 1fr)); gap:14px; margin-bottom:18px; }
+.compare-player-card { --team-color:var(--accent); --team-glow:rgba(0,255,157,.20); position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.09); border-top:4px solid var(--team-color); border-radius:18px; padding:15px; background:radial-gradient(circle at 50% -5%, var(--team-glow), transparent 35%), linear-gradient(145deg, rgba(17,31,53,.86), rgba(5,11,20,.94)); box-shadow:0 16px 38px rgba(0,0,0,.30); }
+.compare-card-top { display:grid; grid-template-columns:58px minmax(0,1fr); gap:11px; align-items:center; }
+.compare-card-top .player-headshot { width:56px; height:56px; margin:0; }
+.compare-card-name { color:#fff; font-size:15px; font-weight:1000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.compare-card-meta { margin-top:4px; color:var(--stadium-lights); font-size:10px; font-weight:900; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.compare-score-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:13px; }
+.compare-score-box { border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.035); border-radius:12px; padding:9px 7px; text-align:center; }
+.compare-score-label { color:var(--text-muted); font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.55px; }
+.compare-score-value { margin-top:4px; color:#fff; font-family:monospace; font-size:17px; font-weight:1000; white-space:nowrap; }
+.compare-score-value.good { color:#10b981; } .compare-score-value.mid { color:#eab308; } .compare-score-value.bad { color:#f87171; } .compare-score-value.accent { color:var(--team-color); }
+.compare-table-wrap { overflow:auto; border:1px solid var(--border); border-radius:16px; background:rgba(5,11,20,.52); }
+.compare-table { min-width:850px; width:100%; border-collapse:collapse; }
+.compare-table th, .compare-table td { padding:12px 13px; border-bottom:1px solid rgba(255,255,255,.06); text-align:center; font-size:12px; font-weight:850; }
+.compare-table th { position:sticky; top:0; z-index:2; background:rgba(9,18,34,.96); color:#94a3b8; font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.7px; }
+.compare-table th:first-child, .compare-table td:first-child { position:sticky; left:0; z-index:3; background:rgba(7,15,28,.98); text-align:left; min-width:160px; color:var(--accent); font-weight:1000; box-shadow:8px 0 16px rgba(0,0,0,.18); }
+.compare-table th:first-child { z-index:4; }
+.compare-winner { color:#10b981 !important; background:rgba(16,185,129,.07) !important; }
+.compare-table td.good { color:#10b981; } .compare-table td.mid { color:#eab308; } .compare-table td.bad { color:#f87171; } .compare-table td.accent { color:var(--accent); }
+.compare-empty { padding:34px; text-align:center; color:var(--text-muted); font-style:italic; border:1px dashed rgba(255,255,255,.10); border-radius:14px; background:rgba(255,255,255,.025); }
+@media(max-width: 900px) { .compare-control-grid { grid-template-columns:1fr 1fr; } .compare-launch-card { align-items:flex-start; flex-direction:column; } .compare-launch-btn { width:100%; } }
+@media(max-width: 560px) { .compare-control-grid { grid-template-columns:1fr; } }
+</style>
+
 </head>
 <body>
 
@@ -2027,6 +2087,15 @@ tbody tr.cody-diamond-row:hover td {
 <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
 <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">Upload your workbook with HR, vsPitcher, PLdata, lastweek, weather, <b>ID</b>, and <b>top5</b> sheets</div>
 </div>
+
+<div class="compare-launch-card">
+  <div>
+    <div class="compare-launch-title">🆚 Player Compare Lab</div>
+    <div class="compare-launch-sub">Compare up to 4 hitters side-by-side using the real HR inputs: BBI, HR%, total HR, EV/EV90, hard-hit/barrel data, pitcher HR/9, pitch lab, recent form, park and weather.</div>
+  </div>
+  <button type="button" class="compare-launch-btn" onclick="openCompareModal()">Compare Players</button>
+</div>
+
 <div class="dashboard-grid">
 <div style="display:flex; flex-direction:column; gap:24px;">
 <div class="panel">
@@ -2295,6 +2364,25 @@ tbody tr.cody-diamond-row:hover td {
 <div class="modal-right" id="modalStatsContainer"></div>
 </div>
 </div>
+
+<div id="compareModal" class="modal-overlay" onclick="closeCompareModal(event)">
+  <div class="modal-card compare-modal-card" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeCompareModalDirect()">×</button>
+    <div class="compare-modal-header">
+      <div class="compare-modal-title">🆚 Player Compare Lab</div>
+      <div class="compare-modal-sub">Select up to 4 players from today’s uploaded slate. Built around the HR-model stats that actually drive longball picks.</div>
+    </div>
+    <div class="compare-modal-body">
+      <div class="compare-control-grid" id="compareSelectGrid"></div>
+      <div class="compare-actions">
+        <div class="compare-mini-note" id="compareMiniNote">Upload workbook, then pick players to compare.</div>
+        <button type="button" class="compare-clear-btn" onclick="clearCompareSelections()">Clear Compare</button>
+      </div>
+      <div id="compareResultsArea"><div class="compare-empty">Upload workbook and select players to build the comparison board.</div></div>
+    </div>
+  </div>
+</div>
+
 <canvas id="graphicCanvas" width="1440" height="1400" style="display:none;"></canvas>
 <canvas id="matrixCanvas" width="1200" height="1600" style="display:none;"></canvas>
 <script>
@@ -3985,6 +4073,14 @@ function getStatsValue(player, key, rank) {
     case 'hardhit': { const n = fromRateSources(r.hardHit, safeGet(barrellRow,'HardHit%','Hard Hit %'), safeGet(player,'Hard Hit %','HardHit%','Hard Hit Rate')); return val(n, fmtPct(n), pctClass(n, 48, 40)); }
     case 'avgEV': { const n = firstNumber(r.avgEV, safeGet(barrellRow,'EV','Avg EV','Average EV'), safeGet(ssRow,'Avg','Avg EV'), safeGet(player,'EV','Avg EV','Average EV','Exit Velocity')); return val(n, fmtNum(n,1), pctClass(n, 92, 89)); }
     case 'maxEV': { const n = firstNumber(r.maxEV, safeGet(barrellRow,'maxEV','Max EV','MaxEV'), safeGet(ssRow,'Max','Max EV'), safeGet(player,'Max EV','maxEV','Maximum EV')); return val(n, fmtNum(n,1), pctClass(n, 112, 108)); }
+    case 'ev90': { const n = firstNumber(r.ev90, safeGet(barrellRow,'EV90','90th EV','90th Percentile EV'), safeGet(ssRow,'EV90'), safeGet(player,'EV90','90th EV','90th Percentile EV')); return val(n, fmtNum(n,1), pctClass(n, 105, 102)); }
+    case 'ev50': { const n = firstNumber(r.ev50, safeGet(barrellRow,'EV50'), safeGet(ssRow,'EV50'), safeGet(player,'EV50')); return val(n, fmtNum(n,1), pctClass(n, 96, 93)); }
+    case 'mph95': { const n = fromRateSources(r.mph95, safeGet(ssRow,'95 MPH+ %','95+ %','95 MPH+'), safeGet(barrellRow,'95 MPH+ %','95+ %'), safeGet(player,'95 MPH+ %','95+ %','95+ MPH %')); return val(n, fmtPct(n), pctClass(n, 48, 38)); }
+    case 'brlsPA': { const n = fromRateSources(r.brlsPA, safeGet(barrellRow,'Brls/PA %','Barrels/PA %','Brl/PA%'), safeGet(ssRow,'Brls/PA %'), safeGet(player,'Brls/PA %','Barrels/PA %')); return val(n, fmtPct(n), pctClass(n, 10, 6)); }
+    case 'xHR': { const n = firstNumber(r.xHR, safeGet(lookupStat('PXHR', player.Name),'xHR','Expected HR'), safeGet(player,'xHR','Expected HR','xHR Season')); return val(n, fmtNum(n,1), pctClass(n, 18, 10)); }
+    case 'hrMinusXhr': { const n = firstNumber(r.hrMinusXhr, safeGet(lookupStat('PXHR', player.Name),'HR-xHR','HR - xHR'), safeGet(player,'HR-xHR','HR - xHR')); return val(n, fmtNum(n,1), n <= -3 ? 'stats-good' : n <= 1 ? 'stats-mid' : 'stats-bad'); }
+    case 'pullAir': { const n = fromRateSources(r.pullAir, safeGet(player,'Pulled Air %','Pull Air %','PulledAir%','PullAir%')); return val(n, fmtPct(n), pctClass(n, 25, 18)); }
+    case 'fbld': { const n = fromRateSources(r.fbld, safeGet(player,'FB/LD','FB/LD %','FB+LD %')); return val(n, fmtPct(n), pctClass(n, 62, 55)); }
     case 'launchAngle': { const n = firstNumber(r.launchAngle, safeGet(barrellRow,'Launch Angle','LA'), safeGet(ssRow,'LA (°)','LA'), safeGet(player,'LA','Launch Angle','Avg Launch Angle')); return val(n, fmtNum(n,1), n >= 10 && n <= 24 ? 'stats-good' : n >= 7 && n <= 28 ? 'stats-mid' : 'stats-bad'); }
     case 'sweetSpot': { const n = fromRateSources(r.sweetSpot, safeGet(ssRow,'LA SwSp%','Sweet Spot %'), safeGet(player,'Sweet Spot %','SweetSpot%','Sweet Spot')); return val(n, fmtPct(n), pctClass(n, 38, 33)); }
     case 'pull': { const n = fromRateSources(r.pull, safeGet(player,'Pull %','Pull%','Pull Rate')); return val(n, fmtPct(n), pctClass(n, 44, 38)); }
@@ -4028,9 +4124,12 @@ function getStatsValue(player, key, rank) {
     case 'temp': { const n = cleanNumber(safeGet(weather,'temp','Temp','Temperature')); return val(n, n ? `${n}°` : '-', pctClass(n,80,70)); }
     case 'teamTotal': { const n = firstNumber(r.teamTotal, safeGet(player,'Total','Team Total','TeamTotal','Implied Team Total','ITT'), safeGet(weatherRow,'Total')); return val(n, fmtNum(n,1), pctClass(n,4.8,4.2)); }
     case 'pitcherHR9': { const n = firstNumber(r.pitcherHR9, safeGet(player,'PHR/9','Pitcher HR/9','P HR/9','HR/9'), safeGet(pRow,'HR/9','Pitcher HR/9')); return val(n, fmtNum(n,2), pctClass(n,1.40,1.05)); }
+    case 'pitcherHRFB': { const n = fromRateSources(r.pitcherHRFB, safeGet(player,'Pitcher HR/FB','Pitcher HR/FB %','P HR/FB'), safeGet(pRow,'HR/FB','HR/FB %')); return val(n, fmtPct(n), pctClass(n,15,11)); }
     case 'pitcherBarrel': { const n = fromRateSources(r.pitcherBarrel, safeGet(pitcherBBRow,'Barrel%','Barrel %','Brls/BBE %'), safeGet(player,'Pitcher Barrel % Allowed','Pitcher Barrel %','P Barrel %')); return val(n, fmtPct(n), pctClass(n,10,8)); }
     case 'pitcherHardHit': { const n = fromRateSources(r.pitcherHardHit, safeGet(pitcherBBRow,'HardHit%','Hard Hit %'), safeGet(player,'Pitcher Hard Hit % Allowed','Pitcher Hard Hit %','P Hard Hit %','Pitcher HH%')); return val(n, fmtPct(n), pctClass(n,44,38)); }
     case 'pitcherEV': { const n = firstNumber(r.pitcherEV, safeGet(player,'Pitcher EV','Pitcher EV Allowed','P EV Allowed','EV Allowed'), safeGet(pitcherBBRow,'EV','Avg EV','Average EV'), safeGet(pRow,'EV','EV Allowed')); return val(n, fmtNum(n,1), pctClass(n,90,88)); }
+    case 'pitcherEV90': { const n = firstNumber(r.pitcherEV90, safeGet(player,'Pitcher EV90','Pitcher EV90 Allowed','P EV90'), safeGet(pitcherBBRow,'EV90'), safeGet(pRow,'EV90')); return val(n, fmtNum(n,1), pctClass(n,104,101)); }
+    case 'pitcherMaxEV': { const n = firstNumber(r.pitcherMaxEV, safeGet(player,'Pitcher Max EV','Pitcher MaxEV','P Max EV'), safeGet(pitcherBBRow,'maxEV','Max EV','Max'), safeGet(pRow,'Max EV','MaxEV')); return val(n, fmtNum(n,1), pctClass(n,112,108)); }
     case 'pitcherFB': { const n = fromRateSources(r.pitcherFB, safeGet(player,'Pitcher FB Rate','Pitcher FB%','Pitcher FB %','P FB %','Pitcher Fly Ball %'), safeGet(pitcherFBRow,'FB%','Fly Ball %')); return val(n, fmtPct(n), pctClass(n,43,37)); }
     default: return val(null, '-');
   }
@@ -6667,5 +6766,199 @@ window.addEventListener('DOMContentLoaded', () => { setTimeout(loadBacktestHisto
 </script>
 
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<script>
+
+/* =========================
+   PLAYER COMPARE MODAL
+   Add-on only. Uses existing playerData/calculated HR-model stats.
+   ========================= */
+let compareSelectedKeys = ['', '', '', ''];
+const COMPARE_ROWS = [
+  { label:'Model Core', type:'section' },
+  { label:'BBI Score', key:'calculatedBBI', high:true },
+  { label:'HR Probability', key:'calculatedHRProbability', high:true },
+  { label:'Hitter Power', type:'section' },
+  { label:'Total HR', statsKey:'totalHR', high:true },
+  { label:'xHR', statsKey:'xHR', high:true },
+  { label:'HR - xHR', statsKey:'hrMinusXhr', high:true },
+  { label:'ISO', statsKey:'iso', high:true },
+  { label:'SLG', statsKey:'slg', high:true },
+  { label:'xSLG', statsKey:'xslg', high:true },
+  { label:'Barrel %', statsKey:'barrel', high:true },
+  { label:'Brls/PA %', statsKey:'brlsPA', high:true },
+  { label:'Hard Hit %', statsKey:'hardhit', high:true },
+  { label:'Avg EV', statsKey:'avgEV', high:true },
+  { label:'EV90', statsKey:'ev90', high:true },
+  { label:'EV50', statsKey:'ev50', high:true },
+  { label:'Max EV', statsKey:'maxEV', high:true },
+  { label:'95+ MPH %', statsKey:'mph95', high:true },
+  { label:'Batted Ball / Launch', type:'section' },
+  { label:'Pulled Air %', statsKey:'pullAir', high:true },
+  { label:'Fly Ball %', statsKey:'fbRate', high:true },
+  { label:'FB/LD %', statsKey:'fbld', high:true },
+  { label:'Sweet Spot %', statsKey:'sweetSpot', high:true },
+  { label:'Launch Angle', statsKey:'launchAngle', high:true },
+  { label:'HR/FB %', statsKey:'hrfb', high:true },
+  { label:'Pitcher Vulnerability', type:'section' },
+  { label:'Opp Pitcher', statsKey:'pitcher', text:true },
+  { label:'Pitcher Hand', statsKey:'pitcherHand', text:true },
+  { label:'Pitcher HR/9', statsKey:'pitcherHR9', high:true },
+  { label:'Pitcher HR/FB', statsKey:'pitcherHRFB', high:true },
+  { label:'Pitcher Barrel %', statsKey:'pitcherBarrel', high:true },
+  { label:'Pitcher HH %', statsKey:'pitcherHardHit', high:true },
+  { label:'Pitcher EV Allowed', statsKey:'pitcherEV', high:true },
+  { label:'Pitcher EV90 Allowed', statsKey:'pitcherEV90', high:true },
+  { label:'Pitcher Max EV Allowed', statsKey:'pitcherMaxEV', high:true },
+  { label:'Pitcher FB %', statsKey:'pitcherFB', high:true },
+  { label:'Pitcher GB %', statsKey:'pitcherGB', high:false },
+  { label:'Pitch Matchup', type:'section' },
+  { label:'Pitch Lab Grade', statsKey:'pitchLabScore', high:true },
+  { label:'Top Pitch Edge', statsKey:'topPitchEdge', high:true },
+  { label:'FB Grade', statsKey:'fbGrade', high:true },
+  { label:'SL Grade', statsKey:'slGrade', high:true },
+  { label:'CH Grade', statsKey:'chGrade', high:true },
+  { label:'CB Grade', statsKey:'cvGrade', high:true },
+  { label:'Recent Form', type:'section' },
+  { label:'Last 7 HR', statsKey:'lwHR', high:true },
+  { label:'Last 7 wOBA', statsKey:'lwWOBA', high:true },
+  { label:'Last 7 xSLG', statsKey:'lwXSLG', high:true },
+  { label:'Last 7 EV', statsKey:'lwEV', high:true },
+  { label:'Last 7 Barrel %', statsKey:'lwBarrel', high:true },
+  { label:'Last 7 HH %', statsKey:'lwHardHit', high:true },
+  { label:'Environment / Context', type:'section' },
+  { label:'Weather Score', statsKey:'weatherScore', high:true },
+  { label:'Park HR Factor', statsKey:'parkFactor', high:true },
+  { label:'Team Total', statsKey:'teamTotal', high:true },
+  { label:'Wind', statsKey:'wind', text:true },
+  { label:'Temp', statsKey:'temp', high:true },
+  { label:'Lineup Spot', statsKey:'lineup', high:false },
+  { label:'PA/AB', statsKey:'sample', high:true },
+  { label:'Team', key:'Team', text:true },
+  { label:'Bats', key:'Bats', text:true }
+];
+function escapeHtmlCompare(s) {
+  return String(s ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+}
+function comparePlayerOptionLabel(p) {
+  if (!p) return '';
+  const rank = [...playerData].sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0)).findIndex(x => normalizeName(x.Name) === normalizeName(p.Name)) + 1;
+  const bbi = Number(p.calculatedBBI || 0).toFixed(1);
+  return `#${rank || '-'} ${p.Name} (${p.Team || '-'}) • BBI ${bbi}`;
+}
+function getCompareCandidates() {
+  return [...playerData].filter(p => p && p.Name && !p.isRemoved).sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0));
+}
+function openCompareModal() {
+  const modal = document.getElementById('compareModal');
+  if (!modal) return;
+  if (typeof closeTeamFilterDropdowns === 'function') closeTeamFilterDropdowns();
+  if (!compareSelectedKeys.some(Boolean) && playerData && playerData.length) {
+    compareSelectedKeys = getCompareCandidates().slice(0, 4).map(p => normalizeName(p.Name));
+    while (compareSelectedKeys.length < 4) compareSelectedKeys.push('');
+  }
+  modal.classList.add('active');
+  document.body.classList.add('modal-open');
+  document.body.style.overflow = 'hidden';
+  renderCompareModal();
+}
+function closeCompareModal(event) { if (!event || event.target.id === 'compareModal') closeCompareModalDirect(); }
+function closeCompareModalDirect() {
+  const modal = document.getElementById('compareModal');
+  if (modal) modal.classList.remove('active');
+  const playerModalOpen = document.getElementById('playerModal')?.classList.contains('active');
+  if (!playerModalOpen) {
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+  }
+}
+function setCompareSelection(slot, value) {
+  compareSelectedKeys[slot] = value || '';
+  const used = new Set();
+  compareSelectedKeys = compareSelectedKeys.map(k => {
+    if (!k) return '';
+    if (used.has(k)) return '';
+    used.add(k);
+    return k;
+  });
+  renderCompareModal();
+}
+function clearCompareSelections() {
+  compareSelectedKeys = ['', '', '', ''];
+  renderCompareModal();
+}
+function getCompareSelectedPlayers() {
+  const map = {};
+  playerData.forEach(p => { map[normalizeName(p.Name)] = p; });
+  return compareSelectedKeys.map(k => map[k]).filter(Boolean);
+}
+function getCompareMetric(player, row, rankMap) {
+  if (row.type === 'section') return null;
+  if (row.statsKey && typeof getStatsValue === 'function') {
+    const rank = rankMap[normalizeName(player.Name)] || 0;
+    const res = getStatsValue(player, row.statsKey, rank) || { raw:-999999, display:'-' };
+    return { raw: res.raw, display: res.display, cls: res.cls || '' };
+  }
+  let raw = player[row.key];
+  if (row.key === 'Bats') raw = safeGet(player, 'Bats', 'Hand', 'Handedness') || '-';
+  if (row.key === 'calculatedBBI') return { raw: cleanNumber(raw), display: cleanNumber(raw).toFixed(1), cls:'accent' };
+  if (row.key === 'calculatedHRProbability') return { raw: cleanNumber(raw), display: `${cleanNumber(raw).toFixed(1)}%`, cls:'accent' };
+  if (row.key === 'bettingEdge') return { raw: raw == null ? -999999 : cleanNumber(raw), display: raw == null ? '-' : `${raw >= 0 ? '+' : ''}${Number(raw).toFixed(1)}%`, cls: raw >= 0 ? 'good' : 'bad' };
+  if (row.key === 'expectedValuePct') return { raw: raw == null ? -999999 : cleanNumber(raw), display: raw == null ? '-' : `${raw >= 0 ? '+' : ''}${Number(raw).toFixed(1)}%`, cls: raw >= 0 ? 'good' : 'bad' };
+  if (row.key === 'bettingOdds') return { raw: americanOddsToImplied(raw) == null ? -999999 : (100 - americanOddsToImplied(raw)), display: raw || '-', cls:'mid' };
+  if (row.key === 'betGrade') {
+    const order = {'S+':6,'A':5,'B':4,'C':3,'Pass':1,'-':0};
+    return { raw: order[String(raw || '-')] || 0, display: raw || '-', cls: ['S+','A','B'].includes(raw) ? 'good' : raw === 'C' ? 'mid' : 'bad' };
+  }
+  return { raw: String(raw || '').toLowerCase(), display: raw || '-', cls:'' };
+}
+function renderCompareModal() {
+  const grid = document.getElementById('compareSelectGrid');
+  const area = document.getElementById('compareResultsArea');
+  const note = document.getElementById('compareMiniNote');
+  if (!grid || !area) return;
+  const candidates = getCompareCandidates();
+  const selectedPlayers = getCompareSelectedPlayers();
+  const selectedSet = new Set(compareSelectedKeys.filter(Boolean));
+  grid.innerHTML = [0,1,2,3].map(i => {
+    const opts = ['<option value="">Select player...</option>'].concat(candidates.map(p => {
+      const key = normalizeName(p.Name);
+      const disabled = selectedSet.has(key) && compareSelectedKeys[i] !== key ? 'disabled' : '';
+      return `<option value="${key}" ${compareSelectedKeys[i] === key ? 'selected' : ''} ${disabled}>${escapeHtmlCompare(comparePlayerOptionLabel(p))}</option>`;
+    })).join('');
+    return `<div class="compare-select-card"><div class="compare-select-label">Player ${i+1}</div><select class="compare-player-select" onchange="setCompareSelection(${i}, this.value)">${opts}</select></div>`;
+  }).join('');
+  if (note) note.textContent = selectedPlayers.length ? `${selectedPlayers.length} player${selectedPlayers.length === 1 ? '' : 's'} selected. Choose up to 4 total.` : 'Select up to 4 players to compare side-by-side.';
+  if (!selectedPlayers.length) {
+    area.innerHTML = '<div class="compare-empty">Select at least one player to build the comparison board.</div>';
+    return;
+  }
+  const ranked = [...playerData].sort((a,b)=>cleanNumber(b.calculatedBBI)-cleanNumber(a.calculatedBBI));
+  const rankMap = {}; ranked.forEach((p,i)=>rankMap[normalizeName(p.Name)] = i+1);
+  const cards = selectedPlayers.map(p => {
+    const edge = p.bettingEdge;
+    const edgeCls = edge == null ? 'mid' : edge >= 0 ? 'good' : 'bad';
+    const hs = createHeadshotHtml(p.Name, 'sm', p.Team) || '<div class="best-edge-face-placeholder">?</div>';
+    return `<div class="compare-player-card" style="${teamVisualStyle(p.Team || '')}"><div class="compare-card-top">${hs}<div><div class="compare-card-name">${escapeHtmlCompare(p.Name)}</div><div class="compare-card-meta">${escapeHtmlCompare(p.Team || '-')} • vs ${escapeHtmlCompare(safeGet(p,'Opp Pitcher','Pitcher') || 'Starter')}</div></div></div><div class="compare-score-row"><div class="compare-score-box"><div class="compare-score-label">BBI</div><div class="compare-score-value accent">${cleanNumber(p.calculatedBBI).toFixed(1)}</div></div><div class="compare-score-box"><div class="compare-score-label">HR %</div><div class="compare-score-value accent">${cleanNumber(p.calculatedHRProbability).toFixed(1)}%</div></div><div class="compare-score-box"><div class="compare-score-label">EV</div><div class="compare-score-value good">${(getStatsValue(p, 'avgEV', rankMap[normalizeName(p.Name)] || 0).display || '-')}</div></div></div></div>`;
+  }).join('');
+  const rows = COMPARE_ROWS.map(row => {
+    if (row.type === 'section') return `<tr><td colspan="${selectedPlayers.length + 1}" style="background:rgba(0,255,157,.07); color:var(--accent); text-transform:uppercase; letter-spacing:.9px; font-size:10px;">${row.label}</td></tr>`;
+    const metrics = selectedPlayers.map(p => getCompareMetric(p, row, rankMap));
+    let bestRaw = null;
+    if (!row.text) {
+      const nums = metrics.map(m => Number(m.raw)).filter(n => isFinite(n) && n > -999998);
+      if (nums.length) bestRaw = row.high === false ? Math.min(...nums) : Math.max(...nums);
+    }
+    const tds = metrics.map(m => {
+      const isWinner = bestRaw !== null && Number(m.raw) === bestRaw;
+      return `<td class="${isWinner ? 'compare-winner' : ''} ${m.cls || ''}">${escapeHtmlCompare(m.display)}</td>`;
+    }).join('');
+    return `<tr><td>${row.label}</td>${tds}</tr>`;
+  }).join('');
+  area.innerHTML = `${cards}<div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Metric</th>${selectedPlayers.map(p => `<th>${escapeHtmlCompare(p.Name)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompareModalDirect(); });
+
+</script>
 </body>
 </html>
