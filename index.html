@@ -1995,6 +1995,100 @@ tbody tr.cody-diamond-row:hover td {
 @media(max-width: 560px) { .compare-control-grid { grid-template-columns:1fr; } }
 </style>
 
+
+
+<style id="command-center-big-headshots-fix">
+/* =========================
+   v36.10 COMMAND CENTER BIG HEADSHOTS
+   Enlarges player faces in the Daily Runline AI Command Center tiles
+   while adding enough spacing so the tile layers do not overlap.
+   Visual-only: no scoring/data logic changed.
+   ========================= */
+.command-center-grid {
+  gap: 12px !important;
+}
+.command-tile {
+  min-height: 122px !important;
+  padding: 14px !important;
+  justify-content: flex-start !important;
+  overflow: hidden !important;
+}
+.command-tile-value {
+  margin-top: 8px !important;
+  margin-bottom: 0 !important;
+}
+.command-tile-player {
+  margin-top: 11px !important;
+  min-height: 58px !important;
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  align-items: center !important;
+  width: 100% !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+}
+.command-tile-player img {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 2px solid var(--tile-color, var(--accent)) !important;
+  background: var(--bg-dark) !important;
+  box-shadow:
+    0 0 0 4px var(--tile-glow, rgba(0,255,157,.14)),
+    0 10px 22px rgba(0,0,0,.40),
+    0 0 22px var(--tile-glow, rgba(0,255,157,.20)) !important;
+  flex: 0 0 auto !important;
+}
+.command-tile-player span {
+  min-width: 0 !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+.command-tile-player:not(:has(img)) {
+  display: flex !important;
+  min-height: 26px !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+.command-tile-player:not(:has(img)) span {
+  display: block !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+.command-tile:hover .command-tile-player img {
+  transform: scale(1.06);
+  transition: transform .22s ease, box-shadow .22s ease;
+  box-shadow:
+    0 0 0 5px var(--tile-glow, rgba(0,255,157,.18)),
+    0 12px 28px rgba(0,0,0,.48),
+    0 0 30px var(--tile-glow, rgba(0,255,157,.28)) !important;
+}
+@media(max-width: 620px) {
+  .command-tile {
+    min-height: 112px !important;
+  }
+  .command-tile-player {
+    grid-template-columns: 50px minmax(0, 1fr) !important;
+    min-height: 50px !important;
+  }
+  .command-tile-player img {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -2012,7 +2106,7 @@ tbody tr.cody-diamond-row:hover td {
 <div class="command-center-board" id="statsRibbon">
 <div class="command-center-topline">
 <div class="command-center-title">⚾ Daily Runline AI Command Center</div>
-<div class="command-center-version">v35.0 // Live Slate Readout</div>
+<div class="command-center-version">v36.10 // Live Slate Readout</div>
 </div>
 <div class="command-center-grid">
 <div class="command-tile accent">
