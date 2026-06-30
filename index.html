@@ -1456,6 +1456,45 @@ tbody tr.cody-diamond-row:hover td {
 }
 </style>
 
+
+<style id="backtest-lab-style">
+/* =========================
+   BACKTEST / MODEL RESEARCH LAB
+   Tracking only. Does not change scoring weights.
+   ========================= */
+.btn-bomb {
+  background: rgba(250,204,21,.10); color:#facc15; border:1px solid rgba(250,204,21,.36);
+  border-radius: 8px; padding: 6px 9px; font-size: 13px; font-weight: 1000; cursor:pointer;
+  box-shadow:0 0 12px rgba(250,204,21,.08); transition:all .18s ease;
+}
+.btn-bomb:hover { transform:translateY(-1px); border-color:#facc15; background:rgba(250,204,21,.18); }
+.btn-bomb.active { background:linear-gradient(135deg,#facc15,#f97316); color:#06111d; border-color:#facc15; box-shadow:0 0 18px rgba(250,204,21,.32); }
+.backtest-finalize-wrap { padding:18px 20px 22px; border-top:1px solid var(--border); background:rgba(5,11,20,.48); display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+.backtest-finalize-copy { color:var(--text-muted); font-size:12px; font-weight:700; line-height:1.35; }
+.backtest-finalize-copy b { color:#fff; }
+.btn-finalize-backtest { border:0; border-radius:12px; padding:14px 18px; font-size:12px; font-weight:1000; text-transform:uppercase; letter-spacing:.9px; cursor:pointer; background:linear-gradient(135deg,#00ff9d,#00d482); color:#04100b; box-shadow:0 12px 28px rgba(0,255,157,.16); }
+.btn-finalize-backtest:hover { transform:translateY(-2px); filter:brightness(1.05); }
+.backtest-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
+.backtest-kpi { border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:14px; background:linear-gradient(145deg, rgba(17,31,53,.68), rgba(5,11,20,.72)); box-shadow:0 10px 26px rgba(0,0,0,.22); }
+.backtest-kpi-label { color:var(--text-muted); font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+.backtest-kpi-value { color:#fff; font-family:monospace; font-size:24px; font-weight:1000; line-height:1; }
+.backtest-kpi-sub { margin-top:5px; color:var(--stadium-lights); font-size:10px; font-weight:800; }
+.backtest-tools { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+.backtest-tool-btn { border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.04); color:#fff; border-radius:10px; padding:10px 12px; font-size:11px; font-weight:1000; text-transform:uppercase; letter-spacing:.7px; cursor:pointer; }
+.backtest-tool-btn:hover { border-color:var(--accent); background:rgba(0,255,157,.08); }
+.backtest-warning-btn { border-color:rgba(239,68,68,.25); color:#fecaca; }
+.backtest-warning-btn:hover { border-color:#ef4444; background:rgba(239,68,68,.12); }
+.backtest-file-input { display:none; }
+.signal-table-wrapper { overflow-x:auto; border:1px solid var(--border); border-radius:14px; background:rgba(5,11,20,.50); margin-bottom:20px; }
+.signal-table { width:100%; border-collapse:collapse; font-size:12px; }
+.signal-table th, .signal-table td { padding:11px 12px; border-bottom:1px solid rgba(255,255,255,.06); text-align:center; white-space:nowrap; }
+.signal-table th { color:#94a3b8; background:rgba(9,18,34,.78); font-size:10px; text-transform:uppercase; letter-spacing:.8px; }
+.signal-table td:first-child, .signal-table th:first-child { text-align:left; }
+.signal-positive { color:#10b981; font-family:monospace; font-weight:1000; }
+.signal-negative { color:#f87171; font-family:monospace; font-weight:1000; }
+.signal-neutral { color:#eab308; font-family:monospace; font-weight:1000; }
+.backtest-note { color:var(--text-muted); font-size:12px; line-height:1.45; margin:0 0 12px; }
+</style>
 </head>
 <body>
 <div class="container">
@@ -1511,6 +1550,7 @@ tbody tr.cody-diamond-row:hover td {
 <button class="nav-tab" onclick="switchTab('pitchlab', this)">🧪 Pitch Lab</button>
 <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
 <button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
+<button class="nav-tab" onclick="switchTab('backtest', this)">📊 Backtest Lab</button>
 </div>
 <div id="tab-home" class="tab-content active">
 <div id="pregameSlateBoard" class="slate-board"></div>
@@ -1557,6 +1597,10 @@ tbody tr.cody-diamond-row:hover td {
 <thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Player</th><th>Bats</th><th>Team</th><th>Opposing Pitcher</th><th>Weather</th><th>Score</th><th>HR %</th><th>Odds</th><th>Edge</th><th style="width: 140px;">Action</th></tr></thead>
 <tbody id="tableBody"><tr><td colspan="11" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
+<div class="backtest-finalize-wrap">
+  <div class="backtest-finalize-copy"><b>Backtest workflow:</b> mark only HR hitters with 💣, then finalize. Bombed players save as HR = 1; everyone else in the current rankings saves as HR = 0.</div>
+  <button type="button" class="btn-finalize-backtest" onclick="finalizeTodayBacktest()">✅ Finalize Today's Backtest</button>
+</div>
 </div>
 </div>
 </div>
@@ -1694,6 +1738,22 @@ tbody tr.cody-diamond-row:hover td {
 </div>
 </div>
 </div>
+
+<div id="tab-backtest" class="tab-content">
+  <div class="panel">
+    <h2>📊 Backtest / Model Research Lab</h2>
+    <p class="backtest-note">This tab stores finalized slate snapshots and studies which scoring inputs actually separate HR hitters from non-HR hitters. Suggested weights are reference-only and never change the live model.</p>
+    <div class="backtest-tools">
+      <button class="backtest-tool-btn" onclick="renderBacktestLab()">🔄 Refresh Lab</button>
+      <button class="backtest-tool-btn" onclick="exportBacktestMasterXLSX()">⬇ Export Backtest_Master</button>
+      <button class="backtest-tool-btn" onclick="exportBacktestJSON()">🧰 Export Backup JSON</button>
+      <button class="backtest-tool-btn" onclick="document.getElementById('backtestImportFile').click()">⬆ Import Backup JSON</button>
+      <button class="backtest-tool-btn backtest-warning-btn" onclick="clearBacktestHistoryConfirm()">🗑 Clear Backtest Data</button>
+      <input id="backtestImportFile" class="backtest-file-input" type="file" accept=".json" onchange="importBacktestJSON(event)">
+    </div>
+    <div id="backtestLabContainer"><div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No finalized backtests yet. Mark HR hitters with 💣 on the rankings page, then click Finalize Today's Backtest at the bottom.</div></div>
+  </div>
+</div>
 <div id="playerModal" class="modal-overlay" onclick="closeModal(event)">
 <div class="modal-card" onclick="event.stopPropagation()">
 <button class="modal-close" onclick="closeModalDirect()">×</button>
@@ -1726,6 +1786,7 @@ if (tabName === 'h2h') renderH2HFullTable();
 if (tabName === 'pitchlab') renderPitchLabTable();
 if (tabName === 'edge') renderEdgePanels();
 if (tabName === 'tools') renderWeatherRankings();
+if (tabName === 'backtest') renderBacktestLab();
 }
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyvCnCzZrc2yzchVoFU-45mqg6iMkHRYnE8IkC0CsAZEbfCXH5WfJKM5R0E6d4nu9f2yA/exec';
 let communityPicks = {};
@@ -1857,6 +1918,8 @@ let weatherSettings = {};
 let teamToGameIdMap = {};
 let teamHomeParkMap = {};
 let parkFactorMap = {};
+let parkFactorLMap = {};
+let parkFactorRMap = {};
 let selectedQuickTeamFilter = 'ALL';
 let codysDiamondsData = [];
 let longshotData = [];
@@ -1875,7 +1938,7 @@ let oddsMap = {};
 let pitchLabData = [];
 let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {};
 let pitcherTeamMap = {};
-const STAT_MODEL_SHEETS = ['BARRELL','SS','SCASTL','SCASTR','PAL','PAR','RHPBB','LHPBB','ISO','ISOR','ISOL','ISOX','PXHR','PITCHERBB','PSS','PITCHMAX','PITCHER','PITCHERR','PITCHERL','PITCHERFB','PITCHERBBL','PITCHERBBR','LASTST','BULLPENEV','LINEUPS','PA','PARKFACTOR','RZ'];
+const STAT_MODEL_SHEETS = ['BARRELL','SS','SCASTL','SCASTR','PAL','PAR','RHPBB','LHPBB','ISO','ISOR','ISOL','ISOX','PXHR','PITCHERBB','PSS','PITCHMAX','PITCHER','PITCHERR','PITCHERL','PITCHERFB','PITCHERBBL','PITCHERBBR','LASTST','BULLPENEV','LINEUPS','PA','PARKFACTOR','PARKFACTORL','PARKFACTORR','RZ'];
 function normalizedKey(k) { return String(k || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function lookupStat(sheetKey, name) { return (statSheetMaps[String(sheetKey || '').toUpperCase()] || {})[normalizeName(name)] || {}; }
 function findByTeam(sheetKey, team) {
@@ -2339,7 +2402,7 @@ function resolvePitcherOwnTeam(pitcherName, fallbackTeam) {
   return mapped || String(fallbackTeam || '').trim().toUpperCase();
 }
 function saveCachedData() {
-const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps, batTrackingMaps, pitcherTeamMap };
+const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps, batTrackingMaps, pitcherTeamMap };
 localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 function loadCachedData() {
@@ -2357,6 +2420,8 @@ weatherSettings = cacheData.weatherSettings || {};
 teamToGameIdMap = cacheData.teamToGameIdMap || {};
 teamHomeParkMap = cacheData.teamHomeParkMap || {};
 parkFactorMap = cacheData.parkFactorMap || {};
+parkFactorLMap = cacheData.parkFactorLMap || {};
+parkFactorRMap = cacheData.parkFactorRMap || {};
 selectedQuickTeamFilter = cacheData.selectedQuickTeamFilter || 'ALL';
 codysDiamondsData = cacheData.codysDiamondsData || [];
 longshotData = cacheData.longshotData || [];
@@ -2425,6 +2490,34 @@ function mapRowsByName(rows) {
   });
   return out;
 }
+function mapRowsByTeam(rows) {
+  const out = {};
+  (rows || []).forEach(row => {
+    const raw = String(safeGet(row, 'Team', 'TEAM', 'Tm', 'TM', 'Park Team', 'ParkTeam', 'Home Team', 'HomeTeam') || '').trim().toUpperCase();
+    if (raw) out[raw] = row;
+  });
+  return out;
+}
+function extractParkFactorValue(row) {
+  return firstNumber(
+    safeGet(row, 'PF', 'pf', 'ParkFactor', 'Park Factor', 'HR Park Factor', 'HR Factor', 'HR', 'Factor', 'Index', 'Value'),
+    safeGet(row, 'Home Run Factor', 'HomeRunFactor', 'HR PF', 'HRPF')
+  );
+}
+function getHandedParkFactor(player, parkTeam, fallbackPF) {
+  const hand = getHitterHandedness(player);
+  const team = String(parkTeam || '').trim().toUpperCase();
+  const sideMap = hand === 'L' ? parkFactorLMap : parkFactorRMap;
+  const sideRow = sideMap[team] || {};
+  const sidePF = extractParkFactorValue(sideRow);
+  if (sidePF !== null && sidePF !== undefined && !isNaN(sidePF) && sidePF > 0) return sidePF;
+  const playerPF = firstNumber(safeGet(player, 'pf', 'PF', 'ParkFactor', 'Park Factor'));
+  if (playerPF !== null && playerPF !== undefined && !isNaN(playerPF) && playerPF > 0) return playerPF;
+  const overallRow = (statSheetMaps['PARKFACTOR'] || {})[team] || {};
+  const overallPF = extractParkFactorValue(overallRow);
+  if (overallPF !== null && overallPF !== undefined && !isNaN(overallPF) && overallPF > 0) return overallPF;
+  return fallbackPF || 100;
+}
 function buildBatTrackingMap(workbook, sheetName) {
   // Savant bat-tracking exports use stacked headers; do not trust row 1/header names.
   // Fixed columns: B=Player, E=Avg Bat Speed, I=Squared-Up % Swing, L=Blast % Swing.
@@ -2487,10 +2580,12 @@ const workbook = XLSX.read(data, {type: 'array'});
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], vsFBRaw = [], vsCHRaw = [], vsCVRaw = [], vsSLRaw = [], vsCURaw = [];
 let batTrackingSheetNames = {}; 
-teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
+if (nameClean === 'PARKFACTORL') parkFactorLMap = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm','Park Team','Home Team']));
+if (nameClean === 'PARKFACTORR') parkFactorRMap = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm','Park Team','Home Team']));
 if (nameClean === 'ODDS') oddsRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name']);
 if (nameClean === 'HR' || nameClean === 'HOMERUN') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'SHEET1' && (!hrRaw || hrRaw.length === 0)) hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -3513,9 +3608,9 @@ const lwxSLG = cleanNumber(safeGet(lw, 'xSLG', 'xSLG%')) || 0;
 const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR')) || 0;
 const lwHardHit = cleanNumber(safeGet(lw, 'Hard Hit %', 'HardHit%')) || 0;
 const lwwOBA = cleanNumber(safeGet(lw, 'wOBA', 'wOBA Last Week', 'wOBA%')) || 0;
-const homeTeam = safeGet(p, 'Opp Team', 'Team', 'TEAM') || p.Team;
-const parkDims = parkFactorMap[homeTeam] || { lf: 330, cf: 400, rf: 330 };
-const parkPF = cleanNumber(safeGet(p, 'pf', 'PF', 'ParkFactor')) || (parkDims.pf || 100);
+const homeTeam = getHomeTeamForPlayer(p);
+const parkDims = parkFactorMap[homeTeam] || { lf: 330, cf: 400, rf: 330, pf: 100 };
+const parkPF = getHandedParkFactor(p, homeTeam, parkDims.pf || 100);
 const hpSub = N_SUB.hitterPowerProfile;
 const hp_barrelM = ratioToModifier(barrelRateStabilized, LEAGUE_AVERAGES.barrelRate, { min:0.5, max:2.2, sensitivity:0.95 });
 const hp_isoM = ratioToModifier(isoStabilized, LEAGUE_AVERAGES.iso, { min:0.5, max:2.0, sensitivity:0.9 });
@@ -3981,7 +4076,7 @@ function hybridRaw(p) {
   const wxPitcherBarrel = firstRate(safeGet(pitcherBBRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(pssRow, 'Brls/BBE %'), safeGet(pitchMaxRow, 'Brls/BBE %'), safeGet(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%'));
   const wxPitcherHardHit = firstRate(safeGet(pitcherBBRow, 'HardHit%', 'Hard Hit %'), safeGet(pitchMaxRow, 'HardHit%', 'Hard Hit %'), safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed'));
   const wxPitcherEV = firstNumber(safeGet(pitcherBBRow, 'EV', 'Avg EV', 'Average EV'), safeGet(pssRow, 'Avg', 'Avg EV'), safeGet(pitchMaxRow, 'Avg', 'Avg EV'), safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV'));
-  const wxParkFactor = positiveOrFallback(firstNumber(safeGet(p, 'pf', 'PF', 'ParkFactor', 'Park Factor'), safeGet(lookupStat('PARKFACTOR', parkTeam), 'HR', 'Park Factor')), parkDims.pf || 100);
+  const wxParkFactor = getHandedParkFactor(p, parkTeam, parkDims.pf || 100);
   const weatherImpact = buildSideWeatherImpact({ weather, hand: weatherHand, pull: wxPull, pullAir: wxPullAir, flyBall: wxFlyBall, launchAngle: wxLaunchAngle, barrel: wxBarrel, maxEV: wxMaxEV, pitcherFB: wxPitcherFB, pitcherHRFB: wxPitcherHRFB, pitcherBarrel: wxPitcherBarrel, pitcherHardHit: wxPitcherHardHit, pitcherEV: wxPitcherEV, pullFence, cf: parkDims.cf || 400, parkFactor: wxParkFactor });
   const weatherScore = weatherImpact.score;
   p.weatherScoreUsed = weatherImpact.score;
@@ -3989,6 +4084,8 @@ function hybridRaw(p) {
   p.weatherBoostReason = weatherImpact.reason;
   p.weatherImpactMultiplier = weatherImpact.multiplier;
   p.weatherImpactComponents = weatherImpact.components;
+  p.handedParkFactorUsed = wxParkFactor;
+  p.parkFactorSideUsed = hand === 'L' ? 'ParkFactorL' : 'ParkFactorR';
   return {
     barrel: firstRate(safeGet(barrellRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(ssRow, 'Brls/BBE %'), safeGet(scastRow, 'Brls/BBE %'), safeGet(p, 'Barrel %', 'Barrel%')),
     brlsPA: firstRate(safeGet(barrellRow, 'Brls/PA %', 'Barrels/PA %'), safeGet(ssRow, 'Brls/PA %'), safeGet(scastRow, 'Brls/PA %')),
@@ -4302,6 +4399,13 @@ function scoreHybridPlayer(p, ranges) {
   p.calculatedRecentScore = adjustedRecent;
   p.calculatedWeatherScore = weather;
   p.calculatedBVPScore = bvp;
+  p.hybridCategoryWeightsUsed = { ...HYBRID_CATEGORY_WEIGHTS };
+  p.hybridCategoryContributions = {};
+  Object.keys(HYBRID_CATEGORY_WEIGHTS).forEach(cat => {
+    const v = p.category && p.category[cat];
+    p.hybridCategoryContributions[cat] = (v !== null && v !== undefined && !isNaN(v)) ? (v * HYBRID_CATEGORY_WEIGHTS[cat]) : null;
+  });
+  p.hybridRawSnapshot = { ...r };
   return Math.max(0, Math.min(100, score));
 }
 function recalculateAllBBIScores() {
@@ -4478,11 +4582,13 @@ const stadiumPill = renderStadiumParkPill(p);
 let safeName = p.Name.replace(/'/g, "\\'");
 let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
 const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}', event)">💰 LOCK PICK</button>`;
+const bombActive = isBacktestBombed(p) ? ' active' : '';
+const bombBtn = `<button class="btn-bomb${bombActive}" title="Mark HR for backtest" onclick="event.stopPropagation(); toggleBacktestBomb('${escJSString(p.Name)}','${escJSString(p.Team)}')">💣</button>`;
 const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
 const batterHand = getBatterHandDisplay(p);
 const orbitClass = idx < 10 ? ' orbit-ready' : '';
 const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
-tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${p.bettingOdds || '-'}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td><td style="display:flex; gap:4px; justify-content:center;">${actionBtn} ${lockBtn}</td>`;
+tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:13px;">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span>${p.Name}</span> ${pfBadge}</div><div style="margin-top:4px;">${badgeHtml}</div></td><td><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</td><td style="font-size:12px; font-weight:700; color:var(--stadium-lights); font-family:monospace;">${climateString}${stadiumPill}</td><td style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${p.bettingOdds || '-'}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td><td style="display:flex; gap:4px; justify-content:center;">${bombBtn} ${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
@@ -4779,6 +4885,340 @@ document.addEventListener('click',e=>{
  },50);
 });
 })();
+
+
+/* =========================
+   BACKTEST / MODEL RESEARCH LAB
+   Saves frozen player stat snapshots only when user finalizes.
+   Does not change scoring weights automatically.
+   ========================= */
+const BACKTEST_DB_NAME = 'DailyRunlineBacktestDB';
+const BACKTEST_STORE_NAME = 'state';
+const BACKTEST_HISTORY_KEY = 'backtestHistory';
+const BACKTEST_BOMBS_KEY = 'drlBacktestBombsCurrentSlate';
+const BACKTEST_MODEL_VERSION = '33.2_BACKTEST_RESEARCH_LAB';
+let backtestHistory = [];
+let currentBacktestBombs = JSON.parse(localStorage.getItem(BACKTEST_BOMBS_KEY) || '{}');
+
+function backtestOpenDB() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) return reject(new Error('IndexedDB unavailable'));
+    const req = indexedDB.open(BACKTEST_DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(BACKTEST_STORE_NAME)) db.createObjectStore(BACKTEST_STORE_NAME);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function backtestGetState(key) {
+  try {
+    const db = await backtestOpenDB();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(BACKTEST_STORE_NAME, 'readonly');
+      const req = tx.objectStore(BACKTEST_STORE_NAME).get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) { return null; }
+  }
+}
+async function backtestSetState(key, value) {
+  try {
+    const db = await backtestOpenDB();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(BACKTEST_STORE_NAME, 'readwrite');
+      tx.objectStore(BACKTEST_STORE_NAME).put(value, key);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+}
+async function loadBacktestHistory() {
+  const saved = await backtestGetState(BACKTEST_HISTORY_KEY);
+  backtestHistory = Array.isArray(saved) ? saved : [];
+  renderBacktestLab();
+}
+async function saveBacktestHistory() {
+  await backtestSetState(BACKTEST_HISTORY_KEY, backtestHistory);
+}
+function backtestBombKey(playerName, team) { return `${normalizeName(playerName)}__${String(team || '').trim().toUpperCase()}`; }
+function saveBacktestBombs() { localStorage.setItem(BACKTEST_BOMBS_KEY, JSON.stringify(currentBacktestBombs)); }
+function isBacktestBombed(p) { return !!currentBacktestBombs[backtestBombKey(p.Name, p.Team)]; }
+function toggleBacktestBomb(playerName, team) {
+  const key = backtestBombKey(playerName, team);
+  if (currentBacktestBombs[key]) delete currentBacktestBombs[key];
+  else currentBacktestBombs[key] = { playerName, team, markedAt: new Date().toISOString() };
+  saveBacktestBombs();
+  applyFiltersAndRender();
+}
+function getBacktestActivePlayersSorted() {
+  return [...playerData].filter(p => !p.isRemoved).sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+}
+function backtestPrimitive(v) {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') return v;
+  return '';
+}
+function backtestNum(v) {
+  const n = cleanNumberOrNull ? cleanNumberOrNull(v) : Number(v);
+  return (n === null || n === undefined || isNaN(n)) ? '' : n;
+}
+function getPlayerOpponent(p) { return getOpponentTeamForPlayer(p) || safeGet(p, 'Opponent', 'Opp', 'OPP', 'Opp Team') || ''; }
+function getBacktestHandedParkFactor(p) {
+  const hand = getBatterHandDisplay(p).label;
+  const raw = p.hybridRawSnapshot || p.hybridRaw || {};
+  return backtestNum(raw.parkFactor || p.handedParkFactor || p.pf || p.ParkFactor || safeGet(p, 'ParkFactor', 'PF'));
+}
+function flattenBacktestObject(prefix, obj, out) {
+  if (!obj || typeof obj !== 'object') return;
+  Object.keys(obj).forEach(k => {
+    const cleanKey = String(k).replace(/[^A-Za-z0-9_]+/g, '_');
+    const v = obj[k];
+    if (v === null || v === undefined || typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') out[`${prefix}_${cleanKey}`] = backtestPrimitive(v);
+  });
+}
+function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
+  const handObj = getBatterHandDisplay(p);
+  const w = weatherSettings[p.gameId] || {};
+  const visual = getStadiumVisualForPlayer(p);
+  const row = {
+    Slate_ID: slateId,
+    Finalized_At: finalizedAt,
+    Date: new Date().toLocaleDateString('en-US'),
+    Model_Version: BACKTEST_MODEL_VERSION,
+    Rank: rank,
+    HR_Result: isBacktestBombed(p) ? 1 : 0,
+    Player: p.Name || '',
+    Team: p.Team || '',
+    Opponent: getPlayerOpponent(p),
+    Opposing_Pitcher: safeGet(p, 'Opp Pitcher', 'Opposing Pitcher', 'Opp Pitcher Name', 'Pitcher Facing') || '',
+    Batter_Hand: handObj.label,
+    Pitcher_Hand: safeGet(p, 'Pitcher Hand', 'Opp Pitcher Hand', 'Throws', 'P Throws') || '',
+    Lineup_Spot: backtestNum(safeGet(p, 'Batting Order', 'Lineup Spot', 'Order', 'BO')),
+    Home_Park_Team: visual.homeTeam || '',
+    Ballpark: visual.name || '',
+    BBI: backtestNum(p.calculatedBBI),
+    HR_Probability: backtestNum(p.calculatedHRProbability),
+    Best_Odds: p.bettingOdds || '',
+    Implied_Probability: backtestNum(p.impliedProbability),
+    Betting_Edge: backtestNum(p.bettingEdge),
+    Expected_Value_Pct: backtestNum(p.expectedValuePct),
+    Bet_Grade: p.betGrade || '',
+    Data_Confidence: backtestNum(p.calculatedDataConfidence),
+    Weather_Temp: backtestNum(w.temp),
+    Weather_WindSpeed: backtestNum(w.windSpeed),
+    Weather_WindDir: w.windDir || '',
+    Weather_Roof_Dome: w.isDome ? 1 : 0,
+    Weather_Side_Used: p.weatherSideUsed || '',
+    Weather_Score_Used: backtestNum(p.weatherScoreUsed),
+    Weather_Multiplier: backtestNum(p.envMultiplier),
+    Handed_Park_Factor: getBacktestHandedParkFactor(p),
+    ParkFactorL_or_R_Used: getBacktestHandedParkFactor(p),
+    Category_Power: backtestNum(p.category && p.category.power),
+    Category_PitchLab: backtestNum(p.category && p.category.pitchLevel),
+    Category_Pitcher: backtestNum(p.category && p.category.pitcher),
+    Category_BattedBall: backtestNum(p.category && p.category.battedBall),
+    Category_Weather: backtestNum(p.category && p.category.weather),
+    Category_Park: backtestNum(p.category && p.category.park),
+    Category_Opportunity: backtestNum(p.category && p.category.opportunity),
+    Category_Recent: backtestNum(p.category && p.category.recent),
+    Category_BVP: backtestNum(p.category && p.category.bvp),
+    Category_Bullpen: backtestNum(p.category && p.category.bullpen),
+    Category_Discipline: backtestNum(p.category && p.category.discipline),
+    Contribution_Power: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.power),
+    Contribution_PitchLab: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.pitchLevel),
+    Contribution_Pitcher: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.pitcher),
+    Contribution_BattedBall: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.battedBall),
+    Contribution_Weather: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.weather),
+    Contribution_Park: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.park),
+    Contribution_Opportunity: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.opportunity),
+    Contribution_Recent: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.recent),
+    Contribution_BVP: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.bvp),
+    Synergy_Bonus: backtestNum(p.calculatedSynergy),
+    Synergy_Raw: backtestNum(p.calculatedRawSynergy),
+    Power_Modifier: backtestNum(p.calculatedPowerModifier),
+    Pitcher_Modifier: backtestNum(p.calculatedPVF),
+    Pull_Modifier: backtestNum(p.calculatedPullModifier),
+    Quality_Modifier: backtestNum(p.calculatedQualityModifier),
+    BVP_Modifier: backtestNum(p.calculatedBvP),
+    PitchLab_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.score),
+    PitchLab_TopThreat: p.pitchLabProfile && p.pitchLabProfile.topPitch ? p.pitchLabProfile.topPitch : '',
+    PitchLab_Summary: p.pitchLabProfile && p.pitchLabProfile.summary ? p.pitchLabProfile.summary : ''
+  };
+  flattenBacktestObject('Raw', p.hybridRawSnapshot || p.hybridRaw || {}, row);
+  flattenBacktestObject('PitchLab', p.pitchLabProfile || {}, row);
+  Object.keys(p || {}).forEach(k => {
+    if (['category','hybridRaw','hybridRawSnapshot','hybridCategoryContributions','hybridCategoryWeightsUsed','pitchLabProfile'].includes(k)) return;
+    const v = p[k];
+    if (v === null || v === undefined || typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') {
+      const cleanKey = String(k).replace(/[^A-Za-z0-9_]+/g, '_');
+      if (row[`Input_${cleanKey}`] === undefined) row[`Input_${cleanKey}`] = backtestPrimitive(v);
+    }
+  });
+  return row;
+}
+async function finalizeTodayBacktest() {
+  const players = getBacktestActivePlayersSorted();
+  if (!players.length) { alert('Upload a slate before finalizing a backtest.'); return; }
+  const bombCount = players.filter(p => isBacktestBombed(p)).length;
+  const ok = confirm(`Finalize this slate?\n\nPlayers saved: ${players.length}\nHR winners marked: ${bombCount}\nUnmarked players will save as losses.`);
+  if (!ok) return;
+  const finalizedAt = new Date().toISOString();
+  const slateId = `${new Date().toISOString().slice(0,10)}_${players.length}players_${Date.now()}`;
+  const rows = players.map((p, idx) => snapshotBacktestPlayer(p, idx + 1, slateId, finalizedAt));
+  backtestHistory.push({ slateId, finalizedAt, modelVersion: BACKTEST_MODEL_VERSION, playerCount: rows.length, hrCount: bombCount, rows });
+  await saveBacktestHistory();
+  currentBacktestBombs = {};
+  saveBacktestBombs();
+  applyFiltersAndRender();
+  renderBacktestLab();
+  alert(`Backtest finalized. Saved ${rows.length} player snapshots with ${bombCount} HR winners.`);
+}
+function getBacktestRows() { return backtestHistory.flatMap(s => s.rows || []); }
+function mean(arr) { const nums = arr.map(Number).filter(n => isFinite(n)); return nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : null; }
+function calcUnits(row) {
+  const hit = Number(row.HR_Result) === 1;
+  const odds = row.Best_Odds || row.Input_bettingOdds || '';
+  const profit = americanOddsProfitPer100(odds);
+  if (profit === null) return hit ? 0 : -1;
+  return hit ? profit / 100 : -1;
+}
+function fmtBack(v, digits=1, suffix='') { if (v === null || v === undefined || isNaN(v)) return '-'; return `${Number(v).toFixed(digits)}${suffix}`; }
+function getSignalStats(rows, key) {
+  const valid = rows.filter(r => r[key] !== '' && r[key] !== null && r[key] !== undefined && isFinite(Number(r[key])));
+  const hits = valid.filter(r => Number(r.HR_Result) === 1);
+  const misses = valid.filter(r => Number(r.HR_Result) !== 1);
+  const hitAvg = mean(hits.map(r => Number(r[key])));
+  const missAvg = mean(misses.map(r => Number(r[key])));
+  const diff = (hitAvg !== null && missAvg !== null) ? hitAvg - missAvg : null;
+  const overallStd = (() => {
+    const vals = valid.map(r => Number(r[key])); const m = mean(vals); if (m === null || vals.length < 2) return null;
+    return Math.sqrt(vals.reduce((s,v)=>s+Math.pow(v-m,2),0)/(vals.length-1));
+  })();
+  const strength = (diff !== null && overallStd && overallStd > 0) ? Math.abs(diff / overallStd) : 0;
+  return { key, count: valid.length, hitCount: hits.length, hitRate: valid.length ? (hits.length / valid.length) * 100 : null, hitAvg, missAvg, diff, strength };
+}
+function getSuggestedWeights(rows) {
+  const current = {
+    power: HYBRID_CATEGORY_WEIGHTS.power || 0,
+    pitchLevel: HYBRID_CATEGORY_WEIGHTS.pitchLevel || 0,
+    pitcher: HYBRID_CATEGORY_WEIGHTS.pitcher || 0,
+    battedBall: HYBRID_CATEGORY_WEIGHTS.battedBall || 0,
+    weather: HYBRID_CATEGORY_WEIGHTS.weather || 0,
+    park: HYBRID_CATEGORY_WEIGHTS.park || 0,
+    opportunity: HYBRID_CATEGORY_WEIGHTS.opportunity || 0,
+    recent: HYBRID_CATEGORY_WEIGHTS.recent || 0,
+    bvp: HYBRID_CATEGORY_WEIGHTS.bvp || 0
+  };
+  const keyMap = {
+    power: 'Category_Power', pitchLevel: 'Category_PitchLab', pitcher: 'Category_Pitcher', battedBall: 'Category_BattedBall', weather: 'Category_Weather', park: 'Category_Park', opportunity: 'Category_Opportunity', recent: 'Category_Recent', bvp: 'Category_BVP'
+  };
+  const strengths = Object.keys(current).map(cat => ({ cat, strength: getSignalStats(rows, keyMap[cat]).strength || 0.01 }));
+  const totalStrength = strengths.reduce((s,x)=>s+x.strength,0) || 1;
+  const totalCurrent = Object.values(current).reduce((s,x)=>s+x,0) || 1;
+  const suggested = {};
+  strengths.forEach(x => suggested[x.cat] = (x.strength / totalStrength) * totalCurrent);
+  return { current, suggested, keyMap };
+}
+function renderBacktestLab() {
+  const container = document.getElementById('backtestLabContainer');
+  if (!container) return;
+  const rows = getBacktestRows();
+  if (!rows.length) {
+    container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No finalized backtests yet. Mark HR hitters with 💣 on the rankings page, then click Finalize Today's Backtest at the bottom.</div>`;
+    return;
+  }
+  const slates = backtestHistory.length;
+  const hrs = rows.filter(r => Number(r.HR_Result) === 1).length;
+  const units = rows.reduce((s,r)=>s+calcUnits(r),0);
+  const hitRate = rows.length ? (hrs / rows.length) * 100 : 0;
+  const latest = backtestHistory[backtestHistory.length - 1];
+  const signalKeys = [
+    ['Category_Power','Power category'], ['Category_PitchLab','Pitch Lab category'], ['Category_Pitcher','Pitcher category'], ['Category_BattedBall','Batted-ball category'], ['Raw_barrel','Raw barrel'], ['Raw_avgEV','Raw avg EV'], ['Raw_maxEV','Raw max EV'], ['Raw_iso','Raw ISO'], ['Raw_pullAir','Raw pulled air'], ['Raw_hrFb','Raw HR/FB'], ['Raw_pitcherHR9','Pitcher HR/9'], ['Raw_pitcherBarrel','Pitcher barrel allowed'], ['Handed_Park_Factor','Handed park factor'], ['Weather_Score_Used','Weather score'], ['Lineup_Spot','Lineup spot']
+  ];
+  const signals = signalKeys.map(([key,label]) => ({ label, ...getSignalStats(rows, key) })).filter(s => s.count >= 10).sort((a,b)=>b.strength-a.strength);
+  const weights = getSuggestedWeights(rows);
+  const labels = { power:'Hitter Power', pitchLevel:'Pitch Lab', pitcher:'Pitcher Vulnerability', battedBall:'Batted Ball Shape', weather:'Weather', park:'Park Factor', opportunity:'Opportunity', recent:'Recent Form', bvp:'BVP' };
+  const weightRows = Object.keys(weights.current).map(cat => {
+    const cur = weights.current[cat] * 100;
+    const sug = weights.suggested[cat] * 100;
+    const delta = sug - cur;
+    const cls = delta > 0.75 ? 'signal-positive' : delta < -0.75 ? 'signal-negative' : 'signal-neutral';
+    return `<tr><td>${labels[cat] || cat}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(getSignalStats(rows, weights.keyMap[cat]).strength,2)}</td></tr>`;
+  }).join('');
+  const signalRows = signals.slice(0,18).map(s => {
+    const cls = s.diff > 0 ? 'signal-positive' : s.diff < 0 ? 'signal-negative' : 'signal-neutral';
+    return `<tr><td>${s.label}</td><td>${s.count}</td><td>${fmtBack(s.hitRate,2,'%')}</td><td>${fmtBack(s.hitAvg,3)}</td><td>${fmtBack(s.missAvg,3)}</td><td class="${cls}">${s.diff >= 0 ? '+' : ''}${fmtBack(s.diff,3)}</td><td>${fmtBack(s.strength,2)}</td></tr>`;
+  }).join('');
+  container.innerHTML = `
+    <div class="backtest-kpi-grid">
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Finalized slates</div><div class="backtest-kpi-value">${slates}</div><div class="backtest-kpi-sub">Latest: ${latest ? new Date(latest.finalizedAt).toLocaleString() : '-'}</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Player snapshots</div><div class="backtest-kpi-value">${rows.length.toLocaleString()}</div><div class="backtest-kpi-sub">Every scoring input frozen</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">HR winners marked</div><div class="backtest-kpi-value">${hrs}</div><div class="backtest-kpi-sub">Hit rate ${fmtBack(hitRate,2,'%')}</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Flat-bet units</div><div class="backtest-kpi-value">${units >= 0 ? '+' : ''}${fmtBack(units,1)}</div><div class="backtest-kpi-sub">1u on every tracked row with odds</div></div>
+    </div>
+    <h2>🧠 Current vs Suggested Weights</h2>
+    <p class="backtest-note">Suggested weights are calculated from historical separation between HR hitters and non-HR hitters. They are reference-only and do not alter live scoring.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Category</th><th>Current Weight</th><th>Suggested Weight</th><th>Difference</th><th>Signal Strength</th></tr></thead><tbody>${weightRows}</tbody></table></div>
+    <h2>🔬 Stat Signal Board</h2>
+    <p class="backtest-note">This compares each stat's average for HR hitters vs non-HR hitters. Bigger positive separation means that input has been showing up more often in HR results.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Rows</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Strength</th></tr></thead><tbody>${signalRows || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before signal board is useful.</td></tr>'}</tbody></table></div>
+  `;
+}
+function exportBacktestMasterXLSX() {
+  const rows = getBacktestRows();
+  if (!rows.length) { alert('No backtest rows to export yet.'); return; }
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, 'Backtest_Master');
+  const summary = [{
+    Finalized_Slates: backtestHistory.length,
+    Player_Snapshots: rows.length,
+    HRs: rows.filter(r => Number(r.HR_Result) === 1).length,
+    Overall_HR_Rate: rows.length ? rows.filter(r => Number(r.HR_Result) === 1).length / rows.length : 0,
+    Exported_At: new Date().toISOString(),
+    Model_Version: BACKTEST_MODEL_VERSION
+  }];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), 'Backtest_Summary');
+  XLSX.writeFile(wb, `Backtest_Master_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+function exportBacktestJSON() {
+  const data = JSON.stringify({ version: BACKTEST_MODEL_VERSION, exportedAt: new Date().toISOString(), backtestHistory }, null, 2);
+  const blob = new Blob([data], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `Backtest_Backup_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+async function importBacktestJSON(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  try {
+    const parsed = JSON.parse(text);
+    const imported = Array.isArray(parsed) ? parsed : parsed.backtestHistory;
+    if (!Array.isArray(imported)) throw new Error('Invalid backup file');
+    const merge = confirm(`Import ${imported.length} slates?\n\nOK = merge with current history\nCancel = replace current history`);
+    backtestHistory = merge ? [...backtestHistory, ...imported] : imported;
+    await saveBacktestHistory();
+    renderBacktestLab();
+    alert('Backtest backup imported.');
+  } catch (e) { alert('Could not import this JSON backup.'); }
+  event.target.value = '';
+}
+async function clearBacktestHistoryConfirm() {
+  const ok = confirm('This clears all saved backtest data from this browser. Export a backup first if you want to keep it. Continue?');
+  if (!ok) return;
+  backtestHistory = [];
+  await saveBacktestHistory();
+  renderBacktestLab();
+}
+window.addEventListener('DOMContentLoaded', () => { setTimeout(loadBacktestHistory, 250); });
 </script>
 </body>
 </html>
