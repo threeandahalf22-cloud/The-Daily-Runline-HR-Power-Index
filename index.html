@@ -4919,8 +4919,8 @@ function extractParkFactorValue(row) {
     safeGet(row, 'Home Run Factor', 'HomeRunFactor', 'HR PF', 'HRPF')
   );
 }
-function getHandedParkFactor(player, parkTeam, fallbackPF) {
-  const hand = getHitterHandedness(player);
+function getHandedParkFactor(player, parkTeam, fallbackPF, matchupHand) {
+  const hand = String(matchupHand || getHitterHandedness(player) || 'R').toUpperCase().startsWith('L') ? 'L' : 'R';
   const team = String(parkTeam || '').trim().toUpperCase();
   const sideMap = hand === 'L' ? parkFactorLMap : parkFactorRMap;
   const sideRow = sideMap[team] || {};
@@ -6562,7 +6562,7 @@ weatherSettings[matchingGameId] = enrichWeatherWithFieldVector({ temp, windSpeed
 });
 }
 function cleanNumber(v) { if(v === undefined || v === null || v === '') return 0; if (typeof v === 'string' && v.includes('%')) return parseFloat(v) / 100; return Number(v) || 0; }
-function getHitterHandedness(p) { const bats = String(p['Bats'] || p['Hand'] || p['Handedness'] || 'R').toUpperCase().substring(0, 1); return bats === 'L' ? 'L' : 'R'; }
+function getHitterHandedness(p) { const bats = String(p['Bats'] || p['Hand'] || p['Handedness'] || 'R').toUpperCase().substring(0, 1); return bats === 'L' ? 'L' : (bats === 'S' ? 'S' : 'R'); }
 function applyStabilization(actual, leagueAvg, sample, stabilizationPA) { if (sample <= 0) return leagueAvg; if (sample >= stabilizationPA) return actual; const weight = sample / stabilizationPA; return (actual * weight) + (leagueAvg * (1 - weight)); }
 const SCORE_WEIGHTS = { hitterPowerProfile: 0.21, pitcherVulnerability: 0.32, battedBallProfile: 0.09, pitchMatchup: 0.14, recentForm: 0.15, weather: 0.03, park: 0.04, bvp: 0.02 };
 const SUBWEIGHTS = {
@@ -7285,6 +7285,7 @@ function hybridRaw(p) {
   const pitcherNorm = normalizeName(pitcherName);
   const pitcherHandRaw = String(safeGet(p, 'Opp Pitcher Throws', 'Opp Throws', 'Pitcher Throws', 'Pitcher Hand', 'P Throws', 'Throws', 'L/R', 'LR') || '').trim().toUpperCase();
   const vsLefty = pitcherHandRaw.startsWith('L');
+  const matchupHitterSide = getWeatherHandForPlayer(p, pitcherHandRaw);
   const barrellRow = lookupStat('BARRELL', p.Name);
   const ssRow = lookupStat('SS', p.Name);
   const scastRow = lookupStat(vsLefty ? 'SCASTL' : 'SCASTR', p.Name);
@@ -7296,7 +7297,8 @@ function hybridRaw(p) {
   const pssRow = lookupStat('PSS', pitcherName);
   const pitchMaxRow = lookupStat('PITCHMAX', pitcherName);
   const pitcherOverallRow = lookupStat('PITCHER', pitcherName);
-  const pitcherSplitRow = lookupStat(getHitterHandedness(p) === 'L' ? 'PITCHERL' : 'PITCHERR', pitcherName);
+  const pitcherSplitRow = lookupStat(matchupHitterSide === 'L' ? 'PITCHERL' : 'PITCHERR', pitcherName);
+  const pitcherBBSplitRow = lookupStat(matchupHitterSide === 'L' ? 'PITCHERBBL' : 'PITCHERBBR', pitcherName);
   const pitcherFBRow = lookupStat('PITCHERFB', pitcherName);
   const lastStartRow = lookupStat('LASTST', pitcherName);
   const rzRow = lookupStat('RZ', pitcherName);
@@ -7306,7 +7308,7 @@ function hybridRaw(p) {
   // HR sheet column N "Ballpark Team" is the preferred source through getHomeTeamForPlayer().
   const parkTeam = getHomeTeamForPlayer(p);
   const parkDims = parkFactorMap[parkTeam] || { lf: 330, cf: 400, rf: 330, pf: 100 };
-  const hand = getHitterHandedness(p);
+  const hand = matchupHitterSide;
   const pullFence = hand === 'L' ? (parkDims.rf || 330) : (parkDims.lf || 330);
   let pitchLevelEV = null;
   const pitchPairs = [
@@ -7320,19 +7322,19 @@ function hybridRaw(p) {
     if (ev > 0 && usage > 0) { if (usage <= 1) usage *= 100; evTotal += ev * usage; useTotal += usage; }
   });
   if (useTotal > 0) pitchLevelEV = evTotal / useTotal;
-  const weatherHand = getWeatherHandForPlayer(p, pitcherHandRaw);
+  const weatherHand = matchupHitterSide;
   const wxBarrel = firstRate(safeGet(barrellRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(ssRow, 'Brls/BBE %'), safeGet(scastRow, 'Brls/BBE %'), safeGet(p, 'Barrel %', 'Barrel%'));
   const wxMaxEV = firstNumber(safeGet(ssRow, 'Max', 'Max EV', 'MaxEV'), safeGet(barrellRow, 'maxEV', 'Max EV', 'MaxEV'), safeGet(scastRow, 'Max', 'Max EV'), safeGet(p, 'Max EV', 'MaxEV'));
   const wxFlyBall = firstRate(safeGet(pulledRow, 'FB %', 'FB%'), safeGet(bbHandRow, 'FB%', 'FB %'), safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %'));
   const wxPullAir = firstRate(safeGet(pulledRow, 'Pulled Air %', 'Pull Air %', 'Air Pull %', 'Pull Air'), safeGet(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %'));
   const wxPull = firstRate(safeGet(pulledRow, 'Pull %', 'Pull%'), safeGet(bbHandRow, 'Pull%', 'Pull %'), safeGet(p, 'Pull %', 'Pull%', 'PullRate'));
   const wxLaunchAngle = firstNumber(safeGet(ssRow, 'LA (°)', 'LA', 'Launch Angle'), safeGet(scastRow, 'LA (°)', 'LA', 'Launch Angle'), safeGet(p, 'Launch Angle', 'LA'));
-  const wxPitcherFB = firstRate(safeGet(pitcherFBRow, 'FB%', 'Fly Ball %'), safeGet(pitcherSplitRow, 'FB%', 'Fly Ball %'), safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %'));
-  const wxPitcherHRFB = firstRate(safeGet(pitcherFBRow, 'HR/FB', 'HR/FB %'), safeGet(pitcherSplitRow, 'HR/FB', 'HR/FB %'), safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB'));
+  const wxPitcherFB = firstRate(safeGet(pitcherBBSplitRow, 'FB%', 'FB %', 'Fly Ball %'), safeGet(pitcherSplitRow, 'FB%', 'Fly Ball %'), safeGet(pitcherFBRow, 'FB%', 'Fly Ball %'), safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %'));
+  const wxPitcherHRFB = firstRate(safeGet(pitcherSplitRow, 'HR/FB', 'HR/FB %'), safeGet(pitcherBBSplitRow, 'HR/FB', 'HR/FB %'), safeGet(pitcherFBRow, 'HR/FB', 'HR/FB %'), safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB'));
   const wxPitcherBarrel = firstRate(safeGet(pitcherBBRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(pssRow, 'Brls/BBE %'), safeGet(pitchMaxRow, 'Brls/BBE %'), safeGet(p, 'Pitcher Barrel % Allowed', 'Pitcher Barrel Allowed', 'Pitcher Barrel%'));
-  const wxPitcherHardHit = firstRate(safeGet(pitcherBBRow, 'HardHit%', 'Hard Hit %'), safeGet(pitchMaxRow, 'HardHit%', 'Hard Hit %'), safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed'));
+  const wxPitcherHardHit = firstRate(safeGet(pitcherBBSplitRow, 'Hard%', 'Hard %', 'HardHit%', 'Hard Hit %'), safeGet(pitcherSplitRow, 'Hard%', 'Hard %', 'HardHit%', 'Hard Hit %'), safeGet(pitcherBBRow, 'HardHit%', 'Hard Hit %'), safeGet(pitchMaxRow, 'HardHit%', 'Hard Hit %'), safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed'));
   const wxPitcherEV = firstNumber(safeGet(pitcherBBRow, 'EV', 'Avg EV', 'Average EV'), safeGet(pssRow, 'Avg', 'Avg EV'), safeGet(pitchMaxRow, 'Avg', 'Avg EV'), safeGet(p, 'Pitcher EV Allowed', 'Pitcher EV'));
-  const wxParkFactor = getHandedParkFactor(p, parkTeam, parkDims.pf || 100);
+  const wxParkFactor = getHandedParkFactor(p, parkTeam, parkDims.pf || 100, matchupHitterSide);
   const weatherImpact = buildSideWeatherImpact({ weather, hand: weatherHand, pull: wxPull, pullAir: wxPullAir, flyBall: wxFlyBall, launchAngle: wxLaunchAngle, barrel: wxBarrel, maxEV: wxMaxEV, pitcherFB: wxPitcherFB, pitcherHRFB: wxPitcherHRFB, pitcherBarrel: wxPitcherBarrel, pitcherHardHit: wxPitcherHardHit, pitcherEV: wxPitcherEV, pullFence, cf: parkDims.cf || 400, parkFactor: wxParkFactor });
   const weatherScore = weatherImpact.score;
   p.weatherScoreUsed = weatherImpact.score;
@@ -7341,7 +7343,7 @@ function hybridRaw(p) {
   p.weatherImpactMultiplier = weatherImpact.multiplier;
   p.weatherImpactComponents = weatherImpact.components;
   p.handedParkFactorUsed = wxParkFactor;
-  p.parkFactorSideUsed = hand === 'L' ? 'ParkFactorL' : 'ParkFactorR';
+  p.parkFactorSideUsed = matchupHitterSide === 'L' ? 'ParkFactorL' : 'ParkFactorR';
   return {
     barrel: firstRate(safeGet(barrellRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(ssRow, 'Brls/BBE %'), safeGet(scastRow, 'Brls/BBE %'), safeGet(p, 'Barrel %', 'Barrel%')),
     brlsPA: firstRate(safeGet(barrellRow, 'Brls/PA %', 'Barrels/PA %'), safeGet(ssRow, 'Brls/PA %'), safeGet(scastRow, 'Brls/PA %')),
@@ -7352,7 +7354,7 @@ function hybridRaw(p) {
     ev50: firstNumber(safeGet(ssRow, 'EV50'), safeGet(scastRow, 'EV50')),
     ev90: firstNumber(safeGet(barrellRow, 'EV90'), safeGet(pitcherBBRow, 'EV90')),
     maxEV: firstNumber(safeGet(ssRow, 'Max', 'Max EV', 'MaxEV'), safeGet(barrellRow, 'maxEV', 'Max EV', 'MaxEV'), safeGet(scastRow, 'Max', 'Max EV'), safeGet(p, 'Max EV', 'MaxEV')),
-    hardHit: firstRate(safeGet(barrellRow, 'HardHit%', 'Hard Hit %', 'Hard Hit'), safeGet(scastRow, 'Hard Hit %', 'HardHit%'), safeGet(bbHandRow, 'Hard%', 'Hard %'), safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%')),
+    hardHit: firstRate(safeGet(bbHandRow, 'Hard%', 'Hard %', 'HardHit%', 'Hard Hit %'), safeGet(barrellRow, 'HardHit%', 'Hard Hit %', 'Hard Hit'), safeGet(scastRow, 'Hard Hit %', 'HardHit%'), safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%')),
     sweetSpot: firstRate(safeGet(ssRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(scastRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(p, 'Sweet Spot %', 'Sweetspot %')),
     mph95: firstRate(safeGet(ssRow, '95 MPH+ %', '95+ %', '95 MPH+'), safeGet(scastRow, '95 MPH+ %', '95+ %')),
     avgDistance: firstNumber(safeGet(scastRow, 'Avg HR', 'Avg Distance', 'Distance'), safeGet(pxhrRow, 'Avg HR Distance', 'Avg Distance')),
@@ -7366,11 +7368,11 @@ function hybridRaw(p) {
     pitcherEV50: firstNumber(safeGet(pssRow, 'EV50'), safeGet(pitchMaxRow, 'EV50')),
     pitcher95: firstRate(safeGet(pssRow, '95 MPH+ %', '95+ %'), safeGet(pitchMaxRow, '95 MPH+ %', '95+ %')),
     pitcherMaxEV: firstNumber(safeGet(pitcherBBRow, 'maxEV', 'Max EV', 'Max'), safeGet(pssRow, 'Max', 'Max EV'), safeGet(pitchMaxRow, 'Max', 'Max EV'), safeGet(p, 'Pitcher Max EV', 'Pitcher MaxEV')),
-    pitcherHardHit: firstRate(safeGet(pitcherBBRow, 'HardHit%', 'Hard Hit %'), safeGet(pitchMaxRow, 'HardHit%', 'Hard Hit %'), safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed')),
-    pitcherFB: firstRate(safeGet(pitcherFBRow, 'FB%', 'Fly Ball %'), safeGet(pitcherSplitRow, 'FB%', 'Fly Ball %'), safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %')),
-    pitcherPull: firstRate(safeGet(pitcherFBRow, 'Pull%', 'Pull %'), safeGet(pitcherSplitRow, 'Pull%', 'Pull %'), safeGet(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%')),
+    pitcherHardHit: firstRate(safeGet(pitcherBBSplitRow, 'Hard%', 'Hard %', 'HardHit%', 'Hard Hit %'), safeGet(pitcherSplitRow, 'Hard%', 'Hard %', 'HardHit%', 'Hard Hit %'), safeGet(pitcherBBRow, 'HardHit%', 'Hard Hit %'), safeGet(pitchMaxRow, 'HardHit%', 'Hard Hit %'), safeGet(p, 'Pitcher Hard Hit % Allowed', 'Pitcher HardHit Allowed')),
+    pitcherFB: firstRate(safeGet(pitcherBBSplitRow, 'FB%', 'FB %', 'Fly Ball %'), safeGet(pitcherSplitRow, 'FB%', 'Fly Ball %'), safeGet(pitcherFBRow, 'FB%', 'Fly Ball %'), safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %')),
+    pitcherPull: firstRate(safeGet(pitcherBBSplitRow, 'Pull%', 'Pull %'), safeGet(pitcherFBRow, 'Pull%', 'Pull %'), safeGet(pitcherSplitRow, 'Pull%', 'Pull %'), safeGet(p, 'Pitcher Pull% Allowed', 'Pitcher Pull%')),
     pitcherGB: firstRate(safeGet(pitcherSplitRow, 'GB%', 'GB %'), safeGet(pitcherOverallRow, 'GB%', 'GB %'), safeGet(p, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB')),
-    pitcherHRFB: firstRate(safeGet(pitcherFBRow, 'HR/FB', 'HR/FB %'), safeGet(pitcherSplitRow, 'HR/FB', 'HR/FB %'), safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB')),
+    pitcherHRFB: firstRate(safeGet(pitcherSplitRow, 'HR/FB', 'HR/FB %'), safeGet(pitcherBBSplitRow, 'HR/FB', 'HR/FB %'), safeGet(pitcherFBRow, 'HR/FB', 'HR/FB %'), safeGet(p, 'Pitcher HR/FB %', 'Pitcher HRFB')),
     pitcherSweet: firstRate(safeGet(pssRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(p, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot')),
     pitcherFBLD: firstRate(safeGet(pssRow, 'FB/LD'), safeGet(pitchMaxRow, 'FB/LD')),
     pitcherXERA: firstNumber(safeGet(pitcherBBRow, 'xERA'), safeGet(pitcherOverallRow, 'xERA'), safeGet(pitcherSplitRow, 'xERA')),
@@ -7378,7 +7380,7 @@ function hybridRaw(p) {
     armAngle: firstNumber(safeGet(rzRow, 'Arm Angle', 'ArmAngle', 'RZ')),
     flyBall: firstRate(safeGet(pulledRow, 'FB %', 'FB%'), safeGet(bbHandRow, 'FB%', 'FB %'), safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')),
     lineDrive: firstRate(safeGet(pulledRow, 'LD %', 'LD%'), safeGet(bbHandRow, 'LD%', 'LD %')),
-    fbld: firstRate(safeGet(ssRow, 'FB/LD'), safeGet(scastRow, 'FB/LD')),
+    fbld: firstRate(safeGet(pulledRow, 'LD%', 'LD %'), safeGet(ssRow, 'FB/LD'), safeGet(scastRow, 'FB/LD')),
     air: firstRate(safeGet(pulledRow, 'AIR %', 'Air %')),
     pullAir: firstRate(safeGet(pulledRow, 'Pulled Air %', 'Pull Air %', 'Air Pull %', 'Pull Air'), safeGet(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %')),
     pull: firstRate(safeGet(pulledRow, 'Pull %', 'Pull%'), safeGet(bbHandRow, 'Pull%', 'Pull %'), safeGet(p, 'Pull %', 'Pull%', 'PullRate')),
