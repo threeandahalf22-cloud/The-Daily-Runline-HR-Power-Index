@@ -2119,6 +2119,52 @@ tbody tr.cody-diamond-row:hover td {
 .full-edge-empty { padding:50px; color:var(--text-muted); text-align:center; font-style:italic; }
 @media(max-width:1050px){ .home-sidebar-stack .mlbhr-feed-body{max-height:460px;} }
 </style>
+
+<style id="animated-stadium-wind-lab-style">
+/* =========================
+   v37.5 ANIMATED STADIUM WIND LAB
+   Weather-page visual upgrade + hitter-side wind transparency.
+   ========================= */
+#weatherRankContainer.weather-lab-grid { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important; align-items: stretch; }
+.weather-lab-card { --wind-rot:0deg; --boost-color:#94a3b8; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.09); border-left:5px solid var(--boost-color); border-radius:18px; padding:0; background:linear-gradient(145deg, rgba(5,11,20,.94), rgba(17,31,53,.70)); box-shadow:0 18px 50px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.06); }
+.weather-lab-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:15px 16px 10px; border-bottom:1px solid rgba(255,255,255,.07); background:radial-gradient(circle at 92% 0%, rgba(56,189,248,.13), transparent 34%); }
+.weather-lab-matchup { color:#fff; font-size:16px; font-weight:1000; line-height:1.25; }
+.weather-lab-matchup img { width:22px; height:22px; object-fit:contain; vertical-align:middle; margin-right:5px; }
+.weather-lab-park { margin-top:4px; color:var(--stadium-lights); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.55px; }
+.weather-lab-score { text-align:right; min-width:74px; }
+.weather-lab-score-label { color:var(--text-muted); font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.8px; }
+.weather-lab-score-val { color:var(--boost-color); font-family:monospace; font-size:28px; font-weight:1000; line-height:1; text-shadow:0 0 18px rgba(0,255,157,.20); }
+.weather-lab-meta { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; padding:12px 16px; }
+.weather-lab-kpi { border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:8px 6px; background:rgba(255,255,255,.035); text-align:center; }
+.weather-lab-kpi-label { color:var(--text-muted); font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.55px; }
+.weather-lab-kpi-val { margin-top:4px; color:#fff; font-family:monospace; font-size:13px; font-weight:1000; white-space:nowrap; }
+.weather-lab-field-wrap { position:relative; height:245px; margin:0 16px 12px; border:1px solid rgba(255,255,255,.07); border-radius:16px; overflow:hidden; background:radial-gradient(circle at 50% 68%, rgba(0,255,157,.08), transparent 30%), linear-gradient(180deg, rgba(5,11,20,.42), rgba(5,11,20,.88)); }
+.weather-lab-wind-layer { position:absolute; inset:-25%; transform:rotate(var(--wind-rot)); opacity:.62; pointer-events:none; }
+.weather-lab-wind-layer i { position:absolute; left:var(--x); top:var(--y); width:44px; height:2px; border-radius:999px; background:linear-gradient(90deg, transparent, rgba(255,255,255,.86)); animation:weather-wind-float var(--dur, 2.4s) linear infinite; animation-delay:var(--delay, 0s); }
+@keyframes weather-wind-float { 0% { transform:translateX(-92px); opacity:0; } 15% { opacity:.65; } 88% { opacity:.65; } 100% { transform:translateX(92px); opacity:0; } }
+.weather-lab-diamond { position:absolute; left:50%; bottom:18px; width:172px; height:172px; transform:translateX(-50%) rotate(45deg); border:2px solid rgba(203,213,225,.70); border-radius:18px 6px 18px 6px; background:linear-gradient(135deg, rgba(37,99,235,.72), rgba(30,64,175,.70)); box-shadow:0 0 28px rgba(59,130,246,.12), inset 0 1px 0 rgba(255,255,255,.16); }
+.weather-lab-infield { position:absolute; left:50%; bottom:28px; width:82px; height:82px; transform:translateX(-50%) rotate(45deg); border-radius:12px; background:rgba(5,11,20,.92); }
+.weather-lab-home { position:absolute; left:50%; bottom:20px; width:26px; height:26px; transform:translateX(-50%) rotate(45deg); background:#111827; border:2px solid rgba(255,255,255,.12); border-radius:5px; }
+.weather-lab-arrow { position:absolute; left:50%; top:20px; width:88px; height:88px; transform:translateX(-50%) rotate(var(--wind-rot)); display:flex; align-items:center; justify-content:center; color:#ef4444; font-size:38px; text-shadow:0 0 15px rgba(239,68,68,.75); }
+.weather-lab-arrow::before { content:'➜'; }
+.weather-lab-zone { position:absolute; padding:5px 7px; border-radius:999px; border:1px solid rgba(255,255,255,.10); background:rgba(5,11,20,.70); color:#cbd5e1; font-size:9px; font-weight:1000; letter-spacing:.5px; }
+.weather-lab-zone.lf { left:18px; top:32px; } .weather-lab-zone.cf { left:50%; top:8px; transform:translateX(-50%); } .weather-lab-zone.rf { right:18px; top:32px; }
+.weather-lab-readout { padding:0 16px 15px; }
+.weather-lab-direction { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; padding:10px 12px; border-radius:13px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.035); }
+.weather-lab-direction-main { color:#fff; font-size:12px; font-weight:1000; text-transform:uppercase; letter-spacing:.65px; }
+.weather-lab-direction-sub { margin-top:3px; color:var(--text-muted); font-size:10px; font-weight:800; }
+.weather-lab-source { color:var(--stadium-lights); font-size:9px; font-weight:1000; text-transform:uppercase; white-space:nowrap; }
+.weather-lab-boost-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.weather-boost-box { border:1px solid rgba(255,255,255,.08); border-radius:13px; padding:10px; background:rgba(5,11,20,.62); }
+.weather-boost-label { color:var(--text-muted); font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:.7px; }
+.weather-boost-value { margin-top:5px; color:#fff; font-family:monospace; font-size:19px; font-weight:1000; }
+.weather-boost-desc { margin-top:3px; color:#94a3b8; font-size:10px; font-weight:800; }
+.weather-boost-box.hot { border-color:rgba(0,255,157,.36); background:rgba(0,255,157,.07); } .weather-boost-box.hot .weather-boost-value { color:var(--accent); }
+.weather-boost-box.bad { border-color:rgba(239,68,68,.30); background:rgba(239,68,68,.07); } .weather-boost-box.bad .weather-boost-value { color:#f87171; }
+.weather-lab-dome { height:245px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:1px; }
+@media(max-width:560px){ #weatherRankContainer.weather-lab-grid{grid-template-columns:1fr!important;} .weather-lab-meta{grid-template-columns:repeat(2,1fr);} }
+</style>
+
 </head>
 <body>
 
@@ -2136,7 +2182,7 @@ tbody tr.cody-diamond-row:hover td {
 <div class="command-center-board" id="statsRibbon">
 <div class="command-center-topline">
 <div class="command-center-title">⚾ Daily Runline AI Command Center</div>
-<div class="command-center-version">v37.3 // Updated Bucket Weights</div>
+<div class="command-center-version">v37.5 // Animated Stadium Wind Lab</div>
 </div>
 <div class="command-center-grid">
 <div class="command-tile accent">
@@ -3075,9 +3121,174 @@ function renderTodaysStorylines() {
   box.innerHTML = stories.slice(0,5).map(s => `<div class="storyline-card" style="${teamVisualStyle(s.team)}">${s.text}</div>`).join('');
 }
 
+const OPENWEATHER_API_KEY = '17bf0604070e7f4e49f774ed17a301b6';
+
+// Stadium Weather Engine
+// cfBearing = compass direction from home plate to center field.
+// OpenWeather wind_deg is the direction the wind comes FROM, so the code flips it 180° to get where the wind is blowing TO.
 const stadiumCoordinates = {
-ARI: { dome: true }, ATL: { dome: false }, BAL: { dome: false }, BOS: { dome: false }, CHC: { dome: false }, CHW: { dome: false }, CIN: { dome: false }, CLE: { dome: false }, COL: { dome: false }, DET: { dome: false }, HOU: { dome: true }, KCR: { dome: false }, LAA: { dome: false }, LAD: { dome: false }, MIA: { dome: true }, MIL: { dome: true }, MIN: { dome: false }, NYM: { dome: false }, NYY: { dome: false }, ATH: { dome: false }, PHI: { dome: false }, PIT: { dome: false }, SDP: { dome: false }, SEA: { dome: true }, SFG: { dome: false }, STL: { dome: false }, TBR: { dome: true }, TEX: { dome: true }, TOR: { dome: true }, WSN: { dome: false }
+ARI: { name:'Chase Field', lat:33.4455, lon:-112.0667, cfBearing:  0, dome:true  },
+ATL: { name:'Truist Park', lat:33.8907, lon: -84.4677, cfBearing: 30, dome:false },
+BAL: { name:'Oriole Park at Camden Yards', lat:39.2840, lon: -76.6217, cfBearing: 35, dome:false },
+BOS: { name:'Fenway Park', lat:42.3467, lon: -71.0972, cfBearing: 45, dome:false },
+CHC: { name:'Wrigley Field', lat:41.9484, lon: -87.6553, cfBearing: 45, dome:false },
+CHW: { name:'Rate Field', lat:41.8300, lon: -87.6339, cfBearing: 10, dome:false },
+CIN: { name:'Great American Ball Park', lat:39.0974, lon: -84.5066, cfBearing: 50, dome:false },
+CLE: { name:'Progressive Field', lat:41.4962, lon: -81.6852, cfBearing:  5, dome:false },
+COL: { name:'Coors Field', lat:39.7561, lon:-104.9942, cfBearing: 25, dome:false },
+DET: { name:'Comerica Park', lat:42.3390, lon: -83.0485, cfBearing:150, dome:false },
+HOU: { name:'Daikin Park', lat:29.7573, lon: -95.3555, cfBearing: 25, dome:true  },
+KCR: { name:'Kauffman Stadium', lat:39.0517, lon: -94.4803, cfBearing: 40, dome:false },
+LAA: { name:'Angel Stadium', lat:33.8003, lon:-117.8827, cfBearing: 40, dome:false },
+LAD: { name:'Dodger Stadium', lat:34.0739, lon:-118.2400, cfBearing: 20, dome:false },
+MIA: { name:'loanDepot park', lat:25.7781, lon: -80.2197, cfBearing: 70, dome:true  },
+MIL: { name:'American Family Field', lat:43.0280, lon: -87.9712, cfBearing: 45, dome:true  },
+MIN: { name:'Target Field', lat:44.9817, lon: -93.2776, cfBearing: 70, dome:false },
+NYM: { name:'Citi Field', lat:40.7571, lon: -73.8458, cfBearing:  5, dome:false },
+NYY: { name:'Yankee Stadium', lat:40.8296, lon: -73.9262, cfBearing: 55, dome:false },
+ATH: { name:'Sutter Health Park', lat:38.5803, lon:-121.5132, cfBearing: 30, dome:false },
+PHI: { name:'Citizens Bank Park', lat:39.9061, lon: -75.1665, cfBearing:  5, dome:false },
+PIT: { name:'PNC Park', lat:40.4469, lon: -80.0057, cfBearing: 95, dome:false },
+SDP: { name:'Petco Park', lat:32.7073, lon:-117.1573, cfBearing:  0, dome:false },
+SEA: { name:'T-Mobile Park', lat:47.5914, lon:-122.3325, cfBearing: 60, dome:true  },
+SFG: { name:'Oracle Park', lat:37.7786, lon:-122.3893, cfBearing: 90, dome:false },
+STL: { name:'Busch Stadium', lat:38.6226, lon: -90.1928, cfBearing: 60, dome:false },
+TBR: { name:'Tropicana Field', lat:27.7682, lon: -82.6534, cfBearing: 45, dome:true  },
+TEX: { name:'Globe Life Field', lat:32.7473, lon: -97.0842, cfBearing: 50, dome:true  },
+TOR: { name:'Rogers Centre', lat:43.6414, lon: -79.3894, cfBearing: 35, dome:true  },
+WSN: { name:'Nationals Park', lat:38.8730, lon: -77.0074, cfBearing: 10, dome:false }
 };
+
+function normalizeDegrees(deg) {
+  const n = Number(deg || 0) % 360;
+  return n < 0 ? n + 360 : n;
+}
+function angleDiff(a, b) {
+  const d = Math.abs(normalizeDegrees(a) - normalizeDegrees(b));
+  return Math.min(d, 360 - d);
+}
+function fieldDirectionFromWind(windFromDeg, cfBearing) {
+  if (windFromDeg === null || windFromDeg === undefined || isNaN(Number(windFromDeg))) {
+    return { label:'neutral', detail:'No wind degree available', windToDeg:null, fieldZone:'neutral', windType:'neutral', quality:0, angleOffTarget:null };
+  }
+  const toDeg = normalizeDegrees(Number(windFromDeg) + 180);
+  const cf = normalizeDegrees(cfBearing || 0);
+  const zones = [
+    { label:'out to LF',  zone:'lf',  type:'out', target:normalizeDegrees(cf - 35) },
+    { label:'out to LCF', zone:'lcf', type:'out', target:normalizeDegrees(cf - 18) },
+    { label:'out to CF',  zone:'cf',  type:'out', target:cf },
+    { label:'out to RCF', zone:'rcf', type:'out', target:normalizeDegrees(cf + 18) },
+    { label:'out to RF',  zone:'rf',  type:'out', target:normalizeDegrees(cf + 35) },
+    { label:'in from LF',  zone:'lf',  type:'in', target:normalizeDegrees(cf - 35 + 180) },
+    { label:'in from LCF', zone:'lcf', type:'in', target:normalizeDegrees(cf - 18 + 180) },
+    { label:'in from CF',  zone:'cf',  type:'in', target:normalizeDegrees(cf + 180) },
+    { label:'in from RCF', zone:'rcf', type:'in', target:normalizeDegrees(cf + 18 + 180) },
+    { label:'in from RF',  zone:'rf',  type:'in', target:normalizeDegrees(cf + 35 + 180) }
+  ].map(c => ({ ...c, diff: angleDiff(toDeg, c.target) })).sort((a,b) => a.diff - b.diff);
+  const best = zones[0];
+  if (best.diff <= 25) return { label:best.label, detail:`Wind blowing ${Math.round(toDeg)}° toward ${best.zone.toUpperCase()} (${Math.round(best.diff)}° off)`, windToDeg:toDeg, fieldZone:best.zone, windType:best.type, quality:1 - (best.diff / 25), angleOffTarget:best.diff };
+  if (best.diff <= 55) return { label: best.type === 'out' ? `cross out to ${best.zone.toUpperCase()}` : `cross in from ${best.zone.toUpperCase()}`, detail:`Cross-${best.type} ${Math.round(toDeg)}° toward ${best.zone.toUpperCase()} (${Math.round(best.diff)}° off)`, windToDeg:toDeg, fieldZone:best.zone, windType:best.type, quality:0.55 - ((best.diff - 25) / 75), angleOffTarget:best.diff };
+  return { label:'crosswind', detail:`Crosswind ${Math.round(toDeg)}°`, windToDeg:toDeg, fieldZone:'cross', windType:'cross', quality:0.15, angleOffTarget:best.diff };
+}
+
+function compassTextToDeg(text) {
+  const key = String(text || '').trim().toUpperCase().replace(/[^A-Z]/g, '');
+  const map = { N:0, NNE:22.5, NE:45, ENE:67.5, E:90, ESE:112.5, SE:135, SSE:157.5, S:180, SSW:202.5, SW:225, WSW:247.5, W:270, WNW:292.5, NW:315, NNW:337.5 };
+  return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : null;
+}
+function inferFieldWindFromLabel(dirRaw, homeTeam) {
+  const stadium = stadiumCoordinates[String(homeTeam || '').toUpperCase()] || {};
+  const cf = normalizeDegrees(stadium.cfBearing || 0);
+  const dir = String(dirRaw || '').toLowerCase();
+  if (!dir || dir === 'neutral') return { label:'neutral', detail:'Neutral/no wind direction supplied', windToDeg:null, fieldZone:'neutral', windType:'neutral' };
+  const compass = compassTextToDeg(dir);
+  if (compass !== null) return fieldDirectionFromWind(compass, cf);
+  const hasOut = dir.includes('out');
+  const hasIn = dir.includes('in') || dir.includes('blow in');
+  let zone = 'cf', offset = 0;
+  if (dir.includes('lcf') || dir.includes('left-center') || dir.includes('left center')) { zone = 'lcf'; offset = -18; }
+  else if (dir.includes('rcf') || dir.includes('right-center') || dir.includes('right center')) { zone = 'rcf'; offset = 18; }
+  else if (dir.includes('lf') || dir.includes('left')) { zone = 'lf'; offset = -35; }
+  else if (dir.includes('rf') || dir.includes('right')) { zone = 'rf'; offset = 35; }
+  else if (dir.includes('cf') || dir.includes('center') || dir.includes('centre')) { zone = 'cf'; offset = 0; }
+  else return { label:dirRaw || 'neutral', detail:'Spreadsheet wind label without field vector', windToDeg:null, fieldZone:'neutral', windType:'neutral' };
+  const baseTo = normalizeDegrees(cf + offset);
+  const windToDeg = hasIn ? normalizeDegrees(baseTo + 180) : baseTo;
+  return { label: hasIn ? `in from ${zone.toUpperCase()}` : (hasOut ? `out to ${zone.toUpperCase()}` : `cross to ${zone.toUpperCase()}`), detail:`Spreadsheet label mapped to ${Math.round(windToDeg)}° toward ${zone.toUpperCase()}`, windToDeg, fieldZone:zone, windType: hasIn ? 'in' : (hasOut ? 'out' : 'cross'), quality:1, angleOffTarget:0 };
+}
+function enrichWeatherWithFieldVector(weather, homeTeam) {
+  const stadium = stadiumCoordinates[String(homeTeam || '').toUpperCase()] || {};
+  let fieldWind = null;
+  if (weather && weather.windDeg !== undefined && weather.windDeg !== null && !isNaN(Number(weather.windDeg))) fieldWind = fieldDirectionFromWind(Number(weather.windDeg), stadium.cfBearing);
+  else fieldWind = inferFieldWindFromLabel(weather && weather.windDir, homeTeam);
+  return { ...(weather || {}), windDir: fieldWind.label || ((weather && weather.windDir) || 'neutral'), windToDeg: fieldWind.windToDeg, windFieldZone: fieldWind.fieldZone, windDetail: fieldWind.detail, homeTeam: String(homeTeam || '').toUpperCase(), stadiumName: (stadium && stadium.name) || (weather && weather.stadiumName) || homeTeam };
+}
+function convertOpenWeatherToGameWeather(apiData, homeTeam, existingWeather) {
+  const stadium = stadiumCoordinates[homeTeam] || {};
+  const main = apiData && apiData.main ? apiData.main : {};
+  const wind = apiData && apiData.wind ? apiData.wind : {};
+  const fieldWind = fieldDirectionFromWind(wind.deg, stadium.cfBearing);
+  return {
+    ...(existingWeather || {}),
+    temp: Math.round(Number(main.temp || (existingWeather && existingWeather.temp) || 72)),
+    windSpeed: Math.round(Number(wind.speed || 0)),
+    windGust: wind.gust !== undefined ? Math.round(Number(wind.gust || 0)) : undefined,
+    windDir: fieldWind.label,
+    windDeg: wind.deg !== undefined ? Number(wind.deg) : null,
+    windToDeg: fieldWind.windToDeg,
+    windFieldZone: fieldWind.fieldZone,
+    windDetail: fieldWind.detail,
+    humidity: Number(main.humidity || 0),
+    pressure: Number(main.pressure || 0),
+    isDome: !!stadium.dome || !!(existingWeather && existingWeather.isDome),
+    weatherSource: 'OpenWeather',
+    stadiumName: stadium.name || homeTeam,
+    homeTeam: homeTeam,
+    updatedAt: new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})
+  };
+}
+async function refreshOpenWeatherForSlate() {
+  if (!OPENWEATHER_API_KEY || !gameMatchups || gameMatchups.length === 0) return;
+  const requests = [];
+  const usedGameIds = new Set();
+  gameMatchups.forEach(m => {
+    const homeTeam = String(m.trueHomeTeam || m.homeTeam || m.teamA || '').trim().toUpperCase();
+    const stadium = stadiumCoordinates[homeTeam];
+    if (!homeTeam || !stadium || usedGameIds.has(m.id)) return;
+    usedGameIds.add(m.id);
+    if (stadium.dome) {
+      weatherSettings[m.id] = { ...(weatherSettings[m.id] || {}), isDome:true, windDir:'neutral', windSpeed:0, temp:(weatherSettings[m.id] && weatherSettings[m.id].temp) || 72, weatherSource:'Dome preset', stadiumName:stadium.name, homeTeam };
+      return;
+    }
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${stadium.lat}&lon=${stadium.lon}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
+    requests.push(fetch(url).then(r => r.ok ? r.json() : Promise.reject(new Error(`OpenWeather ${r.status}`))).then(data => {
+      weatherSettings[m.id] = convertOpenWeatherToGameWeather(data, homeTeam, weatherSettings[m.id]);
+    }).catch(err => {
+      console.warn('OpenWeather failed for', homeTeam, err);
+      weatherSettings[m.id] = { ...(weatherSettings[m.id] || {}), weatherSource:'Spreadsheet fallback', weatherError:String(err && err.message ? err.message : err) };
+    }));
+  });
+  await Promise.allSettled(requests);
+}
+function refreshAfterLiveWeatherUpdate() {
+  recalculateAllBBIScores();
+  renderFanaticsJackpot();
+  renderAllPitchers();
+  renderHotBatTable();
+  renderH2HFullTable();
+  renderPitchLabTable();
+  renderEdgePanels();
+  renderBestBettingEdges();
+  renderWeatherRankings();
+  updateHeaderStats();
+  updateSlateTicker();
+  renderGameCenterTab();
+  saveCachedData();
+}
+function refreshOpenWeatherAndRerender() {
+  refreshOpenWeatherForSlate().then(refreshAfterLiveWeatherUpdate).catch(err => console.warn('Live weather refresh failed', err));
+}
+
 function getHeadshotUrl(playerName) {
 const id = playerIdMap[normalizeName(playerName)];
 if (!id) return null;
@@ -3094,6 +3305,7 @@ window.addEventListener('DOMContentLoaded', () => {
 loadCachedData();
 updateDateDisplay();
 setInterval(updateCountdown, 1000);
+setInterval(() => { if (gameMatchups && gameMatchups.length) refreshOpenWeatherAndRerender(); }, 10 * 60 * 1000);
 document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalDirect(); });
 });
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
@@ -3356,7 +3568,8 @@ if (nameClean === 'VSCU') vsCURaw = sheetToJsonSmart(workbook, sheetName, ['Play
 if (nameClean === 'ZONEB') zoneBMap = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name']));
 if (nameClean === 'ZONEP') zonePMap = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Pitcher','Player','Name']));
 if (['FBL','FBR','BBL','BBR','OSL','OSR'].includes(nameClean)) batTrackingSheetNames[nameClean] = sheetName;
-if (nameClean === 'HA' || nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
+if (nameClean === 'HA') processHomeAwaySheet(workbook.Sheets[sheetName]);
+if (nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
 });
 oddsRaw.forEach(row => { const nm = String(safeGet(row, 'Player', 'Name') || '').trim(); if (nm) oddsMap[normalizeName(nm)] = row; });
 window.top5SheetData = top5Raw;
@@ -3453,6 +3666,7 @@ updateHeaderStats();
 updateSlateTicker();
 saveCachedData();
 renderGameCenterTab();
+refreshOpenWeatherAndRerender();
 };
 reader.readAsArrayBuffer(f);
 }
@@ -3692,7 +3906,7 @@ html += renderHRBlueprint(player);
 html += `<div><div class="modal-section-title">🤝 SYNERGY METER</div>${renderSynergyMeter(player)}</div>`;
 // Removed broken/repeated Pitcher Attack Matchup block from popup.
 // It was showing the same FB 0% / C bat values for every player when pitch-level data did not map cleanly.
-html += section('🌤️ ENVIRONMENT', stat('Weather/Park', climate) + stat('Weather Side Used', player.weatherSideUsed || 'N/A') + stat('Weather Score', player.weatherScoreUsed !== undefined ? Number(player.weatherScoreUsed).toFixed(1) : 'N/A', (player.weatherScoreUsed || 50) >= 65 ? 'green' : (player.weatherScoreUsed || 50) <= 40 ? 'red' : '') + stat('Weather Multiplier', player.weatherImpactMultiplier ? Number(player.weatherImpactMultiplier).toFixed(3)+'x' : '1.000x') + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A'));
+html += section('🌤️ ENVIRONMENT', stat('Weather/Park', climate) + stat('Weather Source', (w && w.weatherSource) ? w.weatherSource : 'Spreadsheet') + stat('Wind Degrees', (w && w.windDeg !== null && w.windDeg !== undefined) ? `${Math.round(w.windDeg)}° → ${Math.round(w.windToDeg || 0)}°` : 'N/A') + stat('Pressure', (w && w.pressure) ? `${w.pressure} hPa` : 'N/A') + stat('Weather Side Used', player.weatherSideUsed || 'N/A') + stat('Weather Score', player.weatherScoreUsed !== undefined ? Number(player.weatherScoreUsed).toFixed(1) : 'N/A', (player.weatherScoreUsed || 50) >= 65 ? 'green' : (player.weatherScoreUsed || 50) <= 40 ? 'red' : '') + stat('Weather Multiplier', player.weatherImpactMultiplier ? Number(player.weatherImpactMultiplier).toFixed(3)+'x' : '1.000x') + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A'));
 html += `<div><div class="modal-section-title">🌬️ WEATHER WHY</div><div style="color:#cbd5e1;font-size:12px;line-height:1.45;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;">${player.weatherBoostReason || 'Neutral weather impact.'}</div></div>`;
 document.getElementById('modalStatsContainer').innerHTML = html;
 } catch (err) {
@@ -4353,55 +4567,115 @@ function renderPitchLabTable() {
   });
 }
 
+function compassFromDeg(deg) {
+  if (deg === null || deg === undefined || isNaN(Number(deg))) return 'N/A';
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(normalizeDegrees(Number(deg)) / 22.5) % 16];
+}
+function windVectorRotationForField(weather) {
+  if (!weather || weather.windToDeg === null || weather.windToDeg === undefined) return 0;
+  const homeTeam = String(weather.homeTeam || '').toUpperCase();
+  const stadium = stadiumCoordinates[homeTeam] || {};
+  const cf = normalizeDegrees(stadium.cfBearing || 0);
+  // Visual field is drawn with CF straight up. Rotate wind-to degrees into that visual coordinate system.
+  return normalizeDegrees(Number(weather.windToDeg) - cf - 90);
+}
+function weatherBoostClass(score) {
+  if (score >= 64) return 'hot';
+  if (score <= 42) return 'bad';
+  return '';
+}
+function weatherBoostText(score) {
+  if (score >= 72) return 'NUCLEAR';
+  if (score >= 64) return 'STRONG';
+  if (score >= 56) return 'PLUS';
+  if (score <= 38) return 'BAD';
+  if (score <= 44) return 'SUPPRESS';
+  return 'NEUTRAL';
+}
+function weatherCardBoostForHand(weather, hand, matchup) {
+  const pf = matchup ? ((parkFactorMap[matchup.teamA]?.pf || 100) + (parkFactorMap[matchup.teamB]?.pf || 100)) / 2 : 100;
+  const impact = buildSideWeatherImpact({
+    weather, hand, pull: 0.43, pullAir: 0.18, flyBall: 0.38, launchAngle: 22,
+    barrel: 0.10, maxEV: 110, pitcherFB: 0.39, pitcherHRFB: 0.12,
+    pitcherBarrel: 0.09, pitcherHardHit: 0.39, pitcherEV: 89.5,
+    pullFence: 330, cf: 400, parkFactor: pf
+  });
+  return impact;
+}
+function windParticleHTML() {
+  const pts = [
+    ['7%','14%','2.4s','-.2s'], ['17%','31%','2.0s','-.9s'], ['28%','18%','2.8s','-1.7s'], ['40%','40%','2.2s','-.5s'],
+    ['51%','22%','2.7s','-1.2s'], ['64%','35%','2.1s','-.8s'], ['77%','17%','2.9s','-1.9s'], ['86%','47%','2.3s','-.4s'],
+    ['10%','60%','2.5s','-1.4s'], ['22%','76%','2.1s','-.7s'], ['36%','64%','2.6s','-1.6s'], ['49%','82%','2.0s','-.3s'],
+    ['61%','68%','2.8s','-2.0s'], ['74%','80%','2.2s','-1.1s'], ['88%','65%','2.6s','-.6s'], ['44%','10%','2.4s','-1.5s']
+  ];
+  return pts.map(p => `<i style="--x:${p[0]};--y:${p[1]};--dur:${p[2]};--delay:${p[3]}"></i>`).join('');
+}
 function renderWeatherRankings() {
-const container = document.getElementById('weatherRankContainer');
-if (!container) return;
-const gameIds = [...new Set(playerData.map(p => p.gameId).filter(id => id))];
-if (gameIds.length === 0) { container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic;">No game data found...</div>'; return; }
-let gameScores = [];
-gameIds.forEach(gid => {
-const matchup = gameMatchups.find(m => m.id === gid);
-const weather = weatherSettings[gid] || {};
-let score = 100;
-let details = [];
-if (weather.isDome) { score = 100; details.push('Closed Dome 🏟️'); }
-else {
-const temp = Number(weather.temp || 72);
-if (temp >= 85) { score += 15; details.push(`️ ${temp}°F (Hot)`); }
-else if (temp >= 75) { score += 5; details.push(`🌡️ ${temp}°F`); }
-else if (temp < 60) { score -= 15; details.push(`🥶 ${temp}°F (Cold)`); }
-else { details.push(`️ ${temp}°F`); }
-const windSpeed = Number(weather.windSpeed || 0);
-const windDir = String(weather.windDir || 'neutral').toLowerCase();
-if (windDir.includes('out')) { score += (windSpeed * 1.5); details.push(`🌬️ ${windSpeed}mph OUT`); }
-else if (windDir.includes('in')) { score -= (windSpeed * 1.5); details.push(`🌬️ ${windSpeed}mph IN`); }
-else { details.push(`️ ${windSpeed}mph`); }
-const humidity = Number(weather.humidity || 0);
-if (humidity > 60) { score += 5; details.push(`💧 Humid (Carry)`); }
-}
-if (matchup) {
-const pfA = parkFactorMap[matchup.teamA]?.pf || 100;
-const pfB = parkFactorMap[matchup.teamB]?.pf || 100;
-const avgPF = (pfA + pfB) / 2;
-if (avgPF >= 105) { score += 10; details.push(`🏟️ PF ${avgPF} (HR Boost)`); }
-else if (avgPF <= 95) { score -= 10; details.push(`🏟️ PF ${avgPF} (HR Suppress)`); }
-}
-let matchupStr = gid.replace('_vs_', ' vs ').replace(/_/g, ' ');
-if (matchup) matchupStr = `${matchup.teamA} vs ${matchup.teamB}`;
-gameScores.push({ id: gid, matchup: matchupStr, score: score, details: details.join(' // ') });
-});
-gameScores.sort((a, b) => b.score - a.score);
-container.innerHTML = '';
-gameScores.forEach(game => {
-let colorClass = 'badge-env';
-if (game.score >= 115) colorClass = 'badge-barrel';
-else if (game.score <= 85) colorClass = 'badge-gopher';
-const card = document.createElement('div');
-card.className = 'diamond-card';
-card.style.border = `1px solid var(--border)`;
-card.innerHTML = `<div class="diamond-icon" style="font-size: 20px; margin-bottom: 4px;"><span class="metric-badge ${colorClass}" style="font-size: 12px; padding: 6px 10px;">SCORE: ${game.score.toFixed(0)}</span></div><div class="diamond-name" style="font-size: 15px; margin-bottom: 8px;">${game.matchup}</div><div class="diamond-team" style="font-size: 11px; line-height: 1.5;">${game.details}</div>`;
-container.appendChild(card);
-});
+  const container = document.getElementById('weatherRankContainer');
+  if (!container) return;
+  container.classList.add('weather-lab-grid');
+  const gameIds = [...new Set(playerData.map(p => p.gameId).filter(id => id))];
+  if (gameIds.length === 0) { container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic;">No game data found...</div>'; return; }
+  let gameScores = [];
+  gameIds.forEach(gid => {
+    const matchup = gameMatchups.find(m => m.id === gid);
+    const weather = weatherSettings[gid] || {};
+    let score = 100;
+    let details = [];
+    if (weather.isDome) { score = 100; details.push('Closed Dome'); }
+    else {
+      const temp = Number(weather.temp || 72);
+      if (temp >= 85) score += 15; else if (temp >= 75) score += 5; else if (temp < 60) score -= 15;
+      const windSpeed = Number(weather.windSpeed || 0);
+      const windDir = String(weather.windDir || 'neutral').toLowerCase();
+      if (windDir.includes('out')) score += (windSpeed * 1.5); else if (windDir.includes('in')) score -= (windSpeed * 1.5);
+      const humidity = Number(weather.humidity || 0);
+      if (humidity > 60) score += 5;
+    }
+    if (matchup) {
+      const pfA = parkFactorMap[matchup.teamA]?.pf || 100;
+      const pfB = parkFactorMap[matchup.teamB]?.pf || 100;
+      const avgPF = (pfA + pfB) / 2;
+      if (avgPF >= 105) score += 10; else if (avgPF <= 95) score -= 10;
+    }
+    let matchupStr = gid.replace('_vs_', ' vs ').replace(/_/g, ' ');
+    if (matchup) matchupStr = `${matchup.teamA} vs ${matchup.teamB}`;
+    gameScores.push({ id: gid, matchup, matchupStr, score, weather });
+  });
+  gameScores.sort((a, b) => b.score - a.score);
+  container.innerHTML = '';
+  gameScores.forEach(game => {
+    const w = game.weather || {};
+    const matchup = game.matchup;
+    const teamA = matchup ? String(matchup.teamA || '').toUpperCase() : '';
+    const teamB = matchup ? String(matchup.teamB || '').toUpperCase() : '';
+    const homeTeam = String((w.homeTeam || (matchup && (matchup.trueHomeTeam || matchup.homeTeam || matchup.teamA)) || '')).toUpperCase();
+    const awayTeam = homeTeam && teamA === homeTeam ? teamB : homeTeam && teamB === homeTeam ? teamA : teamA;
+    const teamLine = matchup ? `${teamLogos[awayTeam] ? `<img src="${teamLogos[awayTeam]}">` : ''}${awayTeam || teamA} @ ${teamLogos[homeTeam] ? `<img src="${teamLogos[homeTeam]}">` : ''}${homeTeam || teamB}` : game.matchupStr;
+    const rBoost = weatherCardBoostForHand(w, 'R', matchup);
+    const lBoost = weatherCardBoostForHand(w, 'L', matchup);
+    const bestBoost = Math.max(rBoost.score || 50, lBoost.score || 50);
+    const boostColor = bestBoost >= 64 ? '#00ff9d' : bestBoost <= 42 ? '#ef4444' : '#38bdf8';
+    const windRot = windVectorRotationForField(w);
+    const windFrom = compassFromDeg(w.windDeg);
+    const windTo = compassFromDeg(w.windToDeg);
+    const source = w.weatherSource || 'Spreadsheet';
+    const card = document.createElement('div');
+    card.className = 'weather-lab-card';
+    card.style.setProperty('--wind-rot', `${windRot}deg`);
+    card.style.setProperty('--boost-color', boostColor);
+    if (w.isDome) {
+      card.innerHTML = `<div class="weather-lab-top"><div><div class="weather-lab-matchup">${teamLine}</div><div class="weather-lab-park">${w.stadiumName || (homeTeam && stadiumCoordinates[homeTeam] && stadiumCoordinates[homeTeam].name) || 'Ballpark'}</div></div><div class="weather-lab-score"><div class="weather-lab-score-label">Env</div><div class="weather-lab-score-val">100</div></div></div><div class="weather-lab-dome">🏟️ Dome / Roof Neutral Weather</div><div class="weather-lab-readout"><div class="weather-lab-boost-grid"><div class="weather-boost-box"><div class="weather-boost-label">RHB Pull</div><div class="weather-boost-value">Neutral</div><div class="weather-boost-desc">No wind penalty</div></div><div class="weather-boost-box"><div class="weather-boost-label">LHB Pull</div><div class="weather-boost-value">Neutral</div><div class="weather-boost-desc">No wind penalty</div></div></div></div>`;
+    } else {
+      card.innerHTML = `<div class="weather-lab-top"><div><div class="weather-lab-matchup">${teamLine}</div><div class="weather-lab-park">${w.stadiumName || (homeTeam && stadiumCoordinates[homeTeam] && stadiumCoordinates[homeTeam].name) || 'Ballpark'}</div></div><div class="weather-lab-score"><div class="weather-lab-score-label">Env</div><div class="weather-lab-score-val">${game.score.toFixed(0)}</div></div></div>
+      <div class="weather-lab-meta"><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">Wind</div><div class="weather-lab-kpi-val">${Number(w.windSpeed || 0)} mph</div></div><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">From → To</div><div class="weather-lab-kpi-val">${windFrom} → ${windTo}</div></div><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">Forecast</div><div class="weather-lab-kpi-val">${Number(w.temp || 72)}°F</div></div><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">Humidity</div><div class="weather-lab-kpi-val">${Number(w.humidity || 0)}%</div></div></div>
+      <div class="weather-lab-field-wrap"><div class="weather-lab-wind-layer">${windParticleHTML()}</div><div class="weather-lab-zone lf">LF / RHB PULL</div><div class="weather-lab-zone cf">CF</div><div class="weather-lab-zone rf">RF / LHB PULL</div><div class="weather-lab-diamond"></div><div class="weather-lab-infield"></div><div class="weather-lab-home"></div><div class="weather-lab-arrow"></div></div>
+      <div class="weather-lab-readout"><div class="weather-lab-direction"><div><div class="weather-lab-direction-main">💨 ${Number(w.windSpeed || 0)} MPH ${String(w.windDir || 'neutral').toUpperCase()}</div><div class="weather-lab-direction-sub">${w.windDetail || 'Field-adjusted wind direction'} • API wind is FROM ${windFrom}; model scores where it blows TO.</div></div><div class="weather-lab-source">${source}${w.updatedAt ? ` • ${w.updatedAt}` : ''}</div></div><div class="weather-lab-boost-grid"><div class="weather-boost-box ${weatherBoostClass(rBoost.score)}"><div class="weather-boost-label">RHB Pull Benefit</div><div class="weather-boost-value">${weatherBoostText(rBoost.score)} ${rBoost.score.toFixed(0)}</div><div class="weather-boost-desc">Best when wind carries to LF/LCF</div></div><div class="weather-boost-box ${weatherBoostClass(lBoost.score)}"><div class="weather-boost-label">LHB Pull Benefit</div><div class="weather-boost-value">${weatherBoostText(lBoost.score)} ${lBoost.score.toFixed(0)}</div><div class="weather-boost-desc">Best when wind carries to RF/RCF</div></div></div></div>`;
+    }
+    container.appendChild(card);
+  });
 }
 function renderAllPitchers(filter = 'all') {
 const tbody = document.getElementById('allPitchersBody');
@@ -4594,23 +4868,47 @@ function renderEdgePanels() {
   renderHrDuePanel('hrDueHome');
   renderFullEdgeRankings();
 }
+function registerHomeAwayGame(homeTeamRaw, awayTeamRaw) {
+  const homeTeam = String(homeTeamRaw || '').trim().toUpperCase();
+  const awayTeam = String(awayTeamRaw || '').trim().toUpperCase();
+  if (!homeTeam || !awayTeam || homeTeam === awayTeam) return;
+  if (['HOME','HOMETEAM','HOME TEAM'].includes(homeTeam.replace(/\s+/g,'')) || ['AWAY','AWAYTEAM','AWAY TEAM'].includes(awayTeam.replace(/\s+/g,''))) return;
+  const gameId = `${awayTeam}_vs_${homeTeam}`;
+  teamToGameIdMap[awayTeam] = gameId;
+  teamToGameIdMap[homeTeam] = gameId;
+  teamHomeParkMap[homeTeam] = homeTeam;
+  teamHomeParkMap[awayTeam] = homeTeam;
+  const existing = gameMatchups.find(m => m.id === gameId || ((m.homeTeam === homeTeam || m.trueHomeTeam === homeTeam) && m.awayTeam === awayTeam));
+  if (!existing) gameMatchups.push({
+    id: gameId,
+    teamA: awayTeam,
+    teamB: homeTeam,
+    trueHomeTeam: homeTeam,
+    homeTeam: homeTeam,
+    awayTeam: awayTeam,
+    matchupStr: `${awayTeam} @ ${homeTeam}`,
+    source: 'HA'
+  });
+}
+function processHomeAwaySheet(sheet) {
+  if (!sheet) return;
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  rows.forEach(row => {
+    if (!row || row.length < 2) return;
+    // Cody's HA sheet is intentionally simple: column A = HOME, column B = AWAY.
+    // Do not infer from odds, lineups, alphabetical order, pitcher team, or weather rows.
+    registerHomeAwayGame(row[0], row[1]);
+  });
+}
 function processCompareSheetMatchups(rows) {
 if(!rows || !Array.isArray(rows)) return;
 rows.forEach(row => {
-// Cody's matchup/odds paste is being displayed backwards by the old logic.
-// Fix: Team1 is the TRUE HOME/PARK team and Team2 is the TRUE AWAY/ROAD team for stadium visuals.
-// Explicit Home/Away columns still work if present, but Team1/Team2 now resolve to the correct park side.
-let explicitHome = String(row.Home || row.HOME || row.HomeTeam || row['Home Team'] || '').trim().toUpperCase();
-let explicitAway = String(row.Away || row.AWAY || row.AwayTeam || row['Away Team'] || '').trim().toUpperCase();
+// Generic matchup sheets are allowed, but explicit home/away wins.
+let explicitHome = String(row.Home || row.HOME || row.HomeTeam || row['Home Team'] || row.A || row.Column1 || '').trim().toUpperCase();
+let explicitAway = String(row.Away || row.AWAY || row.AwayTeam || row['Away Team'] || row.B || row.Column2 || '').trim().toUpperCase();
 let homeTeam = explicitHome || String(row.Team1 || row.TEAM1 || '').trim().toUpperCase();
 let awayTeam = explicitAway || String(row.Team2 || row.TEAM2 || '').trim().toUpperCase();
-if(awayTeam && homeTeam) {
-let gameId = `${awayTeam}_vs_${homeTeam}`;
-teamToGameIdMap[awayTeam] = gameId; teamToGameIdMap[homeTeam] = gameId;
-teamHomeParkMap[homeTeam] = homeTeam;
-teamHomeParkMap[awayTeam] = homeTeam;
-if (!gameMatchups.some(m => m.id === gameId)) gameMatchups.push({ id: gameId, teamA: homeTeam, teamB: awayTeam, trueHomeTeam: homeTeam, homeTeam: homeTeam, awayTeam: awayTeam });
-}
+registerHomeAwayGame(homeTeam, awayTeam);
 });
 }
 function assignFallbackGameIds(data) {
@@ -4650,7 +4948,9 @@ let windSpeed = Number(row.Wind || row.WindSpeed || row.Speed || row.wind || row
 let windDir = String(row.Direction || row.Dir || row.winddir || 'neutral').toLowerCase().trim();
 let humidity = Number(row.Humidity || row.humidity || 0);
 let startTime = String(row.GameTime || row.FirstPitch || row.StartTime || row.time || '').trim();
-weatherSettings[matchingGameId] = { temp, windSpeed, windDir, isDome, humidity, startTime }; // do not set homeTeam from weather Team; that column may be the away team
+const matchup = gameMatchups.find(m => m.id === matchingGameId);
+const trueHome = String((matchup && (matchup.trueHomeTeam || matchup.homeTeam || matchup.teamB)) || teamHomeParkMap[teamKey] || teamKey || '').trim().toUpperCase();
+weatherSettings[matchingGameId] = enrichWeatherWithFieldVector({ temp, windSpeed, windDir, isDome, humidity, startTime, weatherSource:'Spreadsheet' }, trueHome); // HA controls the true home/park team
 }
 });
 }
@@ -5139,11 +5439,11 @@ function windDirectionSideFit(dirRaw, hand, speed) {
   const s = Number(speed || 0);
   const out = dir.includes('out');
   const inn = dir.includes('in');
-  const lf = dir.includes('lf') || dir.includes('left');
-  const rf = dir.includes('rf') || dir.includes('right');
-  const cf = dir.includes('cf') || dir.includes('center') || dir.includes('centre');
   const lcf = dir.includes('lcf') || dir.includes('left-center') || dir.includes('left center');
   const rcf = dir.includes('rcf') || dir.includes('right-center') || dir.includes('right center');
+  const lf = !lcf && (dir.includes('lf') || dir.includes('left'));
+  const rf = !rcf && (dir.includes('rf') || dir.includes('right'));
+  const cf = !lcf && !rcf && (dir.includes('cf') || dir.includes('center') || dir.includes('centre'));
   let fit = 0;
   if (out) {
     if (hand === 'R') {
@@ -5215,7 +5515,10 @@ function buildSideWeatherImpact({ weather, hand, pull, pullAir, flyBall, launchA
   const airPct = pullAir !== null && !isNaN(pullAir) ? `${Math.round(pullAir * 100)}% Pulled Air` : 'Pulled Air N/A';
   const fbPct = flyBall !== null && !isNaN(flyBall) ? `${Math.round(flyBall * 100)}% FB` : 'FB N/A';
   const pfbPct = pitcherFB !== null && !isNaN(pitcherFB) ? `${Math.round(pitcherFB * 100)}% pitcher FB` : 'pitcher FB N/A';
-  const reason = `${sideLabel} weather: ${weather.windSpeed || 0} MPH ${String(weather.windDir || 'neutral').toUpperCase()}, ${pullPct}, ${airPct}, ${fbPct}, ${pfbPct}.`;
+  const sourceTxt = weather.weatherSource ? ` via ${weather.weatherSource}` : '';
+  const detailTxt = weather.windDetail ? ` (${weather.windDetail})` : '';
+  const pressureTxt = weather.pressure ? `, ${weather.pressure} hPa` : '';
+  const reason = `${sideLabel} weather${sourceTxt}: ${weather.windSpeed || 0} MPH ${String(weather.windDir || 'neutral').toUpperCase()}${detailTxt}, ${temp}°F${pressureTxt}, ${pullPct}, ${airPct}, ${fbPct}, ${pfbPct}.`;
   return { score, multiplier, side: sideLabel, reason, components: { windPoints, hitterShape, pitcherAir, parkCarry, tempScore, humidityScore } };
 }
 function getWeatherHandForPlayer(p, pitcherHandRaw) {
