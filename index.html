@@ -2093,7 +2093,7 @@ tbody tr.cody-diamond-row:hover td {
 <style id="edge-full-list-home-sidebar-style">
 /* =========================
    v37.2 HOME SIDEBAR + EDGE FULL LIST
-   Moves MLBHR feed and Your Boy's Due to home sidebar. Edge tab becomes pure edge ranking.
+   Moves MLBHR feed to home sidebar. Edge tab becomes pure edge ranking.
    ========================= */
 .home-sidebar-stack { display:flex; flex-direction:column; gap:24px; }
 .home-sidebar-stack .mlbhr-feed-panel { position: relative; top:auto; max-height:none; }
@@ -3317,6 +3317,73 @@ tbody tr.cody-diamond-row:hover td {
 }
 </style>
 
+
+<style id="bbi-tier-home-style">
+/* =========================
+   BBI TIERS HOME FILTER
+   UI/filter only. Scoring and model weights untouched.
+   ========================= */
+.bbi-tier-home-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.09);
+  border-left: 5px solid var(--accent);
+  border-radius: 18px;
+  padding: 15px 16px;
+  margin-bottom: 16px;
+  background:
+    radial-gradient(circle at 9% 0%, rgba(0,255,157,.14), transparent 30%),
+    radial-gradient(circle at 92% 10%, rgba(56,189,248,.10), transparent 32%),
+    linear-gradient(145deg, rgba(5,11,20,.92), rgba(17,31,53,.68));
+  box-shadow: 0 18px 48px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.bbi-tier-home-panel::after {
+  content:'';
+  position:absolute;
+  inset:-55% -35%;
+  background: linear-gradient(110deg, transparent 42%, rgba(255,255,255,.065) 50%, transparent 58%);
+  animation: bbi-tier-shine 8s linear infinite;
+  pointer-events:none;
+}
+@keyframes bbi-tier-shine { 0% { transform: translateX(-42%); } 100% { transform: translateX(42%); } }
+.bbi-tier-top { position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.bbi-tier-title { color:#fff; font-size:12px; font-weight:1000; text-transform:uppercase; letter-spacing:1.4px; }
+.bbi-tier-sub { color:var(--text-muted); font-size:10px; font-weight:850; text-transform:uppercase; letter-spacing:.6px; margin-top:3px; }
+.bbi-tier-tabs { position:relative; z-index:1; display:flex; gap:8px; flex-wrap:wrap; margin-bottom:13px; }
+.bbi-tier-tab {
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.04);
+  color:#cbd5e1;
+  border-radius:999px;
+  padding:9px 12px;
+  font-size:11px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+  cursor:pointer;
+  transition:all .18s ease;
+}
+.bbi-tier-tab:hover { transform:translateY(-2px); border-color:var(--accent); color:#fff; background:rgba(0,255,157,.08); }
+.bbi-tier-tab.active { background:linear-gradient(135deg,var(--accent),#38bdf8); color:#04100b; border-color:var(--accent); box-shadow:0 0 18px rgba(0,255,157,.18); }
+.bbi-tier-stat-card { position:relative; z-index:1; display:grid; grid-template-columns: 1.2fr repeat(4, minmax(92px, .7fr)); gap:10px; align-items:stretch; }
+.bbi-tier-main-copy, .bbi-tier-kpi {
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;
+  background:rgba(5,11,20,.58);
+  padding:11px 12px;
+}
+.bbi-tier-label { color:var(--accent); font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.8px; }
+.bbi-tier-range { color:#fff; font-family:monospace; font-size:20px; font-weight:1000; margin-top:5px; line-height:1; }
+.bbi-tier-desc { color:var(--text-muted); font-size:11px; font-weight:800; line-height:1.35; margin-top:7px; }
+.bbi-tier-kpi-label { color:var(--text-muted); font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.65px; }
+.bbi-tier-kpi-value { margin-top:6px; color:#fff; font-family:monospace; font-size:19px; font-weight:1000; line-height:1; }
+.bbi-tier-kpi-value.hot { color:var(--accent); text-shadow:0 0 14px rgba(0,255,157,.20); }
+.bbi-tier-count { position:relative; z-index:1; margin-top:10px; color:var(--text-muted); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.6px; }
+.bbi-tier-count b { color:var(--accent); font-family:monospace; }
+@media(max-width: 980px) { .bbi-tier-stat-card { grid-template-columns: 1fr 1fr; } .bbi-tier-main-copy { grid-column: 1/-1; } }
+@media(max-width: 580px) { .bbi-tier-top { flex-direction:column; align-items:flex-start; } .bbi-tier-stat-card { grid-template-columns: 1fr; } }
+</style>
+
 </head>
 <body>
 
@@ -3395,6 +3462,7 @@ tbody tr.cody-diamond-row:hover td {
 <button class="nav-tab" onclick="switchTab('gamecenter', this)">📺 Game Center</button>
 <button class="nav-tab" onclick="switchTab('synergy', this)">⚡ Synergy Bonuses</button>
 <button class="nav-tab" onclick="switchTab('backtest', this)">📊 Backtest Lab</button>
+<button class="nav-tab" onclick="switchTab('bbidiagnostics', this)">🎯 BBI / Rank Buckets</button>
 </div>
 <div id="tab-home" class="tab-content active">
 <div id="pregameSlateBoard" class="slate-board"></div>
@@ -3439,11 +3507,6 @@ tbody tr.cody-diamond-row:hover td {
 </div>
 </div>
 <div class="panel">
-<h2>⚾ Your Boy's Due</h2>
-<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Zero HRs Last Week</p>
-<div id="hrDueHome" class="diamonds-grid"><div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load HR Due candidates...</div></div>
-</div>
-<div class="panel">
 <h2>📰 Today's Storylines</h2>
 <div id="todaysStorylines" class="storylines-box"><div class="storyline-empty">Upload today's workbook to generate slate headlines.</div></div>
 </div>
@@ -3454,6 +3517,25 @@ tbody tr.cody-diamond-row:hover td {
 </div>
 </div>
 <div>
+
+<div id="bbiTierHomePanel" class="bbi-tier-home-panel">
+  <div class="bbi-tier-top">
+    <div>
+      <div class="bbi-tier-title">BBI Tiers</div>
+      <div class="bbi-tier-sub">Backtest-based rank bands — filters stack with team, bats and search</div>
+    </div>
+    <div class="bbi-tier-count" id="bbiTierVisibleCount">Showing <b>0</b> players</div>
+  </div>
+  <div class="bbi-tier-tabs" id="bbiTierTabs">
+    <button type="button" class="bbi-tier-tab" data-tier="ALL" onclick="setBBITierFilter('ALL')">All Tiers</button>
+    <button type="button" class="bbi-tier-tab active" data-tier="1" onclick="setBBITierFilter('1')">Tier 1</button>
+    <button type="button" class="bbi-tier-tab" data-tier="2" onclick="setBBITierFilter('2')">Tier 2</button>
+    <button type="button" class="bbi-tier-tab" data-tier="3" onclick="setBBITierFilter('3')">Tier 3</button>
+    <button type="button" class="bbi-tier-tab" data-tier="4" onclick="setBBITierFilter('4')">Tier 4</button>
+    <button type="button" class="bbi-tier-tab" data-tier="5" onclick="setBBITierFilter('5')">Tier 5</button>
+  </div>
+  <div id="bbiTierStatsCard" class="bbi-tier-stat-card"></div>
+</div>
 <div class="controls-bar">
 <div class="filter-group team-filter-future-wrap"><label>Filter Team 1</label><div class="team-filter-future" data-filter="1"><select id="teamFilter1" class="select-input-sm native-team-select" onchange="syncTeamLogoDropdown(1); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button type="button" id="teamFilterTrigger" class="team-filter-trigger" onclick="toggleTeamLogoDropdown(event, 1)"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel">All Teams</span><span class="team-filter-chevron">▾</span></button><div id="teamLogoDropdown" class="team-logo-dropdown"></div></div></div>
 <div class="filter-group team-filter-future-wrap"><label>Filter Team 2</label><div class="team-filter-future" data-filter="2"><select id="teamFilter2" class="select-input-sm native-team-select" onchange="syncTeamLogoDropdown(2); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button type="button" id="teamFilterTrigger2" class="team-filter-trigger" onclick="toggleTeamLogoDropdown(event, 2)"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel2">All Teams</span><span class="team-filter-chevron">▾</span></button><div id="teamLogoDropdown2" class="team-logo-dropdown"></div></div></div>
@@ -3711,6 +3793,19 @@ tbody tr.cody-diamond-row:hover td {
     <div id="backtestLabContainer"><div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No finalized backtests yet. Mark HR hitters with 💣 on the rankings page, then click Finalize Today's Backtest at the bottom.</div></div>
   </div>
 </div>
+
+<div id="tab-bbidiagnostics" class="tab-content">
+  <div class="panel">
+    <h2>🎯 BBI / Rank Bucket Diagnostics</h2>
+    <p class="backtest-note">This tab reads the existing finalized backtest snapshots and rebuilds the buckets live from saved <b>Rank</b>, <b>BBI</b>, and <b>HR_Result</b>. It does not change scoring and does not erase old data.</p>
+    <div class="backtest-tools">
+      <button class="backtest-tool-btn" onclick="renderBBIRankDiagnostics()">🔄 Refresh Buckets</button>
+      <button class="backtest-tool-btn" onclick="exportBacktestMasterXLSX()">⬇ Export Backtest_Master</button>
+      <button class="backtest-tool-btn" onclick="exportBacktestJSON()">🧰 Export Backup JSON</button>
+    </div>
+    <div id="bbiRankDiagnosticsContainer"><div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No finalized backtests yet. Finalize a slate from the Home tab to populate BBI and rank buckets.</div></div>
+  </div>
+</div>
 <div id="playerModal" class="modal-overlay" onclick="closeModal(event)">
 <div class="modal-card" onclick="event.stopPropagation()">
 <button class="modal-close" onclick="closeModalDirect()">×</button>
@@ -3770,6 +3865,7 @@ if (tabName === 'edge') renderEdgePanels();
 if (tabName === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
 if (tabName === 'gamecenter') renderGameCenterTab();
 if (tabName === 'backtest') renderBacktestLab();
+if (tabName === 'bbidiagnostics') renderBBIRankDiagnostics();
 if (tabName === 'synergy') renderSynergyBonusesTab();
 }
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyvCnCzZrc2yzchVoFU-45mqg6iMkHRYnE8IkC0CsAZEbfCXH5WfJKM5R0E6d4nu9f2yA/exec';
@@ -4208,7 +4304,7 @@ function renderWhyRankBox(player) {
   if (lwHRs >= 2) items.push(['📈', `Recent pop: ${lwHRs} HR last 7`]);
   if (lwXSLG >= .500) items.push(['📊', `Recent xSLG: ${lwXSLG.toFixed(3)}`]);
   if (!items.length) items.push(['✅', 'Balanced profile across the model categories']);
-  return `<div class="why-rank-box" style="${teamVisualStyle(player.Team)}"><div class="modal-section-title" style="margin-bottom:12px; border-bottom:none; padding-bottom:0;">🧠 WHY HE RANKS HERE</div><div class="why-rank-list">${items.slice(0,6).map(([icon,text]) => `<div class="why-rank-item"><span class="why-rank-icon">${icon}</span><span>${text}</span></div>`).join('')}</div></div>`;
+  return `<div class="why-rank-box" style="${teamVisualStyle(player.Team)}"><div class="modal-section-title" style="margin-bottom:12px; border-bottom:none; padding-bottom:0;">🔥 WHY HE RANKS HERE</div><div class="why-rank-list">${items.slice(0,6).map(([icon,text]) => `<div class="why-rank-item"><span class="why-rank-icon">${icon}</span><span>${text}</span></div>`).join('')}</div></div>`;
 }
 function filterRankingsToSlateGame(awayTeam, homeTeam) {
   const away = String(awayTeam || '').trim().toUpperCase();
@@ -6298,7 +6394,6 @@ function renderFullEdgeRankings() {
   }).join('');
 }
 function renderEdgePanels() {
-  renderHrDuePanel('hrDueHome');
   renderFullEdgeRankings();
 }
 function registerHomeAwayGame(homeTeamRaw, awayTeamRaw) {
@@ -7663,6 +7758,55 @@ document.addEventListener('click', () => { document.querySelectorAll('.team-filt
 function closeTeamFilterDropdowns() {
 document.querySelectorAll('.team-filter-future').forEach(wrap => wrap.classList.remove('open'));
 }
+
+const BBI_TIER_DEFS = {
+  ALL: { label:'All Tiers', range:'Full Board', min:1, max:Infinity, hrRate:'10.06%', lift:'1.00x', avgBBI:'-', tested:'4,085', desc:'Complete slate with every active hitter in true overall BBI rank order.' },
+  '1': { label:'BBI Tier 1', range:'Ranks 1-10', min:1, max:10, hrRate:'20.67%', lift:'2.06x', avgBBI:'64.76', tested:'150', desc:'The clear top shelf of the board. This group separated strongest in the backtest.' },
+  '2': { label:'BBI Tier 2', range:'Ranks 11-60', min:11, max:60, hrRate:'14.40%', lift:'1.43x', avgBBI:'57.12', tested:'750', desc:'Premium HR targets with very small separation inside the tier. Rank 11 and rank 59 are much closer than they look.' },
+  '3': { label:'BBI Tier 3', range:'Ranks 61-100', min:61, max:100, hrRate:'12.00%', lift:'1.19x', avgBBI:'52.39', tested:'600', desc:'Still above the full-board baseline, but a clear step below the premium group.' },
+  '4': { label:'BBI Tier 4', range:'Ranks 101-150', min:101, max:150, hrRate:'10.27%', lift:'1.02x', avgBBI:'49.25', tested:'750', desc:'Around the historical baseline. Playable names, but not meaningfully above the board average.' },
+  '5': { label:'BBI Tier 5', range:'Ranks 151+', min:151, max:Infinity, hrRate:'6.68%', lift:'0.66x', avgBBI:'43.84', tested:'1,840', desc:'Longshot zone. These can hit, but the backtest says the group is materially lower probability.' }
+};
+let selectedBBITierFilter = '1';
+function getOverallBBIRankMap(includeRemoved = false) {
+  const ranked = [...playerData].filter(p => includeRemoved || !p.isRemoved);
+  ranked.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
+  const map = new Map();
+  ranked.forEach((p, idx) => map.set(normalizeName(p.Name || ''), idx + 1));
+  return map;
+}
+function getOverallBBIRank(player, rankMap) {
+  if (!player) return null;
+  return rankMap.get(normalizeName(player.Name || '')) || null;
+}
+function getBBITierForRank(rank) {
+  if (!rank) return null;
+  if (rank <= 10) return '1';
+  if (rank <= 60) return '2';
+  if (rank <= 100) return '3';
+  if (rank <= 150) return '4';
+  return '5';
+}
+function renderBBITierStats(visibleCount = 0) {
+  const def = BBI_TIER_DEFS[selectedBBITierFilter] || BBI_TIER_DEFS['1'];
+  const card = document.getElementById('bbiTierStatsCard');
+  if (card) {
+    card.innerHTML = `
+      <div class="bbi-tier-main-copy"><div class="bbi-tier-label">${def.label}</div><div class="bbi-tier-range">${def.range}</div><div class="bbi-tier-desc">${def.desc}</div></div>
+      <div class="bbi-tier-kpi"><div class="bbi-tier-kpi-label">Historical HR Rate</div><div class="bbi-tier-kpi-value hot">${def.hrRate}</div></div>
+      <div class="bbi-tier-kpi"><div class="bbi-tier-kpi-label">Historical Lift</div><div class="bbi-tier-kpi-value">${def.lift}</div></div>
+      <div class="bbi-tier-kpi"><div class="bbi-tier-kpi-label">Average BBI</div><div class="bbi-tier-kpi-value">${def.avgBBI}</div></div>
+      <div class="bbi-tier-kpi"><div class="bbi-tier-kpi-label">Players Tested</div><div class="bbi-tier-kpi-value">${def.tested}</div></div>`;
+  }
+  const count = document.getElementById('bbiTierVisibleCount');
+  if (count) count.innerHTML = `Showing <b>${visibleCount}</b> players`;
+  document.querySelectorAll('.bbi-tier-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tier === selectedBBITierFilter));
+}
+function setBBITierFilter(tier) {
+  selectedBBITierFilter = BBI_TIER_DEFS[tier] ? tier : '1';
+  applyFiltersAndRender();
+}
+
 function applyFiltersAndRender() {
 syncTeamLogoDropdown(1);
 syncTeamLogoDropdown(2);
@@ -7671,17 +7815,24 @@ const f2 = document.getElementById('teamFilter2') ? document.getElementById('tea
 const batsFilter = document.getElementById('batsFilter').value;
 const searchVal = document.getElementById('searchFilter').value.toLowerCase().trim();
 const showRemoved = document.getElementById('showRemovedCheck').checked;
+const overallRankMap = getOverallBBIRankMap(showRemoved);
 let filtered = playerData.filter(p => {
 if (!showRemoved && p.isRemoved) return false;
+const overallRank = getOverallBBIRank(p, overallRankMap);
+const playerTier = getBBITierForRank(overallRank);
+if (selectedBBITierFilter !== 'ALL' && playerTier !== selectedBBITierFilter) return false;
 if (selectedQuickTeamFilter !== 'ALL' && p.Team !== selectedQuickTeamFilter) return false;
 const selectedTeams = [f1, f2].filter(t => t && t !== 'ALL');
 if (selectedTeams.length && !selectedTeams.includes(p.Team)) return false;
 if (batsFilter !== 'ALL') { let batsVal = String(p['Bats'] || p['bats'] || p['Hand'] || p['Handedness'] || '').toUpperCase().trim(); if (!batsVal.includes(batsFilter)) return false; }
 if (searchVal && !p.Name.toLowerCase().includes(searchVal)) return false;
+p.overallBBIRank = overallRank;
+p.bbiTier = playerTier;
 return true;
 });
-filtered.sort((a, b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
-renderMainTableBoard(filtered);
+filtered.sort((a, b) => (getOverallBBIRank(a, overallRankMap) || 9999) - (getOverallBBIRank(b, overallRankMap) || 9999));
+renderBBITierStats(filtered.length);
+renderMainTableBoard(filtered, overallRankMap);
 renderPregameSlateBoard();
 renderTopTargetHero();
 renderTop12Carousel();
@@ -7759,9 +7910,9 @@ function renderGameCenterTab() {
   grid.innerHTML = cards || '<div class="storyline-empty" style="grid-column:1/-1;">No games found.</div>';
 }
 
-function renderMainTableBoard(data) {
+function renderMainTableBoard(data, overallRankMap = null) {
 const tbody = document.getElementById('tableBody');
-if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="11" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`; return; }
+if (data.length === 0) { renderBBITierStats(0); tbody.innerHTML = `<tr><td colspan="11" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`; return; }
 tbody.innerHTML = '';
 const globalSlateSorted = [...playerData].filter(p => !p.isRemoved);
 globalSlateSorted.sort((a, b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV']));
@@ -7846,7 +7997,8 @@ const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
 const batterHand = getBatterHandDisplay(p);
 const orbitClass = idx < 10 ? ' orbit-ready' : '';
 const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
-tr.innerHTML = `<td class="rank-cell">#${idx+1}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${p.bettingOdds || '-'}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td><td class="action-cell">${bombBtn} ${actionBtn} ${lockBtn}</td>`;
+const displayRank = p.overallBBIRank || (overallRankMap ? getOverallBBIRank(p, overallRankMap) : null) || (idx + 1);
+tr.innerHTML = `<td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${p.bettingOdds || '-'}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td><td class="action-cell">${bombBtn} ${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
@@ -8200,6 +8352,7 @@ async function loadBacktestHistory() {
   const saved = await backtestGetState(BACKTEST_HISTORY_KEY);
   backtestHistory = Array.isArray(saved) ? saved : [];
   renderBacktestLab();
+  if (typeof renderBBIRankDiagnostics === 'function') renderBBIRankDiagnostics();
 }
 async function saveBacktestHistory() {
   await backtestSetState(BACKTEST_HISTORY_KEY, backtestHistory);
@@ -8371,6 +8524,7 @@ async function finalizeTodayBacktest() {
   saveBacktestBombs();
   applyFiltersAndRender();
   renderBacktestLab();
+  renderBBIRankDiagnostics();
   alert(`Backtest finalized. Saved ${rows.length} player snapshots with ${bombCount} HR winners.`);
 }
 function getBacktestRows() { return backtestHistory.flatMap(s => s.rows || []); }
@@ -8732,6 +8886,180 @@ function renderBacktestSignalRows(signals, limit=35) {
   }).join('');
 }
 
+function backtestFirstValue(row, keys) {
+  if (!row || !keys) return null;
+  for (const key of keys) {
+    if (row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
+  }
+  return null;
+}
+function backtestSafeNumber(v) {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'string') {
+    const cleaned = v.replace(/,/g, '').replace(/%/g, '').trim();
+    if (!cleaned) return null;
+    const n = Number(cleaned);
+    return isFinite(n) ? n : null;
+  }
+  const n = Number(v);
+  return isFinite(n) ? n : null;
+}
+function backtestRowRank(row) {
+  return backtestSafeNumber(backtestFirstValue(row, ['Rank','rank','BBI_Rank','BBI Rank','Ranking','ranking']));
+}
+function backtestRowBBI(row) {
+  return backtestSafeNumber(backtestFirstValue(row, ['BBI','bbi','Score','score','BBI_Score','BBI Score','calculatedBBI']));
+}
+function backtestRowHR(row) {
+  const raw = backtestFirstValue(row, ['HR_Result','HR Result','hrResult','HR','hr','Result','result']);
+  const n = backtestSafeNumber(raw);
+  if (n !== null) return n === 1 ? 1 : 0;
+  const txt = String(raw || '').toLowerCase().trim();
+  return ['yes','y','true','hit','hr','home run','homer'].includes(txt) ? 1 : 0;
+}
+function makeEmptyBucket(start, end) {
+  return { start, end, label: `${start}-${end}`, players: 0, hrs: 0, bbiSum: 0, rankSum: 0, bbiCount: 0, rankCount: 0 };
+}
+function buildBacktestBucketRows(rows, mode) {
+  const buckets = [];
+  if (mode === 'rank') {
+    for (let start = 0; start < 270; start += 10) buckets.push(makeEmptyBucket(start, start + 10));
+  } else {
+    for (let start = 0; start < 100; start += 5) buckets.push(makeEmptyBucket(start, start + 5));
+  }
+  const map = new Map(buckets.map(b => [b.start, b]));
+  let usable = 0;
+  let missing = 0;
+  rows.forEach(row => {
+    const rank = backtestRowRank(row);
+    const bbi = backtestRowBBI(row);
+    const hr = backtestRowHR(row);
+    let bucketStart = null;
+    if (mode === 'rank') {
+      if (rank === null || rank <= 0 || rank > 270) { missing++; return; }
+      bucketStart = Math.floor((rank - 1) / 10) * 10;
+    } else {
+      if (bbi === null || bbi < 0 || bbi > 100) { missing++; return; }
+      bucketStart = bbi >= 100 ? 95 : Math.floor(bbi / 5) * 5;
+    }
+    const bucket = map.get(bucketStart);
+    if (!bucket) { missing++; return; }
+    usable++;
+    bucket.players += 1;
+    bucket.hrs += hr ? 1 : 0;
+    if (bbi !== null) { bucket.bbiSum += bbi; bucket.bbiCount += 1; }
+    if (rank !== null) { bucket.rankSum += rank; bucket.rankCount += 1; }
+  });
+  return { buckets, usable, missing };
+}
+
+function makeCustomBacktestBucket(label, min, max) {
+  return { label, min, max, players: 0, hrs: 0, bbiSum: 0, rankSum: 0, bbiCount: 0, rankCount: 0 };
+}
+function buildBacktestTierRows(rows, mode) {
+  const rankTiers = [
+    makeCustomBacktestBucket('1-10', 1, 10),
+    makeCustomBacktestBucket('11-30', 11, 30),
+    makeCustomBacktestBucket('31-60', 31, 60),
+    makeCustomBacktestBucket('61-100', 61, 100),
+    makeCustomBacktestBucket('101-150', 101, 150),
+    makeCustomBacktestBucket('151-200', 151, 200),
+    makeCustomBacktestBucket('201-250', 201, 250),
+    makeCustomBacktestBucket('251+', 251, Infinity)
+  ];
+  const bbiTiers = [
+    makeCustomBacktestBucket('65+', 65, Infinity),
+    makeCustomBacktestBucket('60-64.99', 60, 64.999999),
+    makeCustomBacktestBucket('55-59.99', 55, 59.999999),
+    makeCustomBacktestBucket('50-54.99', 50, 54.999999),
+    makeCustomBacktestBucket('45-49.99', 45, 49.999999),
+    makeCustomBacktestBucket('40-44.99', 40, 44.999999),
+    makeCustomBacktestBucket('<40', -Infinity, 39.999999)
+  ];
+  const buckets = mode === 'rankTier' ? rankTiers : bbiTiers;
+  let usable = 0;
+  let missing = 0;
+  rows.forEach(row => {
+    const rank = backtestRowRank(row);
+    const bbi = backtestRowBBI(row);
+    const hr = backtestRowHR(row);
+    const val = mode === 'rankTier' ? rank : bbi;
+    if (val === null || !isFinite(val)) { missing++; return; }
+    if (mode === 'rankTier' && val <= 0) { missing++; return; }
+    if (mode === 'bbiTier' && (val < 0 || val > 100)) { missing++; return; }
+    const bucket = buckets.find(b => val >= b.min && val <= b.max);
+    if (!bucket) { missing++; return; }
+    usable++;
+    bucket.players += 1;
+    bucket.hrs += hr ? 1 : 0;
+    if (bbi !== null) { bucket.bbiSum += bbi; bucket.bbiCount += 1; }
+    if (rank !== null) { bucket.rankSum += rank; bucket.rankCount += 1; }
+  });
+  return { buckets, usable, missing };
+}
+function renderBacktestTierTable(bucketData, baselinePct, emptyText) {
+  const rowsHtml = bucketData.buckets.map(b => {
+    const hrPct = b.players ? (b.hrs / b.players) * 100 : null;
+    const avgBbi = b.bbiCount ? b.bbiSum / b.bbiCount : null;
+    const avgRank = b.rankCount ? b.rankSum / b.rankCount : null;
+    const lift = (hrPct !== null && baselinePct) ? (hrPct / baselinePct) : null;
+    const hrCls = b.players && lift >= 1.15 ? 'signal-positive' : b.players && lift <= 0.85 ? 'signal-negative' : 'signal-neutral';
+    return `<tr><td>${b.label}</td><td>${b.players}</td><td>${b.hrs}</td><td class="${hrCls}">${fmtBack(hrPct,2,'%')}</td><td class="${hrCls}">${lift === null ? '-' : lift.toFixed(2) + 'x'}</td><td>${fmtBack(avgBbi,2)}</td><td>${fmtBack(avgRank,1)}</td></tr>`;
+  }).join('');
+  return rowsHtml || `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:18px;">${emptyText || 'No tier data available.'}</td></tr>`;
+}
+function renderBacktestBucketTable(bucketData, emptyText) {
+  const rowsHtml = bucketData.buckets.map(b => {
+    const hrPct = b.players ? (b.hrs / b.players) * 100 : null;
+    const avgBbi = b.bbiCount ? b.bbiSum / b.bbiCount : null;
+    const avgRank = b.rankCount ? b.rankSum / b.rankCount : null;
+    const hrCls = b.players && hrPct >= 12 ? 'signal-positive' : b.players && hrPct <= 8 ? 'signal-negative' : 'signal-neutral';
+    return `<tr><td>${b.label}</td><td>${b.players}</td><td>${b.hrs}</td><td class="${hrCls}">${fmtBack(hrPct,2,'%')}</td><td>${fmtBack(avgBbi,2)}</td><td>${fmtBack(avgRank,1)}</td></tr>`;
+  }).join('');
+  return rowsHtml || `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:18px;">${emptyText || 'No bucket data available.'}</td></tr>`;
+}
+function renderBBIRankDiagnostics() {
+  const container = document.getElementById('bbiRankDiagnosticsContainer');
+  if (!container) return;
+  const rows = getBacktestRows();
+  if (!rows.length) {
+    container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No finalized backtests yet. Mark HR hitters with 💣 on the rankings page, then click Finalize Today's Backtest at the bottom.</div>`;
+    return;
+  }
+  const totalHrs = rows.filter(r => backtestRowHR(r) === 1).length;
+  const rankBuckets = buildBacktestBucketRows(rows, 'rank');
+  const bbiBuckets = buildBacktestBucketRows(rows, 'bbi');
+  const rankTiers = buildBacktestTierRows(rows, 'rankTier');
+  const bbiTiers = buildBacktestTierRows(rows, 'bbiTier');
+  const baselinePct = rows.length ? (totalHrs / rows.length) * 100 : 0;
+  const topRankBucket = rankBuckets.buckets.filter(b => b.players > 0).sort((a,b) => ((b.hrs / b.players) - (a.hrs / a.players)))[0];
+  const topBbiBucket = bbiBuckets.buckets.filter(b => b.players > 0).sort((a,b) => ((b.hrs / b.players) - (a.hrs / a.players)))[0];
+  const topRankText = topRankBucket ? `${topRankBucket.label} (${fmtBack((topRankBucket.hrs / topRankBucket.players) * 100,2,'%')})` : '-';
+  const topBbiText = topBbiBucket ? `${topBbiBucket.label} (${fmtBack((topBbiBucket.hrs / topBbiBucket.players) * 100,2,'%')})` : '-';
+  container.innerHTML = `
+    <div class="backtest-kpi-grid">
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Total snapshots</div><div class="backtest-kpi-value">${rows.length.toLocaleString()}</div><div class="backtest-kpi-sub">From finalized slates only</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">HR winners</div><div class="backtest-kpi-value">${totalHrs}</div><div class="backtest-kpi-sub">Overall ${fmtBack(rows.length ? (totalHrs / rows.length) * 100 : 0,2,'%')}</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Best rank bucket</div><div class="backtest-kpi-value" style="font-size:20px;">${topRankText}</div><div class="backtest-kpi-sub">Rank usable rows: ${rankBuckets.usable.toLocaleString()}</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Best BBI bucket</div><div class="backtest-kpi-value" style="font-size:20px;">${topBbiText}</div><div class="backtest-kpi-sub">BBI usable rows: ${bbiBuckets.usable.toLocaleString()}</div></div>
+    </div>
+    <h2>🧱 BBI Rank Tier Analysis</h2>
+    <p class="backtest-note">Wider rank tiers reduce random bucket noise and show whether the model is truly separating Top 10, 11-30, 31-60, 61-100, and the rest. Lift compares each tier's HR% to the overall finalized backtest HR%.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Rank Tier</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg BBI</th><th>Avg Rank</th></tr></thead><tbody>${renderBacktestTierTable(rankTiers, baselinePct)}</tbody></table></div>
+    <h2>⚡ BBI Score Tier Analysis</h2>
+    <p class="backtest-note">Score tiers are built directly from saved BBI scores. This is usually cleaner than exact rank because it keeps players with nearly identical BBI values grouped together.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>BBI Score Tier</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg BBI</th><th>Avg Rank</th></tr></thead><tbody>${renderBacktestTierTable(bbiTiers, baselinePct)}</tbody></table></div>
+    <h2>🏆 Rank Bucket HR Rate</h2>
+    <p class="backtest-note">Ranks use the saved finalized ranking. Rank 1-10 goes into bucket 0-10, rank 11-20 goes into 10-20, and so on through 260-270.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Rank Bucket</th><th>Players</th><th>HR</th><th>HR %</th><th>Avg BBI</th><th>Avg Rank</th></tr></thead><tbody>${renderBacktestBucketTable(rankBuckets)}</tbody></table></div>
+    <h2>⚡ BBI Score Bucket HR Rate</h2>
+    <p class="backtest-note">BBI buckets are rebuilt from the saved BBI score in each historical snapshot. This lets old backtests populate without needing pre-saved bucket labels.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>BBI Bucket</th><th>Players</th><th>HR</th><th>HR %</th><th>Avg BBI</th><th>Avg Rank</th></tr></thead><tbody>${renderBacktestBucketTable(bbiBuckets)}</tbody></table></div>
+    <p class="backtest-note">Skipped rows: Rank tier skipped ${rankTiers.missing.toLocaleString()} rows; BBI tier skipped ${bbiTiers.missing.toLocaleString()} rows; Rank bucket skipped ${rankBuckets.missing.toLocaleString()} rows; BBI bucket skipped ${bbiBuckets.missing.toLocaleString()} rows.</p>
+  `;
+  initSortableSignalTables(container);
+}
+
 function renderBacktestLab() {
   const container = document.getElementById('backtestLabContainer');
   if (!container) return;
@@ -8828,6 +9156,7 @@ async function resetLastBacktestUpload() {
   currentBacktestBombs = {};
   saveBacktestBombs();
   renderBacktestLab();
+  renderBBIRankDiagnostics();
   if (typeof applyFiltersAndRender === 'function') applyFiltersAndRender();
   alert('Last finalized backtest upload was removed. Current bomb marks were cleared so you can re-mark the HR hitters and finalize again.');
 }
@@ -8874,6 +9203,7 @@ This will MERGE with current history. It will not replace or erase saved backtes
     backtestHistory = [...backtestHistory, ...uniqueImported];
     await saveBacktestHistory();
     renderBacktestLab();
+    renderBBIRankDiagnostics();
     alert(`Backtest backup imported. Added ${uniqueImported.length} new slates. Existing data was kept.`);
   } catch (e) { alert('Could not import this JSON backup.'); }
   event.target.value = '';
@@ -9878,5 +10208,6 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
 })();
 </script>
 
+<script>try { renderBBITierStats(0); } catch(e) {}</script>
 </body>
 </html>
