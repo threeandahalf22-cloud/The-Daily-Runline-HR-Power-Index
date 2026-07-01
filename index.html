@@ -2089,6 +2089,36 @@ tbody tr.cody-diamond-row:hover td {
 }
 </style>
 
+
+<style id="edge-full-list-home-sidebar-style">
+/* =========================
+   v37.2 HOME SIDEBAR + EDGE FULL LIST
+   Moves MLBHR feed and Your Boy's Due to home sidebar. Edge tab becomes pure edge ranking.
+   ========================= */
+.home-sidebar-stack { display:flex; flex-direction:column; gap:24px; }
+.home-sidebar-stack .mlbhr-feed-panel { position: relative; top:auto; max-height:none; }
+.home-sidebar-stack .mlbhr-feed-body { max-height: 540px; }
+.full-edge-tools { display:flex; gap:12px; flex-wrap:wrap; align-items:end; justify-content:space-between; margin-bottom:14px; }
+.full-edge-tools-left { display:flex; gap:12px; flex-wrap:wrap; align-items:end; }
+.full-edge-summary { color:var(--text-muted); font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.65px; }
+.full-edge-summary b { color:var(--accent); font-family:monospace; }
+.full-edge-table-wrapper { max-height: 780px; overflow:auto; }
+.full-edge-table { min-width: 1080px; table-layout:auto; }
+.full-edge-table th { position:sticky; top:0; z-index:3; white-space:nowrap; }
+.full-edge-table td { white-space:nowrap; font-size:12px; font-weight:850; }
+.full-edge-player { text-align:left; min-width:280px; }
+.full-edge-player-card { display:grid; grid-template-columns:46px minmax(0,1fr); gap:10px; align-items:center; cursor:pointer; }
+.full-edge-player-card .player-headshot { width:44px; height:44px; margin:0; }
+.full-edge-player-name { color:#fff; font-size:13px; font-weight:1000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.full-edge-player-meta { color:var(--stadium-lights); font-size:10px; font-weight:900; text-transform:uppercase; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.full-edge-rank { font-family:monospace; font-weight:1000; color:#94a3b8; }
+.full-edge-score { font-family:monospace; font-weight:1000; color:var(--accent); }
+.full-edge-ev-pos { color:#10b981 !important; font-family:monospace; font-weight:1000; }
+.full-edge-ev-neg { color:#f87171 !important; font-family:monospace; font-weight:1000; }
+.full-edge-odds { color:#eab308; font-family:monospace; font-weight:1000; }
+.full-edge-empty { padding:50px; color:var(--text-muted); text-align:center; font-style:italic; }
+@media(max-width:1050px){ .home-sidebar-stack .mlbhr-feed-body{max-height:460px;} }
+</style>
 </head>
 <body>
 
@@ -2106,7 +2136,7 @@ tbody tr.cody-diamond-row:hover td {
 <div class="command-center-board" id="statsRibbon">
 <div class="command-center-topline">
 <div class="command-center-title">⚾ Daily Runline AI Command Center</div>
-<div class="command-center-version">v36.10 // Live Slate Readout</div>
+<div class="command-center-version">v37.1 // No Opportunity Bucket</div>
 </div>
 <div class="command-center-grid">
 <div class="command-tile accent">
@@ -2191,11 +2221,30 @@ tbody tr.cody-diamond-row:hover td {
 </div>
 
 <div class="dashboard-grid">
-<div style="display:flex; flex-direction:column; gap:24px;">
+<div class="home-sidebar-stack">
 <div class="panel">
 <h2>📈 Best Betting Edges</h2>
 <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Top 10 market values from model probability vs sportsbook implied odds</p>
 <div id="bestBettingEdgesContainer"><div style="text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook with Odds sheet to load edge plays...</div></div>
+</div>
+<div class="panel">
+<h2>🐦 MLB HR Feed</h2>
+<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Live @MLBHR timeline for quick homer news/reference.</p>
+<div class="mlbhr-feed-shell">
+  <div class="mlbhr-feed-header">
+    <div class="mlbhr-feed-title">@MLBHR</div>
+    <a class="mlbhr-feed-link" href="https://x.com/MLBHR?lang=en" target="_blank" rel="noopener noreferrer">Open X</a>
+  </div>
+  <div class="mlbhr-feed-body">
+    <a class="twitter-timeline" data-theme="dark" data-height="520" data-chrome="noheader nofooter noborders transparent" href="https://twitter.com/MLBHR?ref_src=twsrc%5Etfw">Tweets by MLBHR</a>
+    <div class="mlbhr-feed-fallback">If the live X feed does not load, use the Open X link above. Some browsers block embedded X timelines because of privacy or ad-block settings.</div>
+  </div>
+</div>
+</div>
+<div class="panel">
+<h2>⚾ Your Boy's Due</h2>
+<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Zero HRs Last Week</p>
+<div id="hrDueHome" class="diamonds-grid"><div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load HR Due candidates...</div></div>
 </div>
 <div class="panel">
 <h2>📰 Today's Storylines</h2>
@@ -2332,37 +2381,22 @@ tbody tr.cody-diamond-row:hover td {
 </div>
 
 <div id="tab-edge" class="tab-content">
-<div class="edge-page-grid">
-<div style="display:flex; flex-direction:column; gap:24px;">
 <div class="panel">
-<h2>💎 Cody's Diamonds</h2>
-<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Diamond's In The Rough</p>
-<div id="codysDiamondsEdge" class="diamonds-grid"><div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Cody's Diamonds...</div></div>
-</div>
-<div class="panel">
-<h2>⚾ Your Boy's Due</h2>
-<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Zero HRs Last Week</p>
-<div id="hrDueEdge" class="diamonds-grid"><div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load HR Due candidates...</div></div>
-</div>
-<div class="panel">
-<h2>🎰 Jackpot / Longshot</h2>
-<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">High Risk, High Reward +900 or Higher</p>
-<div id="longshotEdge" class="diamonds-grid"><div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Longshot...</div></div>
-</div>
-</div>
-<div class="panel mlbhr-feed-panel">
-<h2>🐦 MLB HR Feed</h2>
-<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Live @MLBHR timeline for quick homer news/reference.</p>
-<div class="mlbhr-feed-shell">
-  <div class="mlbhr-feed-header">
-    <div class="mlbhr-feed-title">@MLBHR</div>
-    <a class="mlbhr-feed-link" href="https://x.com/MLBHR?lang=en" target="_blank" rel="noopener noreferrer">Open X</a>
+<h2>💎 Edge Plays — Full Ranking</h2>
+<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 14px;">Complete list of all players ranked strictly from biggest edge to lowest edge.</p>
+<div class="full-edge-tools">
+  <div class="full-edge-tools-left">
+    <div class="filter-group"><label>Search Player</label><input type="text" id="edgeSearchFilter" class="search-input" placeholder="Type player name..." oninput="renderFullEdgeRankings()"></div>
+    <div class="filter-group"><label>Team</label><select id="edgeTeamFilter" class="select-input-sm" onchange="renderFullEdgeRankings()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
+    <div class="filter-group"><label>Show</label><select id="edgeValueFilter" class="select-input-sm" onchange="renderFullEdgeRankings()" style="width:150px;"><option value="ALL">All Edges</option><option value="POS">+EV Only</option><option value="NEG">Negative Only</option></select></div>
   </div>
-  <div class="mlbhr-feed-body">
-    <a class="twitter-timeline" data-theme="dark" data-height="700" data-chrome="noheader nofooter noborders transparent" href="https://twitter.com/MLBHR?ref_src=twsrc%5Etfw">Tweets by MLBHR</a>
-    <div class="mlbhr-feed-fallback">If the live X feed does not load, use the Open X link above. Some browsers block embedded X timelines because of privacy or ad-block settings.</div>
-  </div>
+  <div class="full-edge-summary" id="edgeRankSummary">Players: <b>0</b></div>
 </div>
+<div class="table-wrapper full-edge-table-wrapper">
+<table class="full-edge-table">
+<thead><tr><th>Rank</th><th style="text-align:left;">Player</th><th>Team</th><th>Bats</th><th>Pitcher</th><th>BBI</th><th>HR %</th><th>Odds</th><th>Implied</th><th>Edge</th><th>EV</th><th>Grade</th></tr></thead>
+<tbody id="fullEdgeTableBody"><tr><td colspan="12" class="full-edge-empty">Upload workbook with Odds sheet to load full edge rankings...</td></tr></tbody>
+</table>
 </div>
 </div>
 </div>
@@ -2687,7 +2721,6 @@ function modelHRProbability(score, player) {
   }
   const conf = cleanNumber(player && player.calculatedDataConfidence);
   if (conf && conf < 0.55) pct *= 0.96;
-  if (player && player.category && player.category.opportunity !== null && player.category.opportunity < 38) pct *= 0.94;
   return Math.max(1.0, Math.min(46.0, pct));
 }
 function americanOddsToImplied(oddsRaw) {
@@ -3166,6 +3199,7 @@ renderH2HFullTable();
 renderPitchLabTable();
 renderEdgePanels();
 renderBestBettingEdges();
+renderEdgePanels();
 renderWeatherRankings();
 updateHeaderStats();
 updateSlateTicker();
@@ -3413,6 +3447,7 @@ renderH2HFullTable();
 renderPitchLabTable();
 renderEdgePanels();
 renderBestBettingEdges();
+renderEdgePanels();
 renderWeatherRankings();
 updateHeaderStats();
 updateSlateTicker();
@@ -4492,56 +4527,72 @@ function renderBestBettingEdges() {
     </div>`;
   }).join('')}</div>`;
 }
+function populateEdgeTeamFilter() {
+  const sel = document.getElementById('edgeTeamFilter');
+  if (!sel) return;
+  const current = sel.value || 'ALL';
+  const teams = [...new Set((playerData || []).map(p => p.Team).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="ALL">All Teams</option>' + teams.map(t => `<option value="${t}">${t}</option>`).join('');
+  if (teams.includes(current)) sel.value = current;
+}
+function getSortedEdgePlays(includeNoOdds = false) {
+  return (playerData || [])
+    .filter(p => !p.isRemoved)
+    .filter(p => includeNoOdds || (p.bettingOdds && p.bettingOdds !== '-' && p.bettingEdge !== null && p.bettingEdge !== undefined && !isNaN(p.bettingEdge)))
+    .sort((a, b) => {
+      const ae = (a.bettingEdge !== null && a.bettingEdge !== undefined && !isNaN(a.bettingEdge)) ? a.bettingEdge : -9999;
+      const be = (b.bettingEdge !== null && b.bettingEdge !== undefined && !isNaN(b.bettingEdge)) ? b.bettingEdge : -9999;
+      if (Math.abs(be - ae) > 0.001) return be - ae;
+      return (b.expectedValuePct || -9999) - (a.expectedValuePct || -9999);
+    });
+}
+function renderHrDuePanel(containerId) {
+  const hdContainer = document.getElementById(containerId);
+  if (!hdContainer) return;
+  if (!hrDueData || hrDueData.length === 0) {
+    hdContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load HR Due candidates...</div>';
+    return;
+  }
+  hdContainer.innerHTML = '';
+  hrDueData.forEach(hr => {
+    const logoUrl = teamLogos[hr.team] || '';
+    const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
+    const card = document.createElement('div');
+    card.className = 'diamond-card';
+    card.innerHTML = `<div class="diamond-icon">⏳</div><div class="diamond-name">${hr.name}</div><div class="diamond-team">${logoImg}${hr.team || 'UNK'} // ${hr.totalHrs} Total HRs</div>`;
+    hdContainer.appendChild(card);
+  });
+}
+function renderFullEdgeRankings() {
+  populateEdgeTeamFilter();
+  const tbody = document.getElementById('fullEdgeTableBody');
+  const summary = document.getElementById('edgeRankSummary');
+  if (!tbody) return;
+  const search = String(document.getElementById('edgeSearchFilter')?.value || '').toLowerCase().trim();
+  const team = document.getElementById('edgeTeamFilter')?.value || 'ALL';
+  const show = document.getElementById('edgeValueFilter')?.value || 'ALL';
+  let plays = getSortedEdgePlays(false);
+  if (search) plays = plays.filter(p => String(p.Name || '').toLowerCase().includes(search));
+  if (team !== 'ALL') plays = plays.filter(p => p.Team === team);
+  if (show === 'POS') plays = plays.filter(p => (p.bettingEdge || 0) > 0);
+  if (show === 'NEG') plays = plays.filter(p => (p.bettingEdge || 0) < 0);
+  if (summary) summary.innerHTML = `Players: <b>${plays.length}</b>`;
+  if (!plays.length) {
+    tbody.innerHTML = '<tr><td colspan="12" class="full-edge-empty">No edge plays match the current filters. Upload an Odds sheet or clear filters.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = plays.map((p, idx) => {
+    const pitcher = p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter';
+    const headshot = createHeadshotHtml(p.Name, 'sm', p.Team || '');
+    const edgeCls = (p.bettingEdge || 0) >= 0 ? 'full-edge-ev-pos' : 'full-edge-ev-neg';
+    const evCls = (p.expectedValuePct || 0) >= 0 ? 'full-edge-ev-pos' : 'full-edge-ev-neg';
+    const tier = edgeTier(p.bettingEdge || 0).label;
+    return `<tr class="team-heat-row" style="${teamVisualStyle(p.Team)}">\n      <td class="full-edge-rank">#${idx + 1}</td>\n      <td class="full-edge-player"><div class="full-edge-player-card" onclick="openPlayerModalByName('${escJSString(p.Name)}')">${headshot}<div><div class="full-edge-player-name">${p.Name || '-'}</div><div class="full-edge-player-meta">${p.Team || '-'} • vs ${pitcher}</div></div></div></td>\n      <td>${p.Team || '-'}</td>\n      <td>${(() => { const bh = getBatterHandDisplay(p); return `<span class="batter-hand-pill ${bh.cls}">${bh.label}</span>`; })()}</td>\n      <td>${pitcher}</td>\n      <td class="full-edge-score">${Number(p.calculatedBBI || p.bbi || p.Score || 0).toFixed(1)}</td>\n      <td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td>\n      <td class="full-edge-odds">${formatAmericanOdds(p.bettingOdds)}</td>\n      <td>${formatPlainPct(p.impliedProbability)}</td>\n      <td class="${edgeCls}">${formatPctValue(p.bettingEdge)}</td>\n      <td class="${evCls}">${formatPctValue(p.expectedValuePct)}</td>\n      <td>${tier}</td>\n    </tr>`;
+  }).join('');
+}
 function renderEdgePanels() {
-const cdContainer = document.getElementById('codysDiamondsEdge');
-if (cdContainer) {
-if (codysDiamondsData.length === 0) { cdContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Cody\'s Diamonds...</div>'; }
-else {
-cdContainer.innerHTML = '';
-const displayCount = Math.min(3, codysDiamondsData.length);
-for (let i = 0; i < displayCount; i++) {
-const diamond = codysDiamondsData[i];
-const logoUrl = teamLogos[diamond.team] || '';
-const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
-const card = document.createElement('div');
-card.className = 'diamond-card';
-card.innerHTML = `<div class="diamond-icon">💎</div><div class="diamond-name">${diamond.name}</div><div class="diamond-team">${logoImg}${diamond.team}</div>`;
-cdContainer.appendChild(card);
-}
-}
-}
-const hdContainer = document.getElementById('hrDueEdge');
-if (hdContainer) {
-if (hrDueData.length === 0) { hdContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load HR Due candidates...</div>'; }
-else {
-hdContainer.innerHTML = '';
-for (let i = 0; i < hrDueData.length; i++) {
-const hr = hrDueData[i];
-const logoUrl = teamLogos[hr.team] || '';
-const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
-const card = document.createElement('div');
-card.className = 'diamond-card';
-card.innerHTML = `<div class="diamond-icon"></div><div class="diamond-name">${hr.name}</div><div class="diamond-team">${logoImg}${hr.team || 'UNK'} // ${hr.totalHrs} Total HRs</div>`;
-hdContainer.appendChild(card);
-}
-}
-}
-const lsContainer = document.getElementById('longshotEdge');
-if (lsContainer) {
-if (longshotData.length === 0) { lsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px; font-style: italic;">Upload workbook to load Longshot...</div>'; }
-else {
-lsContainer.innerHTML = '';
-for (let i = 0; i < longshotData.length; i++) {
-const ls = longshotData[i];
-const logoUrl = teamLogos[ls.team] || '';
-const logoImg = logoUrl ? `<img src="${logoUrl}" style="width:16px; height:16px; object-fit:contain; margin-right:6px; vertical-align:middle;">` : '';
-const card = document.createElement('div');
-card.className = 'diamond-card';
-card.innerHTML = `<div class="diamond-icon">🎰</div><div class="diamond-name">${ls.name}</div><div class="diamond-team">${logoImg}${ls.team}</div>`;
-lsContainer.appendChild(card);
-}
-}
-}
+  renderHrDuePanel('hrDueHome');
+  renderFullEdgeRankings();
 }
 function processCompareSheetMatchups(rows) {
 if(!rows || !Array.isArray(rows)) return;
@@ -4998,18 +5049,19 @@ return 0;
 }
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const HYBRID_CATEGORY_WEIGHTS = {
-  // Version 34: conservative backtest-guided reweight.
-  // Power 22, Pitcher 19, Batted Ball 17, rebuilt Pitch Lab 16,
-  // Opportunity 10, BvP 6, Recent 5, Weather 3, Park 2. Total = 100%.
-  power: 0.22,
-  pitcher: 0.19,
-  battedBall: 0.17,
-  pitchLevel: 0.16,
-  opportunity: 0.10,
-  bvp: 0.06,
-  recent: 0.05,
-  weather: 0.03,
-  park: 0.02
+  // Version 37.1: Opportunity removed as a standalone bucket.
+  // PA / lineup volume now lives only as a small Recent Form reliability modifier,
+  // so the Backtest Lab will no longer suggest a separate Opportunity weight.
+  // Power 23, Pitcher 20, Batted Ball 21, Pitch Lab 12,
+  // Recent 9, BvP 8, Weather 4, Park 3. Total = 100%.
+  power: 0.23,
+  pitcher: 0.20,
+  battedBall: 0.21,
+  pitchLevel: 0.12,
+  bvp: 0.08,
+  recent: 0.09,
+  weather: 0.04,
+  park: 0.03
 };
 function hybridAvg(arr) { const v = arr.filter(x => x !== null && !isNaN(x)); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; }
 function hybridWeightedAvg(items) {
@@ -5449,23 +5501,34 @@ function scoreHybridPlayer(p, ranges) {
   const bullpen = hybridAvg([hybridScoreMetric(r,ranges,'bullpenHR9'),hybridScoreMetric(r,ranges,'bullpenFIP'),hybridScoreMetric(r,ranges,'bullpenBarrel'),hybridScoreMetric(r,ranges,'bullpenHardHit')]);
   const park = hybridAvg([hybridScoreMetric(r,ranges,'parkFactor'),hybridScoreMetric(r,ranges,'pullFence',true),hybridScoreMetric(r,ranges,'cf',true),hybridScoreMetric(r,ranges,'weatherScore')]);
   const weather = hybridAvg([hybridScoreMetric(r,ranges,'weatherScore')]);
-  const opportunity = hybridAvg([hybridScoreMetric(r,ranges,'pa'),hybridScoreMetric(r,ranges,'paPg'),hybridScoreMetric(r,ranges,'teamTotal'),hybridScoreMetric(r,ranges,'battingOrder',true)]);
+  const paReliability = hybridWeightedAvg([
+    { value: hybridScoreMetric(r,ranges,'pa'), weight: 0.45 },
+    { value: hybridScoreMetric(r,ranges,'paPg'), weight: 0.35 },
+    { value: hybridScoreMetric(r,ranges,'battingOrder',true), weight: 0.20 }
+  ]);
   const discipline = hybridAvg([hybridScoreMetric(r,ranges,'kRate',true),hybridScoreMetric(r,ranges,'hSwing'),hybridScoreMetric(r,ranges,'hContact')]);
   // Cap negative drag for true power bats. They can still rank lower,
   // but one cold/missing category should not bury an elite HR profile.
   const elitePowerCore = (power !== null && power >= 70) || (r.iso !== null && r.iso >= 0.230) || (r.barrel !== null && r.barrel >= 0.120) || (r.maxEV !== null && r.maxEV >= 112) || (r.xHR !== null && r.xHR >= 15);
   const adjustedPitchLevel = elitePowerCore ? hybridClampLow(pitchLevel, 40) : pitchLevel;
-  const adjustedRecent = elitePowerCore ? hybridClampLow(recent, 35) : recent;
+  let adjustedRecent = elitePowerCore ? hybridClampLow(recent, 35) : recent;
+  // PA still matters, but only as a tiny reliability adjustment inside Recent Form.
+  // This prevents bottom-order / tiny-volume players from getting overboosted without
+  // letting PA become its own Backtest Lab suggested weight bucket.
+  if (adjustedRecent !== null && paReliability !== null && !isNaN(paReliability)) {
+    adjustedRecent = Math.max(0, Math.min(100, adjustedRecent + ((paReliability - 50) * 0.06)));
+  }
   const adjustedPark = elitePowerCore ? hybridClampLow(park, 38) : park;
   const adjustedBullpen = elitePowerCore ? hybridClampLow(bullpen, 40) : bullpen;
-  p.category = { power, pitcher, pitchLevel: adjustedPitchLevel, recent: adjustedRecent, battedBall, bvp, bullpen: adjustedBullpen, park: adjustedPark, opportunity, discipline, weather, pitcherHRDamage, pitcherContactQuality };
+  p.category = { power, pitcher, pitchLevel: adjustedPitchLevel, recent: adjustedRecent, battedBall, bvp, bullpen: adjustedBullpen, park: adjustedPark, discipline, weather, pitcherHRDamage, pitcherContactQuality };
+  p.calculatedPAReliability = paReliability;
   const dataConfidence = hybridCoverage(r, [
     { weight: 0.28, keys: ['barrel','iso','avgEV','maxEV','hardHit','xHR'] },
     { weight: 0.24, keys: ['pitcherHR9','pitcherBarrel','pitcherHardHit','pitcherFB','pitcherHRFB','pitcherEV'] },
     { weight: 0.18, keys: ['flyBall','pullAir','pull','hrFb','launchAngle'] },
     { weight: 0.10, keys: ['lwEV','lwBarrel','lwXSLG','lwHardHit'] },
-    { weight: 0.10, keys: ['parkFactor','pullFence','weatherScore','teamTotal'] },
-    { weight: 0.06, keys: ['pa','paPg','battingOrder'] },
+    { weight: 0.12, keys: ['parkFactor','pullFence','weatherScore','teamTotal'] },
+    { weight: 0.06, keys: ['pa','paPg','battingOrder','lwEV','lwBarrel','lwXSLG'] },
     { weight: 0.04, keys: ['pitchLevelEV','bullpenHR9'] }
   ]);
   p.calculatedDataConfidence = dataConfidence;
@@ -5661,6 +5724,7 @@ renderTop12Carousel();
 renderFanaticsJackpot();
 renderTodaysStorylines();
 renderBestBettingEdges();
+renderEdgePanels();
 renderGameCenterTab();
 }
 
@@ -6245,6 +6309,7 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Expected_Value_Pct: backtestNum(p.expectedValuePct),
     Bet_Grade: p.betGrade || '',
     Data_Confidence: backtestNum(p.calculatedDataConfidence),
+    PA_Reliability_Modifier: backtestNum(p.calculatedPAReliability),
     Weather_Temp: backtestNum(w.temp),
     Weather_WindSpeed: backtestNum(w.windSpeed),
     Weather_WindDir: w.windDir || '',
@@ -6260,7 +6325,6 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Category_BattedBall: backtestNum(p.category && p.category.battedBall),
     Category_Weather: backtestNum(p.category && p.category.weather),
     Category_Park: backtestNum(p.category && p.category.park),
-    Category_Opportunity: backtestNum(p.category && p.category.opportunity),
     Category_Recent: backtestNum(p.category && p.category.recent),
     Category_BVP: backtestNum(p.category && p.category.bvp),
     Category_Bullpen: backtestNum(p.category && p.category.bullpen),
@@ -6271,7 +6335,6 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Contribution_BattedBall: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.battedBall),
     Contribution_Weather: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.weather),
     Contribution_Park: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.park),
-    Contribution_Opportunity: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.opportunity),
     Contribution_Recent: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.recent),
     Contribution_BVP: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.bvp),
     Synergy_Bonus: backtestNum(p.calculatedSynergy),
@@ -6440,12 +6503,11 @@ function getSuggestedWeights(rows) {
     battedBall: HYBRID_CATEGORY_WEIGHTS.battedBall || 0,
     weather: HYBRID_CATEGORY_WEIGHTS.weather || 0,
     park: HYBRID_CATEGORY_WEIGHTS.park || 0,
-    opportunity: HYBRID_CATEGORY_WEIGHTS.opportunity || 0,
     recent: HYBRID_CATEGORY_WEIGHTS.recent || 0,
     bvp: HYBRID_CATEGORY_WEIGHTS.bvp || 0
   };
   const keyMap = {
-    power: 'Category_Power', pitchLevel: 'Category_PitchLab', pitcher: 'Category_Pitcher', battedBall: 'Category_BattedBall', weather: 'Category_Weather', park: 'Category_Park', opportunity: 'Category_Opportunity', recent: 'Category_Recent', bvp: 'Category_BVP'
+    power: 'Category_Power', pitchLevel: 'Category_PitchLab', pitcher: 'Category_Pitcher', battedBall: 'Category_BattedBall', weather: 'Category_Weather', park: 'Category_Park', recent: 'Category_Recent', bvp: 'Category_BVP'
   };
   const strengths = Object.keys(current).map(cat => ({ cat, strength: getSignalStats(rows, keyMap[cat], { format:'score' }).strength || 0.01 }));
   const totalStrength = strengths.reduce((s,x)=>s+x.strength,0) || 1;
@@ -6546,7 +6608,11 @@ const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
     ['Raw_lwHR','Last Week HR'],
     ['Raw_lwSLG','Last Week SLG'],
     ['Raw_lwXWOBA','Last Week xwOBA'],
-    ['Raw_lwLA','Last Week Launch Angle']
+    ['Raw_lwLA','Last Week Launch Angle'],
+    ['Raw_pa','PA Reliability'],
+    ['Raw_paPg','PA/G Reliability'],
+    ['Raw_battingOrder','Lineup Spot Reliability'],
+    ['PA_Reliability_Modifier','PA Reliability Score']
   ]},
   { bucket:'BvP', type:'BvP scoring stat', keys:[
     ['Raw_bvpPA','BvP PA'],
@@ -6561,12 +6627,6 @@ const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
     ['BVP_Modifier','BvP Modifier'],
     ['Input_calculatedBvPConfidence','BvP Confidence'],
     ['Input_calculatedBvPRawScore','BvP Raw Score']
-  ]},
-  { bucket:'Opportunity', type:'Opportunity scoring stat', keys:[
-    ['Raw_pa','PA'],
-    ['Raw_paPg','PA/G'],
-    ['Raw_teamTotal','Team Total'],
-    ['Raw_battingOrder','Batting Order']
   ]},
   { bucket:'Weather', type:'Weather scoring stat', keys:[
     ['Raw_weatherScore','Weather Score'],
@@ -6726,7 +6786,6 @@ function renderBacktestLab() {
     { key:'Category_BattedBall', label:'Batted-ball category', format:'score', type:'Category score' },
     { key:'Category_Weather', label:'Weather category', format:'score', type:'Category score' },
     { key:'Category_Park', label:'Park category', format:'score', type:'Category score' },
-    { key:'Category_Opportunity', label:'Opportunity category', format:'score', type:'Category score' },
     { key:'Category_Recent', label:'Recent form category', format:'score', type:'Category score' },
     { key:'Category_BVP', label:'BVP category', format:'score', type:'Category score' },
     { key:'Category_Bullpen', label:'Bullpen category', format:'score', type:'Category score' },
@@ -6747,7 +6806,7 @@ function renderBacktestLab() {
     .sort((a,b) => (a.sourceOrder - b.sourceOrder));
 
   const weights = getSuggestedWeights(rows);
-  const labels = { power:'Hitter Power', pitchLevel:'Pitch Lab', pitcher:'Pitcher Vulnerability', battedBall:'Batted Ball Shape', weather:'Weather', park:'Park Factor', opportunity:'Opportunity', recent:'Recent Form', bvp:'BVP' };
+  const labels = { power:'Hitter Power', pitchLevel:'Pitch Lab', pitcher:'Pitcher Vulnerability', battedBall:'Batted Ball Shape', weather:'Weather', park:'Park Factor', recent:'Recent Form', bvp:'BVP' };
   const weightRows = Object.keys(weights.current).map(cat => {
     const cur = weights.current[cat] * 100;
     const sug = weights.suggested[cat] * 100;
