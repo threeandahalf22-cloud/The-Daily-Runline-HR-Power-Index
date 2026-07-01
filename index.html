@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>The Daily Run Line's Homerun Index</title>
+<title>The Daily Run Line's Homerun Index v39.3</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <style>
 :root {
@@ -2112,6 +2112,58 @@ tbody tr.cody-diamond-row:hover td {
 .full-edge-player-name { color:#fff; font-size:13px; font-weight:1000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .full-edge-player-meta { color:var(--stadium-lights); font-size:10px; font-weight:900; text-transform:uppercase; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .full-edge-rank { font-family:monospace; font-weight:1000; color:#94a3b8; }
+
+/* =========================
+   SYNERGY TAB PLAYER IDENTITY FIX
+   Scoped only to Synergy Bonuses: full names + MLB headshots without overlap.
+   ========================= */
+#tab-synergy .full-edge-table { min-width: 1420px; table-layout: auto; }
+#tab-synergy .full-edge-table th:nth-child(2),
+#tab-synergy .full-edge-table td:nth-child(2) { min-width: 350px; width: 350px; }
+#tab-synergy .full-edge-table th:nth-child(10),
+#tab-synergy .full-edge-table td:nth-child(10) { min-width: 430px; }
+#tab-synergy .full-edge-player { min-width: 350px; white-space: normal !important; }
+#tab-synergy .full-edge-player-card {
+  display: grid;
+  grid-template-columns: 60px minmax(250px, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  padding: 3px 0;
+}
+#tab-synergy .full-edge-player-card .player-headshot {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  margin: 0;
+  display: block;
+}
+#tab-synergy .full-edge-player-copy { min-width: 0; overflow: visible; }
+#tab-synergy .full-edge-player-name {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.18;
+  font-weight: 1000;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+#tab-synergy .full-edge-player-meta {
+  color: var(--stadium-lights);
+  font-size: 10px;
+  line-height: 1.25;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-top: 5px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+#tab-synergy .full-edge-table td { vertical-align: middle; }
+
 .full-edge-score { font-family:monospace; font-weight:1000; color:var(--accent); }
 .full-edge-ev-pos { color:#10b981 !important; font-family:monospace; font-weight:1000; }
 .full-edge-ev-neg { color:#f87171 !important; font-family:monospace; font-weight:1000; }
@@ -2165,6 +2217,764 @@ tbody tr.cody-diamond-row:hover td {
 @media(max-width:560px){ #weatherRankContainer.weather-lab-grid{grid-template-columns:1fr!important;} .weather-lab-meta{grid-template-columns:repeat(2,1fr);} }
 </style>
 
+<style id="stadium-orientation-audit-style">
+/* =========================
+   v37.7 STADIUM WIND ORIENTATION AUDIT
+   Audit-only: exposes stadium lat/lon, CF/LF/RF bearings, live wind-to vector, boost side and confidence.
+   ========================= */
+.orientation-audit-panel { margin-top: 24px; }
+.orientation-audit-copy { color: var(--text-muted); font-size: 12px; line-height: 1.45; margin: 0 0 14px; }
+.orientation-audit-tools { display:flex; gap:12px; flex-wrap:wrap; align-items:end; justify-content:space-between; margin-bottom:14px; }
+.orientation-audit-summary { color:var(--text-muted); font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.65px; }
+.orientation-audit-summary b { color:var(--accent); font-family:monospace; }
+.orientation-audit-wrapper { max-height: 620px; overflow:auto; border:1px solid var(--border); border-radius:16px; background:rgba(5,11,20,.52); }
+.orientation-audit-table { min-width:1180px; width:100%; border-collapse:collapse; }
+.orientation-audit-table th { position:sticky; top:0; z-index:3; white-space:nowrap; cursor:pointer; }
+.orientation-audit-table td { white-space:nowrap; font-size:12px; font-weight:850; padding:11px 12px; }
+.orientation-audit-park { text-align:left; min-width:250px; }
+.orientation-audit-park-main { color:#fff; font-weight:1000; }
+.orientation-audit-park-sub { margin-top:3px; color:var(--stadium-lights); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.45px; }
+.orientation-audit-deg { color:#fff; font-family:monospace; font-weight:1000; }
+.orientation-audit-muted { color:var(--text-muted); }
+.orientation-audit-boost { font-family:monospace; font-weight:1000; }
+.orientation-audit-boost.rhb { color:#00ff9d; }
+.orientation-audit-boost.lhb { color:#38bdf8; }
+.orientation-audit-boost.both { color:#eab308; }
+.orientation-audit-boost.bad { color:#f87171; }
+.orientation-audit-pill { display:inline-flex; align-items:center; justify-content:center; border-radius:999px; padding:5px 8px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); color:#cbd5e1; font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.5px; }
+.orientation-audit-pill.high { color:#00ff9d; border-color:rgba(0,255,157,.28); background:rgba(0,255,157,.07); }
+.orientation-audit-pill.medium { color:#eab308; border-color:rgba(234,179,8,.28); background:rgba(234,179,8,.07); }
+.orientation-audit-pill.low { color:#f87171; border-color:rgba(239,68,68,.28); background:rgba(239,68,68,.07); }
+.orientation-audit-note { margin-top:12px; color:var(--text-muted); font-size:11px; font-weight:800; line-height:1.4; }
+</style>
+
+
+<style id="true-wind-direction-animation-style">
+/* =========================
+   v37.8 TRUE WIND DIRECTION ANIMATION
+   Uses exact wind-to bearing relative to each stadium's CF bearing.
+   No scoring weights changed.
+   ========================= */
+.weather-lab-field-wrap {
+  --wind-zone-x: 50%;
+  --wind-zone-y: 12%;
+  --wind-cross-opacity: .18;
+  background:
+    radial-gradient(circle at var(--wind-zone-x) var(--wind-zone-y), rgba(239,68,68,.24), transparent 18%),
+    radial-gradient(circle at 50% 68%, rgba(0,255,157,.08), transparent 30%),
+    linear-gradient(180deg, rgba(5,11,20,.42), rgba(5,11,20,.88)) !important;
+}
+.weather-lab-field-wrap::before,
+.weather-lab-field-wrap::after {
+  content:'';
+  position:absolute;
+  left:50%;
+  top:50%;
+  pointer-events:none;
+  z-index:4;
+  transform-origin:center;
+}
+.weather-lab-field-wrap::before {
+  width:250px;
+  height:3px;
+  margin-left:-125px;
+  margin-top:-1.5px;
+  transform:rotate(var(--wind-rot));
+  border-radius:999px;
+  background:linear-gradient(90deg, transparent 0%, rgba(239,68,68,.20) 12%, rgba(239,68,68,.88) 68%, #fecaca 100%);
+  box-shadow:0 0 18px rgba(239,68,68,.35);
+  animation:true-wind-vector-pulse 1.7s ease-in-out infinite;
+}
+.weather-lab-field-wrap::after {
+  width:0;
+  height:0;
+  margin-left:108px;
+  margin-top:-7px;
+  transform:rotate(var(--wind-rot));
+  border-left:18px solid #fecaca;
+  border-top:8px solid transparent;
+  border-bottom:8px solid transparent;
+  filter:drop-shadow(0 0 10px rgba(239,68,68,.70));
+  animation:true-wind-head-pulse 1.7s ease-in-out infinite;
+}
+@keyframes true-wind-vector-pulse { 0%,100%{opacity:.70} 50%{opacity:1} }
+@keyframes true-wind-head-pulse { 0%,100%{filter:drop-shadow(0 0 7px rgba(239,68,68,.55))} 50%{filter:drop-shadow(0 0 16px rgba(239,68,68,.95))} }
+.weather-lab-wind-layer { transform:rotate(var(--wind-rot)) !important; opacity:.54; z-index:2; }
+.weather-lab-arrow { display:none !important; }
+.weather-lab-bearing-readout {
+  position:absolute;
+  left:10px;
+  bottom:10px;
+  z-index:6;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  max-width:calc(100% - 20px);
+}
+.weather-bearing-pill {
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(5,11,20,.74);
+  color:#cbd5e1;
+  border-radius:999px;
+  padding:5px 7px;
+  font-size:9px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:.45px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+.weather-bearing-pill b { color:#fff; font-family:monospace; }
+.weather-lab-zone.active-zone {
+  color:#06111d;
+  background:linear-gradient(135deg,#fecaca,#ef4444);
+  border-color:rgba(254,202,202,.75);
+  box-shadow:0 0 18px rgba(239,68,68,.42);
+}
+.weather-lab-zone.cross-zone { border-color:rgba(234,179,8,.45); color:#fde68a; background:rgba(234,179,8,.08); }
+.weather-lab-field-wrap.wind-cross::before { opacity:.68; background:linear-gradient(90deg, transparent, rgba(234,179,8,.72), #fde68a); box-shadow:0 0 15px rgba(234,179,8,.30); }
+.weather-lab-field-wrap.wind-in::before { background:linear-gradient(90deg, transparent, rgba(56,189,248,.22), rgba(56,189,248,.88), #cffafe); box-shadow:0 0 18px rgba(56,189,248,.35); }
+.weather-lab-field-wrap.wind-in::after { border-left-color:#cffafe; filter:drop-shadow(0 0 10px rgba(56,189,248,.70)); }
+</style>
+
+
+<style id="v38-1-api-weather-crosswind-accuracy-style">
+/* =========================
+   v38.1 API WEATHER ACCURACY + TRUE CROSSWIND LANES
+   Uses OpenWeather forecast-hour humidity/wind/temp and makes crosswinds visibly travel side-to-side.
+   ========================= */
+.weather-lab-field-wrap.wind-cross {
+  background:
+    linear-gradient(90deg, rgba(234,179,8,.13), transparent 30%, transparent 70%, rgba(234,179,8,.13)),
+    radial-gradient(circle at var(--wind-zone-x) var(--wind-zone-y), rgba(234,179,8,.22), transparent 18%),
+    radial-gradient(circle at 50% 68%, rgba(0,255,157,.08), transparent 30%),
+    linear-gradient(180deg, rgba(5,11,20,.42), rgba(5,11,20,.88)) !important;
+}
+.weather-lab-field-wrap.wind-cross .weather-lab-wind-layer { opacity:.74 !important; }
+.weather-lab-field-wrap.wind-cross .weather-lab-wind-layer i {
+  width:54px;
+  background:linear-gradient(90deg, transparent, rgba(253,230,138,.92));
+  box-shadow:0 0 8px rgba(234,179,8,.18);
+}
+.weather-lab-field-wrap.cross-from-lf::before {
+  background:linear-gradient(90deg, transparent 0%, rgba(234,179,8,.18) 10%, rgba(234,179,8,.82) 70%, #fde68a 100%) !important;
+}
+.weather-lab-field-wrap.cross-from-rf::before {
+  background:linear-gradient(90deg, transparent 0%, rgba(234,179,8,.18) 10%, rgba(234,179,8,.82) 70%, #fde68a 100%) !important;
+}
+.weather-api-status-pill {
+  display:inline-flex; align-items:center; justify-content:center; margin-top:4px; padding:3px 6px; border-radius:999px;
+  border:1px solid rgba(0,255,157,.24); background:rgba(0,255,157,.07); color:var(--accent);
+  font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.45px;
+}
+.weather-api-status-pill.fallback { border-color:rgba(234,179,8,.28); background:rgba(234,179,8,.08); color:#fde68a; }
+</style>
+
+
+
+<style id="v38-2-true-crosswind-animation-fix">
+/* =========================
+   v38.2 TRUE CROSSWIND ANIMATION FIX
+   Crosswinds now animate as SIDEWAYS lanes only:
+   LF ➜ RF or RF ➜ LF. They no longer look like generic out-to-CF wind.
+   Visual-only: no scoring/weights changed.
+   ========================= */
+.weather-lab-field-wrap.wind-cross {
+  --cross-y: 35%;
+  --cross-start-x: 12%;
+  --cross-end-x: 88%;
+  --cross-arrow-rot: 0deg;
+  background:
+    linear-gradient(90deg, rgba(234,179,8,.18), transparent 32%, transparent 68%, rgba(234,179,8,.18)),
+    radial-gradient(circle at var(--cross-start-x) var(--cross-y), rgba(234,179,8,.26), transparent 19%),
+    radial-gradient(circle at var(--cross-end-x) var(--cross-y), rgba(234,179,8,.18), transparent 17%),
+    radial-gradient(circle at 50% 68%, rgba(0,255,157,.08), transparent 30%),
+    linear-gradient(180deg, rgba(5,11,20,.42), rgba(5,11,20,.88)) !important;
+}
+.weather-lab-field-wrap.wind-cross.cross-from-lf {
+  --wind-rot: 0deg !important;
+  --cross-start-x: 13%;
+  --cross-end-x: 87%;
+  --cross-arrow-rot: 0deg;
+}
+.weather-lab-field-wrap.wind-cross.cross-from-rf {
+  --wind-rot: 180deg !important;
+  --cross-start-x: 87%;
+  --cross-end-x: 13%;
+  --cross-arrow-rot: 180deg;
+}
+.weather-lab-field-wrap.wind-cross .weather-lab-wind-layer {
+  transform: rotate(var(--wind-rot)) !important;
+  inset: 0 !important;
+  opacity: .88 !important;
+  z-index: 5 !important;
+}
+.weather-lab-field-wrap.wind-cross .weather-lab-wind-layer i {
+  top: var(--y) !important;
+  left: -70px !important;
+  width: 62px !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, transparent, rgba(253,230,138,.98)) !important;
+  box-shadow: 0 0 10px rgba(234,179,8,.28) !important;
+  animation-name: weather-crosswind-sideways !important;
+  animation-duration: var(--dur, 2.4s) !important;
+  animation-timing-function: linear !important;
+  animation-iteration-count: infinite !important;
+  animation-delay: var(--delay, 0s) !important;
+}
+@keyframes weather-crosswind-sideways {
+  0% { transform: translateX(-40px); opacity: 0; }
+  12% { opacity: .88; }
+  88% { opacity: .88; }
+  100% { transform: translateX(calc(100vw + 140px)); opacity: 0; }
+}
+.weather-lab-field-wrap.wind-cross::before {
+  left: 50% !important;
+  top: 36% !important;
+  width: 72% !important;
+  height: 4px !important;
+  margin-left: -36% !important;
+  margin-top: 0 !important;
+  transform: rotate(var(--cross-arrow-rot)) !important;
+  background: linear-gradient(90deg, transparent 0%, rgba(234,179,8,.20) 8%, rgba(234,179,8,.90) 72%, #fde68a 100%) !important;
+  box-shadow: 0 0 18px rgba(234,179,8,.38) !important;
+  opacity: .95 !important;
+  z-index: 8 !important;
+}
+.weather-lab-field-wrap.wind-cross::after {
+  top: 36% !important;
+  left: 86% !important;
+  margin-top: -6px !important;
+  margin-left: 0 !important;
+  transform: rotate(var(--cross-arrow-rot)) !important;
+  border-left-color: #fde68a !important;
+  filter: drop-shadow(0 0 12px rgba(234,179,8,.82)) !important;
+  z-index: 9 !important;
+}
+.weather-lab-field-wrap.wind-cross.cross-from-rf::after {
+  left: 11% !important;
+}
+.weather-lab-field-wrap.wind-cross .weather-lab-zone.lf,
+.weather-lab-field-wrap.wind-cross .weather-lab-zone.rf {
+  z-index: 10 !important;
+}
+.weather-lab-field-wrap.wind-cross.cross-from-lf .weather-lab-zone.lf,
+.weather-lab-field-wrap.wind-cross.cross-from-rf .weather-lab-zone.rf {
+  color:#fde68a !important;
+  border-color:rgba(234,179,8,.55) !important;
+  background:rgba(234,179,8,.12) !important;
+}
+.weather-lab-field-wrap.wind-cross.cross-from-lf .weather-lab-zone.rf,
+.weather-lab-field-wrap.wind-cross.cross-from-rf .weather-lab-zone.lf {
+  color:#06111d !important;
+  background:linear-gradient(135deg,#fde68a,#f59e0b) !important;
+  border-color:rgba(253,230,138,.86) !important;
+  box-shadow:0 0 18px rgba(234,179,8,.48) !important;
+}
+.weather-lab-field-wrap.wind-cross .weather-lab-diamond,
+.weather-lab-field-wrap.wind-cross .weather-lab-infield,
+.weather-lab-field-wrap.wind-cross .weather-lab-home {
+  z-index: 6 !important;
+}
+.weather-lab-field-wrap.wind-cross .weather-lab-bearing-readout { z-index: 11 !important; }
+</style>
+
+<style id="v38-4-crosswind-lf-rf-corrected-note">
+/* =========================
+   v38.4 CROSSWIND LF/RF CORRECTED
+   Final user-facing convention:
+   crosswind to/near LF = cross-from-lf = LF ➜ RF.
+   crosswind to/near RF = cross-from-rf = RF ➜ LF.
+   CSS lanes stay literal; fieldDirectionFromWind now feeds them the correct origin.
+   ========================= */
+</style>
+
+
+<style id="v38-5-hard-flipped-crosswind-override">
+/* =========================
+   v38.5 HARD-FLIPPED CROSSWIND OVERRIDE
+   This intentionally inverts the previous crosswind display.
+   Arrow and animated particles are both flipped.
+   ========================= */
+.weather-lab-field-wrap.wind-cross.cross-from-lf {
+  --wind-rot: 180deg !important;
+  --cross-start-x: 87% !important;
+  --cross-end-x: 13% !important;
+  --cross-arrow-rot: 180deg !important;
+}
+.weather-lab-field-wrap.wind-cross.cross-from-rf {
+  --wind-rot: 0deg !important;
+  --cross-start-x: 13% !important;
+  --cross-end-x: 87% !important;
+  --cross-arrow-rot: 0deg !important;
+}
+.weather-lab-field-wrap.wind-cross.cross-from-lf::after {
+  left: 11% !important;
+  transform: rotate(180deg) !important;
+}
+.weather-lab-field-wrap.wind-cross.cross-from-rf::after {
+  left: 86% !important;
+  transform: rotate(0deg) !important;
+}
+/* Flip highlighted origin/destination labels too, so the visual matches the new direction. */
+.weather-lab-field-wrap.wind-cross.cross-from-lf .weather-lab-zone.rf,
+.weather-lab-field-wrap.wind-cross.cross-from-rf .weather-lab-zone.lf {
+  color:#fde68a !important;
+  border-color:rgba(234,179,8,.55) !important;
+  background:rgba(234,179,8,.12) !important;
+  box-shadow:none !important;
+}
+.weather-lab-field-wrap.wind-cross.cross-from-lf .weather-lab-zone.lf,
+.weather-lab-field-wrap.wind-cross.cross-from-rf .weather-lab-zone.rf {
+  color:#06111d !important;
+  background:linear-gradient(135deg,#fde68a,#f59e0b) !important;
+  border-color:rgba(253,230,138,.86) !important;
+  box-shadow:0 0 18px rgba(234,179,8,.48) !important;
+}
+</style>
+
+
+
+<style id="v38-6-true-vector-wind-final">
+/* =========================
+   v38.6 TRUE VECTOR WIND FINAL
+   One source of truth: every arrow and moving wind lane uses windToDeg rotated into the actual stadium CF bearing.
+   Crosswind classes are now only labels/highlights; they no longer flip the vector.
+   ========================= */
+.weather-lab-field-wrap.wind-cross.cross-from-lf,
+.weather-lab-field-wrap.wind-cross.cross-from-rf {
+  --wind-rot: var(--true-wind-rot) !important;
+  --cross-arrow-rot: var(--true-wind-rot) !important;
+}
+.weather-lab-field-wrap.wind-cross .weather-lab-wind-layer {
+  transform: rotate(var(--true-wind-rot)) !important;
+  inset: 0 !important;
+}
+.weather-lab-field-wrap.wind-cross::before {
+  left: 50% !important;
+  top: 36% !important;
+  width: 72% !important;
+  height: 4px !important;
+  margin-left: -36% !important;
+  margin-top: 0 !important;
+  transform: rotate(var(--true-wind-rot)) !important;
+  transform-origin: center center !important;
+  background: linear-gradient(90deg, transparent 0%, rgba(234,179,8,.20) 8%, rgba(234,179,8,.90) 72%, #fde68a 100%) !important;
+  box-shadow: 0 0 18px rgba(234,179,8,.38) !important;
+  opacity: .96 !important;
+  z-index: 8 !important;
+}
+.weather-lab-field-wrap.wind-cross::after,
+.weather-lab-field-wrap.wind-cross.cross-from-lf::after,
+.weather-lab-field-wrap.wind-cross.cross-from-rf::after {
+  left: 50% !important;
+  top: 36% !important;
+  margin-left: 0 !important;
+  margin-top: -7px !important;
+  transform: rotate(var(--true-wind-rot)) translateX(118px) !important;
+  transform-origin: center center !important;
+  border-left-color: #fde68a !important;
+  filter: drop-shadow(0 0 12px rgba(234,179,8,.82)) !important;
+  z-index: 9 !important;
+}
+/* Literal class meaning restored for labels: cross-from-lf means LF side origin, cross-from-rf means RF side origin. */
+.weather-lab-field-wrap.wind-cross.cross-from-lf .weather-lab-zone.lf,
+.weather-lab-field-wrap.wind-cross.cross-from-rf .weather-lab-zone.rf {
+  color:#fde68a !important;
+  border-color:rgba(234,179,8,.55) !important;
+  background:rgba(234,179,8,.12) !important;
+  box-shadow:none !important;
+}
+.weather-lab-field-wrap.wind-cross.cross-from-lf .weather-lab-zone.rf,
+.weather-lab-field-wrap.wind-cross.cross-from-rf .weather-lab-zone.lf {
+  color:#06111d !important;
+  background:linear-gradient(135deg,#fde68a,#f59e0b) !important;
+  border-color:rgba(253,230,138,.86) !important;
+  box-shadow:0 0 18px rgba(234,179,8,.48) !important;
+}
+</style>
+
+
+
+<style id="v39-2-command-center-ai-core-style">
+/* =========================
+   v39.2 COMMAND CENTER AI CORE
+   Four-card command layout + center logo reactor + static first-pitch countdown.
+   Uses Daily Runline teal/cyan/green/gold/red palette only.
+   ========================= */
+.command-center-ai-core {
+  max-width: 1180px !important;
+  padding: 18px 18px 16px !important;
+  border-color: rgba(0,255,157,.24) !important;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0,255,157,.16), transparent 26%),
+    radial-gradient(circle at 18% 12%, rgba(56,189,248,.12), transparent 30%),
+    radial-gradient(circle at 82% 88%, rgba(0,212,130,.10), transparent 32%),
+    linear-gradient(145deg, rgba(5,11,20,.98), rgba(9,18,34,.90) 48%, rgba(5,11,20,.98)) !important;
+  box-shadow:
+    0 25px 75px rgba(0,0,0,.55),
+    0 0 34px rgba(0,255,157,.10),
+    inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+.command-center-ai-core::before {
+  background: linear-gradient(110deg, transparent 38%, rgba(0,255,157,.085) 49%, rgba(56,189,248,.055) 53%, transparent 64%) !important;
+  animation: command-center-scan 7.5s linear infinite !important;
+}
+.command-center-ai-core::after {
+  content:'';
+  position:absolute;
+  inset: 48px 22px 76px;
+  pointer-events:none;
+  opacity:.36;
+  background:
+    linear-gradient(90deg, transparent 0 48%, rgba(0,255,157,.20) 49%, transparent 51% 100%),
+    linear-gradient(0deg, transparent 0 48%, rgba(56,189,248,.13) 49%, transparent 51% 100%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 38px);
+  border-radius: 18px;
+}
+.command-center-ai-topline { margin-bottom: 15px !important; }
+.command-center-ai-topline .command-center-title {
+  font-size: 13px !important;
+  color:#eafff7 !important;
+  text-shadow: 0 0 16px rgba(0,255,157,.22);
+}
+.command-center-ai-topline .command-center-version {
+  color: var(--accent) !important;
+  border-color: rgba(0,255,157,.28) !important;
+  background: rgba(0,255,157,.075) !important;
+}
+.command-center-core-layout {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) 285px minmax(300px, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+.command-side-stack { display:grid; grid-template-rows: 1fr 1fr; gap: 16px; }
+.command-feature-card {
+  min-height: 158px !important;
+  padding: 16px !important;
+  border-radius: 18px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 90% 8%, var(--tile-glow, rgba(0,255,157,.18)), transparent 36%),
+    linear-gradient(145deg, rgba(5,11,20,.90), rgba(17,31,53,.58)) !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+  border-left: 5px solid var(--tile-color, var(--accent)) !important;
+  box-shadow:
+    0 18px 44px rgba(0,0,0,.36),
+    0 0 20px var(--tile-glow, rgba(0,255,157,.10)),
+    inset 0 1px 0 rgba(255,255,255,.07) !important;
+}
+.command-feature-card::before {
+  content:'';
+  position:absolute;
+  inset:-45% -28%;
+  background: linear-gradient(110deg, transparent 42%, rgba(255,255,255,.075) 50%, transparent 58%);
+  animation: command-card-shine 8s linear infinite;
+  pointer-events:none;
+  opacity:.7;
+}
+@keyframes command-card-shine { 0% { transform: translateX(-45%); } 100% { transform: translateX(45%); } }
+.command-feature-card:hover {
+  transform: translateY(-4px) !important;
+  border-color: var(--tile-color, var(--accent)) !important;
+  box-shadow:
+    0 24px 58px rgba(0,0,0,.44),
+    0 0 34px var(--tile-glow, rgba(0,255,157,.18)),
+    inset 0 1px 0 rgba(255,255,255,.10) !important;
+}
+.command-feature-card .command-tile-label,
+.command-feature-card .command-tile-value,
+.command-feature-card .command-tile-player { position:relative; z-index:1; }
+.command-feature-card .command-tile-label {
+  color: var(--tile-color, var(--accent)) !important;
+  font-size: 12px !important;
+  letter-spacing: 1.2px !important;
+  text-shadow: 0 0 14px var(--tile-glow, rgba(0,255,157,.18));
+}
+.command-feature-card .command-tile-value {
+  font-size: 39px !important;
+  margin-top: 13px !important;
+  color: var(--tile-color, var(--accent)) !important;
+  text-shadow: 0 0 22px var(--tile-glow, rgba(0,255,157,.26));
+}
+.command-feature-card .command-tile-player {
+  min-height: 64px !important;
+  margin-top: 14px !important;
+  grid-template-columns: 62px minmax(0,1fr) !important;
+  gap: 12px !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase;
+}
+.command-feature-card .command-tile-player img {
+  width: 60px !important;
+  height: 60px !important;
+  min-width: 60px !important;
+  min-height: 60px !important;
+  border-color: var(--tile-color, var(--accent)) !important;
+}
+.command-feature-card .command-tile-player span { -webkit-line-clamp: 2 !important; }
+.command-logo-core {
+  position: relative;
+  min-height: 336px;
+  border-radius: 28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0,255,157,.22), rgba(0,255,157,.055) 32%, rgba(5,11,20,.54) 64%, rgba(5,11,20,.84)),
+    linear-gradient(180deg, rgba(17,31,53,.52), rgba(5,11,20,.88));
+  border: 1px solid rgba(0,255,157,.23);
+  box-shadow:
+    0 0 48px rgba(0,255,157,.16),
+    inset 0 0 38px rgba(0,255,157,.08),
+    inset 0 1px 0 rgba(255,255,255,.08);
+  overflow:hidden;
+}
+.command-logo-core::before,
+.command-logo-core::after {
+  content:'';
+  position:absolute;
+  left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  pointer-events:none;
+}
+.command-logo-core::before {
+  width: 230px; height: 230px;
+  border: 1px solid rgba(0,255,157,.30);
+  box-shadow: 0 0 28px rgba(0,255,157,.22), inset 0 0 22px rgba(56,189,248,.08);
+  animation: command-core-pulse 2.9s ease-in-out infinite;
+}
+.command-logo-core::after {
+  width: 282px; height: 282px;
+  border: 1px dashed rgba(56,189,248,.26);
+  animation: command-core-spin 18s linear infinite;
+}
+.command-core-ring { position:absolute; left:50%; top:50%; border-radius:50%; transform:translate(-50%,-50%); pointer-events:none; }
+.command-core-ring-one { width: 182px; height: 182px; border: 2px solid rgba(0,255,157,.50); box-shadow:0 0 26px rgba(0,255,157,.26); animation: command-core-pulse 2.2s ease-in-out infinite; }
+.command-core-ring-two { width: 254px; height: 254px; border: 1px solid rgba(56,189,248,.30); animation: command-core-spin 14s linear infinite reverse; }
+.command-core-ring-three { width: 310px; height: 310px; border: 1px solid rgba(0,255,157,.10); animation: command-core-pulse 4s ease-in-out infinite; }
+@keyframes command-core-pulse { 0%,100% { opacity:.68; filter:drop-shadow(0 0 6px rgba(0,255,157,.20)); } 50% { opacity:1; filter:drop-shadow(0 0 18px rgba(0,255,157,.40)); } }
+@keyframes command-core-spin { 0% { transform:translate(-50%,-50%) rotate(0deg); } 100% { transform:translate(-50%,-50%) rotate(360deg); } }
+.command-core-logo-wrap {
+  position:relative;
+  z-index:2;
+  width: 152px;
+  height: 152px;
+  border-radius: 50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(5,11,20,.88);
+  border: 2px solid rgba(0,255,157,.55);
+  box-shadow:
+    0 0 0 8px rgba(0,255,157,.07),
+    0 0 38px rgba(0,255,157,.32),
+    inset 0 1px 0 rgba(255,255,255,.10);
+  overflow:hidden;
+}
+.command-core-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.command-core-status {
+  position:absolute;
+  z-index:3;
+  bottom: 22px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color: var(--accent);
+  border: 1px solid rgba(0,255,157,.25);
+  background: rgba(0,255,157,.07);
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.command-ai-ticker {
+  position: relative;
+  z-index: 2;
+  width: auto !important;
+  margin: 16px 0 0 !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(0,255,157,.21) !important;
+  background: linear-gradient(90deg, rgba(0,255,157,.08), rgba(5,11,20,.76), rgba(56,189,248,.07)) !important;
+  overflow:hidden !important;
+  justify-content:flex-start !important;
+  gap: 12px !important;
+  padding: 10px 14px !important;
+}
+.command-ai-ticker .ticker-label {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(0,255,157,.24);
+  padding-right: 12px;
+}
+.command-ai-ticker #tickerText {
+  display:block;
+  min-width: max-content;
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  animation: command-ticker-scroll 28s linear infinite;
+}
+@keyframes command-ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-42%); } }
+@media(max-width: 1050px) {
+  .command-center-core-layout { grid-template-columns: 1fr; }
+  .command-side-stack { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+  .command-logo-core { min-height: 260px; order: -1; }
+}
+@media(max-width: 650px) {
+  .command-side-stack { grid-template-columns: 1fr; }
+  .command-feature-card { min-height: 136px !important; }
+  .command-feature-card .command-tile-value { font-size: 32px !important; }
+  .command-logo-core { min-height: 235px; }
+  .command-core-logo-wrap { width: 126px; height: 126px; }
+  .command-logo-core::before { width: 198px; height: 198px; }
+  .command-logo-core::after { width: 238px; height: 238px; }
+}
+</style>
+
+
+<style id="v39-3-command-center-clean-countdown-style">
+/* =========================
+   v39.3 COMMAND CENTER CLEANUP
+   Top logo removed, title centered, ticker converted to static first-pitch countdown,
+   and Command Center player headshots enlarged without overlapping.
+   ========================= */
+.header-top-row {
+  justify-content: center !important;
+  gap: 0 !important;
+  margin-bottom: 22px !important;
+}
+.header-top-row .main-logo {
+  display: none !important;
+}
+.header-title-section {
+  flex: none !important;
+  max-width: 900px !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+.header-title-section h1,
+.header-title-section .subtitle,
+.header-title-section .date-display {
+  text-align: center !important;
+}
+.command-center-ai-core {
+  padding-bottom: 18px !important;
+}
+.command-feature-card {
+  min-height: 188px !important;
+  padding: 17px !important;
+}
+.command-feature-card .command-tile-player {
+  min-height: 88px !important;
+  margin-top: 14px !important;
+  grid-template-columns: 86px minmax(0,1fr) !important;
+  gap: 14px !important;
+  align-items: center !important;
+  font-size: 16px !important;
+  line-height: 1.12 !important;
+}
+.command-feature-card .command-tile-player img {
+  width: 82px !important;
+  height: 82px !important;
+  min-width: 82px !important;
+  min-height: 82px !important;
+  object-fit: cover !important;
+  border-width: 3px !important;
+  box-shadow:
+    0 0 0 5px var(--tile-glow, rgba(0,255,157,.14)),
+    0 14px 30px rgba(0,0,0,.46),
+    0 0 30px var(--tile-glow, rgba(0,255,157,.26)) !important;
+}
+.command-feature-card .command-tile-player span {
+  min-width: 0 !important;
+  line-height: 1.14 !important;
+  -webkit-line-clamp: 2 !important;
+}
+.command-feature-card .command-tile-value {
+  font-size: 40px !important;
+  margin-top: 10px !important;
+}
+.command-ai-ticker {
+  justify-content: center !important;
+  text-align: center !important;
+  margin-top: 16px !important;
+  padding: 11px 16px !important;
+  min-height: 22px !important;
+  border-color: rgba(0,255,157,.24) !important;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0,255,157,.10), transparent 46%),
+    linear-gradient(90deg, rgba(5,11,20,.84), rgba(0,255,157,.075), rgba(5,11,20,.84)) !important;
+}
+.command-ai-ticker .live-dot {
+  flex: 0 0 auto !important;
+}
+.command-ai-ticker .ticker-label {
+  display: none !important;
+}
+.command-ai-ticker #tickerText {
+  min-width: 0 !important;
+  display: inline-block !important;
+  transform: none !important;
+  animation: none !important;
+  color: #eafff7 !important;
+  font-family: monospace !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+.command-ai-ticker #tickerText span {
+  color: var(--accent) !important;
+  text-shadow: 0 0 14px rgba(0,255,157,.30) !important;
+}
+@media(max-width: 1050px) {
+  .command-feature-card { min-height: 172px !important; }
+  .command-feature-card .command-tile-player {
+    grid-template-columns: 76px minmax(0,1fr) !important;
+    min-height: 78px !important;
+  }
+  .command-feature-card .command-tile-player img {
+    width: 72px !important;
+    height: 72px !important;
+    min-width: 72px !important;
+    min-height: 72px !important;
+  }
+}
+@media(max-width: 650px) {
+  .command-feature-card { min-height: 150px !important; }
+  .command-feature-card .command-tile-player {
+    grid-template-columns: 62px minmax(0,1fr) !important;
+    min-height: 64px !important;
+    font-size: 14px !important;
+  }
+  .command-feature-card .command-tile-player img {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+  }
+  .command-ai-ticker #tickerText {
+    font-size: 11px !important;
+    white-space: normal !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -2179,57 +2989,55 @@ tbody tr.cody-diamond-row:hover td {
 <div class="date-display" id="currentDateDisplay"></div>
 </div>
 </div>
-<div class="command-center-board" id="statsRibbon">
-<div class="command-center-topline">
+<div class="command-center-board command-center-ai-core" id="statsRibbon">
+<div class="command-center-topline command-center-ai-topline">
 <div class="command-center-title">⚾ Daily Runline AI Command Center</div>
-<div class="command-center-version">v37.5 // Animated Stadium Wind Lab</div>
+<div class="command-center-version"></div>
 </div>
-<div class="command-center-grid">
-<div class="command-tile accent">
-<div class="command-tile-label">💎 Top BBI</div>
-<div class="command-tile-value" id="topBBIValue">--</div>
-<div class="command-tile-player" id="topBBIPlayer"><span style="color:var(--text-muted)">Waiting for upload...</span></div>
+<div class="command-center-core-layout">
+  <div class="command-side-stack command-side-left">
+    <div class="command-tile command-feature-card accent command-top-bbi-card">
+      <div class="command-tile-label">👑 Top BBI</div>
+      <div class="command-tile-value" id="topBBIValue">--</div>
+      <div class="command-tile-player" id="topBBIPlayer"><span style="color:var(--text-muted)">Waiting for upload...</span></div>
+    </div>
+    <div class="command-tile command-feature-card gold command-longshot-card">
+      <div class="command-tile-label">🚀 Best Longshot</div>
+      <div class="command-tile-value" id="commandBestLongshotValue">--</div>
+      <div class="command-tile-player" id="commandBestLongshotPlayer"><span style="color:var(--text-muted)">+600 or longer</span></div>
+    </div>
+  </div>
+
+  <div class="command-logo-core" aria-label="Daily Runline logo core">
+    <div class="command-core-ring command-core-ring-one"></div>
+    <div class="command-core-ring command-core-ring-two"></div>
+    <div class="command-core-ring command-core-ring-three"></div>
+    <div class="command-core-logo-wrap">
+      <img id="commandCenterLogo" src="https://i.imgur.com/Czha5qm.png" alt="The Daily Run Line Logo" onerror="this.style.display='none';">
+    </div>
+    <div class="command-core-status"><span class="live-dot"></span> SYSTEM ONLINE</div>
+  </div>
+
+  <div class="command-side-stack command-side-right">
+    <div class="command-tile command-feature-card green command-edge-card">
+      <div class="command-tile-label">📈 Biggest Edge</div>
+      <div class="command-tile-value" id="commandBestEdgeValue">--</div>
+      <div class="command-tile-player" id="commandBestEdgePlayer"><span style="color:var(--text-muted)">Needs Odds sheet</span></div>
+    </div>
+    <div class="command-tile command-feature-card red command-pitcher-card">
+      <div class="command-tile-label">🎯 Pitcher Target</div>
+      <div class="command-tile-value" id="weakPitcherValue">--</div>
+      <div class="command-tile-player" id="weakPitcherPlayer"><span style="color:var(--text-muted)">Loading...</span></div>
+    </div>
+  </div>
 </div>
-<div class="command-tile green">
-<div class="command-tile-label">💰 Biggest Edge</div>
-<div class="command-tile-value" id="commandBestEdgeValue">--</div>
-<div class="command-tile-player" id="commandBestEdgePlayer"><span style="color:var(--text-muted)">Needs Odds sheet</span></div>
+<div class="command-hidden-sinks" style="display:none;">
+  <span id="hotBatValue">--</span><span id="hotBatPlayer"></span>
 </div>
-<div class="command-tile gold">
-<div class="command-tile-label">🚀 Best Longshot</div>
-<div class="command-tile-value" id="commandBestLongshotValue">--</div>
-<div class="command-tile-player" id="commandBestLongshotPlayer"><span style="color:var(--text-muted)">+600 or longer</span></div>
-</div>
-<div class="command-tile orange">
-<div class="command-tile-label">🔥 Hottest Batter</div>
-<div class="command-tile-value" id="hotBatValue">--</div>
-<div class="command-tile-player" id="hotBatPlayer"><span style="color:var(--text-muted)">Loading...</span></div>
-</div>
-<div class="command-tile red">
-<div class="command-tile-label">🎯 Weakest Pitcher</div>
-<div class="command-tile-value" id="weakPitcherValue">--</div>
-<div class="command-tile-player" id="weakPitcherPlayer"><span style="color:var(--text-muted)">Loading...</span></div>
-</div>
-<div class="command-tile blue">
-<div class="command-tile-label">🌪 Best HR Environment</div>
-<div class="command-tile-value" id="commandBestEnvValue">--</div>
-<div class="command-tile-player" id="commandBestEnvGame"><span style="color:var(--text-muted)">Waiting for slate</span></div>
-</div>
-<div class="command-tile purple">
-<div class="command-tile-label">⚾ Games Today</div>
-<div class="command-tile-value" id="commandGamesTodayValue">--</div>
-<div class="command-tile-player"><span style="color:var(--text-muted)">Loaded matchups</span></div>
-</div>
-<div class="command-tile slate">
-<div class="command-tile-label">📊 Players Evaluated</div>
-<div class="command-tile-value" id="commandPlayersEvaluatedValue">--</div>
-<div class="command-tile-player"><span style="color:var(--text-muted)">Active hitters</span></div>
-</div>
-</div>
-</div>
-<div class="slate-ticker" id="slateTicker">
+<div class="slate-ticker command-ai-ticker" id="slateTicker">
 <span class="live-dot"></span>
 <span id="tickerText">Waiting for data upload...</span>
+</div>
 </div>
 </div>
 </div>
@@ -2243,6 +3051,7 @@ tbody tr.cody-diamond-row:hover td {
 <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
 <button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
 <button class="nav-tab" onclick="switchTab('gamecenter', this)">📺 Game Center</button>
+<button class="nav-tab" onclick="switchTab('synergy', this)">⚡ Synergy Bonuses</button>
 <button class="nav-tab" onclick="switchTab('backtest', this)">📊 Backtest Lab</button>
 </div>
 <div id="tab-home" class="tab-content active">
@@ -2488,6 +3297,22 @@ tbody tr.cody-diamond-row:hover td {
 <div id="weatherRankContainer" style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
 <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</div>
 </div>
+<div class="panel orientation-audit-panel">
+<h2>🧭 Stadium Wind Orientation Audit</h2>
+<p class="orientation-audit-copy">This is the safety check for the weather engine. It shows the actual home park being used, the hard-coded stadium coordinates, the CF/LF/RF bearings, the live wind direction after the OpenWeather 180° flip, and which hitter side the model thinks benefits.</p>
+<div class="orientation-audit-tools">
+  <div class="filter-group"><label>Audit View</label><select id="orientationAuditScope" class="select-input-sm" onchange="renderStadiumOrientationAudit()" style="width:170px;"><option value="SLATE">Today's Slate</option><option value="ALL">All Stadiums</option></select></div>
+  <div class="orientation-audit-summary" id="orientationAuditSummary">Parks: <b>0</b></div>
+</div>
+<div class="orientation-audit-wrapper">
+<table class="orientation-audit-table">
+<thead><tr><th>Team</th><th class="orientation-audit-park">Stadium / Game</th><th>Lat</th><th>Lon</th><th>LF Bearing</th><th>CF Bearing</th><th>RF Bearing</th><th>API Wind From</th><th>Model Wind To</th><th>Field Read</th><th>Boost Side</th><th>Confidence</th></tr></thead>
+<tbody id="orientationAuditBody"><tr><td colspan="12" style="padding:34px;color:var(--text-muted);font-style:italic;">Upload workbook to audit today’s stadium wind orientation...</td></tr></tbody>
+</table>
+</div>
+<div class="orientation-audit-note"><b>How to use this:</b> CF Bearing is home plate → center field. LF is CF - 35°, RF is CF + 35°. OpenWeather gives wind FROM; the model flips it 180° to Wind TO, then compares that against LF/CF/RF. If a CF Bearing is wrong, the boost side can be wrong even when the API weather is perfect.</div>
+</div>
+
 </div>
 </div>
 </div>
@@ -2502,6 +3327,26 @@ tbody tr.cody-diamond-row:hover td {
   </div>
   <div id="gameCenterGrid" class="game-center-grid">
     <div class="storyline-empty" style="grid-column:1/-1;">Upload today's workbook to build game cards.</div>
+  </div>
+</div>
+
+<div id="tab-synergy" class="tab-content">
+  <div class="panel">
+    <h2>⚡ Synergy Bonuses</h2>
+    <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 14px;">Full synergy audit for every active hitter. Bonuses stay selective: players only receive points when real HR-relevant edges stack together; everyone else shows +0.00 so the tab never looks broken.</p>
+    <div class="full-edge-tools">
+      <div class="full-edge-tools-left">
+        <div class="filter-group"><label>Search Player</label><input type="text" id="synergySearchFilter" class="search-input" placeholder="Type player name..." oninput="renderSynergyBonusesTab()"></div>
+        <div class="filter-group"><label>Team</label><select id="synergyTeamFilter" class="select-input-sm" onchange="renderSynergyBonusesTab()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
+      </div>
+      <div class="full-edge-summary" id="synergySummary">Players: <b>0</b></div>
+    </div>
+    <div class="table-wrapper full-edge-table-wrapper">
+      <table class="full-edge-table">
+        <thead><tr><th>Rank</th><th style="text-align:left;">Player</th><th>Team</th><th>Bats</th><th>Pitcher</th><th>Base BBI</th><th>Bonus</th><th>Final BBI</th><th>Status</th><th style="text-align:left;">Reason / Audit</th></tr></thead>
+        <tbody id="synergyBonusTableBody"><tr><td colspan="10" class="full-edge-empty">Upload workbook to calculate synergy bonuses...</td></tr></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -2574,9 +3419,10 @@ if (tabName === 'hotbat') renderHotBatTable();
 if (tabName === 'h2h') renderH2HFullTable();
 if (tabName === 'pitchlab') renderPitchLabTable();
 if (tabName === 'edge') renderEdgePanels();
-if (tabName === 'tools') renderWeatherRankings();
+if (tabName === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
 if (tabName === 'gamecenter') renderGameCenterTab();
 if (tabName === 'backtest') renderBacktestLab();
+if (tabName === 'synergy') renderSynergyBonusesTab();
 }
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyvCnCzZrc2yzchVoFU-45mqg6iMkHRYnE8IkC0CsAZEbfCXH5WfJKM5R0E6d4nu9f2yA/exec';
 let communityPicks = {};
@@ -3169,10 +4015,36 @@ function angleDiff(a, b) {
 }
 function fieldDirectionFromWind(windFromDeg, cfBearing) {
   if (windFromDeg === null || windFromDeg === undefined || isNaN(Number(windFromDeg))) {
-    return { label:'neutral', detail:'No wind degree available', windToDeg:null, fieldZone:'neutral', windType:'neutral', quality:0, angleOffTarget:null };
+    return { label:'neutral', detail:'No wind degree available', windToDeg:null, fieldZone:'neutral', windType:'neutral', quality:0, angleOffTarget:null, windCrossFrom:null, windCrossTo:null };
   }
   const toDeg = normalizeDegrees(Number(windFromDeg) + 180);
   const cf = normalizeDegrees(cfBearing || 0);
+  let signedDelta = normalizeDegrees(toDeg - cf);
+  if (signedDelta > 180) signedDelta -= 360;
+
+  // True pure crosswind lanes (v38.4 LF/RF CORRECTED):
+  // User convention for this dashboard:
+  // - Crosswind to/near LF must START in LF and drift toward RF.
+  // - Crosswind to/near RF must START in RF and drift toward LF.
+  // These are intentionally NOT scored/animated as "out to LF/RF".
+  if (Math.abs(signedDelta) >= 58 && Math.abs(signedDelta) <= 122) {
+    const crossFrom = signedDelta > 0 ? 'lf' : 'rf';
+    const crossTo = signedDelta > 0 ? 'rf' : 'lf';
+    const crossTarget = normalizeDegrees(cf + (signedDelta > 0 ? 90 : -90));
+    const crossDiff = angleDiff(toDeg, crossTarget);
+    return {
+      label:`cross from ${crossFrom.toUpperCase()} to ${crossTo.toUpperCase()}`,
+      detail:`True crosswind ${Math.round(toDeg)}°: starts near ${crossFrom.toUpperCase()} and drifts toward ${crossTo.toUpperCase()} (${Math.round(crossDiff)}° off pure cross)`,
+      windToDeg:toDeg,
+      fieldZone:crossTo,
+      windType:'cross',
+      quality:Math.max(0.20, 1 - (crossDiff / 35)),
+      angleOffTarget:crossDiff,
+      windCrossFrom:crossFrom,
+      windCrossTo:crossTo
+    };
+  }
+
   const zones = [
     { label:'out to LF',  zone:'lf',  type:'out', target:normalizeDegrees(cf - 35) },
     { label:'out to LCF', zone:'lcf', type:'out', target:normalizeDegrees(cf - 18) },
@@ -3186,9 +4058,9 @@ function fieldDirectionFromWind(windFromDeg, cfBearing) {
     { label:'in from RF',  zone:'rf',  type:'in', target:normalizeDegrees(cf + 35 + 180) }
   ].map(c => ({ ...c, diff: angleDiff(toDeg, c.target) })).sort((a,b) => a.diff - b.diff);
   const best = zones[0];
-  if (best.diff <= 25) return { label:best.label, detail:`Wind blowing ${Math.round(toDeg)}° toward ${best.zone.toUpperCase()} (${Math.round(best.diff)}° off)`, windToDeg:toDeg, fieldZone:best.zone, windType:best.type, quality:1 - (best.diff / 25), angleOffTarget:best.diff };
-  if (best.diff <= 55) return { label: best.type === 'out' ? `cross out to ${best.zone.toUpperCase()}` : `cross in from ${best.zone.toUpperCase()}`, detail:`Cross-${best.type} ${Math.round(toDeg)}° toward ${best.zone.toUpperCase()} (${Math.round(best.diff)}° off)`, windToDeg:toDeg, fieldZone:best.zone, windType:best.type, quality:0.55 - ((best.diff - 25) / 75), angleOffTarget:best.diff };
-  return { label:'crosswind', detail:`Crosswind ${Math.round(toDeg)}°`, windToDeg:toDeg, fieldZone:'cross', windType:'cross', quality:0.15, angleOffTarget:best.diff };
+  if (best.diff <= 25) return { label:best.label, detail:`Wind blowing ${Math.round(toDeg)}° toward ${best.zone.toUpperCase()} (${Math.round(best.diff)}° off)`, windToDeg:toDeg, fieldZone:best.zone, windType:best.type, quality:1 - (best.diff / 25), angleOffTarget:best.diff, windCrossFrom:null, windCrossTo:null };
+  if (best.diff <= 55) return { label: best.type === 'out' ? `cross out to ${best.zone.toUpperCase()}` : `cross in from ${best.zone.toUpperCase()}`, detail:`Cross-${best.type} ${Math.round(toDeg)}° toward ${best.zone.toUpperCase()} (${Math.round(best.diff)}° off)`, windToDeg:toDeg, fieldZone:best.zone, windType:best.type, quality:0.55 - ((best.diff - 25) / 75), angleOffTarget:best.diff, windCrossFrom:null, windCrossTo:null };
+  return { label:'crosswind', detail:`Crosswind ${Math.round(toDeg)}°`, windToDeg:toDeg, fieldZone:'cross', windType:'cross', quality:0.15, angleOffTarget:best.diff, windCrossFrom:null, windCrossTo:null };
 }
 
 function compassTextToDeg(text) {
@@ -3213,35 +4085,86 @@ function inferFieldWindFromLabel(dirRaw, homeTeam) {
   else if (dir.includes('cf') || dir.includes('center') || dir.includes('centre')) { zone = 'cf'; offset = 0; }
   else return { label:dirRaw || 'neutral', detail:'Spreadsheet wind label without field vector', windToDeg:null, fieldZone:'neutral', windType:'neutral' };
   const baseTo = normalizeDegrees(cf + offset);
+  const isCross = !hasIn && !hasOut && (dir.includes('cross') || dir.includes('across'));
+  if (isCross && (zone === 'lf' || zone === 'rf')) {
+    // User convention: "cross to/across LF" means it starts on the LF side and drifts toward RF.
+    // Opposite for RF. This keeps the animation sideways instead of pretending it is blowing out.
+    const crossFrom = zone;
+    const crossTo = zone === 'lf' ? 'rf' : 'lf';
+    const windToDeg = normalizeDegrees(cf + (crossFrom === 'lf' ? 90 : -90));
+    return { label:`cross from ${crossFrom.toUpperCase()} to ${crossTo.toUpperCase()}`, detail:`Spreadsheet crosswind mapped sideways: starts near ${crossFrom.toUpperCase()} and drifts toward ${crossTo.toUpperCase()}`, windToDeg, fieldZone:crossTo, windType:'cross', quality:1, angleOffTarget:0, windCrossFrom:crossFrom, windCrossTo:crossTo };
+  }
   const windToDeg = hasIn ? normalizeDegrees(baseTo + 180) : baseTo;
-  return { label: hasIn ? `in from ${zone.toUpperCase()}` : (hasOut ? `out to ${zone.toUpperCase()}` : `cross to ${zone.toUpperCase()}`), detail:`Spreadsheet label mapped to ${Math.round(windToDeg)}° toward ${zone.toUpperCase()}`, windToDeg, fieldZone:zone, windType: hasIn ? 'in' : (hasOut ? 'out' : 'cross'), quality:1, angleOffTarget:0 };
+  return { label: hasIn ? `in from ${zone.toUpperCase()}` : (hasOut ? `out to ${zone.toUpperCase()}` : `cross to ${zone.toUpperCase()}`), detail:`Spreadsheet label mapped to ${Math.round(windToDeg)}° toward ${zone.toUpperCase()}`, windToDeg, fieldZone:zone, windType: hasIn ? 'in' : (hasOut ? 'out' : 'cross'), quality:1, angleOffTarget:0, windCrossFrom:null, windCrossTo:null };
 }
 function enrichWeatherWithFieldVector(weather, homeTeam) {
   const stadium = stadiumCoordinates[String(homeTeam || '').toUpperCase()] || {};
   let fieldWind = null;
   if (weather && weather.windDeg !== undefined && weather.windDeg !== null && !isNaN(Number(weather.windDeg))) fieldWind = fieldDirectionFromWind(Number(weather.windDeg), stadium.cfBearing);
   else fieldWind = inferFieldWindFromLabel(weather && weather.windDir, homeTeam);
-  return { ...(weather || {}), windDir: fieldWind.label || ((weather && weather.windDir) || 'neutral'), windToDeg: fieldWind.windToDeg, windFieldZone: fieldWind.fieldZone, windDetail: fieldWind.detail, homeTeam: String(homeTeam || '').toUpperCase(), stadiumName: (stadium && stadium.name) || (weather && weather.stadiumName) || homeTeam };
+  return { ...(weather || {}), windDir: fieldWind.label || ((weather && weather.windDir) || 'neutral'), windToDeg: fieldWind.windToDeg, windFieldZone: fieldWind.fieldZone, windType: fieldWind.windType, windQuality: fieldWind.quality, windAngleOffTarget: fieldWind.angleOffTarget, windDetail: fieldWind.detail, windCrossFrom: fieldWind.windCrossFrom || null, windCrossTo: fieldWind.windCrossTo || null, homeTeam: String(homeTeam || '').toUpperCase(), stadiumName: (stadium && stadium.name) || (weather && weather.stadiumName) || homeTeam };
 }
-function convertOpenWeatherToGameWeather(apiData, homeTeam, existingWeather) {
+function parseFirstPitchDateTime(startTimeRaw) {
+  const raw = String(startTimeRaw || '').trim();
+  if (!raw) return null;
+  const now = new Date();
+  const direct = new Date(raw);
+  if (!isNaN(direct.getTime())) return direct;
+  const m = raw.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);
+  if (!m) return null;
+  let hour = Number(m[1]);
+  const minute = Number(m[2] || 0);
+  const ampm = String(m[3] || '').toUpperCase();
+  if (ampm === 'PM' && hour < 12) hour += 12;
+  if (ampm === 'AM' && hour === 12) hour = 0;
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0, 0);
+  return isNaN(d.getTime()) ? null : d;
+}
+function chooseBestOpenWeatherBlock(currentData, forecastData, existingWeather) {
+  const list = forecastData && Array.isArray(forecastData.list) ? forecastData.list : [];
+  const firstPitch = parseFirstPitchDateTime(existingWeather && existingWeather.startTime);
+  if (!list.length || !firstPitch) return { data: currentData, sourceMode:'current' };
+  const target = firstPitch.getTime();
+  let best = null;
+  let bestDiff = Infinity;
+  list.forEach(item => {
+    const t = item && item.dt ? Number(item.dt) * 1000 : Date.parse(item && item.dt_txt ? item.dt_txt : '');
+    if (!t || isNaN(t)) return;
+    const diff = Math.abs(t - target);
+    if (diff < bestDiff) { best = item; bestDiff = diff; }
+  });
+  if (best && bestDiff <= 1000 * 60 * 60 * 4) return { data: best, sourceMode:'forecast', forecastDt: best.dt_txt || (best.dt ? new Date(best.dt * 1000).toLocaleString() : '') };
+  return { data: currentData, sourceMode:'current' };
+}
+function convertOpenWeatherToGameWeather(apiData, homeTeam, existingWeather, sourceMode, forecastDt) {
   const stadium = stadiumCoordinates[homeTeam] || {};
   const main = apiData && apiData.main ? apiData.main : {};
   const wind = apiData && apiData.wind ? apiData.wind : {};
+  const safeNum = (v, fallback) => (v !== undefined && v !== null && !isNaN(Number(v))) ? Number(v) : fallback;
+  const existingHumidity = existingWeather && existingWeather.humidity !== undefined && existingWeather.humidity !== null ? Number(existingWeather.humidity) : null;
+  const apiHumidity = safeNum(main.humidity, existingHumidity !== null && !isNaN(existingHumidity) ? existingHumidity : 0);
   const fieldWind = fieldDirectionFromWind(wind.deg, stadium.cfBearing);
   return {
     ...(existingWeather || {}),
-    temp: Math.round(Number(main.temp || (existingWeather && existingWeather.temp) || 72)),
-    windSpeed: Math.round(Number(wind.speed || 0)),
-    windGust: wind.gust !== undefined ? Math.round(Number(wind.gust || 0)) : undefined,
+    temp: Math.round(safeNum(main.temp, (existingWeather && existingWeather.temp) || 72)),
+    windSpeed: Math.round(safeNum(wind.speed, 0)),
+    windGust: wind.gust !== undefined ? Math.round(safeNum(wind.gust, 0)) : undefined,
     windDir: fieldWind.label,
-    windDeg: wind.deg !== undefined ? Number(wind.deg) : null,
+    windDeg: wind.deg !== undefined && wind.deg !== null ? Number(wind.deg) : null,
     windToDeg: fieldWind.windToDeg,
     windFieldZone: fieldWind.fieldZone,
+    windType: fieldWind.windType,
+    windQuality: fieldWind.quality,
+    windAngleOffTarget: fieldWind.angleOffTarget,
     windDetail: fieldWind.detail,
-    humidity: Number(main.humidity || 0),
-    pressure: Number(main.pressure || 0),
+    windCrossFrom: fieldWind.windCrossFrom || null,
+    windCrossTo: fieldWind.windCrossTo || null,
+    humidity: apiHumidity,
+    humiditySource: main.humidity !== undefined && main.humidity !== null ? 'OpenWeather API' : 'Fallback',
+    pressure: safeNum(main.pressure, 0),
     isDome: !!stadium.dome || !!(existingWeather && existingWeather.isDome),
-    weatherSource: 'OpenWeather',
+    weatherSource: sourceMode === 'forecast' ? 'OpenWeather Forecast' : 'OpenWeather Current',
+    weatherForecastTime: forecastDt || '',
     stadiumName: stadium.name || homeTeam,
     homeTeam: homeTeam,
     updatedAt: new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})
@@ -3260,9 +4183,17 @@ async function refreshOpenWeatherForSlate() {
       weatherSettings[m.id] = { ...(weatherSettings[m.id] || {}), isDome:true, windDir:'neutral', windSpeed:0, temp:(weatherSettings[m.id] && weatherSettings[m.id].temp) || 72, weatherSource:'Dome preset', stadiumName:stadium.name, homeTeam };
       return;
     }
-    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${stadium.lat}&lon=${stadium.lon}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
-    requests.push(fetch(url).then(r => r.ok ? r.json() : Promise.reject(new Error(`OpenWeather ${r.status}`))).then(data => {
-      weatherSettings[m.id] = convertOpenWeatherToGameWeather(data, homeTeam, weatherSettings[m.id]);
+    const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${stadium.lat}&lon=${stadium.lon}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
+    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${stadium.lat}&lon=${stadium.lon}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
+    requests.push(Promise.allSettled([
+      fetch(currentUrl).then(r => r.ok ? r.json() : Promise.reject(new Error(`OpenWeather current ${r.status}`))),
+      fetch(forecastUrl).then(r => r.ok ? r.json() : Promise.reject(new Error(`OpenWeather forecast ${r.status}`)))
+    ]).then(results => {
+      const currentData = results[0].status === 'fulfilled' ? results[0].value : null;
+      const forecastData = results[1].status === 'fulfilled' ? results[1].value : null;
+      if (!currentData && !forecastData) throw new Error('OpenWeather current and forecast failed');
+      const picked = chooseBestOpenWeatherBlock(currentData || (forecastData && forecastData.list && forecastData.list[0]), forecastData, weatherSettings[m.id]);
+      weatherSettings[m.id] = convertOpenWeatherToGameWeather(picked.data, homeTeam, weatherSettings[m.id], picked.sourceMode, picked.forecastDt);
     }).catch(err => {
       console.warn('OpenWeather failed for', homeTeam, err);
       weatherSettings[m.id] = { ...(weatherSettings[m.id] || {}), weatherSource:'Spreadsheet fallback', weatherError:String(err && err.message ? err.message : err) };
@@ -3280,6 +4211,7 @@ function refreshAfterLiveWeatherUpdate() {
   renderEdgePanels();
   renderBestBettingEdges();
   renderWeatherRankings();
+  renderStadiumOrientationAudit();
   updateHeaderStats();
   updateSlateTicker();
   renderGameCenterTab();
@@ -3832,22 +4764,11 @@ document.getElementById('weakPitcherPlayer').innerHTML = `${hs} ${weakP.name}`;
 updateCommandCenterExtras(activePlayers);
 }
 function updateSlateTicker() {
-const teams = getTeamsPlayingToday().filter(t => t !== 'OPP');
-const numGames = teams.length / 2;
-let domes = 0;
-let windOut = 0;
-const countedGames = new Set();
-playerData.forEach(p => {
-if(countedGames.has(p.gameId)) return;
-countedGames.add(p.gameId);
-const w = weatherSettings[p.gameId];
-if(w) {
-if(w.isDome) domes++;
-if(String(w.windDir || '').toLowerCase().includes('out')) windOut++;
+const tickerEl = document.getElementById('tickerText');
+if (!tickerEl) return;
+updateCountdown();
 }
-});
-document.getElementById('tickerText').innerText = `${Math.round(numGames)} Games Today | ${domes} Domes | ${windOut} Wind Out`;
-}
+
 function openPlayerModal(player) {
 try {
 if (!player) return;
@@ -3906,7 +4827,7 @@ html += renderHRBlueprint(player);
 html += `<div><div class="modal-section-title">🤝 SYNERGY METER</div>${renderSynergyMeter(player)}</div>`;
 // Removed broken/repeated Pitcher Attack Matchup block from popup.
 // It was showing the same FB 0% / C bat values for every player when pitch-level data did not map cleanly.
-html += section('🌤️ ENVIRONMENT', stat('Weather/Park', climate) + stat('Weather Source', (w && w.weatherSource) ? w.weatherSource : 'Spreadsheet') + stat('Wind Degrees', (w && w.windDeg !== null && w.windDeg !== undefined) ? `${Math.round(w.windDeg)}° → ${Math.round(w.windToDeg || 0)}°` : 'N/A') + stat('Pressure', (w && w.pressure) ? `${w.pressure} hPa` : 'N/A') + stat('Weather Side Used', player.weatherSideUsed || 'N/A') + stat('Weather Score', player.weatherScoreUsed !== undefined ? Number(player.weatherScoreUsed).toFixed(1) : 'N/A', (player.weatherScoreUsed || 50) >= 65 ? 'green' : (player.weatherScoreUsed || 50) <= 40 ? 'red' : '') + stat('Weather Multiplier', player.weatherImpactMultiplier ? Number(player.weatherImpactMultiplier).toFixed(3)+'x' : '1.000x') + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A'));
+html += section('🌤️ ENVIRONMENT', stat('Weather/Park', climate) + stat('Weather Source', (w && w.weatherSource) ? w.weatherSource : 'Spreadsheet') + stat('Wind Degrees', (w && w.windDeg !== null && w.windDeg !== undefined) ? `${Math.round(w.windDeg)}° → ${Math.round(w.windToDeg || 0)}°` : 'N/A') + stat('Pressure', (w && w.pressure) ? `${w.pressure} hPa` : 'N/A') + stat('Humidity', (w && w.humidity !== undefined && w.humidity !== null) ? `${Number(w.humidity || 0)}%` : 'N/A') + stat('Weather Side Used', player.weatherSideUsed || 'N/A') + stat('Weather Score', player.weatherScoreUsed !== undefined ? Number(player.weatherScoreUsed).toFixed(1) : 'N/A', (player.weatherScoreUsed || 50) >= 65 ? 'green' : (player.weatherScoreUsed || 50) <= 40 ? 'red' : '') + stat('Weather Multiplier', player.weatherImpactMultiplier ? Number(player.weatherImpactMultiplier).toFixed(3)+'x' : '1.000x') + stat('Game O/U', gameTotal > 0 ? gameTotal : 'N/A'));
 html += `<div><div class="modal-section-title">🌬️ WEATHER WHY</div><div style="color:#cbd5e1;font-size:12px;line-height:1.45;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;">${player.weatherBoostReason || 'Neutral weather impact.'}</div></div>`;
 document.getElementById('modalStatsContainer').innerHTML = html;
 } catch (err) {
@@ -4574,11 +5495,78 @@ function compassFromDeg(deg) {
 }
 function windVectorRotationForField(weather) {
   if (!weather || weather.windToDeg === null || weather.windToDeg === undefined) return 0;
+  const type = String((weather && weather.windType) || '').toLowerCase();
+  const label = String((weather && weather.windDir) || '').toLowerCase();
+  if (type === 'cross' || label.includes('cross') || label.includes('across')) {
+    const from = String((weather && weather.windCrossFrom) || '').toLowerCase();
+    const to = String((weather && weather.windCrossTo) || weather.windFieldZone || '').toLowerCase();
+    // v38.5 HARD FLIP: invert whatever the prior crosswind animation did.
+    // This flips BOTH the arrow direction and the moving lanes.
+    if (from === 'rf' || to === 'lf') return 0;
+    return 180;
+  }
   const homeTeam = String(weather.homeTeam || '').toUpperCase();
   const stadium = stadiumCoordinates[homeTeam] || {};
   const cf = normalizeDegrees(stadium.cfBearing || 0);
   // Visual field is drawn with CF straight up. Rotate wind-to degrees into that visual coordinate system.
   return normalizeDegrees(Number(weather.windToDeg) - cf - 90);
+}
+
+function signedFieldWindAngle(weather) {
+  if (!weather || weather.windToDeg === null || weather.windToDeg === undefined) return 0;
+  const homeTeam = String(weather.homeTeam || '').toUpperCase();
+  const stadium = stadiumCoordinates[homeTeam] || {};
+  const cf = normalizeDegrees(stadium.cfBearing || 0);
+  let delta = normalizeDegrees(Number(weather.windToDeg) - cf);
+  if (delta > 180) delta -= 360;
+  return delta;
+}
+function windZoneCoordinates(weather) {
+  const delta = Math.max(-125, Math.min(125, signedFieldWindAngle(weather)));
+  const rad = delta * Math.PI / 180;
+  const distance = 96;
+  const x = 50 + Math.sin(rad) * 42;
+  const y = 50 - Math.cos(rad) * 38;
+  return { x: Math.max(6, Math.min(94, x)), y: Math.max(6, Math.min(88, y)), delta };
+}
+function weatherFieldWrapClass(weather) {
+  const type = String((weather && weather.windType) || '').toLowerCase();
+  const label = String((weather && weather.windDir) || '').toLowerCase();
+  if (type === 'in' || label.includes('in from')) return 'wind-in';
+  if (type === 'cross' || label.includes('cross') || label.includes('across')) {
+    let from = String((weather && weather.windCrossFrom) || '').toLowerCase();
+    const to = String((weather && weather.windCrossTo) || (weather && weather.windFieldZone) || '').toLowerCase();
+    // Safety fallback: if the model only has the destination, make the animation visibly sideways.
+    if (!from && to === 'rf') from = 'lf';
+    if (!from && to === 'lf') from = 'rf';
+    if (!from && label.includes('lf')) from = 'lf';
+    if (!from && label.includes('rf')) from = 'rf';
+    return `wind-cross ${from === 'lf' ? 'cross-from-lf' : from === 'rf' ? 'cross-from-rf' : 'cross-from-lf'}`.trim();
+  }
+  return '';
+}
+function weatherZoneClass(weather, zone) {
+  const z = String((weather && weather.windFieldZone) || '').toLowerCase();
+  const type = String((weather && weather.windType) || '').toLowerCase();
+  const label = String((weather && weather.windDir) || '').toLowerCase();
+  if (type === 'cross' || label.includes('cross')) {
+    const from = String((weather && weather.windCrossFrom) || '').toLowerCase();
+    const to = String((weather && weather.windCrossTo) || z).toLowerCase();
+    if (zone === from) return ' cross-zone';
+    if (zone === to) return ' cross-zone active-zone';
+  }
+  if (z === zone) return type === 'cross' || label.includes('cross') ? ' cross-zone active-zone' : ' active-zone';
+  if (z === 'lcf' && (zone === 'lf' || zone === 'cf')) return ' cross-zone';
+  if (z === 'rcf' && (zone === 'rf' || zone === 'cf')) return ' cross-zone';
+  return '';
+}
+function weatherBearingReadout(weather) {
+  const homeTeam = String((weather && weather.homeTeam) || '').toUpperCase();
+  const stadium = stadiumCoordinates[homeTeam] || {};
+  const cf = stadium.cfBearing !== undefined ? normalizeDegrees(stadium.cfBearing) : null;
+  const to = weather && weather.windToDeg !== undefined && weather.windToDeg !== null ? normalizeDegrees(weather.windToDeg) : null;
+  const off = weather && weather.windAngleOffTarget !== undefined && weather.windAngleOffTarget !== null ? Math.round(Number(weather.windAngleOffTarget)) + '° off target' : 'exact vector';
+  return `<div class="weather-lab-bearing-readout"><span class="weather-bearing-pill">CF <b>${cf === null ? 'N/A' : Math.round(cf) + '°'}</b></span><span class="weather-bearing-pill">WIND TO <b>${to === null ? 'N/A' : Math.round(to) + '°'}</b></span><span class="weather-bearing-pill"><b>${off}</b></span></div>`;
 }
 function weatherBoostClass(score) {
   if (score >= 64) return 'hot';
@@ -4630,7 +5618,8 @@ function renderWeatherRankings() {
       if (temp >= 85) score += 15; else if (temp >= 75) score += 5; else if (temp < 60) score -= 15;
       const windSpeed = Number(weather.windSpeed || 0);
       const windDir = String(weather.windDir || 'neutral').toLowerCase();
-      if (windDir.includes('out')) score += (windSpeed * 1.5); else if (windDir.includes('in')) score -= (windSpeed * 1.5);
+      const windType = String(weather.windType || '').toLowerCase();
+      if (windType === 'out' || windDir.includes('out')) score += (windSpeed * 1.5); else if (windType === 'in' || windDir.includes('in')) score -= (windSpeed * 1.5);
       const humidity = Number(weather.humidity || 0);
       if (humidity > 60) score += 5;
     }
@@ -4659,24 +5648,120 @@ function renderWeatherRankings() {
     const bestBoost = Math.max(rBoost.score || 50, lBoost.score || 50);
     const boostColor = bestBoost >= 64 ? '#00ff9d' : bestBoost <= 42 ? '#ef4444' : '#38bdf8';
     const windRot = windVectorRotationForField(w);
+    const windTarget = windZoneCoordinates(w);
     const windFrom = compassFromDeg(w.windDeg);
     const windTo = compassFromDeg(w.windToDeg);
     const source = w.weatherSource || 'Spreadsheet';
     const card = document.createElement('div');
     card.className = 'weather-lab-card';
     card.style.setProperty('--wind-rot', `${windRot}deg`);
+    card.style.setProperty('--wind-zone-x', `${windTarget.x}%`);
+    card.style.setProperty('--wind-zone-y', `${windTarget.y}%`);
     card.style.setProperty('--boost-color', boostColor);
     if (w.isDome) {
       card.innerHTML = `<div class="weather-lab-top"><div><div class="weather-lab-matchup">${teamLine}</div><div class="weather-lab-park">${w.stadiumName || (homeTeam && stadiumCoordinates[homeTeam] && stadiumCoordinates[homeTeam].name) || 'Ballpark'}</div></div><div class="weather-lab-score"><div class="weather-lab-score-label">Env</div><div class="weather-lab-score-val">100</div></div></div><div class="weather-lab-dome">🏟️ Dome / Roof Neutral Weather</div><div class="weather-lab-readout"><div class="weather-lab-boost-grid"><div class="weather-boost-box"><div class="weather-boost-label">RHB Pull</div><div class="weather-boost-value">Neutral</div><div class="weather-boost-desc">No wind penalty</div></div><div class="weather-boost-box"><div class="weather-boost-label">LHB Pull</div><div class="weather-boost-value">Neutral</div><div class="weather-boost-desc">No wind penalty</div></div></div></div>`;
     } else {
       card.innerHTML = `<div class="weather-lab-top"><div><div class="weather-lab-matchup">${teamLine}</div><div class="weather-lab-park">${w.stadiumName || (homeTeam && stadiumCoordinates[homeTeam] && stadiumCoordinates[homeTeam].name) || 'Ballpark'}</div></div><div class="weather-lab-score"><div class="weather-lab-score-label">Env</div><div class="weather-lab-score-val">${game.score.toFixed(0)}</div></div></div>
-      <div class="weather-lab-meta"><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">Wind</div><div class="weather-lab-kpi-val">${Number(w.windSpeed || 0)} mph</div></div><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">From → To</div><div class="weather-lab-kpi-val">${windFrom} → ${windTo}</div></div><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">Forecast</div><div class="weather-lab-kpi-val">${Number(w.temp || 72)}°F</div></div><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">Humidity</div><div class="weather-lab-kpi-val">${Number(w.humidity || 0)}%</div></div></div>
-      <div class="weather-lab-field-wrap"><div class="weather-lab-wind-layer">${windParticleHTML()}</div><div class="weather-lab-zone lf">LF / RHB PULL</div><div class="weather-lab-zone cf">CF</div><div class="weather-lab-zone rf">RF / LHB PULL</div><div class="weather-lab-diamond"></div><div class="weather-lab-infield"></div><div class="weather-lab-home"></div><div class="weather-lab-arrow"></div></div>
-      <div class="weather-lab-readout"><div class="weather-lab-direction"><div><div class="weather-lab-direction-main">💨 ${Number(w.windSpeed || 0)} MPH ${String(w.windDir || 'neutral').toUpperCase()}</div><div class="weather-lab-direction-sub">${w.windDetail || 'Field-adjusted wind direction'} • API wind is FROM ${windFrom}; model scores where it blows TO.</div></div><div class="weather-lab-source">${source}${w.updatedAt ? ` • ${w.updatedAt}` : ''}</div></div><div class="weather-lab-boost-grid"><div class="weather-boost-box ${weatherBoostClass(rBoost.score)}"><div class="weather-boost-label">RHB Pull Benefit</div><div class="weather-boost-value">${weatherBoostText(rBoost.score)} ${rBoost.score.toFixed(0)}</div><div class="weather-boost-desc">Best when wind carries to LF/LCF</div></div><div class="weather-boost-box ${weatherBoostClass(lBoost.score)}"><div class="weather-boost-label">LHB Pull Benefit</div><div class="weather-boost-value">${weatherBoostText(lBoost.score)} ${lBoost.score.toFixed(0)}</div><div class="weather-boost-desc">Best when wind carries to RF/RCF</div></div></div></div>`;
+      <div class="weather-lab-meta"><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">Wind</div><div class="weather-lab-kpi-val">${Number(w.windSpeed || 0)} mph</div></div><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">From → To</div><div class="weather-lab-kpi-val">${windFrom} → ${windTo}</div></div><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">Forecast</div><div class="weather-lab-kpi-val">${Number(w.temp || 72)}°F</div>${w.weatherForecastTime ? `<div class="weather-api-status-pill">First Pitch Block</div>` : ''}</div><div class="weather-lab-kpi"><div class="weather-lab-kpi-label">Humidity</div><div class="weather-lab-kpi-val">${Number(w.humidity || 0)}%</div><div class="weather-api-status-pill ${w.humiditySource === 'Fallback' ? 'fallback' : ''}">${w.humiditySource || source}</div></div></div>
+      <div class="weather-lab-field-wrap ${weatherFieldWrapClass(w)}" style="--wind-rot:${windRot}deg; --true-wind-rot:${windRot}deg; --wind-zone-x:${windTarget.x}%; --wind-zone-y:${windTarget.y}%;"><div class="weather-lab-wind-layer">${windParticleHTML()}</div><div class="weather-lab-zone lf${weatherZoneClass(w, 'lf')}">LF / RHB PULL</div><div class="weather-lab-zone cf${weatherZoneClass(w, 'cf')}">CF</div><div class="weather-lab-zone rf${weatherZoneClass(w, 'rf')}">RF / LHB PULL</div><div class="weather-lab-diamond"></div><div class="weather-lab-infield"></div><div class="weather-lab-home"></div><div class="weather-lab-arrow"></div>${weatherBearingReadout(w)}</div>
+      <div class="weather-lab-readout"><div class="weather-lab-direction"><div><div class="weather-lab-direction-main">💨 ${Number(w.windSpeed || 0)} MPH ${String(w.windDir || 'neutral').toUpperCase()}</div><div class="weather-lab-direction-sub">${w.windDetail || 'Field-adjusted wind direction'} • API wind is FROM ${windFrom}; model scores where it blows TO.${w.weatherForecastTime ? ` • Forecast block: ${w.weatherForecastTime}` : ''}</div></div><div class="weather-lab-source">${source}${w.updatedAt ? ` • ${w.updatedAt}` : ''}</div></div><div class="weather-lab-boost-grid"><div class="weather-boost-box ${weatherBoostClass(rBoost.score)}"><div class="weather-boost-label">RHB Pull Benefit</div><div class="weather-boost-value">${weatherBoostText(rBoost.score)} ${rBoost.score.toFixed(0)}</div><div class="weather-boost-desc">Best when wind carries to LF/LCF</div></div><div class="weather-boost-box ${weatherBoostClass(lBoost.score)}"><div class="weather-boost-label">LHB Pull Benefit</div><div class="weather-boost-value">${weatherBoostText(lBoost.score)} ${lBoost.score.toFixed(0)}</div><div class="weather-boost-desc">Best when wind carries to RF/RCF</div></div></div></div>`;
     }
     container.appendChild(card);
   });
 }
+
+function escapeAuditHtml(value) {
+  return String(value === undefined || value === null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function formatAuditDeg(deg) {
+  if (deg === null || deg === undefined || isNaN(Number(deg))) return '<span class="orientation-audit-muted">N/A</span>';
+  const n = normalizeDegrees(Number(deg));
+  return `<span class="orientation-audit-deg">${Math.round(n)}°</span> <span class="orientation-audit-muted">${compassFromDeg(n)}</span>`;
+}
+function getAuditBoostSide(weather) {
+  if (!weather || weather.isDome) return { text:'Neutral / Dome', cls:'' };
+  const zone = String(weather.windFieldZone || '').toLowerCase();
+  const type = String(weather.windType || '').toLowerCase();
+  const label = String(weather.windDir || '').toLowerCase();
+  const isOut = type === 'out' || label.includes('out');
+  const isIn = type === 'in' || label.includes('in');
+  if (isOut && (zone === 'lf' || zone === 'lcf')) return { text:'RHB pull boost', cls:'rhb' };
+  if (isOut && (zone === 'rf' || zone === 'rcf')) return { text:'LHB pull boost', cls:'lhb' };
+  if (isOut && zone === 'cf') return { text:'Both sides boost', cls:'both' };
+  if (isIn && (zone === 'lf' || zone === 'lcf')) return { text:'RHB pull hurt', cls:'bad' };
+  if (isIn && (zone === 'rf' || zone === 'rcf')) return { text:'LHB pull hurt', cls:'bad' };
+  if (isIn && zone === 'cf') return { text:'Both sides hurt', cls:'bad' };
+  return { text:'Cross / neutral', cls:'' };
+}
+function getOrientationConfidence(stadium, weather) {
+  if (!stadium) return { text:'Missing park', cls:'low' };
+  if (stadium.dome) return { text:'Roof neutral', cls:'high' };
+  if (weather && weather.weatherSource === 'OpenWeather' && weather.windToDeg !== null && weather.windToDeg !== undefined) {
+    return { text:'Live API + manual CF', cls:'medium' };
+  }
+  if (weather && weather.windToDeg !== null && weather.windToDeg !== undefined) return { text:'Sheet wind + manual CF', cls:'medium' };
+  return { text:'Manual CF only', cls:'low' };
+}
+function findWeatherForHomeTeamAudit(team) {
+  const code = String(team || '').toUpperCase();
+  const entries = Object.entries(weatherSettings || {});
+  const direct = entries.find(([gid,w]) => String(w && w.homeTeam || '').toUpperCase() === code);
+  if (direct) return { gameId:direct[0], weather:direct[1] || {} };
+  const matchup = (gameMatchups || []).find(m => String(m.trueHomeTeam || m.homeTeam || m.teamA || '').toUpperCase() === code);
+  if (matchup) return { gameId:matchup.id, weather:(weatherSettings && weatherSettings[matchup.id]) || {} };
+  return { gameId:null, weather:{} };
+}
+function renderStadiumOrientationAudit() {
+  const tbody = document.getElementById('orientationAuditBody');
+  if (!tbody) return;
+  const scope = (document.getElementById('orientationAuditScope') && document.getElementById('orientationAuditScope').value) || 'SLATE';
+  let teams = [];
+  if (scope === 'ALL') {
+    teams = Object.keys(stadiumCoordinates || {}).sort();
+  } else {
+    teams = [...new Set((gameMatchups || []).map(m => String(m.trueHomeTeam || m.homeTeam || m.teamA || '').toUpperCase()).filter(t => t && stadiumCoordinates[t]))];
+  }
+  if (!teams.length) {
+    tbody.innerHTML = '<tr><td colspan="12" style="padding:34px;color:var(--text-muted);font-style:italic;">Upload workbook to audit today’s stadium wind orientation, or switch Audit View to All Stadiums.</td></tr>';
+    const summary = document.getElementById('orientationAuditSummary');
+    if (summary) summary.innerHTML = 'Parks: <b>0</b>';
+    return;
+  }
+  tbody.innerHTML = '';
+  teams.forEach(team => {
+    const stadium = stadiumCoordinates[team];
+    const found = findWeatherForHomeTeamAudit(team);
+    const matchup = found.gameId ? (gameMatchups || []).find(m => m.id === found.gameId) : null;
+    const weather = enrichWeatherWithFieldVector(found.weather || {}, team);
+    const cf = normalizeDegrees(stadium.cfBearing || 0);
+    const lf = normalizeDegrees(cf - 35);
+    const rf = normalizeDegrees(cf + 35);
+    const boost = getAuditBoostSide(weather);
+    const conf = getOrientationConfidence(stadium, weather);
+    const away = matchup ? (String(matchup.teamA || '').toUpperCase() === team ? String(matchup.teamB || '').toUpperCase() : String(matchup.teamA || '').toUpperCase()) : '';
+    const gameText = matchup ? `${away || 'AWAY'} @ ${team}` : (scope === 'ALL' ? 'Not on current slate' : 'Slate park');
+    const fieldRead = weather.isDome ? 'Dome / roof neutral' : (weather.windDetail || weather.windDir || 'No live wind');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-family:monospace;font-weight:1000;color:#fff;">${escapeAuditHtml(team)}</td>
+      <td class="orientation-audit-park"><div class="orientation-audit-park-main">${escapeAuditHtml(stadium.name)}</div><div class="orientation-audit-park-sub">${escapeAuditHtml(gameText)}</div></td>
+      <td class="orientation-audit-deg">${Number(stadium.lat).toFixed(4)}</td>
+      <td class="orientation-audit-deg">${Number(stadium.lon).toFixed(4)}</td>
+      <td>${formatAuditDeg(lf)}</td>
+      <td>${formatAuditDeg(cf)}</td>
+      <td>${formatAuditDeg(rf)}</td>
+      <td>${weather.isDome ? '<span class="orientation-audit-muted">Neutral</span>' : formatAuditDeg(weather.windDeg)}</td>
+      <td>${weather.isDome ? '<span class="orientation-audit-muted">Neutral</span>' : formatAuditDeg(weather.windToDeg)}</td>
+      <td style="text-align:left;max-width:280px;white-space:normal;color:#cbd5e1;">${escapeAuditHtml(fieldRead)}</td>
+      <td><span class="orientation-audit-boost ${boost.cls}">${escapeAuditHtml(boost.text)}</span></td>
+      <td><span class="orientation-audit-pill ${conf.cls}">${escapeAuditHtml(conf.text)}</span></td>`;
+    tbody.appendChild(tr);
+  });
+  const summary = document.getElementById('orientationAuditSummary');
+  if (summary) summary.innerHTML = `Parks: <b>${teams.length}</b>`;
+}
+
 function renderAllPitchers(filter = 'all') {
 const tbody = document.getElementById('allPitchersBody');
 if (!tbody) return;
@@ -5434,16 +6519,19 @@ function weatherSweetLaunchFit(la) {
   if (n >= 8 && n < 12) return 0.45;
   return 0.20;
 }
-function windDirectionSideFit(dirRaw, hand, speed) {
+function windDirectionSideFit(dirRaw, hand, speed, weatherObj) {
   const dir = String(dirRaw || 'neutral').toLowerCase();
   const s = Number(speed || 0);
   const out = dir.includes('out');
   const inn = dir.includes('in');
+  const cross = (weatherObj && String(weatherObj.windType || '').toLowerCase() === 'cross') || dir.includes('cross') || dir.includes('across');
   const lcf = dir.includes('lcf') || dir.includes('left-center') || dir.includes('left center');
   const rcf = dir.includes('rcf') || dir.includes('right-center') || dir.includes('right center');
   const lf = !lcf && (dir.includes('lf') || dir.includes('left'));
   const rf = !rcf && (dir.includes('rf') || dir.includes('right'));
   const cf = !lcf && !rcf && (dir.includes('cf') || dir.includes('center') || dir.includes('centre'));
+  const crossFrom = String((weatherObj && weatherObj.windCrossFrom) || '').toLowerCase();
+  const crossTo = String((weatherObj && weatherObj.windCrossTo) || '').toLowerCase();
   let fit = 0;
   if (out) {
     if (hand === 'R') {
@@ -5464,16 +6552,24 @@ function windDirectionSideFit(dirRaw, hand, speed) {
   } else if (inn) {
     if ((hand === 'R' && (lf || lcf)) || (hand === 'L' && (rf || rcf)) || cf) fit = -1.00;
     else fit = -0.55;
+  } else if (cross) {
+    // True crosswind scoring: LF-side → RF-side slightly helps LHB pull-side carry and slightly hurts RHB.
+    // RF-side → LF-side does the opposite. Kept intentionally smaller than direct out/in wind.
+    const fromLF = crossFrom === 'lf' || (!crossFrom && lf && !rf);
+    const fromRF = crossFrom === 'rf' || (!crossFrom && rf && !lf);
+    if (fromLF || crossTo === 'rf') fit = hand === 'L' ? 0.25 : -0.18;
+    else if (fromRF || crossTo === 'lf') fit = hand === 'R' ? 0.25 : -0.18;
+    else fit = 0;
   }
   const speedImpact = Math.min(1.35, Math.max(0, s) / 18);
-  return { fit, speedImpact, out, inn, lf, rf, cf, lcf, rcf };
+  return { fit, speedImpact, out, inn, cross, lf, rf, cf, lcf, rcf, crossFrom, crossTo };
 }
 function buildSideWeatherImpact({ weather, hand, pull, pullAir, flyBall, launchAngle, barrel, maxEV, pitcherFB, pitcherHRFB, pitcherBarrel, pitcherHardHit, pitcherEV, pullFence, cf, parkFactor }) {
   if (!weather) return { score: 50, multiplier: 1.0, side: hand, reason: 'No weather data found; neutral weather score.', components: {} };
   if (weather.isDome) return { score: 55, multiplier: 1.005, side: hand, reason: `${hand}HB dome/roof game: neutral carry, no wind penalty.`, components: {} };
   const temp = Number(weather.temp || 72);
   const humidity = Number(weather.humidity || 0);
-  const wind = windDirectionSideFit(weather.windDir, hand, weather.windSpeed);
+  const wind = windDirectionSideFit(weather.windDir, hand, weather.windSpeed, weather);
   const pullFit = weatherScaleBetween(pull, 0.34, 0.48);
   const pullAirFit = weatherScaleBetween(pullAir, 0.10, 0.24);
   const flyBallFit = weatherScaleBetween(flyBall, 0.30, 0.45);
@@ -5504,9 +6600,13 @@ function buildSideWeatherImpact({ weather, hand, pull, pullAir, flyBall, launchA
     const rawWind = 22 * Math.abs(wind.fit) * wind.speedImpact;
     const airPenaltyGate = 0.65 + (hitterShape * 0.20) + (pitcherAir * 0.15);
     windPoints = -rawWind * airPenaltyGate;
+  } else if (wind.cross) {
+    const rawWind = 10 * wind.fit * wind.speedImpact;
+    const crossGate = 0.45 + (hitterShape * 0.35) + (pitcherAir * 0.20);
+    windPoints = rawWind * crossGate;
   }
-  const shapePoints = wind.out ? (hitterShape - 0.50) * 10 : 0;
-  const pitcherPoints = wind.out ? (pitcherAir - 0.50) * 7 : 0;
+  const shapePoints = (wind.out || (wind.cross && wind.fit > 0)) ? (hitterShape - 0.50) * (wind.out ? 10 : 4) : 0;
+  const pitcherPoints = (wind.out || (wind.cross && wind.fit > 0)) ? (pitcherAir - 0.50) * (wind.out ? 7 : 3) : 0;
   const parkPoints = (parkCarry - 0.50) * 6;
   const score = weatherClampScore(50 + windPoints + shapePoints + pitcherPoints + parkPoints + tempScore + humidityScore);
   const multiplier = Math.max(0.955, Math.min(1.055, 1 + ((score - 50) / 900)));
@@ -5792,19 +6892,25 @@ function scoreHybridPlayer(p, ranges) {
     { value: hybridScoreMetric(r,ranges,'avgDistance'), weight: 0.13 }
   ]);
   let bvp = null;
-  // BvP confidence scaling: ignore 0-3 PA, then gradually trust the signal more as PA builds.
-  // The score is blended toward neutral 50 so a tiny good sample helps only a little instead of becoming full-strength.
-  if (r.bvpPA !== null && r.bvpPA !== undefined && r.bvpPA >= 4) {
+  // Adaptive BvP: the stat only uses as much of the 8% BvP bucket as the PA sample earns.
+  // 0-2 PA is inactive; unused BvP weight is redistributed equally across the other scoring buckets below.
+  const bvpPA = Number(r.bvpPA || 0);
+  let bvpConfidence = 0;
+  if (bvpPA >= 13) bvpConfidence = 1.00;
+  else if (bvpPA >= 9) bvpConfidence = 0.75;
+  else if (bvpPA >= 6) bvpConfidence = 0.50;
+  else if (bvpPA >= 3) bvpConfidence = 0.25;
+  if (bvpConfidence > 0) {
     const bvpRaw = hybridAvg([hybridScoreMetric(r,ranges,'bvpHR'),hybridScoreMetric(r,ranges,'bvpBA'),hybridScoreMetric(r,ranges,'bvpXSLG'),hybridScoreMetric(r,ranges,'bvpXWOBA'),hybridScoreMetric(r,ranges,'bvpEV'),hybridSweetSpotLaunchAngle(r.bvpLA),hybridScoreMetric(r,ranges,'bvpK',true),hybridScoreMetric(r,ranges,'bvpWhiff',true)]);
-    let bvpConfidence = 0;
-    if (r.bvpPA >= 20) bvpConfidence = 1.00;
-    else if (r.bvpPA >= 13) bvpConfidence = 0.90;
-    else if (r.bvpPA >= 8) bvpConfidence = 0.70;
-    else if (r.bvpPA >= 4) bvpConfidence = 0.40;
-    bvp = bvpRaw !== null ? 50 + ((bvpRaw - 50) * bvpConfidence) : null;
-    p.calculatedBvPConfidence = bvpConfidence;
+    bvp = bvpRaw !== null && !isNaN(bvpRaw) ? bvpRaw : null;
     p.calculatedBvPRawScore = bvpRaw;
+    // If PA exists but the workbook has no usable BvP stat cells, do not reserve BvP weight.
+    // Give that weight back to the other buckets so missing BvP can never blank or distort the model.
+    if (bvp === null) bvpConfidence = 0;
   }
+  p.calculatedBvPConfidence = Math.max(0, Math.min(1, bvpConfidence));
+  p.calculatedBvPActiveWeight = HYBRID_CATEGORY_WEIGHTS.bvp * bvpConfidence;
+  p.calculatedBvPRedistributedWeight = HYBRID_CATEGORY_WEIGHTS.bvp - p.calculatedBvPActiveWeight;
   const bullpen = hybridAvg([hybridScoreMetric(r,ranges,'bullpenHR9'),hybridScoreMetric(r,ranges,'bullpenFIP'),hybridScoreMetric(r,ranges,'bullpenBarrel'),hybridScoreMetric(r,ranges,'bullpenHardHit')]);
   const park = hybridAvg([hybridScoreMetric(r,ranges,'parkFactor'),hybridScoreMetric(r,ranges,'pullFence',true),hybridScoreMetric(r,ranges,'cf',true),hybridScoreMetric(r,ranges,'weatherScore')]);
   const weather = hybridAvg([hybridScoreMetric(r,ranges,'weatherScore')]);
@@ -5839,8 +6945,24 @@ function scoreHybridPlayer(p, ranges) {
     { weight: 0.04, keys: ['pitchLevelEV','bullpenHR9'] }
   ]);
   p.calculatedDataConfidence = dataConfidence;
+  const effectiveCategoryWeights = { ...HYBRID_CATEGORY_WEIGHTS };
+  const bvpBaseWeight = HYBRID_CATEGORY_WEIGHTS.bvp || 0;
+  const bvpActiveWeight = bvpBaseWeight * (p.calculatedBvPConfidence || 0);
+  const bvpUnusedWeight = bvpBaseWeight - bvpActiveWeight;
+  const bvpRedistributionTargets = Object.keys(HYBRID_CATEGORY_WEIGHTS).filter(cat => cat !== 'bvp');
+  effectiveCategoryWeights.bvp = bvpActiveWeight;
+  if (bvpUnusedWeight > 0 && bvpRedistributionTargets.length) {
+    const addEach = bvpUnusedWeight / bvpRedistributionTargets.length;
+    bvpRedistributionTargets.forEach(cat => { effectiveCategoryWeights[cat] = (effectiveCategoryWeights[cat] || 0) + addEach; });
+  }
+  p.hybridEffectiveCategoryWeights = { ...effectiveCategoryWeights };
   let total = 0, usedWeight = 0;
-  Object.keys(HYBRID_CATEGORY_WEIGHTS).forEach(cat => { if (p.category[cat] !== null && !isNaN(p.category[cat])) { total += p.category[cat] * HYBRID_CATEGORY_WEIGHTS[cat]; usedWeight += HYBRID_CATEGORY_WEIGHTS[cat]; } });
+  Object.keys(effectiveCategoryWeights).forEach(cat => {
+    if (effectiveCategoryWeights[cat] > 0 && p.category[cat] !== null && p.category[cat] !== undefined && !isNaN(p.category[cat])) {
+      total += p.category[cat] * effectiveCategoryWeights[cat];
+      usedWeight += effectiveCategoryWeights[cat];
+    }
+  });
   let score = usedWeight ? total / usedWeight : 0;
   const coreHRScore = hybridWeightedAvg([
     { value: power, weight: 0.40 },
@@ -5856,12 +6978,17 @@ function scoreHybridPlayer(p, ranges) {
   else if (dataConfidence < 0.55) score -= 2.0;
   else if (dataConfidence < 0.70) score -= 1.0;
 
-  const scaleHRFB = Number(document.getElementById('weightHRFB').value) / 100;
-  const scalePitcherHR9 = Number(document.getElementById('weightPitcherHR9').value) / 100;
-  const scaleBarrel = Number(document.getElementById('weightBarrel').value) / 100;
-  const scalePark = Number(document.getElementById('weightPark').value) / 100;
-  const scalePulled = Number(document.getElementById('weightPulled').value) / 100;
-  const scaleWeather = Number(document.getElementById('weightWeather').value) / 100;
+  const safeSlider = (id, fallback=100) => {
+    const el = document.getElementById(id);
+    const val = el ? Number(el.value) : fallback;
+    return (isNaN(val) ? fallback : val) / 100;
+  };
+  const scaleHRFB = safeSlider('weightHRFB');
+  const scalePitcherHR9 = safeSlider('weightPitcherHR9');
+  const scaleBarrel = safeSlider('weightBarrel');
+  const scalePark = safeSlider('weightPark');
+  const scalePulled = safeSlider('weightPulled');
+  const scaleWeather = safeSlider('weightWeather');
   const adjustment = 1 + ((scaleHRFB-1)*0.08) + ((scalePitcherHR9-1)*0.14) + ((scaleBarrel-1)*0.12) + ((scalePark-1)*0.07) + ((scalePulled-1)*0.08) + ((scaleWeather-1)*0.08);
   score *= Math.max(0.65, Math.min(1.35, adjustment));
 
@@ -5885,38 +7012,15 @@ function scoreHybridPlayer(p, ranges) {
   score += Math.min(2.25, hr9DamageBoost * scalePitcherHR9);
 
   if (r.pa && r.pa < 50 && !r.lwHR && !elitePowerCore) score *= 0.88;
-  if (r.bvpPA && r.bvpPA >= 10 && r.bvpXSLG > 0.450) score += 3;
 
-  // Visible synergy bonus for stacked HR conditions. This uses the normalized category scores,
-  // so it works even when workbook column names differ from the old hand-built engine.
-  let synergyPoints = 0;
-  const goodPower = (power !== null && power >= 60) || (r.barrel !== null && r.barrel >= 0.10) || (r.iso !== null && r.iso >= 0.200);
-  const elitePower = (power !== null && power >= 75) || (r.barrel !== null && r.barrel >= 0.135) || (r.iso !== null && r.iso >= 0.250);
-  const badPitcher = (pitcher !== null && pitcher >= 60) || (r.pitcherHR9 !== null && r.pitcherHR9 >= 1.20) || (r.pitcherBarrel !== null && r.pitcherBarrel >= 0.085);
-  const veryBadPitcher = (pitcher !== null && pitcher >= 75) || (r.pitcherHR9 !== null && r.pitcherHR9 >= 1.50) || (r.pitcherBarrel !== null && r.pitcherBarrel >= 0.105);
-  const goodBattedBall = (battedBall !== null && battedBall >= 58) || (r.pullAir !== null && r.pullAir >= 0.20) || (r.flyBall !== null && r.flyBall >= 0.39);
-  const strongBattedBall = (battedBall !== null && battedBall >= 72) || ((r.pullAir !== null && r.pullAir >= 0.24) && (r.flyBall !== null && r.flyBall >= 0.42));
-  const goodPitchFit = pitchLevel !== null && pitchLevel >= 58;
-  const goodRecent = (recent !== null && recent >= 58) || (r.lwBarrel !== null && r.lwBarrel >= 0.10) || (r.lwXSLG !== null && r.lwXSLG >= 0.475);
-  const goodPark = (park !== null && park >= 58) || (r.pullFence !== null && r.pullFence <= 330) || (r.parkFactor !== null && r.parkFactor >= 102);
-  const goodWeather = (weather !== null && weather >= 58) || (r.weatherScore !== null && r.weatherScore >= 58);
-
-  if (goodPower && badPitcher) synergyPoints += 2.0;
-  if (elitePower && badPitcher) synergyPoints += 1.5;
-  if (veryBadPitcher && goodBattedBall) synergyPoints += 1.5;
-  if (goodBattedBall && goodPark) synergyPoints += 1.25;
-  if (strongBattedBall && goodPark) synergyPoints += 1.25;
-  if (goodBattedBall && goodWeather) synergyPoints += 1.25;
-  if (badPitcher && goodPitchFit) synergyPoints += 1.25;
-  if (goodPower && goodRecent) synergyPoints += 1.0;
-  if (goodPower && goodBattedBall && badPitcher && (goodPark || goodWeather)) synergyPoints += 2.0;
-  synergyPoints = Math.max(0, Math.min(16, synergyPoints));
-  const synergyBonusPoints = (synergyPoints / 16) * 8;
-  score += synergyBonusPoints;
-  const synergyMultiplier = 1 + (synergyBonusPoints / 100);
-  p.calculatedSynergy = synergyBonusPoints;
-  p.calculatedRawSynergy = synergyPoints;
-  p.calculatedSynergyMultiplier = synergyMultiplier;
+  const baseScoreBeforeSynergy = score;
+  const microSynergy = calculateMicroSynergyBonuses(p, r, { power, pitcher, battedBall, pitchLevel, recent, weather, park });
+  score += microSynergy.total;
+  p.calculatedBaseBBI = baseScoreBeforeSynergy;
+  p.calculatedSynergy = microSynergy.total;
+  p.calculatedRawSynergy = microSynergy.rawTotal;
+  p.calculatedSynergyMultiplier = 1 + (microSynergy.total / 100);
+  p.synergyBonuses = microSynergy.items;
 
   p.calculatedPowerModifier = power !== null ? power / 50 : 1.0;
   p.calculatedPVF = pitcherHRDamage !== null ? pitcherHRDamage / 50 : (pitcher !== null ? pitcher / 50 : 1.0);
@@ -5930,20 +7034,227 @@ function scoreHybridPlayer(p, ranges) {
   p.calculatedRecentScore = adjustedRecent;
   p.calculatedWeatherScore = weather;
   p.calculatedBVPScore = bvp;
-  p.hybridCategoryWeightsUsed = { ...HYBRID_CATEGORY_WEIGHTS };
+  p.hybridCategoryWeightsUsed = { ...(p.hybridEffectiveCategoryWeights || HYBRID_CATEGORY_WEIGHTS) };
   p.hybridCategoryContributions = {};
   Object.keys(HYBRID_CATEGORY_WEIGHTS).forEach(cat => {
     const v = p.category && p.category[cat];
-    p.hybridCategoryContributions[cat] = (v !== null && v !== undefined && !isNaN(v)) ? (v * HYBRID_CATEGORY_WEIGHTS[cat]) : null;
+    p.hybridCategoryContributions[cat] = (v !== null && v !== undefined && !isNaN(v)) ? (v * (p.hybridCategoryWeightsUsed[cat] || 0)) : null;
   });
   p.hybridRawSnapshot = { ...r };
   return Math.max(0, Math.min(100, score));
 }
+function calculateMicroSynergyBonuses(player, raw, cats) {
+  try {
+    const items = [];
+    const n = v => (v === null || v === undefined || isNaN(v)) ? null : Number(v);
+    const score = v => n(v) === null ? 50 : n(v);
+    const pct = v => {
+      const x = n(v);
+      if (x === null) return 'N/A';
+      return `${Math.round((x > 1 ? x : x * 100))}%`;
+    };
+    const num = (v, d=1) => {
+      const x = n(v);
+      return x === null ? 'N/A' : x.toFixed(d);
+    };
+    const weatherBits = player.weatherImpactComponents || {};
+    const windPoints = n(weatherBits.windPoints) || 0;
+    const weatherScore = n(raw.weatherScore) || n(cats.weather) || 50;
+    const temp = (() => {
+      const w = (typeof weatherSettings !== 'undefined' && player && player.gameId) ? (weatherSettings[player.gameId] || null) : null;
+      return w && w.temp !== undefined ? Number(w.temp || 72) : 72;
+    })();
+    const add = (name, points, reason) => {
+      const pts = Number(points || 0);
+      if (!pts || pts <= 0 || isNaN(pts)) return;
+      items.push({ name, points: Math.round(pts * 100) / 100, reason });
+    };
+
+    // Main cross-bucket stacks. These are intentionally small micro bonuses, not new buckets.
+    if (n(raw.flyBall) >= 0.36 && n(raw.pitcherFB) >= 0.36 && (windPoints >= 0.75 || weatherScore >= 58)) {
+      const pts = (n(raw.flyBall) >= 0.43 && n(raw.pitcherFB) >= 0.43 && windPoints >= 2.5) ? 0.80 : 0.45;
+      add('Fly Ball Stack', pts, `${pct(raw.flyBall)} hitter FB + ${pct(raw.pitcherFB)} pitcher FB allowed + weather support (${num(windPoints)} wind pts)`);
+    }
+    if (n(raw.pullAir) >= 0.16 && n(raw.pullFence) && n(raw.pullFence) <= 340 && (windPoints >= 0.75 || weatherScore >= 58)) {
+      const pts = (n(raw.pullAir) >= 0.24 && windPoints >= 2.5 && n(raw.pullFence) <= 325) ? 1.00 : 0.55;
+      add('Pull-Air Park/Wind Stack', pts, `${pct(raw.pullAir)} pulled-air profile + ${num(raw.pullFence,0)} ft pull-side fence + today's environment`);
+    }
+    if (n(raw.barrel) >= 0.085 && n(raw.pitcherBarrel) >= 0.075) {
+      const pts = (n(raw.barrel) >= 0.13 && n(raw.pitcherBarrel) >= 0.105) ? 0.70 : 0.40;
+      add('Barrel Collision', pts, `${pct(raw.barrel)} hitter barrels + ${pct(raw.pitcherBarrel)} pitcher barrel allowed`);
+    }
+    if ((n(raw.hardHit) >= 0.40 || n(raw.ev90) >= 103) && (n(raw.pitcherHardHit) >= 0.38 || n(raw.pitcherEV90) >= 103)) {
+      const pts = (n(raw.hardHit) >= 0.48 && n(raw.pitcherHardHit) >= 0.45) ? 0.55 : 0.30;
+      add('EV Collision', pts, `hitter EV90/Max EV ${num(raw.ev90)}/${num(raw.maxEV)} vs pitcher EV allowed/EV90 ${num(raw.pitcherEV)}/${num(raw.pitcherEV90)}`);
+    }
+    if (n(raw.launchAngle) >= 12 && n(raw.launchAngle) <= 30 && temp >= 72 && (windPoints >= 0.75 || weatherScore >= 58)) {
+      const pts = (temp >= 85 && windPoints >= 2.5) ? 0.55 : 0.30;
+      add('Launch Carry', pts, `${num(raw.launchAngle)}° launch angle + ${Math.round(temp)}°F + environment support (${num(windPoints)} wind pts)`);
+    }
+    if ((n(raw.lwBarrel) >= 0.085 || n(raw.lwMaxEV) >= 107) && (n(raw.pitcherBarrel) >= 0.075 || n(raw.pitcherHardHit) >= 0.38)) {
+      const pts = (n(raw.lwBarrel) >= 0.13 && (n(raw.pitcherBarrel) >= 0.105 || n(raw.pitcherHardHit) >= 0.45)) ? 0.70 : 0.40;
+      add('Recent Contact vs Weak Pitcher', pts, `recent barrel/Max EV ${pct(raw.lwBarrel)}/${num(raw.lwMaxEV)} meets pitcher barrel/HH allowed ${pct(raw.pitcherBarrel)}/${pct(raw.pitcherHardHit)}`);
+    }
+    if (score(cats.power) >= 70 && score(cats.pitcher) >= 68) {
+      const pts = (score(cats.power) >= 82 && score(cats.pitcher) >= 78) ? 0.75 : 0.45;
+      add('Power vs Pitcher Weakness', pts, `Power ${num(cats.power,0)} aligns with Pitcher Vulnerability ${num(cats.pitcher,0)}`);
+    }
+    if (score(cats.battedBall) >= 68 && score(cats.pitcher) >= 68) {
+      add('Batted-Ball Matchup', 0.35, `Batted Ball ${num(cats.battedBall,0)} lines up with Pitcher Vulnerability ${num(cats.pitcher,0)}`);
+    }
+    if (score(cats.pitchLevel) >= 68 && score(cats.pitcher) >= 66) {
+      add('Pitch Lab Matchup', 0.35, `Pitch Lab ${num(cats.pitchLevel,0)} lines up with Pitcher Vulnerability ${num(cats.pitcher,0)}`);
+    }
+    if (score(cats.power) >= 75 && score(cats.battedBall) >= 70 && score(cats.pitcher) >= 70 && (weatherScore >= 58 || windPoints >= 1.0)) {
+      const pts = (score(cats.power) >= 85 && score(cats.battedBall) >= 80 && score(cats.pitcher) >= 80 && weatherScore >= 68) ? 1.10 : 0.70;
+      add('Perfect Storm', pts, `Power ${num(cats.power,0)} + Batted Ball ${num(cats.battedBall,0)} + Pitcher ${num(cats.pitcher,0)} + Weather ${num(weatherScore,0)} all align`);
+    }
+
+    const rawTotal = items.reduce((s,x) => s + x.points, 0);
+    const total = Math.min(rawTotal, rawTotal >= 2.5 ? 3.0 : 2.5);
+    return { items, rawTotal: Math.round(rawTotal * 100) / 100, total: Math.round(total * 100) / 100 };
+  } catch (err) {
+    console.warn('Micro synergy failed for', player && player.Name, err);
+    return { items: [], rawTotal: 0, total: 0 };
+  }
+}
 function recalculateAllBBIScores() {
-  playerData.forEach(p => { p.hybridRaw = hybridRaw(p); p.pitchLabProfile = buildPitchLabProfile(p); });
-  const ranges = buildHybridRanges(playerData.filter(p => !p.isRemoved));
-  playerData.forEach(p => { p.calculatedBBI = scoreHybridPlayer(p, ranges); attachOddsAndEdge(p); });
-  applyFiltersAndRender();
+  try {
+    playerData.forEach(p => {
+      try {
+        p.hybridRaw = hybridRaw(p);
+        p.pitchLabProfile = buildPitchLabProfile(p);
+      } catch (err) {
+        console.warn('Prep failed for player:', p && p.Name, err);
+        p.hybridRaw = p.hybridRaw || {};
+        p.pitchLabProfile = p.pitchLabProfile || null;
+      }
+    });
+    const ranges = buildHybridRanges(playerData.filter(p => !p.isRemoved));
+    playerData.forEach(p => {
+      try {
+        p.calculatedBBI = scoreHybridPlayer(p, ranges);
+      } catch (err) {
+        console.error('Hybrid score failed for player:', p && p.Name, err);
+        p.calculatedBBI = Number(p.calculatedBBI || 0);
+        p.calculatedBaseBBI = p.calculatedBaseBBI || p.calculatedBBI;
+        p.calculatedSynergy = 0;
+        p.synergyBonuses = [];
+      }
+      try { attachOddsAndEdge(p); } catch (err) { console.warn('Odds/edge attach failed for player:', p && p.Name, err); }
+    });
+  } catch (err) {
+    console.error('Recalculate pipeline failed:', err);
+  }
+  try { applyFiltersAndRender(); } catch (err) { console.error('Render failed after recalc:', err); }
+  try { renderSynergyBonusesTab(); } catch (err) { console.warn('Synergy tab render failed:', err); }
+  try { updateHeaderStats(); } catch (err) { console.warn('Command Center update failed:', err); }
+}
+function syncSynergyTeamFilter() {
+  const sel = document.getElementById('synergyTeamFilter');
+  if (!sel || !playerData) return;
+  const current = sel.value || 'ALL';
+  const teams = Array.from(new Set(playerData.filter(p => p && p.Team).map(p => p.Team))).sort();
+  sel.innerHTML = '<option value="ALL">All Teams</option>' + teams.map(t => `<option value="${String(t).replace(/"/g,'&quot;')}">${t}</option>`).join('');
+  sel.value = teams.includes(current) ? current : 'ALL';
+}
+function renderSynergyBonusesTab() {
+  const body = document.getElementById('synergyBonusTableBody');
+  if (!body) return;
+  try { syncSynergyTeamFilter(); } catch (err) { console.warn('Synergy team filter sync failed:', err); }
+  const esc = v => String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const safeName = v => String(v === null || v === undefined ? '' : v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const num = v => {
+    const x = Number(v);
+    return isNaN(x) ? 0 : x;
+  };
+  const getVal = (obj, keys, fallback='') => {
+    for (const k of keys) {
+      if (obj && obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') return obj[k];
+    }
+    return fallback;
+  };
+  const handDisplay = p => {
+    let raw = '';
+    try { raw = String(getVal(p, ['Bats','bats','Hand','Handedness','Batter Hand','Bat Hand','Batter Handedness'], '')).trim().toUpperCase(); } catch(e) { raw = ''; }
+    if (raw.startsWith('L')) return { label:'Left', cls:'left' };
+    if (raw.startsWith('R')) return { label:'Right', cls:'right' };
+    if (raw.startsWith('S')) return { label:'Switch', cls:'switch' };
+    return { label:'-', cls:'' };
+  };
+  const safeHeadshot = p => {
+    try {
+      if (typeof createHeadshotHtml === 'function') return createHeadshotHtml(p && p.Name, 'sm', p && p.Team) || '';
+      if (typeof renderPlayerHeadshot === 'function') return renderPlayerHeadshot(p, 'player-headshot') || '';
+    } catch (e) { console.warn('Synergy headshot failed:', p && p.Name, e); }
+    return '';
+  };
+  const safeTeamStyle = team => {
+    try {
+      if (typeof teamVisualStyle === 'function') return teamVisualStyle(team) || '';
+    } catch (e) { console.warn('Synergy team style failed:', team, e); }
+    return '';
+  };
+
+  const search = String((document.getElementById('synergySearchFilter') || {}).value || '').toLowerCase().trim();
+  const team = String((document.getElementById('synergyTeamFilter') || {}).value || 'ALL');
+
+  const sourcePlayers = Array.isArray(playerData) ? playerData : [];
+  const rows = sourcePlayers
+    .filter(p => p && !p.isRemoved)
+    .filter(p => team === 'ALL' || String(p.Team || '') === team)
+    .filter(p => !search || String(p.Name || '').toLowerCase().includes(search))
+    .map(p => {
+      if (!Array.isArray(p.synergyBonuses)) p.synergyBonuses = [];
+      const totalBonus = num(p.calculatedSynergy);
+      const base = num(p.calculatedBaseBBI || (num(p.calculatedBBI) - totalBonus));
+      const final = num(p.calculatedBBI);
+      const reasons = p.synergyBonuses.length
+        ? p.synergyBonuses.map(item => `<div style="margin-bottom:5px;"><span class="metric-badge badge-env">${esc(item.name || 'Synergy')}</span> <b style="color:#10b981;">+${num(item.points).toFixed(2)}</b> — ${esc(item.reason || '')}</div>`).join('')
+        : '<span style="color:var(--text-muted);">No micro bonus triggered. Normal BBI buckets still handle this player; no extra points were forced.</span>';
+      return { p, totalBonus, base, final, reasons, bonusCount: p.synergyBonuses.length };
+    });
+
+  rows.sort((a,b) => (b.totalBonus - a.totalBonus) || (b.final - a.final) || String(a.p.Name || '').localeCompare(String(b.p.Name || '')));
+
+  const bonusPlayers = rows.filter(r => r.totalBonus > 0).length;
+  const totalBonusEvents = rows.reduce((sum, r) => sum + r.bonusCount, 0);
+  const summary = document.getElementById('synergySummary');
+  if (summary) summary.innerHTML = `Players: <b>${rows.length}</b> • Bonus Players: <b>${bonusPlayers}</b> • Bonus Events: <b>${totalBonusEvents}</b>`;
+
+  if (!rows.length) {
+    body.innerHTML = '<tr><td colspan="10" class="full-edge-empty">No players match the current Synergy filters.</td></tr>';
+    return;
+  }
+
+  const htmlRows = [];
+  rows.forEach((row, idx) => {
+    try {
+      const p = row.p || {};
+      const pitcher = getVal(p, ['Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name','SP'], 'Starter');
+      const bh = handDisplay(p);
+      const bonusClass = row.totalBonus > 0 ? 'full-edge-ev-pos' : 'signal-neutral';
+      const status = row.totalBonus > 0
+        ? `<span class="metric-badge badge-env">${row.bonusCount} earned</span>`
+        : `<span class="metric-badge" style="background:rgba(148,163,184,.15); color:#94a3b8;">No bonus</span>`;
+      htmlRows.push(`<tr class="team-heat-row" style="${safeTeamStyle(p.Team)}">
+        <td class="full-edge-rank">#${idx + 1}</td>
+        <td class="full-edge-player"><div class="full-edge-player-card" onclick="openPlayerModalByName('${safeName(p.Name)}')">${safeHeadshot(p)}<div class="full-edge-player-copy"><div class="full-edge-player-name">${esc(p.Name || '-')}</div><div class="full-edge-player-meta">${esc(p.Team || '-')} • vs ${esc(pitcher)}</div></div></div></td>
+        <td>${esc(p.Team || '-')}</td>
+        <td><span class="batter-hand-pill ${bh.cls}">${bh.label}</span></td>
+        <td>${esc(pitcher)}</td>
+        <td class="full-edge-score">${row.base.toFixed(1)}</td>
+        <td class="${bonusClass}">+${row.totalBonus.toFixed(2)}</td>
+        <td class="full-edge-score">${row.final.toFixed(1)}</td>
+        <td>${status}</td>
+        <td style="text-align:left; white-space:normal; min-width:420px; color:#cbd5e1; line-height:1.35;">${row.reasons}</td>
+      </tr>`);
+    } catch (err) {
+      console.warn('One Synergy row failed:', row && row.p && row.p.Name, err);
+    }
+  });
+
+  body.innerHTML = htmlRows.length ? htmlRows.join('') : '<tr><td colspan="10" class="full-edge-empty">Synergy players were counted, but row rendering failed. Check console for the exact player row error.</td></tr>';
 }
 function getTeamsPlayingToday() { let teams = new Set(); playerData.forEach(p => { if(p.Team) teams.add(p.Team); }); return Array.from(teams).sort(); }
 function getBatterHandDisplay(p) {
