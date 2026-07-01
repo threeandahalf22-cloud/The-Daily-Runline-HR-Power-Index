@@ -2136,7 +2136,7 @@ tbody tr.cody-diamond-row:hover td {
 <div class="command-center-board" id="statsRibbon">
 <div class="command-center-topline">
 <div class="command-center-title">⚾ Daily Runline AI Command Center</div>
-<div class="command-center-version">v37.1 // No Opportunity Bucket</div>
+<div class="command-center-version">v37.3 // Updated Bucket Weights</div>
 </div>
 <div class="command-center-grid">
 <div class="command-tile accent">
@@ -5049,14 +5049,15 @@ return 0;
 }
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const HYBRID_CATEGORY_WEIGHTS = {
-  // Version 37.1: Opportunity removed as a standalone bucket.
-  // PA / lineup volume now lives only as a small Recent Form reliability modifier,
-  // so the Backtest Lab will no longer suggest a separate Opportunity weight.
-  // Power 23, Pitcher 20, Batted Ball 21, Pitch Lab 12,
-  // Recent 9, BvP 8, Weather 4, Park 3. Total = 100%.
-  power: 0.23,
-  pitcher: 0.20,
-  battedBall: 0.21,
+  // Version 37.3: User-updated HR bucket weights.
+  // Opportunity remains removed as a standalone bucket.
+  // PA / lineup volume still lives only as a small Recent Form reliability modifier.
+  // Requested weights: Power 26, Pitcher 15, Batted Ball 24, Pitch Lab 12,
+  // Recent 9, BvP 8, Weather 4, Park 3. Requested total = 101%.
+  // The scoring loop divides by the used weight total, so this is automatically normalized.
+  power: 0.26,
+  pitcher: 0.15,
+  battedBall: 0.24,
   pitchLevel: 0.12,
   bvp: 0.08,
   recent: 0.09,
@@ -5422,25 +5423,27 @@ function hybridClampLow(value, floor) {
 function scoreHybridPlayer(p, ranges) {
   const r = p.hybridRaw;
   const power = hybridDiminishingWeightedAvg([
-    { value: hybridScoreMetric(r,ranges,'barrel'), weight: 0.22 },
+    // Version 37.3 Power subweights: Barrel leads, Barrels/PA stays at 16%, Hard Hit raised to 16%.
+    { value: hybridScoreMetric(r,ranges,'barrel'), weight: 0.24 },
     { value: hybridScoreMetric(r,ranges,'brlsPA'), weight: 0.16 },
-    { value: hybridScoreMetric(r,ranges,'hardHit'), weight: 0.14 },
-    { value: hybridScoreMetric(r,ranges,'ev50'), weight: 0.14 },
-    { value: hybridScoreMetric(r,ranges,'avgEV'), weight: 0.10 },
-    { value: hybridScoreMetric(r,ranges,'sweetSpot'), weight: 0.09 },
+    { value: hybridScoreMetric(r,ranges,'hardHit'), weight: 0.16 },
+    { value: hybridScoreMetric(r,ranges,'ev50'), weight: 0.12 },
+    { value: hybridScoreMetric(r,ranges,'avgEV'), weight: 0.08 },
+    { value: hybridScoreMetric(r,ranges,'sweetSpot'), weight: 0.06 },
     { value: hybridScoreMetric(r,ranges,'mph95'), weight: 0.07 },
-    { value: hybridScoreMetric(r,ranges,'xHR'), weight: 0.05 },
+    { value: hybridScoreMetric(r,ranges,'xHR'), weight: 0.08 },
     { value: hybridScoreMetric(r,ranges,'maxEV'), weight: 0.03 }
   ]);
   const pitcherHR9Score = hybridScoreMetric(r,ranges,'pitcherHR9');
   const pitcherHRDamage = hybridWeightedAvg([
-    { value: pitcherHR9Score, weight: 0.30 },
-    { value: hybridScoreMetric(r,ranges,'pitcherHRFB'), weight: 0.16 },
-    { value: hybridScoreMetric(r,ranges,'pitcherFB'), weight: 0.14 },
+    // Version 37.3: Smaller pitcher bucket overall, but HR damage matters more inside it.
+    { value: pitcherHR9Score, weight: 0.38 },
+    { value: hybridScoreMetric(r,ranges,'pitcherHRFB'), weight: 0.18 },
+    { value: hybridScoreMetric(r,ranges,'pitcherFB'), weight: 0.12 },
     { value: hybridScoreMetric(r,ranges,'pitcherPull'), weight: 0.10 },
-    { value: hybridScoreMetric(r,ranges,'pitcherSweet'), weight: 0.12 },
-    { value: hybridScoreMetric(r,ranges,'pitcherGB',true), weight: 0.10 },
-    { value: hybridScoreMetric(r,ranges,'pitcherFBLD'), weight: 0.08 }
+    { value: hybridScoreMetric(r,ranges,'pitcherSweet'), weight: 0.10 },
+    { value: hybridScoreMetric(r,ranges,'pitcherGB',true), weight: 0.07 },
+    { value: hybridScoreMetric(r,ranges,'pitcherFBLD'), weight: 0.05 }
   ]);
   const pitcherContactQuality = hybridWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'pitcherBarrel'), weight: 0.24 },
@@ -5456,9 +5459,9 @@ function scoreHybridPlayer(p, ranges) {
     { value: hybridScoreMetric(r,ranges,'pitcherStuff', true), weight: 0.45 }
   ]);
   const pitcher = hybridWeightedAvg([
-    { value: pitcherHRDamage, weight: 0.42 },
-    { value: pitcherContactQuality, weight: 0.43 },
-    { value: pitcherQualityPenalty, weight: 0.15 }
+    { value: pitcherHRDamage, weight: 0.50 },
+    { value: pitcherContactQuality, weight: 0.38 },
+    { value: pitcherQualityPenalty, weight: 0.12 }
   ]);
   const pitchLabScore = p.pitchLabProfile ? cleanNumber(p.pitchLabProfile.score) : null;
   const pitchLevel = hybridWeightedAvg([
@@ -5478,11 +5481,12 @@ function scoreHybridPlayer(p, ranges) {
     { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.lwLA)), weight: 0.02 }
   ]);
   const battedBall = hybridDiminishingWeightedAvg([
-    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.35 },
-    { value: hybridScoreMetric(r,ranges,'fbld'), weight: 0.20 },
-    { value: hybridScoreMetric(r,ranges,'flyBall'), weight: 0.15 },
-    { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.launchAngle)), weight: 0.15 },
-    { value: hybridScoreMetric(r,ranges,'avgDistance'), weight: 0.15 }
+    // Version 37.3: Batted Ball raised to 24%; more launch/air-ball focused.
+    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.34 },
+    { value: hybridScoreMetric(r,ranges,'fbld'), weight: 0.18 },
+    { value: hybridScoreMetric(r,ranges,'flyBall'), weight: 0.17 },
+    { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.launchAngle)), weight: 0.18 },
+    { value: hybridScoreMetric(r,ranges,'avgDistance'), weight: 0.13 }
   ]);
   let bvp = null;
   // BvP confidence scaling: ignore 0-3 PA, then gradually trust the signal more as PA builds.
@@ -6188,7 +6192,7 @@ const BACKTEST_DB_NAME = 'DailyRunlineBacktestDB';
 const BACKTEST_STORE_NAME = 'state';
 const BACKTEST_HISTORY_KEY = 'backtestHistory';
 const BACKTEST_BOMBS_KEY = 'drlBacktestBombsCurrentSlate';
-const BACKTEST_MODEL_VERSION = '34.2_COMPLETE_WEIGHTED_RAW_BACKTEST_VIEW';
+const BACKTEST_MODEL_VERSION = '37.3_UPDATED_BUCKET_WEIGHTS';
 let backtestHistory = [];
 let currentBacktestBombs = JSON.parse(localStorage.getItem(BACKTEST_BOMBS_KEY) || '{}');
 
