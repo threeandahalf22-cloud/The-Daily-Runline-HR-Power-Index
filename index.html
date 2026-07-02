@@ -6836,6 +6836,64 @@ tbody tr:hover .stats-player-mini .player-headshot {
 @media(max-width: 560px) { .pitchlab10-top { grid-template-columns:1fr; text-align:center; } .pitchlab10-rank, .pitchlab10-face { margin:0 auto; } .pitchlab10-name, .pitchlab10-meta { white-space:normal; } }
 </style>
 
+
+<style id="h2h-bvp-team-scroller-style">
+/* =========================
+   H2H BVP TEAM SCROLLER
+   Adds the home-page style team scroller to the BVP page only.
+   Layout/data-display only: no scoring changed.
+   ========================= */
+.h2h-team-scroller-wrap {
+  padding: 12px 20px 4px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: rgba(5,11,20,.38);
+}
+.h2h-team-scroller-title {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 9px;
+}
+.h2h-team-scroller {
+  display: flex;
+  gap: 9px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(225,6,0,.65) rgba(255,255,255,.06);
+}
+.h2h-team-scroller::-webkit-scrollbar { height: 8px; }
+.h2h-team-scroller::-webkit-scrollbar-track { background: rgba(255,255,255,.06); border-radius: 999px; }
+.h2h-team-scroller::-webkit-scrollbar-thumb { background: linear-gradient(90deg, var(--accent), #38bdf8); border-radius: 999px; }
+.h2h-team-button {
+  flex: 0 0 auto;
+  min-width: 112px;
+  min-height: 42px;
+  background: rgba(9, 18, 34, 0.85);
+  border: 1px solid var(--border);
+  color: #f1f5f9;
+  border-radius: 10px;
+  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.h2h-team-button:hover { border-color: var(--accent); background: rgba(16, 28, 48, 0.95); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(225,6,0,.15); }
+.h2h-team-button.active-team-filter { border-color: var(--accent); background: rgba(225,6,0,.10); box-shadow: 0 0 12px rgba(225,6,0,.16); }
+.h2h-team-name { display: inline-flex; align-items: center; min-width: 0; }
+.h2h-team-name img { width: 18px; height: 18px; object-fit: contain; margin-right: 7px; }
+.h2h-team-count { color: var(--text-muted); font-family: monospace; font-size: 11px; flex: 0 0 auto; }
+.h2h-team-empty { color: var(--text-muted); font-size: 12px; line-height: 1.45; padding-bottom: 8px; }
+</style>
 </head>
 <body>
 
@@ -7107,11 +7165,15 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
 <h2 style="margin:0; border:none; padding:0; font-size: 16px;">⚔️ Head-to-Head Matchups</h2>
-<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Top 25 batter vs pitcher matchups sorted by xSLG</p>
+<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Every BVP matchup from the uploaded workbook, sorted by SLG/HR</p>
+</div>
+<div class="h2h-team-scroller-wrap">
+<div class="h2h-team-scroller-title">Team Scroll Filter</div>
+<div class="h2h-team-scroller" id="h2hTeamsScroller"><div class="h2h-team-empty">Upload today's workbook to load BVP teams.</div></div>
 </div>
 <div style="padding: 12px 20px;"><input type="text" class="h2h-search" id="h2hSearch" placeholder="🔍 Search batter or pitcher name..." oninput="filterH2HTable()" /></div>
 <table>
-<thead><tr><th style="text-align: left; padding-left: 20px;">Batter</th><th>Team</th><th>Opposing Pitcher</th><th>PAs</th><th>xSLG</th><th>EV</th><th>HRs</th></tr></thead>
+<thead><tr><th style="text-align: left; padding-left: 20px;">Batter</th><th>Team</th><th>Opposing Pitcher</th><th>PAs</th><th>SLG</th><th>HR</th><th>EV</th><th>Launch Angle</th></tr></thead>
 <tbody id="h2hFullTableBody"><tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 </div>
@@ -7481,6 +7543,7 @@ let hrDueData = [];
 let playerIdMap = {};
 let allPitchersData = [];
 let h2hFullData = [];
+let selectedH2HTeamFilter = 'ALL';
 let hotBatData = [];
 let fanaticsJackpotData = [];
 let pitchTypeMap = {};
@@ -10273,48 +10336,101 @@ tbody.appendChild(tr);
 });
 }
 function filterPitchers(filter, btn) { document.querySelectorAll('.pitcher-filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderAllPitchers(filter); }
+function h2hDisplayValue(value, decimals = 1, suffix = '') {
+if (value === null || value === undefined || value === '' || isNaN(value)) return '-';
+return `${Number(value).toFixed(decimals)}${suffix}`;
+}
+function getH2HRowHtml(row) {
+const logoUrl = teamLogos[row.team] || '';
+const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
+const headshotHtml = createHeadshotHtml(row.batter, 'sm');
+return `<td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot">${headshotHtml}<span style="font-weight:700; color:#fff;">${row.batter}</span></div></td><td style="color:#cbd5e1;">${logoImg}${row.team || '-'}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher || 'Starter'}</td><td style="font-family:monospace; color:#38bdf8;">${h2hDisplayValue(row.pa, 0)}</td><td style="font-family:monospace; font-weight:900; color:var(--accent);">${h2hDisplayValue(row.slg, 3)}</td><td style="font-family:monospace; font-weight:700; color:#eab308;">${h2hDisplayValue(row.hr, 0)}</td><td style="font-family:monospace; color:#f1f5f9;">${h2hDisplayValue(row.ev, 1, ' mph')}</td><td style="font-family:monospace; color:#c084fc; font-weight:800;">${h2hDisplayValue(row.la, 1, '°')}</td>`;
+}
 function renderH2HFullTable() {
 const tbody = document.getElementById('h2hFullTableBody');
 if (!tbody) return;
 let h2hData = [];
-playerData.forEach(p => {
-const normName = normalizeName(p.Name);
-const vsp = vsPitcherData[normName];
-if (vsp) {
-const pa = cleanNumber(safeGet(vsp, 'PA', 'PAs', 'AB'));
-const xslg = cleanNumber(safeGet(vsp, 'xSLG', 'xSLG vs P', 'xSLG vs'));
-if (pa >= 5 && xslg >= 0.500) {
-h2hData.push({ batter: p.Name, team: p.Team, pitcher: p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter', pa, xslg, ev: cleanNumber(safeGet(vsp, 'EV', 'Avg EV')), hr: cleanNumber(safeGet(vsp, 'HR', 'HRs', 'Matchup HR')) });
-}
-}
+const seen = new Set();
+Object.keys(vsPitcherData || {}).forEach(key => {
+const vsp = vsPitcherData[key];
+if (!vsp || typeof vsp !== 'object') return;
+const batter = String(safeGet(vsp, 'Player', 'Name', 'Batter', 'Hitter', 'Batter Name', 'player_name') || getNameFromRow(vsp) || '').trim();
+if (!batter) return;
+const normName = normalizeName(batter);
+const player = playerData.find(p => normalizeName(p.Name) === normName) || {};
+const pitcher = String(safeGet(vsp, 'Pitcher', 'Opposing Pitcher', 'Opp Pitcher', 'Pitcher Name', 'Opp Pitcher Name') || player['Opp Pitcher'] || player['Opp Pitcher Name'] || 'Starter').trim();
+const team = String(safeGet(vsp, 'Team', 'TEAM', 'Batter Team', 'Tm') || player.Team || '').trim().toUpperCase();
+const uniqueKey = `${normName}|${normalizeName(pitcher)}|${team}`;
+if (seen.has(uniqueKey)) return;
+seen.add(uniqueKey);
+const pa = cleanNumber(safeGet(vsp, 'PA', 'PAs', 'AB', 'Matchup PA', 'BVP PA'));
+const slg = cleanNumber(safeGet(vsp, 'SLG', 'Slugging', 'BVP SLG', 'SLG vs Pitcher', 'SLG vs P', 'xSLG', 'xSLG vs P', 'xSLG vs'));
+const hr = cleanNumber(safeGet(vsp, 'HR', 'HRs', 'Matchup HR', 'Matchup HRs', 'HR vs Pitcher', 'HR vs P', 'BVP HR'));
+const ev = cleanNumber(safeGet(vsp, 'EV', 'Avg EV', 'Exit Velocity', 'Average Exit Velocity', 'BVP EV'));
+const la = cleanNumber(safeGet(vsp, 'LA', 'Launch Angle', 'Avg LA', 'Average Launch Angle', 'LaunchAngle', 'BVP LA'));
+const hasAnyBvpStat = [pa, slg, hr, ev, la].some(v => v !== null && v !== undefined && !isNaN(v) && Number(v) !== 0);
+if (!hasAnyBvpStat) return;
+h2hData.push({ batter, team, pitcher, pa, slg, hr, ev, la });
 });
-h2hData.sort((a, b) => b.xslg - a.xslg);
-h2hFullData = h2hData.slice(0, 25);
-if (h2hFullData.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No batters meet the criteria (Min 5 PAs, xSLG >= .500)...</td></tr>`; return; }
-tbody.innerHTML = '';
+h2hData.sort((a, b) => {
+const slgDiff = (b.slg || 0) - (a.slg || 0);
+if (Math.abs(slgDiff) > 0.0001) return slgDiff;
+const hrDiff = (b.hr || 0) - (a.hr || 0);
+if (hrDiff) return hrDiff;
+return (b.ev || 0) - (a.ev || 0);
+});
+h2hFullData = h2hData;
+renderH2HTeamScroller();
+if (h2hFullData.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No BVP matchups found. Upload a VsPitcher or BVP sheet with batter, pitcher, SLG, HR, EV, and Launch Angle columns.</td></tr>`; return; }
+filterH2HTable();
+}
+function renderH2HTeamScroller() {
+const scroller = document.getElementById('h2hTeamsScroller');
+if (!scroller) return;
+const teamCounts = {};
 h2hFullData.forEach(row => {
-const logoUrl = teamLogos[row.team] || '';
-const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
-const headshotHtml = createHeadshotHtml(row.batter, 'sm');
-const tr = document.createElement('tr');
-tr.innerHTML = `<td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot">${headshotHtml}<span style="font-weight:700; color:#fff;">${row.batter}</span></div></td><td style="color:#cbd5e1;">${logoImg}${row.team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher}</td><td style="font-family:monospace; color:#38bdf8;">${row.pa}</td><td style="font-family:monospace; font-weight:900; color:var(--accent);">${row.xslg.toFixed(3)}</td><td style="font-family:monospace; color:#f1f5f9;">${row.ev.toFixed(1)} mph</td><td style="font-family:monospace; font-weight:700; color:#eab308;">${row.hr}</td>`;
-tbody.appendChild(tr);
+const team = String(row.team || '').trim().toUpperCase();
+if (!team) return;
+teamCounts[team] = (teamCounts[team] || 0) + 1;
 });
+const teams = Object.keys(teamCounts).sort();
+if (teams.length === 0) { scroller.innerHTML = `<div class="h2h-team-empty">Upload today's workbook to load BVP teams.</div>`; return; }
+if (selectedH2HTeamFilter !== 'ALL' && !teamCounts[selectedH2HTeamFilter]) selectedH2HTeamFilter = 'ALL';
+scroller.innerHTML = '';
+const makeButton = (team, label, countLabel) => {
+const button = document.createElement('button');
+button.type = 'button';
+button.className = 'h2h-team-button';
+if (selectedH2HTeamFilter === team) button.classList.add('active-team-filter');
+const logoUrl = teamLogos[team] || '';
+const logoImg = logoUrl ? `<img src="${logoUrl}" alt="">` : '';
+button.innerHTML = `<span class="h2h-team-name">${logoImg}${label}</span><span class="h2h-team-count">${countLabel}</span>`;
+button.onclick = () => {
+selectedH2HTeamFilter = team;
+scroller.querySelectorAll('.h2h-team-button').forEach(btn => btn.classList.remove('active-team-filter'));
+button.classList.add('active-team-filter');
+filterH2HTable();
+};
+return button;
+};
+scroller.appendChild(makeButton('ALL', 'ALL', h2hFullData.length));
+teams.forEach(team => scroller.appendChild(makeButton(team, team, teamCounts[team])));
 }
 function filterH2HTable() {
-const searchVal = document.getElementById('h2hSearch').value.toLowerCase().trim();
+const searchInput = document.getElementById('h2hSearch');
+const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
 const tbody = document.getElementById('h2hFullTableBody');
 if (!tbody) return;
 let filtered = h2hFullData;
-if (searchVal) filtered = h2hFullData.filter(r => r.batter.toLowerCase().includes(searchVal) || r.pitcher.toLowerCase().includes(searchVal));
-if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">No matchups match your search...</td></tr>`; return; }
+if (selectedH2HTeamFilter && selectedH2HTeamFilter !== 'ALL') {
+filtered = filtered.filter(r => String(r.team || '').trim().toUpperCase() === selectedH2HTeamFilter);
+}
+if (searchVal) filtered = filtered.filter(r => String(r.batter || '').toLowerCase().includes(searchVal) || String(r.pitcher || '').toLowerCase().includes(searchVal) || String(r.team || '').toLowerCase().includes(searchVal));
+if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No BVP matchups match your team/search filter...</td></tr>`; return; }
 tbody.innerHTML = '';
 filtered.forEach(row => {
-const logoUrl = teamLogos[row.team] || '';
-const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
-const headshotHtml = createHeadshotHtml(row.batter, 'sm');
 const tr = document.createElement('tr');
-tr.innerHTML = `<td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot">${headshotHtml}<span style="font-weight:700; color:#fff;">${row.batter}</span></div></td><td style="color:#cbd5e1;">${logoImg}${row.team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher}</td><td style="font-family:monospace; color:#38bdf8;">${row.pa}</td><td style="font-family:monospace; font-weight:900; color:var(--accent);">${row.xslg.toFixed(3)}</td><td style="font-family:monospace; color:#f1f5f9;">${row.ev.toFixed(1)} mph</td><td style="font-family:monospace; font-weight:700; color:#eab308;">${row.hr}</td>`;
+tr.innerHTML = getH2HRowHtml(row);
 tbody.appendChild(tr);
 });
 }
