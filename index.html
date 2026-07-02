@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>The Daily Run Line HR Power Index v42.7 Command Center Value Badge Fix</title>
+<title>The Daily Run Line HR Power Index v43.5 Backtest MaxEV PA Cleanup</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <style>
 :root {
@@ -9788,7 +9788,7 @@ function getStatsValue(player, key, rank) {
     case 'barrel': { const n = fromRateSources(r.barrel, safeGet(barrellRow,'Barrel%','Barrel %','Brls/BBE %'), safeGet(player,'Barrel %','Barrel%','Barrel Rate')); return val(n, fmtPct(n), pctClass(n, 14, 9)); }
     case 'hardhit': { const n = fromRateSources(r.hardHit, safeGet(barrellRow,'HardHit%','Hard Hit %'), safeGet(player,'Hard Hit %','HardHit%','Hard Hit Rate')); return val(n, fmtPct(n), pctClass(n, 48, 40)); }
     case 'avgEV': { const n = firstNumber(r.avgEV, safeGet(barrellRow,'EV','Avg EV','Average EV'), safeGet(ssRow,'Avg','Avg EV'), safeGet(player,'EV','Avg EV','Average EV','Exit Velocity')); return val(n, fmtNum(n,1), pctClass(n, 92, 89)); }
-    case 'maxEV': { const n = firstNumber(r.maxEV, safeGet(barrellRow,'maxEV','Max EV','MaxEV'), safeGet(ssRow,'Max','Max EV'), safeGet(player,'Max EV','maxEV','Maximum EV')); return val(n, fmtNum(n,1), pctClass(n, 112, 108)); }
+    case 'maxEV': { const n = firstNumber(safeGet(barrellRow,'maxEV'), r.maxEV, safeGet(player,'Max EV','maxEV','Maximum EV')); return val(n, fmtNum(n,1), pctClass(n, 112, 108)); }
     case 'ev90': { const n = firstNumber(r.ev90, safeGet(barrellRow,'EV90','90th EV','90th Percentile EV'), safeGet(ssRow,'EV90'), safeGet(player,'EV90','90th EV','90th Percentile EV')); return val(n, fmtNum(n,1), pctClass(n, 105, 102)); }
     case 'ev50': { const n = firstNumber(r.ev50, safeGet(barrellRow,'EV50'), safeGet(ssRow,'EV50'), safeGet(player,'EV50')); return val(n, fmtNum(n,1), pctClass(n, 96, 93)); }
     case 'mph95': { const n = fromRateSources(r.mph95, safeGet(ssRow,'95 MPH+ %','95+ %','95 MPH+'), safeGet(barrellRow,'95 MPH+ %','95+ %'), safeGet(player,'95 MPH+ %','95+ %','95+ MPH %')); return val(n, fmtPct(n), pctClass(n, 48, 38)); }
@@ -10699,7 +10699,7 @@ else if (pa < 100 && totalHR <= 1) credibilityMultiplier = 0.85;
 else if (pa < 150 && hrFB === 0) credibilityMultiplier = 0.95;
 else if (pa >= 150) credibilityMultiplier = 1.0;
 const ev = cleanNumber(safeGet(p, 'Avg EV', 'EV')) || 88;
-const maxEV = cleanNumber(safeGet(p, 'Max EV', 'MaxEV')) || ev;
+const maxEV = cleanNumber(safeGet(lookupStat('BARRELL', p.Name) || {}, 'maxEV')) || cleanNumber(safeGet(p, 'Max EV', 'MaxEV')) || ev;
 const barrelRate = cleanNumber(baseBarrel);
 if (barrelRate > 0.14 || ev > 92) credibilityMultiplier = Math.min(1.0, credibilityMultiplier + 0.20);
 const barrelRateStabilized = applyStabilization(barrelRate, LEAGUE_AVERAGES.barrelRate, pa, STABILIZATION.barrelRate);
@@ -11414,7 +11414,7 @@ function hybridRaw(p) {
   if (useTotal > 0) pitchLevelEV = evTotal / useTotal;
   const weatherHand = matchupHitterSide;
   const wxBarrel = firstRate(safeGet(barrellRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(ssRow, 'Brls/BBE %'), safeGet(scastRow, 'Brls/BBE %'), safeGet(p, 'Barrel %', 'Barrel%'));
-  const wxMaxEV = firstNumber(safeGet(ssRow, 'Max', 'Max EV', 'MaxEV'), safeGet(barrellRow, 'maxEV', 'Max EV', 'MaxEV'), safeGet(scastRow, 'Max', 'Max EV'), safeGet(p, 'Max EV', 'MaxEV'));
+  const wxMaxEV = firstNumber(safeGet(barrellRow, 'maxEV'), safeGet(p, 'Max EV', 'MaxEV'));
   const wxFlyBall = firstRate(safeGet(pulledRow, 'FB %', 'FB%'), safeGet(bbHandRow, 'FB%', 'FB %'), safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %'));
   const wxPullAir = firstRate(safeGet(pulledRow, 'Pulled Air %', 'Pull Air %', 'Air Pull %', 'Pull Air'), safeGet(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %'));
   const wxPull = firstRate(safeGet(pulledRow, 'Pull %', 'Pull%'), safeGet(bbHandRow, 'Pull%', 'Pull %'), safeGet(p, 'Pull %', 'Pull%', 'PullRate'));
@@ -11446,7 +11446,7 @@ function hybridRaw(p) {
     avgEV: firstNumber(safeGet(ssRow, 'Avg', 'Avg EV', 'Average EV'), safeGet(barrellRow, 'EV', 'Avg EV', 'Average EV'), safeGet(scastRow, 'Avg', 'Avg EV', 'Average EV'), safeGet(p, 'Avg EV', 'AVG EV', 'EV')),
     ev50: firstNumber(safeGet(ssRow, 'EV50'), safeGet(scastRow, 'EV50')),
     ev90: firstNumber(safeGet(barrellRow, 'EV90'), safeGet(pitcherBBRow, 'EV90')),
-    maxEV: firstNumber(safeGet(ssRow, 'Max', 'Max EV', 'MaxEV'), safeGet(barrellRow, 'maxEV', 'Max EV', 'MaxEV'), safeGet(scastRow, 'Max', 'Max EV'), safeGet(p, 'Max EV', 'MaxEV')),
+    maxEV: firstNumber(safeGet(barrellRow, 'maxEV'), safeGet(p, 'Max EV', 'MaxEV')),
     hardHit: firstRate(safeGet(bbHandRow, 'Hard%', 'Hard %', 'HardHit%', 'Hard Hit %'), safeGet(barrellRow, 'HardHit%', 'Hard Hit %', 'Hard Hit'), safeGet(scastRow, 'Hard Hit %', 'HardHit%'), safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%')),
     sweetSpot: firstRate(safeGet(ssRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(scastRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(p, 'Sweet Spot %', 'Sweetspot %')),
     mph95: firstRate(safeGet(ssRow, '95 MPH+ %', '95+ %', '95 MPH+'), safeGet(scastRow, '95 MPH+ %', '95+ %')),
@@ -12790,7 +12790,6 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Expected_Value_Pct: backtestNum(p.expectedValuePct),
     Bet_Grade: p.betGrade || '',
     Data_Confidence: backtestNum(p.calculatedDataConfidence),
-    PA_Reliability_Modifier: backtestNum(p.calculatedPAReliability),
     Weather_Temp: backtestNum(w.temp),
     Weather_WindSpeed: backtestNum(w.windSpeed),
     Weather_WindDir: w.windDir || '',
@@ -13091,11 +13090,7 @@ const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
     ['Raw_lwHR','Last Week HR'],
     ['Raw_lwSLG','Last Week SLG'],
     ['Raw_lwXWOBA','Last Week xwOBA'],
-    ['Raw_lwLA','Last Week Launch Angle'],
-    ['Raw_pa','PA Reliability'],
-    ['Raw_paPg','PA/G Reliability'],
-    ['Raw_battingOrder','Lineup Spot Reliability'],
-    ['PA_Reliability_Modifier','PA Reliability Score']
+    ['Raw_lwLA','Last Week Launch Angle']
   ]},
   { bucket:'BvP', type:'BvP scoring stat', keys:[
     ['Raw_bvpPA','BvP PA'],
