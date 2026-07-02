@@ -8104,7 +8104,7 @@ let oddsMap = {};
 let pitchLabData = [];
 let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {};
 let pitcherTeamMap = {};
-const STAT_MODEL_SHEETS = ['WEATHER','BARRELL','SS','SCASTL','SCASTR','PAL','PAR','RHPBB','LHPBB','ISO','ISOR','ISOL','ISOX','PXHR','PITCHERBB','PSS','PITCHMAX','PITCHER','PITCHERR','PITCHERL','PITCHERFB','PITCHERBBL','PITCHERBBR','LASTST','BULLPENEV','LINEUPS','PA','PARKFACTOR','PARKFACTORL','PARKFACTORR','RZ'];
+const STAT_MODEL_SHEETS = ['WEATHER','BARRELL','SS','SCASTL','SCASTR','PAL','PAR','RHPBB','LHPBB','ISO','ISOR','ISOL','ISOX','PXHR','PITCHERBB','PSS','PITCHMAX','PITCHER','PITCHERR','PITCHERL','PITCHERFB','PITCHERBBL','PITCHERBBR','LASTST','BULLPEN','BULLPENEV','BULLPENL7','BULLPENEVL7','LINEUPS','PA','PARKFACTOR','PARKFACTORL','PARKFACTORR','RZ'];
 function normalizedKey(k) { return String(k || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function lookupStat(sheetKey, name) { return lookupNameMap(statSheetMaps[String(sheetKey || '').toUpperCase()] || {}, name) || {}; }
 function findByTeam(sheetKey, team) {
@@ -8141,6 +8141,70 @@ function firstSaneBatterMaxEV(...vals) {
   return null;
 }
 function firstRate(...vals) { const n = firstNumber(...vals); return n === null ? null : hybridRate(n); }
+
+function weightedModifierAverage(parts, fallback = 1.0) {
+  let totalWeight = 0;
+  let weightedSum = 0;
+  (parts || []).forEach(part => {
+    const mod = Number(part && part.mod);
+    const weight = Number(part && part.weight) || 0;
+    if (isFinite(mod) && weight > 0) {
+      weightedSum += mod * weight;
+      totalWeight += weight;
+    }
+  });
+  return totalWeight > 0 ? (weightedSum / totalWeight) : fallback;
+}
+function getBullpenTeamRow(sheetKey, team) {
+  return findByTeam(sheetKey, String(team || '').trim().toUpperCase()) || {};
+}
+function bullpenModifierFromRows(runRow, evRow) {
+  const bpHR9 = firstNumber(safeGet(runRow, 'HR/9', 'HR9'));
+  const bpHRFB = firstRate(safeGet(runRow, 'HR/FB', 'HR/FB%', 'HRFB', 'HRFB%'));
+  const bpXERA = firstNumber(safeGet(runRow, 'xERA', 'xERA '), safeGet(evRow, 'xERA'));
+  const bpXFIP = firstNumber(safeGet(runRow, 'xFIP', 'XFIP'));
+  const bpBarrel = firstRate(safeGet(evRow, 'Barrel%', 'Barrel %'));
+  const bpHardHit = firstRate(safeGet(evRow, 'HardHit%', 'Hard Hit %', 'HardHit'));
+  const bpEV = firstNumber(safeGet(evRow, 'EV', 'Avg EV'));
+  const parts = [
+    { mod: bpHR9 === null ? null : ratioToModifier(bpHR9, LEAGUE_AVERAGES.pitcherHR9, { min:0.6, max:1.9, sensitivity:0.95 }), weight: 30 },
+    { mod: bpBarrel === null ? null : ratioToModifier(bpBarrel, LEAGUE_AVERAGES.pitcherBarrelAllowed, { min:0.6, max:1.9, sensitivity:0.95 }), weight: 20 },
+    { mod: bpHRFB === null ? null : 1 + Math.max(-0.25, Math.min(0.65, bpHRFB * 0.55)), weight: 15 },
+    { mod: bpHardHit === null ? null : ratioToModifier(bpHardHit, LEAGUE_AVERAGES.hardHitRate, { min:0.6, max:1.8, sensitivity:0.9 }), weight: 15 },
+    { mod: bpEV === null ? null : 1 + Math.max(-0.3, Math.min(0.65, (bpEV - 88) / 88)), weight: 10 },
+    { mod: bpXERA === null ? null : ratioToModifier(bpXERA, 4.20, { min:0.65, max:1.65, sensitivity:0.75 }), weight: 5 },
+    { mod: bpXFIP === null ? null : ratioToModifier(bpXFIP, 4.20, { min:0.65, max:1.65, sensitivity:0.70 }), weight: 5 }
+  ];
+  return weightedModifierAverage(parts, null);
+}
+function buildBullpenVulnerabilityModifier(team) {
+  const oppTeam = String(team || '').trim().toUpperCase();
+  if (!oppTeam) return 1.0;
+  const seasonRunRow = getBullpenTeamRow('BULLPEN', oppTeam);
+  const seasonEvRow = getBullpenTeamRow('BULLPENEV', oppTeam);
+  const l7RunRow = getBullpenTeamRow('BULLPENL7', oppTeam);
+  const l7EvRow = getBullpenTeamRow('BULLPENEVL7', oppTeam);
+  const seasonModifier = bullpenModifierFromRows(seasonRunRow, seasonEvRow);
+  const l7Modifier = bullpenModifierFromRows(l7RunRow, l7EvRow);
+  const seasonBase = seasonModifier === null ? 1.0 : seasonModifier;
+  const l7Base = l7Modifier === null ? seasonBase : l7Modifier;
+  return Math.max(0.55, Math.min(1.95, (seasonBase * 0.75) + (l7Base * 0.25)));
+}
+function getStarterShareForPlayer(player) {
+  const oppPitcherName = String(safeGet(player, 'Opp Pitcher', 'Opposing Pitcher', 'Opp Pitcher Name', 'Pitcher Facing', 'Pitcher', 'Pitcher Name') || '').trim();
+  const pitcherRow = lookupStat('PITCHER', oppPitcherName) || {};
+  let avgInn = firstNumber(
+    safeGet(pitcherRow, 'Avg Inn', 'AvgInn', 'Avg IP', 'Avg IP/G', 'IP/G', 'IP per G', 'IP per GS'),
+    safeGet(player, 'Avg Inn', 'AvgInn', 'Pitcher Avg Inn', 'Starter Avg Inn')
+  );
+  if (avgInn === null) {
+    const ip = firstNumber(safeGet(pitcherRow, 'IP', 'Innings Pitched'), safeGet(player, 'Pitcher IP', 'P IP', 'PitcherIP', 'IP'));
+    const startsOrGames = firstNumber(safeGet(pitcherRow, 'GS', 'G', 'Games'), safeGet(player, 'Pitcher GS', 'Pitcher G'));
+    if (ip !== null && startsOrGames !== null && startsOrGames > 0) avgInn = ip / startsOrGames;
+  }
+  if (avgInn === null || !isFinite(avgInn) || avgInn <= 0) avgInn = 6.0;
+  return Math.max(0.50, Math.min(0.85, avgInn / 9));
+}
 function modelHRProbability(score, player) {
   // Market-facing HR probability calibration.
   // The model's daily BBI scale usually tops out near 70, so 70 is treated as elite for that slate.
@@ -9097,6 +9161,7 @@ teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings =
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
+if (['BULLPEN','BULLPENEV','BULLPENL7','BULLPENEVL7'].includes(nameClean)) statSheetMaps[nameClean] = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm']));
 if (nameClean === 'PARKFACTORL') parkFactorLMap = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm','Park Team','Home Team']));
 if (nameClean === 'PARKFACTORR') parkFactorRMap = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm','Park Team','Home Team']));
 if (nameClean === 'ODDS') oddsRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name']);
@@ -11413,7 +11478,12 @@ const pv_gbM = ratioToModifier(pitcherGBNorm, 0.44, { min: 0.7, max: 1.3, sensit
 const pitcherVulnerabilityModifier = ((pv_hr9M * pvSub.pitcherHR9) + (pv_barrelAllowedM * pvSub.pitcherBarrelAllowed) + ((2 - pv_gbM) * pvSub.pitcherGB) + (pv_sweetSpotM * pvSub.pitcherSweetSpot) + (pv_hhAllowedM * pvSub.pitcherHardHitAllowed) + (pv_fbM * pvSub.pitcherFBpct) + (pv_hrfbM * pvSub.pitcherHRFBpct) + (pv_evAllowedM * pvSub.pitcherEVallowed) + (pv_pullAllowedM * pvSub.pitcherPullAllowed));
 const stabilizedPitcherXHR = applyStabilization(pitcherXhrRaw, LEAGUE_AVERAGES.pitcherHR9, pitcherIPraw, STABILIZATION.pitcherIP);
 const pv_xhrM = ratioToModifier(stabilizedPitcherXHR, LEAGUE_AVERAGES.pitcherHR9, { min:0.6, max:2.0 });
-const pitcherVulnerabilityWithXhr = (pitcherVulnerabilityModifier * 0.88) + (pv_xhrM * 0.12);
+const starterVulnerabilityWithXhr = (pitcherVulnerabilityModifier * 0.88) + (pv_xhrM * 0.12);
+const opponentBullpenTeam = getOpponentTeamForPlayer(p);
+const bullpenVulnerabilityModifier = buildBullpenVulnerabilityModifier(opponentBullpenTeam);
+const starterShare = getStarterShareForPlayer(p);
+const bullpenShare = 1 - starterShare;
+const pitcherVulnerabilityWithXhr = (starterVulnerabilityWithXhr * starterShare) + (bullpenVulnerabilityModifier * bullpenShare);
 const pmSub = N_SUB.pitchMatchup;
 const pl_fastM = 1 + Math.max(-0.5, Math.min(0.9, plFastball / 10));
 const pl_brkM = 1 + Math.max(-0.5, Math.min(0.9, plBreaking / 10));
@@ -11589,6 +11659,11 @@ if (pitcherHardHitAllowed > 0.40) finalScore = finalScore * 1.10;
 if (vsp && vspPA >= 10 && vsp_xslg > 0.450) finalScore += 25;
 p.calculatedBvP = bvpModifier;
 p.calculatedPitcherFB = pitcherVulnerabilityWithXhr;
+p.calculatedStarterPitcherVulnerability = starterVulnerabilityWithXhr;
+p.calculatedBullpenVulnerability = bullpenVulnerabilityModifier;
+p.calculatedStarterShare = starterShare;
+p.calculatedBullpenShare = bullpenShare;
+p.calculatedBullpenTeam = opponentBullpenTeam;
 p.calculatedPitcherSweetSpot = pitcherSweetSpot;
 p.calculatedSweetSpot = safeGet(p, 'Sweet Spot %') ? (1 + (cleanNumber(safeGet(p, 'Sweet Spot %')) / 100) * 0.1) : 1.0;
 p.calculatedPVF = Math.max(0.5, Math.min(2.0, pitcherHR9 / LEAGUE_AVERAGES.pitcherHR9));
