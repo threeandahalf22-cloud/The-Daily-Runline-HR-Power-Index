@@ -1315,6 +1315,13 @@ tbody tr.cody-diamond-row:hover td {
 .edge-cell.edge-neg { color:#f87171; }
 .odds-cell { font-family:monospace; font-weight:1000; color:#eab308; white-space:nowrap; }
 .hrprob-cell { font-family:monospace; font-weight:1000; color:var(--accent); white-space:nowrap; }
+.odds-with-book { display:inline-flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; line-height:1; }
+.book-badge { display:inline-flex; align-items:center; justify-content:center; min-width:24px; height:16px; padding:0 5px; border-radius:4px; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:8px; font-weight:1000; letter-spacing:.35px; text-transform:uppercase; line-height:1; vertical-align:middle; box-sizing:border-box; border:1px solid rgba(255,255,255,.16); box-shadow:inset 0 1px 0 rgba(255,255,255,.12); }
+.book-badge.fd { background:#1493ff; color:#fff; }
+.book-badge.b365 { background:#10823f; color:#f8ff00; border-color:rgba(248,255,0,.28); }
+.book-badge.czr { background:#071b42; color:#d7bd74; border-color:rgba(215,189,116,.36); }
+.book-badge.hr { background:#7c3aed; color:#fff; border:1px solid #7c3aed; }
+.book-badge.unknown { background:rgba(148,163,184,.16); color:#cbd5e1; }
 </style>
 <style id="lock-confirm-style">
 #lockConfirmOverlay{position:fixed;inset:0;background:rgba(5,11,20,.35);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.25s;z-index:999999}
@@ -7277,6 +7284,37 @@ function formatAmericanOdds(v) {
   if (!isFinite(n) || n === 0) return '-';
   return n > 0 ? `+${n}` : `${n}`;
 }
+function normalizeBookName(v) {
+  return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+function getBookBadgeInfo(bookRaw) {
+  const key = normalizeBookName(bookRaw);
+  if (!key) return null;
+  if (key === 'fanduel' || key === 'fd') return { label:'FD', cls:'fd', title:'FanDuel' };
+  if (key === 'bet365' || key === 'b365') return { label:'365', cls:'b365', title:'bet365' };
+  if (key === 'caesars' || key === 'czr' || key === 'caesar') return { label:'CZR', cls:'czr', title:'Caesars' };
+  if (key === 'hardrock' || key === 'hardrockbet' || key === 'hr') return { label:'HDRK', cls:'hr', title:'Hard Rock' };
+  return { label:String(bookRaw || '').trim().slice(0, 4).toUpperCase(), cls:'unknown', title:String(bookRaw || '').trim() };
+}
+function renderBookBadge(bookRaw) {
+  const info = getBookBadgeInfo(bookRaw);
+  if (!info) return '';
+  return `<span class="book-badge ${info.cls}" title="${info.title}">${info.label}</span>`;
+}
+function renderOddsWithBook(playerOrOdds, maybeBook) {
+  const odds = typeof playerOrOdds === 'object' && playerOrOdds !== null ? (playerOrOdds.bettingOdds || '-') : playerOrOdds;
+  const book = typeof playerOrOdds === 'object' && playerOrOdds !== null ? playerOrOdds.bettingBook : maybeBook;
+  const formatted = formatAmericanOdds(odds);
+  const badge = renderBookBadge(book);
+  return `<span class="odds-with-book"><span>${formatted}</span>${badge}</span>`;
+}
+function formatOddsWithBookText(playerOrOdds, maybeBook) {
+  const odds = typeof playerOrOdds === 'object' && playerOrOdds !== null ? (playerOrOdds.bettingOdds || '-') : playerOrOdds;
+  const book = typeof playerOrOdds === 'object' && playerOrOdds !== null ? playerOrOdds.bettingBook : maybeBook;
+  const info = getBookBadgeInfo(book);
+  const suffix = info ? ` ${info.label}` : '';
+  return `${formatAmericanOdds(odds)}${suffix}`;
+}
 function edgeTier(edge) {
   if (edge === null || edge === undefined || isNaN(edge)) return { label:'No Odds', cls:'neutral' };
   if (edge >= 5) return { label:'A+ Edge', cls:'good' };
@@ -7310,11 +7348,13 @@ function getBetGrade(modelPct, edge, evPct, bbi) {
 function attachOddsAndEdge(p) {
   const row = oddsMap[normalizeName(p.Name)] || {};
   const odds = safeGet(row, 'Best Odds', 'Best HR Odds', 'Betting Odds', 'HR Odds', 'Odds', 'Home Run Odds', 'HR');
+  const book = safeGet(row, 'Book', 'Sportsbook', 'Sports Book', 'Best Book', 'Best Sportsbook');
   const implied = americanOddsToImplied(odds);
   const hrProb = modelHRProbability(p.calculatedBBI || 0, p);
   const evPct = calculateExpectedValuePct(hrProb, odds);
   p.calculatedHRProbability = hrProb;
   p.bettingOdds = odds !== undefined ? formatAmericanOdds(odds) : '-';
+  p.bettingBook = book !== undefined ? String(book || '').trim() : '';
   p.impliedProbability = implied;
   p.bettingEdge = implied === null ? null : hrProb - implied;
   p.expectedValuePct = evPct;
@@ -8473,7 +8513,7 @@ if (edgePlayers.length) {
     stats: [
       { label: 'Model', value: model !== null ? `${model.toFixed(1)}%` : '--' },
       { label: 'Implied', value: implied !== null ? `${implied.toFixed(1)}%` : '--' },
-      { label: 'Odds', value: p.bettingOdds || '--' }
+      { label: 'Odds', value: formatOddsWithBookText(p) }
     ],
     note: 'Largest model edge versus the market'
   });
@@ -8494,7 +8534,7 @@ if (longshots.length) {
   commandRenderPlayerCard({
     valueId: 'commandBestLongshotValue',
     playerId: 'commandBestLongshotPlayer',
-    value: p.bettingOdds || `+${longshots[0].oddsNum}`,
+    value: formatAmericanOdds(p.bettingOdds) || `+${longshots[0].oddsNum}`,
     player: p,
     stats: [
       { label: 'BBI', value: Number(p.calculatedBBI || 0).toFixed(1) },
@@ -9147,7 +9187,7 @@ function getStatsValue(player, key, rank) {
     case 'pitcherHand': { const h = safeGet(player,'L/R','Pitcher Hand','P Hand','PitcherHand','Throws','Opp Pitcher Throws'); return {raw:String(h||'').toLowerCase(), display:h||'-', cls:'stats-neutral'}; }
     case 'calculatedBBI': return val(cleanNumber(player.calculatedBBI), fmtNum(player.calculatedBBI,1), pctClass(cleanNumber(player.calculatedBBI), 60, 48));
     case 'calculatedHRProbability': return val(cleanNumber(player.calculatedHRProbability), fmtPct(player.calculatedHRProbability), pctClass(cleanNumber(player.calculatedHRProbability), 20, 12));
-    case 'bettingOdds': return {raw: cleanNumber(String(player.bettingOdds||'').replace('+','')), display: player.bettingOdds || '-', cls:'stats-mid'};
+    case 'bettingOdds': return {raw: cleanNumber(String(player.bettingOdds||'').replace('+','')), display: renderOddsWithBook(player), cls:'stats-mid'};
     case 'bettingEdge': return val(cleanNumber(player.bettingEdge), player.bettingEdge == null ? '-' : `${player.bettingEdge >= 0 ? '+' : ''}${player.bettingEdge.toFixed(1)}%`, player.bettingEdge >= 2 ? 'stats-good' : player.bettingEdge >= 0 ? 'stats-mid' : 'stats-bad');
     case 'betGrade': return {raw: String(player.betGrade||'').toLowerCase(), display: player.betGrade || '-', cls: ['S+','A','B'].includes(player.betGrade) ? 'stats-good' : player.betGrade === 'C' ? 'stats-mid' : 'stats-bad'};
     case 'totalHR': {
@@ -9702,7 +9742,7 @@ function renderBestBettingEdges() {
       <div class="best-edge-top">
         <div class="best-edge-rank">#${idx + 1}</div>
         ${faceHtml}
-        <div class="best-edge-main"><div class="best-edge-name">${p.Name}</div><div class="best-edge-meta">${p.Team} • ${p.bettingOdds} • vs ${pitcher}</div></div>
+        <div class="best-edge-main"><div class="best-edge-name">${p.Name}</div><div class="best-edge-meta">${p.Team} • ${renderOddsWithBook(p)} • vs ${pitcher}</div></div>
       </div>
       <div class="best-edge-stats">
         <div class="best-edge-stat"><div class="best-edge-label">Model</div><div class="best-edge-value">${formatPlainPct(p.calculatedHRProbability)}</div></div>
@@ -9773,7 +9813,7 @@ function renderFullEdgeRankings() {
     const edgeCls = (p.bettingEdge || 0) >= 0 ? 'full-edge-ev-pos' : 'full-edge-ev-neg';
     const evCls = (p.expectedValuePct || 0) >= 0 ? 'full-edge-ev-pos' : 'full-edge-ev-neg';
     const tier = edgeTier(p.bettingEdge || 0).label;
-    return `<tr class="team-heat-row" style="${teamVisualStyle(p.Team)}">\n      <td class="full-edge-rank">#${idx + 1}</td>\n      <td class="full-edge-player"><div class="full-edge-player-card" onclick="openPlayerModalByName('${escJSString(p.Name)}')">${headshot}<div><div class="full-edge-player-name">${p.Name || '-'}</div><div class="full-edge-player-meta">${p.Team || '-'} • vs ${pitcher}</div></div></div></td>\n      <td>${p.Team || '-'}</td>\n      <td>${(() => { const bh = getBatterHandDisplay(p); return `<span class="batter-hand-pill ${bh.cls}">${bh.label}</span>`; })()}</td>\n      <td>${pitcher}</td>\n      <td class="full-edge-score">${Number(p.calculatedBBI || p.bbi || p.Score || 0).toFixed(1)}</td>\n      <td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td>\n      <td class="full-edge-odds">${formatAmericanOdds(p.bettingOdds)}</td>\n      <td>${formatPlainPct(p.impliedProbability)}</td>\n      <td class="${edgeCls}">${formatPctValue(p.bettingEdge)}</td>\n      <td class="${evCls}">${formatPctValue(p.expectedValuePct)}</td>\n      <td>${tier}</td>\n    </tr>`;
+    return `<tr class="team-heat-row" style="${teamVisualStyle(p.Team)}">\n      <td class="full-edge-rank">#${idx + 1}</td>\n      <td class="full-edge-player"><div class="full-edge-player-card" onclick="openPlayerModalByName('${escJSString(p.Name)}')">${headshot}<div><div class="full-edge-player-name">${p.Name || '-'}</div><div class="full-edge-player-meta">${p.Team || '-'} • vs ${pitcher}</div></div></div></td>\n      <td>${p.Team || '-'}</td>\n      <td>${(() => { const bh = getBatterHandDisplay(p); return `<span class="batter-hand-pill ${bh.cls}">${bh.label}</span>`; })()}</td>\n      <td>${pitcher}</td>\n      <td class="full-edge-score">${Number(p.calculatedBBI || p.bbi || p.Score || 0).toFixed(1)}</td>\n      <td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td>\n      <td class="full-edge-odds">${renderOddsWithBook(p)}</td>\n      <td>${formatPlainPct(p.impliedProbability)}</td>\n      <td class="${edgeCls}">${formatPctValue(p.bettingEdge)}</td>\n      <td class="${evCls}">${formatPctValue(p.expectedValuePct)}</td>\n      <td>${tier}</td>\n    </tr>`;
   }).join('');
 }
 function renderEdgePanels() {
@@ -11497,7 +11537,7 @@ function renderGameCenterTab() {
       <div class="game-center-kpis"><div class="game-kpi"><div class="game-kpi-label">HR Env</div><div class="game-kpi-val hot">${env.toFixed(1)}/10</div></div><div class="game-kpi"><div class="game-kpi-label">Players</div><div class="game-kpi-val">${players.length}</div></div><div class="game-kpi"><div class="game-kpi-label">Vegas</div><div class="game-kpi-val good">${teamTotal ? teamTotal.toFixed(1) : '--'}</div></div></div>
       <div class="game-center-lines">
         <div class="game-line"><div class="game-line-label">Top Threat</div><div class="game-line-main">${top.Name}</div><div class="game-line-side">${(top.calculatedBBI||0).toFixed(1)}</div></div>
-        <div class="game-line"><div class="game-line-label">Sleeper</div><div class="game-line-main">${sleeper.Name}</div><div class="game-line-side">${sleeper.bettingOdds || '+'}</div></div>
+        <div class="game-line"><div class="game-line-label">Sleeper</div><div class="game-line-main">${sleeper.Name}</div><div class="game-line-side">${renderOddsWithBook(sleeper)}</div></div>
         <div class="game-line"><div class="game-line-label">Weak Pitcher</div><div class="game-line-main">${weak['Opp Pitcher'] || weak['Opp Pitcher Name'] || 'Starter'}</div><div class="game-line-side">${cleanNumber(weak['Pitcher HR/9'] || weak['P HR/9']).toFixed(2)}</div></div>
         <div class="game-line"><div class="game-line-label">Weather</div><div class="game-line-main">${wxTxt}</div><div class="game-line-side">${(top.envMultiplier || 1).toFixed(2)}x</div></div>
       </div>
@@ -11594,7 +11634,7 @@ const batterHand = getBatterHandDisplay(p);
 const orbitClass = idx < 10 ? ' orbit-ready' : '';
 const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
 const displayRank = p.overallBBIRank || (overallRankMap ? getOverallBBIRank(p, overallRankMap) : null) || (idx + 1);
-tr.innerHTML = `<td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${p.bettingOdds || '-'}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td><td class="action-cell">${bombBtn} ${actionBtn} ${lockBtn}</td>`;
+tr.innerHTML = `<td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td><td class="action-cell">${bombBtn} ${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
 }
@@ -12019,6 +12059,7 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     BBI: backtestNum(p.calculatedBBI),
     HR_Probability: backtestNum(p.calculatedHRProbability),
     Best_Odds: p.bettingOdds || '',
+    Best_Book: p.bettingBook || '',
     Implied_Probability: backtestNum(p.impliedProbability),
     Betting_Edge: backtestNum(p.bettingEdge),
     Expected_Value_Pct: backtestNum(p.expectedValuePct),
