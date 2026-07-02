@@ -6570,6 +6570,54 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
+
+
+<style id="pitch-lab-10-espn-rebuild-style">
+/* =========================
+   PITCH LAB 10 ESPN DETAIL BOARD
+   Display only: exposes the rebuilt Pitch Lab bucket per player.
+   ========================= */
+.pitchlab10-shell { display:flex; flex-direction:column; gap:14px; padding: 14px 16px 22px; }
+.pitchlab10-card { --team-color: var(--accent); --team-glow: rgba(225,6,0,.20); position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.09); border-left:5px solid var(--team-color); border-radius:18px; background:radial-gradient(circle at 90% 0%, var(--team-glow), transparent 32%), linear-gradient(145deg, rgba(5,11,20,.94), rgba(17,31,53,.68)); box-shadow:0 18px 48px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.07); transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
+.pitchlab10-card:hover { transform:translateY(-3px); border-color:var(--team-color); box-shadow:0 24px 62px rgba(0,0,0,.48), 0 0 30px var(--team-glow); }
+.pitchlab10-card::after { content:''; position:absolute; inset:-45% -25%; background:linear-gradient(110deg, transparent 42%, rgba(255,255,255,.07) 50%, transparent 58%); animation: pitchlab10-shine 8s linear infinite; pointer-events:none; opacity:.55; }
+@keyframes pitchlab10-shine { 0% { transform:translateX(-45%); } 100% { transform:translateX(45%); } }
+.pitchlab10-top { position:relative; z-index:1; display:grid; grid-template-columns: 56px 64px minmax(0,1fr) 122px; gap:13px; align-items:center; padding:16px 16px 13px; border-bottom:1px solid rgba(255,255,255,.07); }
+.pitchlab10-rank { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#06111d; font-family:monospace; font-weight:1000; font-size:15px; background:linear-gradient(135deg,#facc15,#f97316); box-shadow:0 0 22px rgba(250,204,21,.22); }
+.pitchlab10-face .player-headshot { width:60px !important; height:60px !important; margin:0 !important; border-color:var(--team-color) !important; }
+.pitchlab10-main { min-width:0; }
+.pitchlab10-kicker { color:var(--team-color); font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:1.4px; margin-bottom:4px; }
+.pitchlab10-name { color:#fff; font-size:18px; font-weight:1000; text-transform:uppercase; line-height:1.08; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pitchlab10-meta { margin-top:5px; color:var(--stadium-lights); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.55px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pitchlab10-scorebox { text-align:right; }
+.pitchlab10-score-label { color:var(--text-muted); font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:1px; }
+.pitchlab10-score { color:var(--team-color); font-family:monospace; font-size:42px; font-weight:1000; line-height:.95; text-shadow:0 0 22px var(--team-glow); }
+.pitchlab10-grade { display:none; margin-top:5px; padding:4px 8px; border-radius:999px; background:var(--team-color); color:#06111d; font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:.55px; }
+.pitchlab10-body { position:relative; z-index:1; padding:14px 16px 16px; display:grid; grid-template-columns: minmax(285px, .85fr) minmax(0,1.15fr); gap:14px; align-items:start; }
+.pitchlab10-section { border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:12px; background:rgba(5,11,20,.55); }
+.pitchlab10-section-title { color:#fff; font-size:11px; font-weight:1000; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; display:flex; justify-content:space-between; gap:10px; }
+.pitchlab10-section-title span { color:var(--text-muted); font-family:monospace; }
+.pitchlab10-bars { display:flex; flex-direction:column; gap:8px; }
+.pitchlab10-bar { display:grid; grid-template-columns: 102px minmax(0,1fr) 34px; gap:8px; align-items:center; }
+.pitchlab10-bar-label { color:var(--text-muted); font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:.45px; }
+.pitchlab10-track { height:8px; border-radius:999px; background:rgba(107,124,150,.20); border:1px solid rgba(255,255,255,.05); overflow:hidden; }
+.pitchlab10-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,var(--team-color),#38bdf8); box-shadow:0 0 12px var(--team-glow); }
+.pitchlab10-bar-val { color:#fff; font-family:monospace; font-size:11px; font-weight:1000; text-align:right; }
+.pitchlab10-pitches { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; }
+.pitchlab10-pitch { border:1px solid rgba(255,255,255,.07); border-left:4px solid var(--pitch-color, var(--team-color)); border-radius:13px; padding:10px; background:linear-gradient(145deg, rgba(255,255,255,.045), rgba(5,11,20,.48)); }
+.pitchlab10-pitch-top { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
+.pitchlab10-pitch-name { color:#fff; font-size:13px; font-weight:1000; text-transform:uppercase; }
+.pitchlab10-pitch-edge { color:var(--pitch-color, var(--team-color)); font-family:monospace; font-size:18px; font-weight:1000; }
+.pitchlab10-mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.pitchlab10-mini { border:1px solid rgba(255,255,255,.06); border-radius:9px; padding:6px 5px; background:rgba(255,255,255,.03); text-align:center; }
+.pitchlab10-mini-label { color:var(--text-muted); font-size:7.5px; font-weight:1000; text-transform:uppercase; letter-spacing:.4px; }
+.pitchlab10-mini-val { margin-top:3px; color:#fff; font-family:monospace; font-size:11px; font-weight:1000; white-space:nowrap; }
+.pitchlab10-note { margin-top:10px; color:#cbd5e1; font-size:10px; line-height:1.35; font-weight:800; }
+.pitchlab10-note b { color:#fff; }
+@media(max-width: 950px) { .pitchlab10-top { grid-template-columns:46px 56px minmax(0,1fr); } .pitchlab10-scorebox { grid-column:1/-1; text-align:left; display:flex; align-items:center; gap:10px; } .pitchlab10-body { grid-template-columns:1fr; } }
+@media(max-width: 560px) { .pitchlab10-top { grid-template-columns:1fr; text-align:center; } .pitchlab10-rank, .pitchlab10-face { margin:0 auto; } .pitchlab10-name, .pitchlab10-meta { white-space:normal; } }
+</style>
+
 </head>
 <body>
 
@@ -6855,7 +6903,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
 <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🧪 Pitch Lab - Batter vs Arsenal</h2>
-<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Combines pitcher pitch usage, pitch Stuff+, and each batter's batted-ball profile vs that pitch type. Rankings require 150+ PA/AB to reduce small-sample noise.</p>
+<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Rebuilt pitch-level HR matchup: pitcher usage, Stuff+, PitchBag damage allowed, batter EV, Pitch Win, FB%, Pull%, LD%, ZoneB/ZoneP, and hand-contact quality. Rankings require 150+ PA/AB.</p>
 </div>
 <div class="pitch-lab-grid" id="pitchLabSummaryCards">
 <div class="pitch-lab-card"><div class="pitch-lab-title">Arsenal Exploit Leader</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>
@@ -7219,6 +7267,11 @@ let hotBatData = [];
 let fanaticsJackpotData = [];
 let pitchTypeMap = {};
 let stuffMap = {};
+let pitchEVMap = {};
+let pitchWinMap = {};
+let pitchBagMap = {};
+let onlyHomersData = [];
+let onlyHomersProfiles = { batters:{}, pitchers:{}, league:{}, meta:{} };
 let batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
 let zoneBMap = {};
 let zonePMap = {};
@@ -8009,7 +8062,7 @@ function resolvePitcherOwnTeam(pitcherName, fallbackTeam) {
   return mapped || String(fallbackTeam || '').trim().toUpperCase();
 }
 function saveCachedData() {
-const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, batterPitchMaps, zoneBMap, zonePMap, batTrackingMaps, pitcherTeamMap };
+const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, pitchEVMap, pitchWinMap, pitchBagMap, onlyHomersData, onlyHomersProfiles, batterPitchMaps, zoneBMap, zonePMap, batTrackingMaps, pitcherTeamMap };
 localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 function loadCachedData() {
@@ -8036,11 +8089,17 @@ hrDueData = cacheData.hrDueData || [];
 playerIdMap = cacheData.playerIdMap || {};
 pitchTypeMap = cacheData.pitchTypeMap || {};
 stuffMap = cacheData.stuffMap || {};
+pitchEVMap = cacheData.pitchEVMap || {};
+pitchWinMap = cacheData.pitchWinMap || {};
+pitchBagMap = cacheData.pitchBagMap || {};
+onlyHomersData = cacheData.onlyHomersData || [];
+onlyHomersProfiles = cacheData.onlyHomersProfiles || buildOnlyHomersProfiles(onlyHomersData || []);
 batterPitchMaps = cacheData.batterPitchMaps || { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
 zoneBMap = cacheData.zoneBMap || {};
 zonePMap = cacheData.zonePMap || {};
 batTrackingMaps = cacheData.batTrackingMaps || { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
 pitcherTeamMap = cacheData.pitcherTeamMap || buildPitcherTeamMapFromPlayers(playerData);
+try { const ohCache = JSON.parse(localStorage.getItem('onlyHomersData') || '{}'); if ((!onlyHomersData || !onlyHomersData.length) && ohCache.rows && ohCache.rows.length) { onlyHomersData = ohCache.rows; onlyHomersProfiles = ohCache.profiles || buildOnlyHomersProfiles(ohCache.rows); } } catch(e) {}
 if (playerData.length > 0) {
 const uniqueTeams = getTeamsPlayingToday();
 renderTodayTeamsFilter(uniqueTeams);
@@ -8188,9 +8247,9 @@ reader.onload = function(e) {
 const data = new Uint8Array(e.target.result);
 const workbook = XLSX.read(data, {type: 'array'});
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [];
-let pitchTypeRaw = [], stuffRaw = [], vsFBRaw = [], vsCHRaw = [], vsCVRaw = [], vsSLRaw = [], vsCURaw = [];
+let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], vsFBRaw = [], vsCHRaw = [], vsCVRaw = [], vsSLRaw = [], vsCURaw = [];
 let batTrackingSheetNames = {}; 
-teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} }; zoneBMap = {}; zonePMap = {};
+teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} }; zoneBMap = {}; zonePMap = {};
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
@@ -8210,6 +8269,9 @@ if (nameClean === 'SHEET3' && (!top5Raw || top5Raw.length === 0)) top5Raw = XLSX
 if (nameClean === 'ID' || nameClean === 'IDS' || nameClean === 'PLAYERID' || nameClean === 'PLAYERIDS') idRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'PITCHTYPE') pitchTypeRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'STUFF') stuffRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'PITCHEV') pitchEVRaw = sheetToJsonSmart(workbook, sheetName, ['Name','Player']);
+if (nameClean === 'PW') pitchWinRaw = sheetToJsonSmart(workbook, sheetName, ['Name','Player']);
+if (nameClean === 'PITCHBAG') pitchBagRaw = sheetToJsonSmart(workbook, sheetName, ['last_name, first_name','pitch_type']);
 if (nameClean === 'VSFB') vsFBRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
 if (nameClean === 'VSCH') vsCHRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
 if (nameClean === 'VSCV') vsCVRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
@@ -8235,6 +8297,9 @@ plRaw.forEach(x => { const raw = getNameFromRow(x); addNameAlias(plDataMap, raw,
 lwRaw.forEach(x => { const raw = getNameFromRow(x); addNameAlias(lastWeekMap, raw, x); });
 pitchTypeMap = buildPitchTypeMap(pitchTypeRaw);
 stuffMap = buildPitchTypeMap(stuffRaw);
+pitchEVMap = mapRowsByName(pitchEVRaw);
+pitchWinMap = mapRowsByName(pitchWinRaw);
+pitchBagMap = buildPitchBagMap(pitchBagRaw);
 batterPitchMaps = { FB: mapRowsByName(vsFBRaw), CH: mapRowsByName(vsCHRaw), CV: mapRowsByName(vsCVRaw), SL: mapRowsByName(vsSLRaw), CU: mapRowsByName(vsCURaw) };
 batTrackingMaps = { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
 ['FBL','FBR','BBL','BBR','OSL','OSR'].forEach(k => { if (batTrackingSheetNames[k]) batTrackingMaps[k] = buildBatTrackingMap(workbook, batTrackingSheetNames[k]); });
@@ -8794,6 +8859,194 @@ tbody.appendChild(tr);
 });
 }
 
+
+function scoreFromRange(v, min, max, reverse=false) {
+  const n = cleanNumberOrNull(v);
+  if (n === null || n === undefined || isNaN(n)) return 50;
+  let s = ((n - min) / Math.max(0.0001, max - min)) * 100;
+  if (reverse) s = 100 - s;
+  return Math.max(0, Math.min(100, s));
+}
+function safeScoreAvg(items) {
+  const vals = (items || []).filter(x => x !== null && x !== undefined && !isNaN(x));
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 50;
+}
+function pitchCodeAliases(key, group) {
+  const k = String(key || '').toUpperCase();
+  const g = String(group || '').toUpperCase();
+  const base = {
+    FA:['FA','FF','4S','FOURSEAM','4-SEAM','4-SEAM FASTBALL'],
+    SI:['SI','FT','SNK','SINKER','2-SEAM','TWOSEAM'],
+    FC:['FC','CT','CUTTER'],
+    SL:['SL','SLIDER','SW','ST','SWEEPER'],
+    CU:['CU','KC','CV','CURVE','CURVEBALL','KNUCKLE CURVE'],
+    CH:['CH','CHANGE','CHANGEUP'],
+    FS:['FS','FO','SPLITTER','FORKBALL']
+  }[k] || [k];
+  if (g === 'FB') return Array.from(new Set(base.concat(['FB','FASTBALL'])));
+  if (g === 'SL') return Array.from(new Set(base.concat(['BB','BREAKING','BRK'])));
+  if (g === 'CU') return Array.from(new Set(base.concat(['BB','BREAKING','BRK','CV'])));
+  if (g === 'CH') return Array.from(new Set(base.concat(['OS','OFFSPEED'])));
+  return base;
+}
+function pitchKeyFromOnlyHomersPitch(pitch) {
+  const p = String(pitch || '').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if (!p) return '';
+  if (p.includes('FOUR') || p === 'FF' || p === 'FA' || p.includes('FASTBALL')) return 'FA';
+  if (p.includes('SINK') || p === 'SI' || p === 'FT' || p.includes('TWOSEAM') || p.includes('2SEAM')) return 'SI';
+  if (p.includes('CUT') || p === 'FC' || p === 'CT') return 'FC';
+  if (p.includes('SLID') || p === 'SL' || p.includes('SWEEP')) return 'SL';
+  if (p.includes('CURV') || p === 'CU' || p === 'KC' || p === 'CV') return 'CU';
+  if (p.includes('CHANGE') || p === 'CH') return 'CH';
+  if (p.includes('SPLIT') || p === 'FS' || p === 'FO') return 'FS';
+  return p.slice(0,2);
+}
+function buildPitchBagMap(rows) {
+  const out = {};
+  (rows || []).forEach(row => {
+    const pitcher = String(safeGet(row, 'last_name, first_name', 'Pitcher', 'Name', 'Player') || '').replace(/\u00a0/g,' ').trim();
+    const pitch = pitchKeyFromOnlyHomersPitch(safeGet(row, 'pitch_type', 'Pitch Type', 'pitch_name', 'Pitch'));
+    if (!pitcher || !pitch) return;
+    const key = normalizeName(pitcher);
+    if (!out[key]) out[key] = {};
+    out[key][pitch] = row;
+  });
+  return out;
+}
+function getPitchBagRow(pitcherName, pt) {
+  const byPitcher = pitchBagMap[normalizeName(pitcherName)] || {};
+  const aliases = pitchCodeAliases(pt.key, pt.group);
+  for (const a of aliases) if (byPitcher[a]) return byPitcher[a];
+  return null;
+}
+function pitcherPitchDamageScore(pitcherName, pt) {
+  const row = getPitchBagRow(pitcherName, pt);
+  if (!row) return { score: 50, grade: 'C', note: 'No PitchBag damage data', row: null };
+  const slg = firstNumber(safeGet(row,'slg','SLG'));
+  const xslg = firstNumber(safeGet(row,'est_slg','xSLG','expected_slg'));
+  const woba = firstNumber(safeGet(row,'woba','wOBA'));
+  const hard = firstNumber(safeGet(row,'hard_hit_percent','Hard Hit %','HardHit%'));
+  const whiff = firstNumber(safeGet(row,'whiff_percent','Whiff %','Whiff%'));
+  const k = firstNumber(safeGet(row,'k_percent','K %','K%'));
+  const damage = Math.max(0, Math.min(100,
+    (safeScoreAvg([scoreFromRange(slg, .250, .650), scoreFromRange(xslg, .260, .650)]) * .40) +
+    (scoreFromRange(hard, 25, 55) * .25) +
+    (scoreFromRange(woba, .250, .420) * .15) +
+    (safeScoreAvg([scoreFromRange(whiff, 12, 42, true), scoreFromRange(k, 12, 38, true)]) * .20)
+  ));
+  return { score: damage, grade: gradeFromScore(damage), row, slg, xslg, woba, hard, whiff, k, note: `P dmg ${damage.toFixed(0)} // SLG ${slg ?? '-'} / xSLG ${xslg ?? '-'} / HH ${hard ?? '-'}%` };
+}
+function getPitchEVScore(playerName, pt) {
+  const row = pitchEVMap[normalizeName(playerName)] || null;
+  if (!row) return { value: null, score: 50, note: 'No PitchEV' };
+  const aliases = pitchCodeAliases(pt.key, pt.group);
+  let value = null;
+  for (const a of aliases) {
+    value = firstNumber(safeGet(row, 'v'+a, a+' EV', a+'EV', 'EV '+a, 'Exit Velo '+a));
+    if (value !== null) break;
+  }
+  if (value === null && pt.group === 'FB') value = firstNumber(safeGet(row,'vFA','vFF','vSI','vFC'));
+  if (value === null && pt.group === 'SL') value = firstNumber(safeGet(row,'vSL'));
+  if (value === null && pt.group === 'CU') value = firstNumber(safeGet(row,'vCU','vKC'));
+  if (value === null && pt.group === 'CH') value = firstNumber(safeGet(row,'vCH','vFS','vFO'));
+  return { value, score: scoreFromRange(value, 82, 98), note: value === null ? 'No PitchEV' : `${Number(value).toFixed(1)} EV` };
+}
+function getPitchWinScore(playerName, pt) {
+  const row = pitchWinMap[normalizeName(playerName)] || null;
+  if (!row) return { value: null, score: 50, note: 'No PW' };
+  const aliases = pitchCodeAliases(pt.key, pt.group);
+  let value = null;
+  for (const a of aliases) {
+    value = firstNumber(safeGet(row, 'w'+a+'/C', 'w'+a+'C', a+' RV/100', a+' Run Value', a+' PW'));
+    if (value !== null) break;
+  }
+  if (value === null && pt.group === 'FB') value = firstNumber(safeGet(row,'wFA/C','wFF/C','wSI/C','wFC/C'));
+  if (value === null && pt.group === 'SL') value = firstNumber(safeGet(row,'wSL/C'));
+  if (value === null && pt.group === 'CU') value = firstNumber(safeGet(row,'wCU/C','wKC/C'));
+  if (value === null && pt.group === 'CH') value = firstNumber(safeGet(row,'wCH/C','wFS/C','wFO/C'));
+  return { value, score: scoreFromRange(value, -3.5, 3.5), note: value === null ? 'No PW' : `PW ${Number(value).toFixed(2)}` };
+}
+function buildOnlyHomersProfiles(rows) {
+  const profiles = { batters:{}, pitchers:{}, league:{}, meta:{ total:0, updated:'' } };
+  (rows || []).forEach(row => {
+    const batter = String(safeGet(row,'Batter','batter','player','Player','name') || '').trim();
+    const pitcher = String(safeGet(row,'Pitcher','pitcher') || '').trim();
+    const pitch = pitchKeyFromOnlyHomersPitch(safeGet(row,'Pitch','pitch','pitch_type','pitch_name'));
+    const date = String(safeGet(row,'Date','date','game_date') || '').trim();
+    if (!pitch) return;
+    profiles.meta.total += 1;
+    if (date && (!profiles.meta.updated || date > profiles.meta.updated)) profiles.meta.updated = date;
+    profiles.league[pitch] = (profiles.league[pitch] || 0) + 1;
+    if (batter) {
+      const k = normalizeName(batter);
+      if (!profiles.batters[k]) profiles.batters[k] = { total:0, pitches:{} };
+      profiles.batters[k].total += 1;
+      profiles.batters[k].pitches[pitch] = (profiles.batters[k].pitches[pitch] || 0) + 1;
+    }
+    if (pitcher) {
+      const k = normalizeName(pitcher);
+      if (!profiles.pitchers[k]) profiles.pitchers[k] = { total:0, pitches:{} };
+      profiles.pitchers[k].total += 1;
+      profiles.pitchers[k].pitches[pitch] = (profiles.pitchers[k].pitches[pitch] || 0) + 1;
+    }
+  });
+  return profiles;
+}
+function pitchHrAffinityScore(playerName, pitcherName, pt) {
+  const aliases = pitchCodeAliases(pt.key, pt.group);
+  const batter = (onlyHomersProfiles.batters || {})[normalizeName(playerName)] || null;
+  const pitcher = (onlyHomersProfiles.pitchers || {})[normalizeName(pitcherName)] || null;
+  const league = onlyHomersProfiles.league || {};
+  const leagueTotal = Object.values(league).reduce((a,b)=>a+(Number(b)||0),0) || 1;
+  const countFor = (obj) => aliases.reduce((s,a)=>s+(Number(obj && obj.pitches ? obj.pitches[a] : 0)||0),0);
+  const leagueShare = aliases.reduce((s,a)=>s+(Number(league[a])||0),0) / leagueTotal;
+  const bCnt = countFor(batter), pCnt = countFor(pitcher);
+  const bShare = batter && batter.total ? bCnt / batter.total : null;
+  const pShare = pitcher && pitcher.total ? pCnt / pitcher.total : null;
+  const batterScore = bShare === null ? 50 : scoreFromRange((bShare / Math.max(.01, leagueShare)), .55, 1.65);
+  const pitcherScore = pShare === null ? 50 : scoreFromRange((pShare / Math.max(.01, leagueShare)), .55, 1.65);
+  const sample = Math.min(1, ((batter ? batter.total : 0) + (pitcher ? pitcher.total : 0)) / 18);
+  const raw = (batterScore * .60) + (pitcherScore * .40);
+  const score = 50 + ((raw - 50) * sample);
+  return { score: Math.max(0, Math.min(100, score)), batterCount:bCnt, pitcherCount:pCnt, batterShare:bShare, pitcherShare:pShare, leagueShare, sample, note: sample <= 0 ? 'No OnlyHomers' : `OH ${score.toFixed(0)} // B ${bCnt} / P ${pCnt}` };
+}
+async function refreshOnlyHomersData(year) {
+  const y = year || new Date().getFullYear();
+  const urls = [
+    `https://zuriteapi.com/homers/api/homeruns/?format=json&year=${y}`,
+    `https://zuriteapi.com/homers/api/homeruns/?year=${y}&format=json`
+  ];
+  for (const url of urls) {
+    try {
+      let next = url, all = [], guard = 0;
+      while (next && guard < 25) {
+        const res = await fetch(next, { cache:'no-store' });
+        if (!res.ok) throw new Error('OnlyHomers HTTP ' + res.status);
+        const data = await res.json();
+        const rows = Array.isArray(data) ? data : (Array.isArray(data.results) ? data.results : (Array.isArray(data.data) ? data.data : []));
+        all = all.concat(rows);
+        next = (!Array.isArray(data) && data.next) ? data.next : '';
+        guard++;
+      }
+      if (all.length) {
+        onlyHomersData = all;
+        onlyHomersProfiles = buildOnlyHomersProfiles(all);
+        try { localStorage.setItem('onlyHomersData', JSON.stringify({ year:y, rows:all, profiles:onlyHomersProfiles, ts:Date.now() })); } catch(e) {}
+        try { recalculateAllBBIScores(); } catch(e) {}
+        return true;
+      }
+    } catch(err) { console.log('OnlyHomers import failed:', err); }
+  }
+  try {
+    const cached = JSON.parse(localStorage.getItem('onlyHomersData') || '{}');
+    if (cached.rows && cached.rows.length) {
+      onlyHomersData = cached.rows;
+      onlyHomersProfiles = cached.profiles || buildOnlyHomersProfiles(cached.rows);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
 const PITCH_LAB_TYPES = [
   { key:'FA', label:'4-Seam', group:'FB', usageKeys:['FA%','FF%','Pitcher FF %','Pitcher FA %'], stuffKeys:['Stf+ FA'] },
   { key:'SI', label:'Sinker', group:'FB', usageKeys:['SI%','FT%','Pitcher SNK %','Pitcher SI %'], stuffKeys:['Stf+ SI'] },
@@ -8832,24 +9085,36 @@ function batTrackingPitchGrade(playerName, group, pitcherHand) {
   const score = Math.max(0, Math.min(100, (blast * 100 * 0.45) + (squared * 100 * 0.35) + (speed * 0.20)));
   return { score, grade: gradeFromScore(score), sheet: sheetKey, batSpeed: row.batSpeed, squaredSwing: squared, blastSwing: blast, note: `${sheetKey}: ${pctFmt(blast)} blast / ${pctFmt(squared)} sq / ${cleanNumber(row.batSpeed).toFixed(1)} mph` };
 }
-function batterPitchGrade(playerName, group, pitcherHand) {
+function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
+  const pt = pitchType || { key: group, group };
   const row = (batterPitchMaps[group] || {})[normalizeName(playerName)] || {};
-  let existing = { score: 50, grade: 'C', bbe: 0, air: 0, fb: 0, pull: 0, note: 'No pitch sheet data' };
+  let shape = { score: 50, grade: 'C', bbe: 0, air: 0, fb: 0, pull: 0, ld: 0, note: 'No pitch-shape sheet data' };
   if (Object.keys(row).length) {
     const bbe = cleanNumber(safeGet(row, 'BBE'));
-    const air = hybridRate(cleanNumber(safeGet(row, 'AIR %')));
-    const fb = hybridRate(cleanNumber(safeGet(row, 'FB %')));
+    const air = hybridRate(cleanNumber(safeGet(row, 'AIR %', 'Air %')));
+    const fb = hybridRate(cleanNumber(safeGet(row, 'FB %', 'Fly Ball %')));
     const pull = hybridRate(cleanNumber(safeGet(row, 'Pull %')));
-    const ld = hybridRate(cleanNumber(safeGet(row, 'LD %')));
+    const ld = hybridRate(cleanNumber(safeGet(row, 'LD %', 'Line Drive %')));
     const sample = Math.min(1, bbe / 50);
-    const rawScore = (air * 34) + (fb * 24) + (pull * 24) + (ld * 10) + (sample * 8);
+    const airFbScore = safeScoreAvg([scoreFromRange(air, .42, .72), scoreFromRange(fb, .22, .48)]);
+    const pullScore = scoreFromRange(pull, .30, .55);
+    const ldScore = scoreFromRange(ld, .13, .30);
+    const sampleScore = sample * 100;
+    const rawScore = (airFbScore * .45) + (pullScore * .25) + (ldScore * .18) + (sampleScore * .12);
     const score = Math.max(0, Math.min(100, rawScore));
-    existing = { score, grade: gradeFromScore(score), bbe, air, fb, pull, note: `${pctFmt(air)} air / ${pctFmt(fb)} FB / ${pctFmt(pull)} pull` };
+    shape = { score, grade: gradeFromScore(score), bbe, air, fb, pull, ld, note: `${pctFmt(air)} air / ${pctFmt(fb)} FB / ${pctFmt(pull)} pull / ${pctFmt(ld)} LD` };
   }
+  const ev = getPitchEVScore(playerName, pt);
+  const pw = getPitchWinScore(playerName, pt);
   const tracking = batTrackingPitchGrade(playerName, group, pitcherHand);
-  // Keep the category stable: old pitch-production still drives 60%, Savant bat tracking refines 40%.
-  const blendedScore = Math.max(0, Math.min(100, (existing.score * 0.60) + (tracking.score * 0.40)));
-  return { ...existing, score: blendedScore, grade: gradeFromScore(blendedScore), traditional: existing, tracking, note: `${existing.note} | ${tracking.note}` };
+  // New HR-specific pitch score: EV vs pitch + run value/production + batted-ball HR shape + handed contact quality.
+  const blendedScore = Math.max(0, Math.min(100,
+    (ev.score * 0.25) +
+    (pw.score * 0.25) +
+    (shape.score * 0.45) +
+    (tracking.score * 0.05)
+  ));
+  return { ...shape, score: blendedScore, grade: gradeFromScore(blendedScore), shape, ev, pw, tracking, note: `${ev.note} | ${pw.note} | ${shape.note} | ${tracking.note}` };
 }
 
 function zoneRateValue(row, keys) {
@@ -8936,44 +9201,83 @@ function buildPitchLabProfile(player) {
     const usage = getPitchUsage(pitchRow, pt.usageKeys);
     if (!usage || usage < 0.01) return;
     const stuff = getPitchStuff(stuffRow, pt.stuffKeys);
-    const bat = batterPitchGrade(player.Name, pt.group, pitcherHand);
-    const stuffWeakness = Math.max(0, Math.min(100, 100 + (100 - stuff))); // lower stuff helps hitter
+    const bat = batterPitchGrade(player.Name, pt.group, pitcherHand, pt);
+    const pitcherDamage = pitcherPitchDamageScore(pitcherName, pt);
+    const onlyHomers = pitchHrAffinityScore(player.Name, pitcherName, pt);
+    const stuffWeakness = Math.max(0, Math.min(100, 100 + (100 - stuff))); // lower Stuff+ helps hitter
     const usageExposure = Math.max(0, Math.min(100, usage * 180));
-    // Edge for this pitch type: hitter production vs pitch type leads, pitcher pitch quality and usage refine it.
-    const edge = Math.max(0, Math.min(100, (bat.score * 0.70) + (stuffWeakness * 0.22) + (usageExposure * 0.08)));
-    rows.push({ ...pt, usage, stuff, stuffWeakness, bat, edge });
+    // True per-pitch matchup: batter HR shape vs this pitch + pitcher damage allowed + Stuff+ + OnlyHomers confirmation.
+    const edge = Math.max(0, Math.min(100,
+      (bat.score * 0.45) +
+      (pitcherDamage.score * 0.25) +
+      (stuffWeakness * 0.15) +
+      (onlyHomers.score * 0.10) +
+      (usageExposure * 0.05)
+    ));
+    rows.push({ ...pt, usage, stuff, stuffWeakness, bat, pitcherDamage, onlyHomers, edge });
   });
   if (!rows.length) {
     ['FB','SL','CH','CU'].forEach(group => {
-      const bat = batterPitchGrade(player.Name, group, pitcherHand);
-      rows.push({ key:group, label:group, group, usage:0, stuff:100, stuffWeakness:50, bat, edge:bat.score });
+      const pt = { key:group, label:group, group, usageKeys:[], stuffKeys:[] };
+      const bat = batterPitchGrade(player.Name, group, pitcherHand, pt);
+      const onlyHomers = pitchHrAffinityScore(player.Name, pitcherName, pt);
+      rows.push({ key:group, label:group, group, usage:0, stuff:100, stuffWeakness:50, bat, pitcherDamage:{score:50, grade:'C', note:'No PitchBag'}, onlyHomers, edge:(bat.score*.80)+(onlyHomers.score*.20) });
     });
   }
   rows.sort((a,b) => (b.usage * b.edge) - (a.usage * a.edge));
   const useTotal = rows.reduce((s,r)=>s+r.usage,0);
-  // Pitcher's actual pitch mix controls how much each hitter pitch grade matters.
-  const pitchMixScore = useTotal > 0 ? rows.reduce((s,r)=>s+(r.edge*r.usage),0)/useTotal : hybridAvg(rows.map(r=>r.edge));
-  const pitchQualityScore = useTotal > 0 ? rows.reduce((s,r)=>s+((r.stuffWeakness || 50)*r.usage),0)/useTotal : hybridAvg(rows.map(r=>r.stuffWeakness || 50));
-  const batTrackingWeighted = useTotal > 0 ? rows.reduce((s,r)=>s+((r.bat && r.bat.tracking ? r.bat.tracking.score : 50)*r.usage),0)/useTotal : hybridAvg(rows.map(r => r.bat && r.bat.tracking ? r.bat.tracking.score : 50));
-  // Rebuilt Pitch Lab: expected pitch mix + attack zone fit + pitcher pitch quality + bat tracking.
-  // No sequence/location-coordinate data is assumed; ZoneB/ZoneP provide the command/attack-zone layer.
+  const weighted = (fn, fallback=50) => useTotal > 0 ? rows.reduce((s,r)=>s+((fn(r) || fallback)*r.usage),0)/useTotal : hybridAvg(rows.map(r=>fn(r) || fallback));
+  const weightedPresent = (fn) => {
+    const vals = rows.map(r => ({ value: fn(r), usage: Number(r.usage) || 0 })).filter(x => x.value !== null && x.value !== undefined && !isNaN(Number(x.value)));
+    if (!vals.length) return null;
+    const denom = vals.reduce((s,x)=>s+x.usage,0);
+    if (denom > 0) return vals.reduce((s,x)=>s+(Number(x.value)*x.usage),0) / denom;
+    return vals.reduce((s,x)=>s+Number(x.value),0) / vals.length;
+  };
+  const pitchMixScore = weighted(r=>r.edge, 50);
+  const batterShapeScore = weighted(r=>r.bat && r.bat.score, 50);
+  const pitcherDamageScore = weighted(r=>r.pitcherDamage && r.pitcherDamage.score, 50);
+  const pitchQualityScore = weighted(r=>r.stuffWeakness, 50);
+  const onlyHomersScore = weighted(r=>r.onlyHomers && r.onlyHomers.score, 50);
+  const batTrackingWeighted = weighted(r=>r.bat && r.bat.tracking ? r.bat.tracking.score : 50, 50);
+  // Display-only Pitch Lab familiar stats. These DO NOT change scoring.
+  const pitchEVScore = weighted(r=>r.bat && r.bat.ev ? r.bat.ev.score : 50, 50);
+  const pitchEVValue = weightedPresent(r=>r.bat && r.bat.ev ? r.bat.ev.value : null);
+  const pitchWinScore = weighted(r=>r.bat && r.bat.pw ? r.bat.pw.score : 50, 50);
+  const pitchWinValue = weightedPresent(r=>r.bat && r.bat.pw ? r.bat.pw.value : null);
+  const fbRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.fb : null);
+  const pullRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.pull : null);
+  const ldRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.ld : null);
+  // Pitch Lab is now a mini HR model: batter pitch damage, pitcher pitch damage, Stuff+, ZoneB/ZoneP, OnlyHomers, and contact tracking.
   const finalScore = Math.max(0, Math.min(100,
-    ((pitchMixScore || 50) * 0.50) +
-    ((zone.score || 50) * 0.25) +
-    ((pitchQualityScore || 50) * 0.15) +
-    ((batTrackingWeighted || 50) * 0.10)
+    ((batterShapeScore || 50) * 0.35) +
+    ((pitcherDamageScore || 50) * 0.25) +
+    ((pitchQualityScore || 50) * 0.10) +
+    ((zone.score || 50) * 0.15) +
+    ((onlyHomersScore || 50) * 0.10) +
+    ((batTrackingWeighted || 50) * 0.05)
   ));
   const top = rows[0] || null;
   return {
     player, pitcherName, pitcherHand, rows,
     score: finalScore,
     pitchMixScore: Math.max(0, Math.min(100, pitchMixScore || 50)),
-    zoneScore: Math.max(0, Math.min(100, zone.score || 50)),
+    batterShapeScore: Math.max(0, Math.min(100, batterShapeScore || 50)),
+    pitcherDamageScore: Math.max(0, Math.min(100, pitcherDamageScore || 50)),
     pitchQualityScore: Math.max(0, Math.min(100, pitchQualityScore || 50)),
     batTrackingScore: Math.max(0, Math.min(100, batTrackingWeighted || 50)),
+    onlyHomersScore: Math.max(0, Math.min(100, onlyHomersScore || 50)),
+    pitchEVScore: Math.max(0, Math.min(100, pitchEVScore || 50)),
+    pitchEVValue: pitchEVValue,
+    pitchWinScore: Math.max(0, Math.min(100, pitchWinScore || 50)),
+    pitchWinValue: pitchWinValue,
+    fbRate: fbRateWeighted,
+    pullRate: pullRateWeighted,
+    ldRate: ldRateWeighted,
+    zoneScore: Math.max(0, Math.min(100, zone.score || 50)),
     zone,
     grade: gradeFromScore(finalScore), top,
-    note: `Mix ${scoreBarPct(pitchMixScore || 50)} / Zone ${scoreBarPct(zone.score || 50)} / Quality ${scoreBarPct(pitchQualityScore || 50)} / Tracking ${scoreBarPct(batTrackingWeighted || 50)}`
+    note: `Bat ${scoreBarPct(batterShapeScore || 50)} / P-Dmg ${scoreBarPct(pitcherDamageScore || 50)} / EV ${pitchEVValue !== null && pitchEVValue !== undefined && !isNaN(pitchEVValue) ? Number(pitchEVValue).toFixed(1) : '--'} / FB ${fbRateWeighted !== null && fbRateWeighted !== undefined && !isNaN(fbRateWeighted) ? pctFmt(fbRateWeighted) : '--'} / Pull ${pullRateWeighted !== null && pullRateWeighted !== undefined && !isNaN(pullRateWeighted) ? pctFmt(pullRateWeighted) : '--'}`
   };
 }
 function synergyItems(player) {
@@ -9078,7 +9382,7 @@ function renderPlayerAttackMatchup(player) {
   const lab = player.pitchLabProfile || buildPitchLabProfile(player);
   const pitcherName = String(player['Opp Pitcher'] || player['Opp Pitcher Name'] || 'Starter').trim();
   const pitcherProfile = buildPitcherAttackProfileByName(pitcherName);
-  const pitchRows = lab && lab.rows ? lab.rows.slice(0,5).map(r => stat(`${r.label} ${pctFmt(r.usage)}`, `${r.bat.grade} bat / ${r.edge.toFixed(0)} edge`, r.edge>=65?'green':r.edge<45?'red':'yellow')).join('') : '';
+  const pitchRows = lab && lab.rows ? lab.rows.slice(0,5).map(r => stat(`${r.label} ${pctFmt(r.usage)}`, `${r.edge.toFixed(0)} edge // Bat ${r.bat.score.toFixed(0)} / P ${r.pitcherDamage ? r.pitcherDamage.score.toFixed(0) : 50} / OH ${r.onlyHomers ? r.onlyHomers.score.toFixed(0) : 50}`, r.edge>=65?'green':r.edge<45?'red':'yellow')).join('') : '';
   return `<div><div class="modal-section-title">🎯 PITCHER ATTACK MATCHUP</div><div style="margin-bottom:12px;">${renderAttackProfileBars(pitcherProfile)}</div><div class="modal-stats-grid">${stat('Best Exploit Pitch', lab && lab.top ? lab.top.label : pitcherProfile.primary.label, 'green')}${stat('Arsenal Exploit', lab ? `${lab.score.toFixed(0)} / ${lab.grade}` : 'N/A', lab && lab.score>=65?'green':lab && lab.score<45?'red':'yellow')}${pitchRows}</div></div>`;
 }
 
@@ -9321,6 +9625,97 @@ function sortStatsBy(key) {
   renderStatsTable();
 }
 
+function pitchLab10Color(key) {
+  const k = String(key || '').toUpperCase();
+  if (k === 'FB' || k === 'FA' || k.includes('4')) return '#ef4444';
+  if (k === 'SL' || k.includes('SL')) return '#38bdf8';
+  if (k === 'CH' || k.includes('CH')) return '#facc15';
+  if (k === 'CU' || k === 'CV' || k.includes('CUR')) return '#a855f7';
+  if (k === 'FC' || k.includes('CUT')) return '#fb7185';
+  if (k === 'SI' || k.includes('SINK')) return '#22c55e';
+  return '#94a3b8';
+}
+function pitchLab10Bar(label, score, weight) {
+  const v = Math.max(0, Math.min(100, Number(score) || 0));
+  return `<div class="pitchlab10-bar"><div class="pitchlab10-bar-label">${label}${weight ? ` ${weight}` : ''}</div><div class="pitchlab10-track"><div class="pitchlab10-fill" style="width:${v.toFixed(0)}%"></div></div><div class="pitchlab10-bar-val">${v.toFixed(0)}</div></div>`;
+}
+function pitchLab10Mini(label, value) {
+  return `<div class="pitchlab10-mini"><div class="pitchlab10-mini-label">${label}</div><div class="pitchlab10-mini-val">${value}</div></div>`;
+}
+function pitchLab10StatEV(r) {
+  const v = r && r.bat && r.bat.ev ? r.bat.ev.value : null;
+  return (v !== null && v !== undefined && !isNaN(Number(v))) ? Number(v).toFixed(1) : '--';
+}
+function pitchLab10StatPW(r) {
+  const v = r && r.bat && r.bat.pw ? r.bat.pw.value : null;
+  return (v !== null && v !== undefined && !isNaN(Number(v))) ? Number(v).toFixed(2) : '--';
+}
+function pitchLab10StatRate(v) {
+  return (v !== null && v !== undefined && !isNaN(Number(v))) ? pctFmt(Number(v)) : '--';
+}
+function renderPitchLab10Card(profile, idx) {
+  const p = profile.player || {};
+  const top = profile.top || null;
+  const team = p.Team || '';
+  const style = teamVisualStyle ? teamVisualStyle(team) : '';
+  const face = createHeadshotHtml(p.Name, 'sm', team);
+  const logoUrl = teamLogos[team] || '';
+  const logo = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
+  const rows = (profile.rows || []).slice(0,4);
+  const componentBars = [
+    pitchLab10Bar('Batter Shape', profile.batterShapeScore, '35%'),
+    pitchLab10Bar('Pitcher Damage', profile.pitcherDamageScore, '25%'),
+    pitchLab10Bar('Zone Match', profile.zoneScore, '15%'),
+    pitchLab10Bar('Stuff Weakness', profile.pitchQualityScore, '10%'),
+    pitchLab10Bar('Pitch EV', profile.pitchEVScore, ''),
+    pitchLab10Bar('Hand Contact', profile.batTrackingScore, '5%')
+  ].join('');
+  const pitchCards = rows.map(r => {
+    const color = pitchLab10Color(r.key || r.group || r.label);
+    const evVal = pitchLab10StatEV(r);
+    const fbVal = pitchLab10StatRate(r.bat && r.bat.shape ? r.bat.shape.fb : r.bat ? r.bat.fb : null);
+    const pullVal = pitchLab10StatRate(r.bat && r.bat.shape ? r.bat.shape.pull : r.bat ? r.bat.pull : null);
+    const pwVal = pitchLab10StatPW(r);
+    const stuff = isFinite(r.stuff) ? Number(r.stuff).toFixed(0) : '--';
+    const edge = isFinite(r.edge) ? r.edge.toFixed(0) : '--';
+    const usage = pctFmt(r.usage || 0);
+    return `<div class="pitchlab10-pitch" style="--pitch-color:${color}">
+      <div class="pitchlab10-pitch-top"><div class="pitchlab10-pitch-name">${r.label || r.key || 'Pitch'}</div><div class="pitchlab10-pitch-edge">${edge}</div></div>
+      <div class="pitchlab10-mini-grid">
+        ${pitchLab10Mini('Usage', usage)}
+        ${pitchLab10Mini('EV', evVal)}
+        ${pitchLab10Mini('FB%', fbVal)}
+        ${pitchLab10Mini('Pull%', pullVal)}
+        ${pitchLab10Mini('Pitch Win', pwVal)}
+        ${pitchLab10Mini('Stuff+', stuff)}
+      </div>
+    </div>`;
+  }).join('') || `<div class="pitchlab10-note">No pitch rows available for this player/pitcher matchup.</div>`;
+  const topText = top ? `${top.label} ${pctFmt(top.usage)} usage // ${top.edge.toFixed(0)} edge` : 'No top pitch found';
+  return `<div class="pitchlab10-card" style="${style}">
+    <div class="pitchlab10-top">
+      <div class="pitchlab10-rank">#${idx+1}</div>
+      <div class="pitchlab10-face">${face}</div>
+      <div class="pitchlab10-main">
+        <div class="pitchlab10-kicker">Pitch Lab 10 // Rebuilt Arsenal Matchup</div>
+        <div class="pitchlab10-name player-clickable" onclick="openPlayerModalByName('${escJSString(p.Name)}')">${p.Name || '-'}</div>
+        <div class="pitchlab10-meta">${logo}${team || '-'} vs ${profile.pitcherName || 'Starter'} ${profile.pitcherHand ? '// P throws ' + profile.pitcherHand : ''}</div>
+      </div>
+      <div class="pitchlab10-scorebox"><div class="pitchlab10-score-label">Pitch Lab</div><div class="pitchlab10-score">${profile.score.toFixed(0)}</div></div>
+    </div>
+    <div class="pitchlab10-body">
+      <div class="pitchlab10-section">
+        <div class="pitchlab10-section-title">Profile Breakdown <span>${profile.note || ''}</span></div>
+        <div class="pitchlab10-bars">${componentBars}</div>
+        <div class="pitchlab10-note"><b>Top Threat:</b> ${topText}. Display shows hitter EV, FB%, Pull%, Pitch Win, Stuff+, plus the unchanged Pitch Lab score math.</div>
+      </div>
+      <div class="pitchlab10-section">
+        <div class="pitchlab10-section-title">Pitch-by-Pitch Matchup <span>${renderPitchMix(profile)}</span></div>
+        <div class="pitchlab10-pitches">${pitchCards}</div>
+      </div>
+    </div>
+  </div>`;
+}
 function renderPitchLabTable() {
   const tbody = document.getElementById('pitchLabTableBody');
   if (!tbody) return;
@@ -9330,7 +9725,7 @@ function renderPitchLabTable() {
   const filterEl = document.getElementById('pitchLabFilter');
   const searchVal = searchEl ? searchEl.value.toLowerCase().trim() : '';
   const filter = filterEl ? filterEl.value : 'ALL';
-  if (searchVal) data = data.filter(x => x.player.Name.toLowerCase().includes(searchVal) || String(x.pitcherName || '').toLowerCase().includes(searchVal));
+  if (searchVal) data = data.filter(x => String(x.player.Name || '').toLowerCase().includes(searchVal) || String(x.pitcherName || '').toLowerCase().includes(searchVal));
   if (filter === 'ELITE') data = data.filter(x => x.score >= 80);
   if (filter === 'GOOD') data = data.filter(x => x.score >= 65);
   if (filter === 'BAD') data = data.filter(x => x.score < 45);
@@ -9338,21 +9733,17 @@ function renderPitchLabTable() {
   const cardBox = document.getElementById('pitchLabSummaryCards');
   if (cardBox) {
     const leader = data[0];
-    const heavy = data.find(x => x.top && x.top.usage >= .35 && x.top.edge >= 65);
-    cardBox.innerHTML = leader ? `<div class="pitch-lab-card"><div class="pitch-lab-title">Arsenal Exploit Leader</div><div class="pitch-lab-score">${leader.score.toFixed(0)}</div><div class="pitch-lab-sub">${leader.player.Name} vs ${leader.pitcherName || 'Starter'} // ${leader.grade}</div></div><div class="pitch-lab-card"><div class="pitch-lab-title">Best Pitch-Specific Edge</div><div class="pitch-lab-score">${leader.top ? leader.top.edge.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${leader.top ? leader.top.label + ' // ' + leader.top.bat.grade + ' batter grade' : 'No data'}</div></div><div class="pitch-lab-card"><div class="pitch-lab-title">Heavy-Use Exploit</div><div class="pitch-lab-score">${heavy ? (heavy.top.usage*100).toFixed(0) : '--'}%</div><div class="pitch-lab-sub">${heavy ? heavy.player.Name + ' gets ' + heavy.top.label + ' often' : 'No strong heavy-use edge found'}</div></div>` : `<div class="pitch-lab-card"><div class="pitch-lab-title">Arsenal Exploit Leader</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>`;
+    const bestBat = data.slice().sort((a,b)=>(b.batterShapeScore||0)-(a.batterShapeScore||0))[0];
+    const bestP = data.slice().sort((a,b)=>(b.pitcherDamageScore||0)-(a.pitcherDamageScore||0))[0];
+    const bestEV = data.slice().sort((a,b)=>(Number(b.pitchEVValue)||0)-(Number(a.pitchEVValue)||0))[0];
+    cardBox.innerHTML = leader ? `
+      <div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab 10 Leader</div><div class="pitch-lab-score">${leader.score.toFixed(0)}</div><div class="pitch-lab-sub">${leader.player.Name} vs ${leader.pitcherName || 'Starter'}</div></div>
+      <div class="pitch-lab-card"><div class="pitch-lab-title">Best Batter Shape</div><div class="pitch-lab-score">${bestBat ? bestBat.batterShapeScore.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestBat ? bestBat.player.Name + ' // FB%, Pull%, LD%, EV' : 'No data'}</div></div>
+      <div class="pitch-lab-card"><div class="pitch-lab-title">Most Attackable Arsenal</div><div class="pitch-lab-score">${bestP ? bestP.pitcherDamageScore.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestP ? bestP.pitcherName + ' damage allowed profile' : 'No data'}</div></div>
+      <div class="pitch-lab-card"><div class="pitch-lab-title">Highest Pitch EV</div><div class="pitch-lab-score">${bestEV && bestEV.pitchEVValue ? Number(bestEV.pitchEVValue).toFixed(1) : '--'}</div><div class="pitch-lab-sub">${bestEV ? bestEV.player.Name + ' // avg EV vs pitch mix' : 'Waiting for EV data'}</div></div>` : `<div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab 10</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>`;
   }
   if (!data.length) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No pitch lab profiles matching filters or 150+ PA/AB qualifier...</td></tr>`; return; }
-  tbody.innerHTML = '';
-  data.slice(0, 80).forEach((profile, idx) => {
-    const p = profile.player;
-    const top = profile.top;
-    const logoUrl = teamLogos[p.Team] || '';
-    const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
-    const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td style="font-family:monospace; font-weight:700; color:var(--text-muted);">#${idx+1}</td><td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot player-clickable" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')">${headshotHtml}<span style="font-weight:800; color:#fff;">${p.Name}</span></div></td><td style="font-weight:700; color:#cbd5e1;">${logoImg}${p.Team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${profile.pitcherName || 'Starter'}</td><td><div style="font-weight:900; color:#fff;">${top ? top.label : '-'}</div><div style="font-size:10px; color:var(--text-muted);">${top ? pctFmt(top.usage) + ' usage // Stuff+ ' + top.stuff : '-'}</div></td><td style="line-height:2;">${renderPitchMix(profile)}</td><td><span class="index-score ${pitchEdgeClass(profile.score)}">${profile.score.toFixed(0)}</span><div style="font-size:10px; color:var(--text-muted); margin-top:3px;">${profile.grade}</div></td><td>${renderSynergyMeter(p, true)}</td>`;
-    tbody.appendChild(tr);
-  });
+  tbody.innerHTML = `<tr><td colspan="8" style="padding:0; border-bottom:0;"><div class="pitchlab10-shell">${data.slice(0, 40).map((profile, idx) => renderPitchLab10Card(profile, idx)).join('')}</div></td></tr>`;
 }
 
 function compassFromDeg(deg) {
