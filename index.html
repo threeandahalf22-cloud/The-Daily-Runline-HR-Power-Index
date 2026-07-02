@@ -15139,5 +15139,89 @@ try {
   else renderModelSandboxControls();
 } catch (err) { console.warn('Model sandbox init failed:', err); }
 </script>
+
+<script id="v43-9-model-sandbox-apply-fix">
+/* =========================
+   v43.9 MODEL SANDBOX APPLY FIX
+   Fixes Apply Sandbox click handler only. No scoring weights, mobile layout, or desktop layout changed.
+   ========================= */
+(function(){
+  function safeCall(fnName){
+    try {
+      if (typeof window[fnName] === 'function') window[fnName]();
+    } catch(err) {
+      console.warn('Sandbox refresh step failed:', fnName, err);
+    }
+  }
+
+  function getSandboxValsSafe(){
+    const vals = {};
+    try {
+      MODEL_SANDBOX_WEIGHT_META.forEach(m => {
+        const el = document.getElementById('sandboxWeight_' + m.key);
+        const officialPct = Math.round((Number(HYBRID_CATEGORY_WEIGHTS[m.key]) || 0) * 100);
+        let v = parseInt(el ? el.value : officialPct, 10);
+        if (isNaN(v)) v = officialPct;
+        vals[m.key] = Math.max(0, Math.min(100, v));
+      });
+    } catch(err) {
+      console.warn('Sandbox values unavailable:', err);
+    }
+    return vals;
+  }
+
+  window.applySandboxWeights = function(){
+    const vals = getSandboxValsSafe();
+    const total = Object.values(vals).reduce((s,v)=>s+v,0);
+    if (total !== 100) {
+      alert('Weights must total exactly 100%.');
+      try { updateSandboxTotalUI(); } catch(e) {}
+      return;
+    }
+
+    sandboxCategoryWeights = {};
+    Object.keys(vals).forEach(k => { sandboxCategoryWeights[k] = vals[k] / 100; });
+    sandboxWeightsActive = true;
+
+    const panel = document.getElementById('modelSandboxPanel');
+    const badge = document.getElementById('modelSandboxStatusBadge');
+    const btn = document.getElementById('modelSandboxApplyBtn');
+
+    if (panel) panel.classList.add('active');
+    if (badge) badge.textContent = 'SANDBOX ACTIVE';
+    if (btn) {
+      const oldText = btn.textContent;
+      btn.textContent = '✅ Sandbox Applied';
+      setTimeout(() => { btn.textContent = oldText || '🧪 Apply Sandbox'; }, 1200);
+    }
+
+    try { recalculateAllBBIScores(); } catch(err) { console.error('Sandbox recalc failed:', err); }
+
+    // Make the change visible everywhere without touching layout or model weights.
+    ['renderFanaticsJackpot','renderAllPitchers','renderHotBatTable','renderH2HFullTable','renderPitchLabTable','renderEdgePanels','renderBestBettingEdges','renderWeatherRankings','renderGameCenterTab','renderBBITierStats','renderStatsTab','renderSynergyBonusesTab','updateHeaderStats','updateSlateTicker'].forEach(safeCall);
+  };
+
+  window.returnToOfficialWeights = function(){
+    sandboxWeightsActive = false;
+    sandboxCategoryWeights = null;
+
+    const panel = document.getElementById('modelSandboxPanel');
+    const badge = document.getElementById('modelSandboxStatusBadge');
+    if (panel) panel.classList.remove('active');
+    if (badge) badge.textContent = 'OFFICIAL MODEL';
+
+    try { recalculateAllBBIScores(); } catch(err) { console.error('Official recalc failed:', err); }
+    ['renderFanaticsJackpot','renderAllPitchers','renderHotBatTable','renderH2HFullTable','renderPitchLabTable','renderEdgePanels','renderBestBettingEdges','renderWeatherRankings','renderGameCenterTab','renderBBITierStats','renderStatsTab','renderSynergyBonusesTab','updateHeaderStats','updateSlateTicker'].forEach(safeCall);
+  };
+
+  try {
+    const btn = document.getElementById('modelSandboxApplyBtn');
+    if (btn) btn.onclick = window.applySandboxWeights;
+  } catch(err) {
+    console.warn('Sandbox apply button bind failed:', err);
+  }
+})();
+</script>
+
 </body>
 </html>
