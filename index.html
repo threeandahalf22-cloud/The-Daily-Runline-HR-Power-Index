@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>The Daily Run Line's Homerun Index v40.4 Fixed Left Player Modal</title>
+<title>The Daily Run Line HR Power Index v42.7 Command Center Value Badge Fix</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <style>
 :root {
@@ -4651,6 +4651,1918 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
+
+
+<style id="v41-9-command-center-trading-cards">
+/* =========================
+   v41.9 COMMAND CENTER TRADING CARDS
+   Visual/layout only. Keeps the same four live categories:
+   Top BBI, Best Longshot, Biggest Edge, Pitcher Target.
+   Built defensively so cards still populate when odds/photos are missing.
+   ========================= */
+.command-center-ai-core {
+  max-width: 1260px !important;
+  padding: 18px !important;
+  background: #08090b !important;
+  border: 1px solid #272b31 !important;
+  box-shadow: 0 18px 46px rgba(0,0,0,.45) !important;
+}
+.command-center-core-layout {
+  grid-template-columns: minmax(265px,1fr) 250px minmax(265px,1fr) !important;
+  gap: 16px !important;
+}
+.command-side-stack { gap: 14px !important; }
+.command-trading-card {
+  min-height: 258px !important;
+  padding: 0 !important;
+  border-radius: 18px !important;
+  border: 1px solid #343941 !important;
+  border-top: 5px solid var(--tile-color, #e10600) !important;
+  border-left: 1px solid #343941 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), transparent 22%),
+    radial-gradient(circle at 50% 4%, var(--tile-glow, rgba(225,6,0,.13)), transparent 34%),
+    linear-gradient(145deg, #16191f 0%, #0c0e11 58%, #07080a 100%) !important;
+  box-shadow: 0 15px 34px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.08) !important;
+  overflow: hidden !important;
+  position: relative !important;
+  display: grid !important;
+  grid-template-rows: auto 1fr !important;
+}
+.command-trading-card::before {
+  content:'';
+  position:absolute;
+  inset:-55% -35%;
+  pointer-events:none;
+  background: linear-gradient(115deg, transparent 42%, rgba(255,255,255,.13) 50%, transparent 58%);
+  transform: translateX(-42%);
+  opacity: 0;
+}
+.command-trading-card:hover::before { opacity: 1; animation: command-card-foil 1.2s ease-out 1; }
+@keyframes command-card-foil { 0% { transform: translateX(-45%); } 100% { transform: translateX(45%); } }
+.command-trading-card:hover {
+  transform: translateY(-5px) scale(1.01) !important;
+  border-color: #4a505b !important;
+  border-top-color: var(--tile-color, #e10600) !important;
+  box-shadow: 0 22px 48px rgba(0,0,0,.50), 0 0 0 1px rgba(255,255,255,.035), inset 0 1px 0 rgba(255,255,255,.10) !important;
+}
+.command-trading-card .command-tile-label {
+  position: relative !important;
+  z-index: 2 !important;
+  min-height: 39px !important;
+  padding: 11px 13px 9px !important;
+  background: linear-gradient(90deg, rgba(0,0,0,.55), rgba(255,255,255,.035)) !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  color: #f7f7f7 !important;
+  font-size: 11px !important;
+  letter-spacing: 1.1px !important;
+  justify-content: space-between !important;
+}
+.command-trading-card .command-tile-label::after {
+  content:'LIVE';
+  color: var(--tile-color, #e10600);
+  border: 1px solid color-mix(in srgb, var(--tile-color, #e10600) 45%, transparent);
+  background: rgba(255,255,255,.035);
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 8px;
+  font-weight: 1000;
+}
+.command-trading-card .command-tile-value {
+  position: absolute !important;
+  z-index: 4 !important;
+  left: 13px !important;
+  bottom: 78px !important;
+  margin: 0 !important;
+  padding: 7px 10px !important;
+  border-radius: 11px !important;
+  background: rgba(0,0,0,.62) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  color: var(--tile-color, #e10600) !important;
+  font-size: 32px !important;
+  line-height: .95 !important;
+  letter-spacing: -1px !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+.command-trading-card .command-tile-player {
+  position: relative !important;
+  z-index: 3 !important;
+  display: block !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 13px 13px 12px !important;
+  color: #fff !important;
+  overflow: hidden !important;
+  white-space: normal !important;
+}
+.command-card-photo-stage {
+  position: relative;
+  height: 118px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin: 1px 0 9px;
+}
+.command-card-photo-stage::before {
+  content:'';
+  position:absolute;
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--tile-glow, rgba(225,6,0,.17)), transparent 63%);
+  border: 1px solid rgba(255,255,255,.06);
+}
+.command-card-photo-stage img,
+.command-card-face-fallback {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 104px !important;
+  height: 104px !important;
+  min-width: 104px !important;
+  min-height: 104px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  margin: 0 !important;
+  border: 3px solid var(--tile-color, #e10600) !important;
+  background: #0b0d10 !important;
+  box-shadow: 0 12px 24px rgba(0,0,0,.45) !important;
+}
+.command-card-face-fallback {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: var(--tile-color, #e10600);
+  font-size: 30px;
+  font-weight: 1000;
+  font-family: monospace;
+}
+.command-trading-card:hover .command-card-photo-stage img,
+.command-trading-card:hover .command-card-face-fallback { transform: scale(1.045); transition: transform .22s ease; }
+.command-card-name {
+  text-align:center;
+  color:#fff;
+  font-size: 15px;
+  line-height: 1.05;
+  font-weight: 1000;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 5px;
+}
+.command-card-meta {
+  margin-top: 4px;
+  text-align:center;
+  color:#aeb4bd;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.command-card-details {
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 5px;
+  margin-top: 48px;
+}
+.command-card-detail {
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.035);
+  border-radius: 9px;
+  padding: 6px 4px;
+  min-width: 0;
+  text-align: center;
+}
+.command-card-detail b {
+  display:block;
+  color: #fff;
+  font-family: monospace;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.command-card-detail span {
+  display:block;
+  margin-top: 3px;
+  color: #8f949c;
+  font-size: 7px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: .45px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.command-card-note {
+  margin-top: 7px;
+  color: var(--tile-color, #e10600);
+  font-size: 9px;
+  line-height: 1.15;
+  font-weight: 1000;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.command-card-empty {
+  min-height: 188px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+  color:#8f949c;
+  text-align:center;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing:.5px;
+}
+.command-card-empty .command-card-empty-icon { font-size: 32px; opacity:.75; }
+.command-trading-card.command-pitcher-card .command-card-details { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.command-logo-core {
+  min-height: 532px !important;
+  border-radius: 22px !important;
+  background: #0b0d10 !important;
+  border-color: #2b2f36 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 14px 32px rgba(0,0,0,.38) !important;
+}
+.command-logo-core::before,
+.command-logo-core::after,
+.command-core-ring { display:none !important; }
+.command-core-logo-wrap { width: 150px !important; height: 150px !important; box-shadow:none !important; border-color:#343941 !important; }
+.command-core-status { bottom: 34px !important; color:#f7f7f7 !important; border-color:#343941 !important; background:#111316 !important; }
+@media(max-width: 1050px) {
+  .command-center-core-layout { grid-template-columns: 1fr !important; }
+  .command-side-stack { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  .command-logo-core { min-height: 230px !important; order: -1; }
+  .command-card-details { margin-top: 42px; }
+}
+@media(max-width: 650px) {
+  .command-side-stack { grid-template-columns: 1fr !important; }
+  .command-trading-card { min-height: 250px !important; }
+  .command-card-photo-stage { height: 108px; }
+  .command-card-photo-stage img, .command-card-face-fallback { width: 96px !important; height: 96px !important; min-width: 96px !important; min-height: 96px !important; }
+}
+</style>
+
+
+<style id="v42-command-center-layering-full-page-fix">
+/* =========================
+   v42 COMMAND CENTER FULL-PAGE + LAYERING FIX
+   Layout only: shrinks the cards, enlarges the middle logo, removes stat overlap,
+   and makes the command center use the full available board width.
+   ========================= */
+.header-area {
+  padding: 16px 6px 18px !important;
+}
+.command-center-ai-core {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  padding: 16px 18px 18px !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+}
+.command-center-ai-core::after {
+  inset: 46px 18px 64px !important;
+  z-index: 0 !important;
+}
+.command-center-ai-topline,
+.command-center-core-layout,
+.command-ai-ticker {
+  position: relative !important;
+  z-index: 2 !important;
+}
+.command-center-core-layout {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 340px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  align-items: stretch !important;
+}
+.command-side-stack {
+  display: grid !important;
+  grid-template-rows: repeat(2, minmax(205px, 1fr)) !important;
+  gap: 16px !important;
+  min-width: 0 !important;
+}
+.command-trading-card {
+  min-height: 205px !important;
+  height: 100% !important;
+  display: grid !important;
+  grid-template-rows: 40px minmax(0, 1fr) !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+.command-trading-card .command-tile-label {
+  min-height: 40px !important;
+  height: 40px !important;
+  padding: 10px 13px !important;
+  box-sizing: border-box !important;
+}
+.command-trading-card .command-tile-value {
+  left: 12px !important;
+  bottom: 48px !important;
+  z-index: 8 !important;
+  font-size: 30px !important;
+  padding: 6px 9px !important;
+  pointer-events: none !important;
+}
+.command-trading-card .command-tile-player {
+  min-height: 0 !important;
+  height: 100% !important;
+  display: grid !important;
+  grid-template-rows: 86px auto auto 34px auto !important;
+  padding: 9px 13px 10px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+.command-card-photo-stage {
+  height: 84px !important;
+  margin: 0 0 6px !important;
+}
+.command-card-photo-stage::before {
+  width: 84px !important;
+  height: 84px !important;
+}
+.command-card-photo-stage img,
+.command-card-face-fallback {
+  width: 76px !important;
+  height: 76px !important;
+  min-width: 76px !important;
+  min-height: 76px !important;
+  border-width: 2px !important;
+}
+.command-card-name {
+  font-size: 14px !important;
+  line-height: 1.05 !important;
+  min-height: 16px !important;
+}
+.command-card-meta {
+  margin-top: 3px !important;
+  font-size: 9px !important;
+}
+.command-card-details {
+  margin-top: 38px !important;
+  gap: 5px !important;
+}
+.command-trading-card.command-pitcher-card .command-card-details {
+  grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+}
+.command-card-detail {
+  padding: 5px 4px !important;
+  border-radius: 8px !important;
+}
+.command-card-detail b {
+  font-size: 10px !important;
+}
+.command-card-detail span {
+  font-size: 6.5px !important;
+}
+.command-card-note {
+  margin-top: 5px !important;
+  font-size: 8px !important;
+  line-height: 1.1 !important;
+}
+.command-logo-core {
+  min-height: 426px !important;
+  height: 100% !important;
+  border-radius: 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.command-core-logo-wrap {
+  width: 220px !important;
+  height: 220px !important;
+  border-radius: 50% !important;
+  border: 2px solid rgba(225,6,0,.55) !important;
+  box-shadow: 0 0 0 10px rgba(225,6,0,.06), 0 0 38px rgba(225,6,0,.24) !important;
+}
+.command-core-status {
+  bottom: 24px !important;
+}
+.command-ai-ticker {
+  margin-top: 14px !important;
+}
+@media(max-width: 1050px) {
+  .command-center-core-layout { grid-template-columns: 1fr !important; }
+  .command-logo-core { min-height: 260px !important; order: -1 !important; }
+  .command-core-logo-wrap { width: 180px !important; height: 180px !important; }
+  .command-side-stack { grid-template-columns: repeat(2, minmax(0,1fr)) !important; grid-template-rows: auto !important; }
+}
+@media(max-width: 650px) {
+  .command-side-stack { grid-template-columns: 1fr !important; }
+  .command-trading-card { min-height: 210px !important; }
+  .command-core-logo-wrap { width: 150px !important; height: 150px !important; }
+}
+</style>
+
+
+
+<style id="v42-1-command-center-no-blank-space-fill">
+/* v42.1 COMMAND CENTER NO-BLANK-SPACE FILL */
+.command-center-ai-core{padding:14px 16px 14px!important;}
+.command-center-core-layout{grid-template-columns:minmax(0,1fr) 320px minmax(0,1fr)!important;gap:14px!important;}
+.command-side-stack{grid-template-rows:repeat(2,minmax(230px,1fr))!important;gap:14px!important;}
+.command-trading-card{min-height:230px!important;grid-template-rows:40px minmax(0,1fr)!important;background:linear-gradient(180deg,rgba(255,255,255,.055),transparent 18%),radial-gradient(circle at 92% 12%,var(--tile-glow,rgba(225,6,0,.18)),transparent 36%),linear-gradient(145deg,#15181e 0%,#090b0f 62%,#050608 100%)!important;}
+.command-trading-card .command-tile-value{top:54px!important;right:13px!important;left:auto!important;bottom:auto!important;font-size:28px!important;padding:7px 9px!important;z-index:8!important;}
+.command-trading-card .command-tile-player{display:flex!important;flex-direction:column!important;gap:8px!important;padding:10px 12px 11px!important;height:100%!important;overflow:hidden!important;}
+.command-card-watermark{position:absolute;right:-18px;bottom:20px;width:148px;height:148px;object-fit:contain;opacity:.075;filter:grayscale(1) contrast(1.2);z-index:0;pointer-events:none;}
+.command-card-hero-row{position:relative;z-index:2;display:grid;grid-template-columns:84px minmax(0,1fr);gap:12px;align-items:center;min-height:86px;padding-right:82px;}
+.command-card-photo-stage{height:82px!important;width:82px!important;margin:0!important;}
+.command-card-photo-stage::before{width:82px!important;height:82px!important;}
+.command-card-photo-stage img,.command-card-face-fallback{width:76px!important;height:76px!important;min-width:76px!important;min-height:76px!important;}
+.command-card-copy-block{min-width:0;}
+.command-card-name{text-align:left!important;font-size:15px!important;line-height:1.08!important;white-space:normal!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;padding:0!important;}
+.command-card-meta{text-align:left!important;font-size:9px!important;margin-top:5px!important;}
+.command-card-details{position:relative;z-index:2;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;margin-top:0!important;}
+.command-trading-card.command-pitcher-card .command-card-details{grid-template-columns:repeat(4,minmax(0,1fr))!important;}
+.command-card-detail{padding:7px 5px!important;min-height:36px!important;background:rgba(255,255,255,.045)!important;border-color:rgba(255,255,255,.10)!important;}
+.command-card-detail b{font-size:11px!important;line-height:1.05!important;}
+.command-card-detail span{font-size:7px!important;margin-top:4px!important;}
+.command-card-meter{position:relative;z-index:2;margin-top:0;padding:7px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.42);}
+.command-card-meter-top{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#8f949c;font-size:7px;font-weight:1000;text-transform:uppercase;letter-spacing:.6px;}
+.command-card-meter-top b{color:var(--tile-color,#e10600);font-family:monospace;font-size:11px;}
+.command-card-meter-track{margin-top:5px;height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;}
+.command-card-meter-track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--tile-color,#e10600),#f8fafc);box-shadow:0 0 14px var(--tile-glow,rgba(225,6,0,.20));}
+.command-card-note{position:relative;z-index:2;margin-top:0!important;padding:6px 8px;border-radius:9px;border:1px solid color-mix(in srgb,var(--tile-color,#e10600) 26%,transparent);background:rgba(0,0,0,.30);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.command-card-placeholder-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;margin-top:8px;}
+.command-card-placeholder-grid .command-card-detail{min-height:auto!important;}
+.command-logo-core{min-height:474px!important;background:radial-gradient(circle at 50% 50%,rgba(225,6,0,.18),transparent 36%),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 27px),repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 1px,transparent 1px 27px),#0b0d10!important;}
+.command-logo-core::before,.command-logo-core::after,.command-core-ring{display:block!important;}
+.command-core-logo-wrap{width:210px!important;height:210px!important;}
+.command-core-status{bottom:20px!important;}
+.command-ai-ticker{margin-top:10px!important;padding:9px 14px!important;}
+@media(max-width:1050px){.command-center-core-layout{grid-template-columns:1fr!important}.command-side-stack{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:auto!important}.command-logo-core{min-height:260px!important}}
+@media(max-width:650px){.command-side-stack{grid-template-columns:1fr!important}.command-card-hero-row{padding-right:0}.command-trading-card .command-tile-value{position:relative!important;top:auto!important;right:auto!important;align-self:flex-start}}
+</style>
+
+
+
+<style id="v42-2-command-center-filled-proportioned-cards">
+/* =========================
+   v42.2 COMMAND CENTER FILLED + PROPORTIONED CARDS
+   Layout only: centered larger player photo, stats to the right, full visible team logo,
+   wider signal meter, and no empty card quadrants. No scoring/data logic changed.
+   ========================= */
+.header-area{
+  padding: 12px 4px 14px !important;
+}
+.command-center-ai-core{
+  padding: 14px 16px 16px !important;
+}
+.command-center-core-layout{
+  grid-template-columns: minmax(0,1fr) 320px minmax(0,1fr) !important;
+  gap: 14px !important;
+}
+.command-side-stack{
+  gap: 14px !important;
+  grid-template-rows: repeat(2, 1fr) !important;
+}
+.command-trading-card{
+  min-height: 258px !important;
+  height: 258px !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-rows: 38px minmax(0,1fr) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+.command-trading-card .command-tile-label{
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 9px 14px !important;
+  background: linear-gradient(90deg, rgba(255,255,255,.055), rgba(0,0,0,.05)) !important;
+}
+.command-trading-card .command-tile-value{
+  top: 54px !important;
+  right: 14px !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 9 !important;
+  font-size: 32px !important;
+  min-width: 72px !important;
+  text-align: center !important;
+  padding: 7px 10px !important;
+  border-radius: 12px !important;
+  background: rgba(0,0,0,.72) !important;
+}
+.command-trading-card .command-tile-player{
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 12px 14px 12px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 52%) minmax(190px, 48%) !important;
+  grid-template-rows: minmax(132px, 1fr) 38px 28px !important;
+  grid-template-areas:
+    "hero details"
+    "meter meter"
+    "note note" !important;
+  column-gap: 14px !important;
+  row-gap: 9px !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+.command-card-watermark{
+  width: 58% !important;
+  height: 82% !important;
+  right: 16px !important;
+  bottom: 8px !important;
+  object-fit: contain !important;
+  opacity: .115 !important;
+  z-index: 0 !important;
+  transform: none !important;
+  filter: grayscale(1) contrast(1.25) !important;
+}
+.command-card-hero-row{
+  grid-area: hero !important;
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 0 !important;
+  gap: 7px !important;
+  text-align: center !important;
+}
+.command-card-photo-stage{
+  width: 112px !important;
+  height: 112px !important;
+  min-width: 112px !important;
+  min-height: 112px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.command-card-photo-stage::before{
+  width: 112px !important;
+  height: 112px !important;
+}
+.command-card-photo-stage img,
+.command-card-face-fallback{
+  width: 104px !important;
+  height: 104px !important;
+  min-width: 104px !important;
+  min-height: 104px !important;
+  border-width: 3px !important;
+}
+.command-card-copy-block{
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.command-card-name{
+  text-align: center !important;
+  font-size: 15px !important;
+  line-height: 1.08 !important;
+  white-space: normal !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  padding: 0 2px !important;
+}
+.command-card-meta{
+  text-align: center !important;
+  font-size: 9px !important;
+  line-height: 1.12 !important;
+  margin-top: 4px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.command-card-details{
+  grid-area: details !important;
+  position: relative !important;
+  z-index: 2 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  gap: 7px !important;
+  margin: 0 !important;
+  align-self: stretch !important;
+  min-height: 0 !important;
+  padding: 38px 0 0 !important;
+}
+.command-trading-card.command-pitcher-card .command-card-details{
+  grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+}
+.command-card-detail{
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 43px !important;
+  padding: 8px 6px !important;
+  border-radius: 10px !important;
+  background: rgba(255,255,255,.052) !important;
+  border-color: rgba(255,255,255,.11) !important;
+}
+.command-card-detail b{
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+.command-card-detail span{
+  font-size: 7px !important;
+  line-height: 1.05 !important;
+  margin-top: 5px !important;
+}
+.command-card-meter{
+  grid-area: meter !important;
+  position: relative !important;
+  z-index: 2 !important;
+  margin: 0 !important;
+  padding: 7px 10px !important;
+  border-radius: 11px !important;
+  align-self: stretch !important;
+}
+.command-card-meter-top{
+  font-size: 8px !important;
+}
+.command-card-meter-top b{
+  font-size: 11px !important;
+}
+.command-card-meter-track{
+  height: 8px !important;
+  margin-top: 5px !important;
+}
+.command-card-note{
+  grid-area: note !important;
+  position: relative !important;
+  z-index: 2 !important;
+  margin: 0 !important;
+  align-self: stretch !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 0 !important;
+  padding: 6px 10px !important;
+  border-radius: 999px !important;
+  font-size: 8px !important;
+  letter-spacing: .35px !important;
+  background: rgba(0,0,0,.36) !important;
+}
+.command-card-empty{
+  min-height: 0 !important;
+  height: 100% !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 8px !important;
+}
+.command-card-placeholder-grid{
+  width: 92% !important;
+  margin: 0 !important;
+}
+.command-logo-core{
+  min-height: 530px !important;
+  height: 530px !important;
+  border-radius: 16px !important;
+}
+.command-core-logo-wrap{
+  width: 210px !important;
+  height: 210px !important;
+}
+.command-logo-core::before{
+  width: 304px !important;
+  height: 304px !important;
+}
+.command-logo-core::after{
+  width: 245px !important;
+  height: 245px !important;
+}
+.command-core-ring-one{ width: 180px !important; height: 180px !important; }
+.command-core-ring-two{ width: 270px !important; height: 270px !important; }
+.command-core-ring-three{ width: 334px !important; height: 334px !important; }
+.command-ai-ticker{
+  margin-top: 10px !important;
+}
+@media(max-width: 1180px){
+  .command-center-core-layout{ grid-template-columns: minmax(0,1fr) 290px minmax(0,1fr) !important; gap: 12px !important; }
+  .command-trading-card{ height: 252px !important; min-height: 252px !important; }
+  .command-trading-card .command-tile-player{ grid-template-columns: minmax(0,50%) minmax(170px,50%) !important; column-gap: 10px !important; }
+  .command-card-photo-stage{ width: 102px !important; height: 102px !important; min-width: 102px !important; min-height: 102px !important; }
+  .command-card-photo-stage::before{ width: 102px !important; height: 102px !important; }
+  .command-card-photo-stage img,.command-card-face-fallback{ width: 94px !important; height: 94px !important; min-width: 94px !important; min-height: 94px !important; }
+}
+@media(max-width:1050px){
+  .command-center-core-layout{ grid-template-columns: 1fr !important; }
+  .command-side-stack{ grid-template-columns: repeat(2,minmax(0,1fr)) !important; grid-template-rows:auto !important; }
+  .command-logo-core{ order:-1; height: 280px !important; min-height: 280px !important; }
+  .command-trading-card{ height: 260px !important; min-height:260px !important; }
+}
+@media(max-width:760px){
+  .command-side-stack{ grid-template-columns: 1fr !important; }
+  .command-trading-card{ height: auto !important; min-height: 300px !important; }
+  .command-trading-card .command-tile-player{
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto auto auto !important;
+    grid-template-areas:"hero" "details" "meter" "note" !important;
+  }
+  .command-card-details{ padding-top: 0 !important; }
+  .command-trading-card .command-tile-value{ position: relative !important; top:auto !important; right:auto !important; justify-self:center !important; margin-bottom: 8px !important; }
+}
+</style>
+
+
+
+<style id="v42-3-command-center-layering-centered-final">
+/* =========================
+   v42.3 COMMAND CENTER LAYERING + CENTERED WATERMARK FIX
+   Fixes overlap/cutoff, centers the team logo watermark, and keeps each card filled.
+   Layout only. No scoring/data logic changed.
+   ========================= */
+.command-center-core-layout{
+  grid-template-columns: minmax(0,1fr) 320px minmax(0,1fr) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+.command-side-stack{
+  grid-template-rows: repeat(2, minmax(0,1fr)) !important;
+  gap: 14px !important;
+}
+.command-trading-card{
+  height: 302px !important;
+  min-height: 302px !important;
+  max-height: 302px !important;
+  display: grid !important;
+  grid-template-rows: 40px minmax(0,1fr) !important;
+  overflow: hidden !important;
+  position: relative !important;
+  isolation: isolate !important;
+}
+.command-trading-card::before{
+  z-index: 1 !important;
+}
+.command-trading-card .command-tile-label{
+  position: relative !important;
+  z-index: 8 !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 10px 14px !important;
+}
+.command-trading-card .command-tile-value{
+  position: absolute !important;
+  top: 58px !important;
+  right: 14px !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 10 !important;
+  font-size: 31px !important;
+  line-height: .95 !important;
+  min-width: 74px !important;
+  padding: 8px 10px !important;
+  text-align: center !important;
+  background: rgba(0,0,0,.76) !important;
+  border: 1px solid rgba(255,255,255,.13) !important;
+  border-radius: 12px !important;
+}
+.command-trading-card .command-tile-player{
+  position: relative !important;
+  z-index: 3 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  padding: 12px 14px 12px !important;
+  display: grid !important;
+  grid-template-columns: minmax(150px, 43%) minmax(0, 57%) !important;
+  grid-template-rows: 176px 38px 28px !important;
+  grid-template-areas:
+    "hero details"
+    "meter meter"
+    "note note" !important;
+  column-gap: 14px !important;
+  row-gap: 8px !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+.command-card-watermark{
+  position: absolute !important;
+  left: 50% !important;
+  top: 51% !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 66% !important;
+  height: 66% !important;
+  max-width: 260px !important;
+  max-height: 260px !important;
+  object-fit: contain !important;
+  transform: translate(-50%, -50%) !important;
+  opacity: .105 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  filter: grayscale(1) contrast(1.22) !important;
+}
+.command-card-hero-row{
+  grid-area: hero !important;
+  position: relative !important;
+  z-index: 4 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 0 !important;
+  gap: 8px !important;
+  text-align: center !important;
+  overflow: hidden !important;
+}
+.command-card-photo-stage{
+  width: 122px !important;
+  height: 122px !important;
+  min-width: 122px !important;
+  min-height: 122px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.command-card-photo-stage::before{
+  width: 122px !important;
+  height: 122px !important;
+}
+.command-card-photo-stage img,
+.command-card-face-fallback{
+  width: 112px !important;
+  height: 112px !important;
+  min-width: 112px !important;
+  min-height: 112px !important;
+  border-width: 3px !important;
+}
+.command-card-copy-block{
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.command-card-name{
+  text-align: center !important;
+  font-size: 15px !important;
+  line-height: 1.08 !important;
+  padding: 0 2px !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+.command-card-meta{
+  text-align: center !important;
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+  margin-top: 4px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.command-card-details{
+  grid-area: details !important;
+  position: relative !important;
+  z-index: 5 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  grid-template-rows: repeat(3, minmax(0,1fr)) !important;
+  gap: 7px !important;
+  margin: 0 !important;
+  padding: 48px 0 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+.command-trading-card.command-pitcher-card .command-card-details{
+  grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  grid-template-rows: repeat(2, minmax(0,1fr)) !important;
+  padding-top: 48px !important;
+}
+.command-card-detail{
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 6px 5px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: rgba(255,255,255,.055) !important;
+  border-color: rgba(255,255,255,.12) !important;
+  overflow: hidden !important;
+}
+.command-card-detail b{
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+.command-card-detail span{
+  font-size: 7px !important;
+  line-height: 1.05 !important;
+  margin-top: 5px !important;
+}
+.command-card-meter{
+  grid-area: meter !important;
+  position: relative !important;
+  z-index: 6 !important;
+  margin: 0 !important;
+  padding: 7px 10px !important;
+  border-radius: 11px !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+.command-card-meter-track{
+  height: 8px !important;
+  margin-top: 5px !important;
+}
+.command-card-note{
+  grid-area: note !important;
+  position: relative !important;
+  z-index: 6 !important;
+  margin: 0 !important;
+  min-height: 0 !important;
+  height: 28px !important;
+  padding: 6px 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 999px !important;
+  font-size: 8px !important;
+  line-height: 1 !important;
+  letter-spacing: .35px !important;
+  background: rgba(0,0,0,.42) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+}
+.command-logo-core{
+  height: 618px !important;
+  min-height: 618px !important;
+  max-height: 618px !important;
+}
+.command-core-logo-wrap{
+  width: 220px !important;
+  height: 220px !important;
+}
+.command-logo-core::before{ width: 318px !important; height: 318px !important; }
+.command-logo-core::after{ width: 260px !important; height: 260px !important; }
+.command-core-ring-one{ width: 190px !important; height: 190px !important; }
+.command-core-ring-two{ width: 286px !important; height: 286px !important; }
+.command-core-ring-three{ width: 350px !important; height: 350px !important; }
+@media(max-width:1180px){
+  .command-center-core-layout{ grid-template-columns: minmax(0,1fr) 300px minmax(0,1fr) !important; gap: 12px !important; }
+  .command-trading-card{ height: 296px !important; min-height:296px !important; max-height:296px !important; }
+  .command-trading-card .command-tile-player{ grid-template-columns: minmax(138px,42%) minmax(0,58%) !important; grid-template-rows: 170px 38px 28px !important; column-gap: 12px !important; }
+  .command-card-photo-stage{ width:112px!important; height:112px!important; min-width:112px!important; min-height:112px!important; }
+  .command-card-photo-stage::before{ width:112px!important; height:112px!important; }
+  .command-card-photo-stage img,.command-card-face-fallback{ width:104px!important; height:104px!important; min-width:104px!important; min-height:104px!important; }
+  .command-logo-core{ height:606px!important; min-height:606px!important; max-height:606px!important; }
+}
+@media(max-width:1050px){
+  .command-center-core-layout{ grid-template-columns:1fr!important; }
+  .command-side-stack{ grid-template-columns:repeat(2,minmax(0,1fr))!important; grid-template-rows:auto!important; }
+  .command-logo-core{ order:-1; height:290px!important; min-height:290px!important; max-height:none!important; }
+  .command-trading-card{ height:302px!important; min-height:302px!important; max-height:none!important; }
+}
+@media(max-width:760px){
+  .command-side-stack{ grid-template-columns:1fr!important; }
+  .command-trading-card{ height:auto!important; min-height:330px!important; max-height:none!important; }
+  .command-trading-card .command-tile-player{
+    grid-template-columns:1fr!important;
+    grid-template-rows:auto auto 38px 28px!important;
+    grid-template-areas:"hero" "details" "meter" "note"!important;
+  }
+  .command-card-details{ padding-top:0!important; grid-template-rows:repeat(3,48px)!important; }
+  .command-trading-card.command-pitcher-card .command-card-details{ padding-top:0!important; grid-template-rows:repeat(2,48px)!important; }
+  .command-trading-card .command-tile-value{ top:52px!important; right:12px!important; }
+}
+</style>
+
+
+
+<style id="v42-4-command-center-final-fill-no-overlap">
+/* =========================
+   v42.4 COMMAND CENTER FINAL FILL FIX
+   Hard final layout: exact row math, centered watermark/logo, filled cards, no layer overlap.
+   Layout only. No scoring/data logic changed.
+   ========================= */
+.header-area{
+  padding:12px 6px 14px!important;
+}
+.command-center-ai-core{
+  width:100%!important;
+  max-width:none!important;
+  padding:14px 16px 14px!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+.command-center-ai-core::after{
+  z-index:0!important;
+  inset:46px 16px 58px!important;
+}
+.command-center-ai-topline,
+.command-center-core-layout,
+.command-ai-ticker{
+  position:relative!important;
+  z-index:5!important;
+}
+.command-center-core-layout{
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:minmax(390px,1fr) 300px minmax(390px,1fr)!important;
+  gap:14px!important;
+  align-items:stretch!important;
+}
+.command-side-stack{
+  display:grid!important;
+  grid-template-rows:repeat(2,338px)!important;
+  gap:14px!important;
+  min-width:0!important;
+}
+.command-trading-card{
+  height:338px!important;
+  min-height:338px!important;
+  max-height:338px!important;
+  padding:0!important;
+  display:grid!important;
+  grid-template-rows:38px 300px!important;
+  position:relative!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  border-radius:15px!important;
+}
+.command-trading-card::before{
+  z-index:1!important;
+  pointer-events:none!important;
+}
+.command-trading-card::after{
+  z-index:2!important;
+  pointer-events:none!important;
+}
+.command-trading-card .command-tile-label{
+  height:38px!important;
+  min-height:38px!important;
+  padding:9px 14px!important;
+  position:relative!important;
+  z-index:20!important;
+  box-sizing:border-box!important;
+}
+.command-trading-card .command-tile-value{
+  position:absolute!important;
+  top:52px!important;
+  right:14px!important;
+  left:auto!important;
+  bottom:auto!important;
+  z-index:30!important;
+  min-width:78px!important;
+  max-width:92px!important;
+  box-sizing:border-box!important;
+  padding:7px 10px!important;
+  border-radius:12px!important;
+  background:rgba(0,0,0,.78)!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  color:var(--tile-color,var(--accent))!important;
+  font-family:monospace!important;
+  font-size:31px!important;
+  line-height:1!important;
+  font-weight:1000!important;
+  text-align:center!important;
+  text-shadow:0 0 18px var(--tile-glow,rgba(225,6,0,.22))!important;
+  pointer-events:none!important;
+}
+.command-trading-card .command-tile-player{
+  position:relative!important;
+  z-index:10!important;
+  height:300px!important;
+  min-height:300px!important;
+  max-height:300px!important;
+  padding:10px 14px!important;
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(155px,43%) minmax(0,57%)!important;
+  grid-template-rows:200px 38px 26px!important;
+  grid-template-areas:
+    "hero details"
+    "meter meter"
+    "note note"!important;
+  column-gap:14px!important;
+  row-gap:8px!important;
+  align-items:stretch!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+}
+.command-card-watermark{
+  position:absolute!important;
+  z-index:0!important;
+  left:50%!important;
+  top:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:70%!important;
+  height:70%!important;
+  max-width:310px!important;
+  max-height:310px!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  transform:translate(-50%,-50%)!important;
+  opacity:.13!important;
+  filter:grayscale(1) contrast(1.2)!important;
+  pointer-events:none!important;
+}
+.command-card-hero-row{
+  grid-area:hero!important;
+  position:relative!important;
+  z-index:5!important;
+  height:200px!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  display:grid!important;
+  grid-template-rows:138px minmax(0,1fr)!important;
+  gap:6px!important;
+  align-items:center!important;
+  justify-items:center!important;
+  text-align:center!important;
+  overflow:hidden!important;
+}
+.command-card-photo-stage{
+  width:138px!important;
+  height:138px!important;
+  min-width:138px!important;
+  min-height:138px!important;
+  margin:0 auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:visible!important;
+}
+.command-card-photo-stage::before{
+  width:138px!important;
+  height:138px!important;
+}
+.command-card-photo-stage img,
+.command-card-face-fallback{
+  width:128px!important;
+  height:128px!important;
+  min-width:128px!important;
+  min-height:128px!important;
+  border-width:3px!important;
+  object-fit:cover!important;
+}
+.command-card-copy-block{
+  width:100%!important;
+  min-width:0!important;
+  overflow:hidden!important;
+}
+.command-card-name{
+  width:100%!important;
+  text-align:center!important;
+  font-size:15px!important;
+  line-height:1.08!important;
+  font-weight:1000!important;
+  padding:0 2px!important;
+  margin:0!important;
+  white-space:normal!important;
+  display:-webkit-box!important;
+  -webkit-line-clamp:2!important;
+  -webkit-box-orient:vertical!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.command-card-meta{
+  text-align:center!important;
+  font-size:9px!important;
+  line-height:1.1!important;
+  margin-top:4px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.command-card-details{
+  grid-area:details!important;
+  position:relative!important;
+  z-index:8!important;
+  height:200px!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:54px 0 0!important;
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+  overflow:hidden!important;
+}
+.command-trading-card.command-pitcher-card .command-card-details{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:repeat(2,minmax(0,1fr))!important;
+  padding-top:54px!important;
+}
+.command-card-detail{
+  min-width:0!important;
+  min-height:0!important;
+  height:auto!important;
+  padding:6px 5px!important;
+  border-radius:10px!important;
+  background:rgba(255,255,255,.06)!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+.command-card-detail b{
+  max-width:100%!important;
+  color:#fff!important;
+  font-family:monospace!important;
+  font-size:12px!important;
+  line-height:1!important;
+  font-weight:1000!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.command-card-detail span{
+  max-width:100%!important;
+  color:#9aa3b2!important;
+  font-size:7px!important;
+  line-height:1.05!important;
+  margin-top:5px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.command-card-meter{
+  grid-area:meter!important;
+  position:relative!important;
+  z-index:8!important;
+  height:38px!important;
+  min-height:38px!important;
+  margin:0!important;
+  padding:7px 10px!important;
+  border-radius:11px!important;
+  box-sizing:border-box!important;
+  background:rgba(0,0,0,.44)!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  overflow:hidden!important;
+}
+.command-card-meter-top{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  height:10px!important;
+  color:#9aa3b2!important;
+  font-size:8px!important;
+  line-height:1!important;
+}
+.command-card-meter-top b{
+  color:var(--tile-color,var(--accent))!important;
+  font-size:11px!important;
+  line-height:1!important;
+}
+.command-card-meter-track{
+  height:8px!important;
+  margin-top:5px!important;
+  border-radius:999px!important;
+}
+.command-card-note{
+  grid-area:note!important;
+  position:relative!important;
+  z-index:8!important;
+  height:26px!important;
+  min-height:26px!important;
+  margin:0!important;
+  padding:6px 10px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:999px!important;
+  background:rgba(0,0,0,.42)!important;
+  border:1px solid color-mix(in srgb,var(--tile-color,var(--accent)) 26%,transparent)!important;
+  font-size:8px!important;
+  line-height:1!important;
+  letter-spacing:.35px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.command-card-empty{
+  height:100%!important;
+  min-height:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:12px!important;
+  padding:18px!important;
+  box-sizing:border-box!important;
+}
+.command-card-placeholder-grid{
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin:4px 0 0!important;
+}
+.command-logo-core{
+  height:690px!important;
+  min-height:690px!important;
+  max-height:690px!important;
+  border-radius:18px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+}
+.command-core-logo-wrap{
+  width:220px!important;
+  height:220px!important;
+  min-width:220px!important;
+  min-height:220px!important;
+  position:relative!important;
+  z-index:5!important;
+}
+.command-logo-core::before{
+  display:block!important;
+  width:320px!important;
+  height:320px!important;
+}
+.command-logo-core::after{
+  display:block!important;
+  width:270px!important;
+  height:270px!important;
+}
+.command-core-ring{display:block!important;}
+.command-core-ring-one{width:195px!important;height:195px!important;}
+.command-core-ring-two{width:292px!important;height:292px!important;}
+.command-core-ring-three{width:360px!important;height:360px!important;}
+.command-core-status{
+  bottom:24px!important;
+  z-index:6!important;
+}
+.command-ai-ticker{
+  margin-top:10px!important;
+  padding:9px 14px!important;
+}
+@media(max-width:1260px){
+  .command-center-core-layout{grid-template-columns:minmax(350px,1fr) 280px minmax(350px,1fr)!important;gap:12px!important;}
+  .command-side-stack{grid-template-rows:repeat(2,326px)!important;gap:12px!important;}
+  .command-trading-card{height:326px!important;min-height:326px!important;max-height:326px!important;grid-template-rows:38px 288px!important;}
+  .command-trading-card .command-tile-player{height:288px!important;min-height:288px!important;max-height:288px!important;grid-template-columns:minmax(145px,42%) minmax(0,58%)!important;grid-template-rows:190px 38px 24px!important;row-gap:8px!important;padding:10px 12px!important;column-gap:12px!important;}
+  .command-card-hero-row{height:190px!important;grid-template-rows:126px minmax(0,1fr)!important;}
+  .command-card-photo-stage{width:126px!important;height:126px!important;min-width:126px!important;min-height:126px!important;}
+  .command-card-photo-stage::before{width:126px!important;height:126px!important;}
+  .command-card-photo-stage img,.command-card-face-fallback{width:118px!important;height:118px!important;min-width:118px!important;min-height:118px!important;}
+  .command-card-details{height:190px!important;padding-top:52px!important;}
+  .command-trading-card.command-pitcher-card .command-card-details{padding-top:52px!important;}
+  .command-logo-core{height:664px!important;min-height:664px!important;max-height:664px!important;}
+  .command-core-logo-wrap{width:200px!important;height:200px!important;min-width:200px!important;min-height:200px!important;}
+}
+@media(max-width:1050px){
+  .command-center-core-layout{grid-template-columns:1fr!important;}
+  .command-logo-core{order:-1!important;height:300px!important;min-height:300px!important;max-height:none!important;}
+  .command-side-stack{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:auto!important;}
+  .command-trading-card{height:326px!important;min-height:326px!important;max-height:none!important;}
+}
+@media(max-width:760px){
+  .command-side-stack{grid-template-columns:1fr!important;}
+  .command-trading-card{height:auto!important;min-height:350px!important;max-height:none!important;grid-template-rows:38px auto!important;}
+  .command-trading-card .command-tile-player{
+    height:auto!important;min-height:312px!important;max-height:none!important;
+    grid-template-columns:1fr!important;
+    grid-template-rows:auto auto 38px 26px!important;
+    grid-template-areas:"hero" "details" "meter" "note"!important;
+  }
+  .command-card-hero-row{height:auto!important;min-height:180px!important;}
+  .command-card-details{height:auto!important;min-height:116px!important;padding-top:0!important;grid-template-rows:repeat(3,34px)!important;}
+  .command-trading-card.command-pitcher-card .command-card-details{padding-top:0!important;grid-template-rows:repeat(2,42px)!important;}
+  .command-trading-card .command-tile-value{top:50px!important;right:12px!important;font-size:28px!important;}
+}
+</style>
+
+
+<style id="v42-5-command-center-no-overlap-final-override">
+/* =========================
+   v42.5 COMMAND CENTER NO-OVERLAP FINAL OVERRIDE
+   Layout only. Keeps the 4 trading cards + center logo, but fixes stacking,
+   reserves real space for the score badge, centers watermarks, and fills cards.
+   ========================= */
+.header-area{
+  padding: 10px 6px 12px !important;
+  margin-bottom: 14px !important;
+}
+.command-center-ai-core{
+  width: 100% !important;
+  max-width: none !important;
+  padding: 14px 18px 12px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+.command-center-core-layout{
+  display: grid !important;
+  grid-template-columns: minmax(430px, 1fr) 390px minmax(430px, 1fr) !important;
+  gap: 18px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.command-side-stack{
+  display: grid !important;
+  grid-template-rows: repeat(2, 300px) !important;
+  gap: 16px !important;
+  min-width: 0 !important;
+}
+.command-trading-card{
+  height: 300px !important;
+  min-height: 300px !important;
+  max-height: 300px !important;
+  display: grid !important;
+  grid-template-rows: 38px 262px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  position: relative !important;
+  border-radius: 18px !important;
+}
+.command-trading-card .command-tile-label{
+  height: 38px !important;
+  padding: 9px 18px !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  z-index: 30 !important;
+  font-size: 12px !important;
+}
+.command-trading-card .command-tile-value{
+  position: absolute !important;
+  top: 58px !important;
+  right: 18px !important;
+  z-index: 40 !important;
+  min-width: 104px !important;
+  max-width: 126px !important;
+  padding: 8px 12px !important;
+  box-sizing: border-box !important;
+  border-radius: 13px !important;
+  background: rgba(0,0,0,.88) !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  font-size: 32px !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  pointer-events: none !important;
+}
+.command-trading-card .command-tile-player{
+  height: 262px !important;
+  min-height: 262px !important;
+  max-height: 262px !important;
+  padding: 12px 18px 10px !important;
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-columns: 245px minmax(0, 1fr) !important;
+  grid-template-rows: 162px 42px 28px !important;
+  grid-template-areas:
+    "hero details"
+    "meter meter"
+    "note note" !important;
+  column-gap: 18px !important;
+  row-gap: 8px !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+  position: relative !important;
+  z-index: 5 !important;
+}
+.command-card-watermark{
+  position: absolute !important;
+  z-index: 0 !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 58% !important;
+  height: 58% !important;
+  max-width: 270px !important;
+  max-height: 270px !important;
+  transform: translate(-50%, -50%) !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  opacity: .11 !important;
+  pointer-events: none !important;
+}
+.command-card-hero-row{
+  grid-area: hero !important;
+  height: 162px !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: 132px minmax(0, 1fr) !important;
+  grid-template-rows: 1fr !important;
+  gap: 12px !important;
+  align-items: center !important;
+  justify-items: start !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  position: relative !important;
+  z-index: 8 !important;
+  text-align: left !important;
+}
+.command-card-photo-stage{
+  width: 132px !important;
+  height: 132px !important;
+  min-width: 132px !important;
+  min-height: 132px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: visible !important;
+}
+.command-card-photo-stage::before{
+  width: 132px !important;
+  height: 132px !important;
+}
+.command-card-photo-stage img,
+.command-card-face-fallback{
+  width: 122px !important;
+  height: 122px !important;
+  min-width: 122px !important;
+  min-height: 122px !important;
+  object-fit: cover !important;
+  border-width: 3px !important;
+}
+.command-card-copy-block{
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  align-self: center !important;
+}
+.command-card-name{
+  width: 100% !important;
+  max-width: 100% !important;
+  text-align: left !important;
+  font-size: 18px !important;
+  line-height: 1.03 !important;
+  font-weight: 1000 !important;
+  letter-spacing: -.4px !important;
+  white-space: normal !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.command-card-meta{
+  max-width: 100% !important;
+  margin-top: 7px !important;
+  text-align: left !important;
+  font-size: 10px !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.command-card-details{
+  grid-area: details !important;
+  height: 162px !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 58px 0 0 !important;
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+.command-trading-card.command-pitcher-card .command-card-details{
+  grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
+  padding-top: 58px !important;
+}
+.command-card-detail{
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 7px 7px !important;
+  border-radius: 11px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+.command-card-detail b{
+  font-size: 13px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+.command-card-detail span{
+  font-size: 7px !important;
+  line-height: 1.05 !important;
+  margin-top: 5px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+.command-card-meter{
+  grid-area: meter !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  margin: 0 !important;
+  padding: 8px 12px !important;
+  box-sizing: border-box !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  z-index: 12 !important;
+}
+.command-card-note{
+  grid-area: note !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  margin: 0 !important;
+  padding: 7px 12px !important;
+  box-sizing: border-box !important;
+  border-radius: 999px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 8px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  position: relative !important;
+  z-index: 12 !important;
+}
+.command-logo-core{
+  height: 616px !important;
+  min-height: 616px !important;
+  max-height: 616px !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+}
+.command-core-logo-wrap{
+  width: 245px !important;
+  height: 245px !important;
+  min-width: 245px !important;
+  min-height: 245px !important;
+}
+.command-logo-core::before{ width: 350px !important; height: 350px !important; }
+.command-logo-core::after{ width: 310px !important; height: 310px !important; }
+.command-core-ring-one{ width: 225px !important; height: 225px !important; }
+.command-core-ring-two{ width: 325px !important; height: 325px !important; }
+.command-core-ring-three{ width: 385px !important; height: 385px !important; }
+.command-core-status{ bottom: 20px !important; }
+.command-ai-ticker{
+  margin-top: 10px !important;
+  padding: 9px 14px !important;
+}
+@media(max-width: 1480px){
+  .command-center-core-layout{ grid-template-columns: minmax(400px, 1fr) 340px minmax(400px, 1fr) !important; gap: 14px !important; }
+  .command-trading-card .command-tile-player{ grid-template-columns: 220px minmax(0, 1fr) !important; column-gap: 14px !important; padding-left: 14px !important; padding-right: 14px !important; }
+  .command-card-hero-row{ grid-template-columns: 118px minmax(0,1fr) !important; }
+  .command-card-photo-stage{ width:118px !important; height:118px !important; min-width:118px !important; min-height:118px !important; }
+  .command-card-photo-stage::before{ width:118px !important; height:118px !important; }
+  .command-card-photo-stage img,.command-card-face-fallback{ width:110px !important; height:110px !important; min-width:110px !important; min-height:110px !important; }
+  .command-card-name{ font-size: 16px !important; }
+  .command-card-details{ gap: 7px !important; }
+  .command-card-detail b{ font-size: 12px !important; }
+  .command-logo-core{ height:616px !important; min-height:616px !important; }
+  .command-core-logo-wrap{ width:220px !important; height:220px !important; min-width:220px !important; min-height:220px !important; }
+}
+@media(max-width: 1180px){
+  .command-center-core-layout{ grid-template-columns: 1fr !important; }
+  .command-logo-core{ order: -1 !important; height: 310px !important; min-height: 310px !important; max-height: none !important; }
+  .command-side-stack{ grid-template-columns: repeat(2, minmax(0,1fr)) !important; grid-template-rows: auto !important; }
+  .command-trading-card{ height: 310px !important; min-height: 310px !important; max-height: none !important; grid-template-rows: 38px 272px !important; }
+  .command-trading-card .command-tile-player{ height:272px !important; min-height:272px !important; max-height:none !important; grid-template-columns: 230px minmax(0,1fr) !important; }
+}
+@media(max-width: 760px){
+  .command-side-stack{ grid-template-columns: 1fr !important; }
+  .command-trading-card{ height: auto !important; min-height: 360px !important; grid-template-rows: 38px auto !important; }
+  .command-trading-card .command-tile-player{
+    height: auto !important; min-height: 322px !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto 42px 28px !important;
+    grid-template-areas: "hero" "details" "meter" "note" !important;
+  }
+  .command-card-hero-row{ height:auto !important; min-height: 145px !important; grid-template-columns: 112px minmax(0,1fr) !important; }
+  .command-card-details{ height:auto !important; min-height: 128px !important; padding-top: 0 !important; grid-template-rows: repeat(3, 38px) !important; }
+  .command-trading-card.command-pitcher-card .command-card-details{ padding-top: 0 !important; grid-template-rows: repeat(2, 46px) !important; }
+  .command-trading-card .command-tile-value{ top: 50px !important; right: 12px !important; font-size: 26px !important; }
+}
+</style>
+
+
+
+<style id="v42-6-command-center-readable-detail-boxes">
+/* =========================
+   v42.6 COMMAND CENTER READABLE BOXES FIX
+   Layout only. Keeps the command center look the same, but gives the stat boxes
+   real width/height so the labels and values are readable instead of crushed.
+   ========================= */
+.command-trading-card .command-tile-player{
+  grid-template-columns: minmax(200px, 42%) minmax(240px, 1fr) !important;
+  column-gap: 14px !important;
+}
+.command-card-hero-row{
+  grid-template-columns: 116px minmax(0, 1fr) !important;
+  gap: 10px !important;
+}
+.command-card-photo-stage{
+  width: 116px !important;
+  height: 116px !important;
+  min-width: 116px !important;
+  min-height: 116px !important;
+}
+.command-card-photo-stage::before{
+  width: 116px !important;
+  height: 116px !important;
+}
+.command-card-photo-stage img,
+.command-card-face-fallback{
+  width: 108px !important;
+  height: 108px !important;
+  min-width: 108px !important;
+  min-height: 108px !important;
+}
+.command-card-copy-block{
+  padding-right: 0 !important;
+}
+.command-card-name{
+  font-size: 17px !important;
+  line-height: 1.04 !important;
+  -webkit-line-clamp: 2 !important;
+}
+.command-card-meta{
+  font-size: 9.5px !important;
+  line-height: 1.15 !important;
+  -webkit-line-clamp: 2 !important;
+}
+.command-card-details{
+  padding-top: 50px !important;
+  gap: 9px !important;
+  grid-template-columns: repeat(2, minmax(105px, 1fr)) !important;
+  grid-template-rows: repeat(3, 34px) !important;
+  height: 162px !important;
+  overflow: visible !important;
+}
+.command-trading-card.command-pitcher-card .command-card-details{
+  padding-top: 48px !important;
+  grid-template-columns: repeat(2, minmax(112px, 1fr)) !important;
+  grid-template-rows: repeat(2, 47px) !important;
+  gap: 10px !important;
+}
+.command-card-detail{
+  min-width: 0 !important;
+  min-height: 34px !important;
+  padding: 6px 9px !important;
+  border-radius: 10px !important;
+  background: rgba(255,255,255,.065) !important;
+  border: 1px solid rgba(255,255,255,.15) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 5px 12px rgba(0,0,0,.22) !important;
+}
+.command-card-detail b{
+  font-size: 12.5px !important;
+  line-height: 1.05 !important;
+  letter-spacing: .1px !important;
+  color: #fff !important;
+}
+.command-card-detail span{
+  font-size: 7.5px !important;
+  line-height: 1.05 !important;
+  margin-top: 4px !important;
+  letter-spacing: .15px !important;
+  color: #f8fafc !important;
+  opacity: .96 !important;
+}
+.command-trading-card .command-tile-value{
+  top: 58px !important;
+  right: 18px !important;
+  min-width: 92px !important;
+  max-width: 104px !important;
+  font-size: 30px !important;
+  padding: 8px 10px !important;
+}
+.command-trading-card.command-pitcher-card .command-tile-value{
+  min-width: 88px !important;
+  max-width: 98px !important;
+}
+@media(max-width: 1480px){
+  .command-center-core-layout{
+    grid-template-columns: minmax(410px, 1fr) 340px minmax(410px, 1fr) !important;
+  }
+  .command-trading-card .command-tile-player{
+    grid-template-columns: minmax(190px, 41%) minmax(230px, 1fr) !important;
+    column-gap: 12px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .command-card-hero-row{
+    grid-template-columns: 108px minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+  .command-card-photo-stage,
+  .command-card-photo-stage::before{
+    width: 108px !important;
+    height: 108px !important;
+    min-width: 108px !important;
+    min-height: 108px !important;
+  }
+  .command-card-photo-stage img,
+  .command-card-face-fallback{
+    width: 100px !important;
+    height: 100px !important;
+    min-width: 100px !important;
+    min-height: 100px !important;
+  }
+  .command-card-name{ font-size: 16px !important; }
+  .command-card-details{
+    grid-template-columns: repeat(2, minmax(96px, 1fr)) !important;
+    gap: 8px !important;
+  }
+  .command-card-detail b{ font-size: 12px !important; }
+  .command-card-detail span{ font-size: 7px !important; }
+}
+@media(max-width: 1180px){
+  .command-trading-card .command-tile-player{
+    grid-template-columns: minmax(220px, 42%) minmax(250px, 1fr) !important;
+  }
+  .command-card-details{
+    grid-template-columns: repeat(2, minmax(112px, 1fr)) !important;
+  }
+}
+@media(max-width: 760px){
+  .command-card-details,
+  .command-trading-card.command-pitcher-card .command-card-details{
+    padding-top: 0 !important;
+    overflow: hidden !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .command-card-detail{ min-height: 38px !important; }
+  .command-card-detail b{ font-size: 12px !important; }
+  .command-card-detail span{ font-size: 7px !important; }
+}
+</style>
+
+
+
+<style id="v42-7-command-center-value-badge-no-overlap">
+/* =========================
+   v42.7 COMMAND CENTER VALUE BADGE NO-OVERLAP FIX
+   Only moves the large value badges (67.2, +5.0%, 2.63, +800) upward
+   so they stop sitting on top of the stat detail boxes. Nothing else moved.
+   ========================= */
+.command-trading-card .command-tile-value{
+  top: 42px !important;
+  right: 18px !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: 45 !important;
+}
+.command-trading-card.command-pitcher-card .command-tile-value{
+  top: 42px !important;
+}
+@media(max-width: 1480px){
+  .command-trading-card .command-tile-value,
+  .command-trading-card.command-pitcher-card .command-tile-value{
+    top: 42px !important;
+    right: 14px !important;
+  }
+}
+@media(max-width: 760px){
+  .command-trading-card .command-tile-value,
+  .command-trading-card.command-pitcher-card .command-tile-value{
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: auto !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -4672,12 +6584,12 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </div>
 <div class="command-center-core-layout">
   <div class="command-side-stack command-side-left">
-    <div class="command-tile command-feature-card accent command-top-bbi-card">
+    <div class="command-tile command-feature-card command-trading-card accent command-top-bbi-card">
       <div class="command-tile-label">👑 Top BBI</div>
       <div class="command-tile-value" id="topBBIValue">--</div>
       <div class="command-tile-player" id="topBBIPlayer"><span style="color:var(--text-muted)">Waiting for upload...</span></div>
     </div>
-    <div class="command-tile command-feature-card gold command-longshot-card">
+    <div class="command-tile command-feature-card command-trading-card gold command-longshot-card">
       <div class="command-tile-label">🚀 Best Longshot</div>
       <div class="command-tile-value" id="commandBestLongshotValue">--</div>
       <div class="command-tile-player" id="commandBestLongshotPlayer"><span style="color:var(--text-muted)">+600 or longer</span></div>
@@ -4695,12 +6607,12 @@ tbody tr:hover .stats-player-mini .player-headshot {
   </div>
 
   <div class="command-side-stack command-side-right">
-    <div class="command-tile command-feature-card green command-edge-card">
+    <div class="command-tile command-feature-card command-trading-card green command-edge-card">
       <div class="command-tile-label">📈 Biggest Edge</div>
       <div class="command-tile-value" id="commandBestEdgeValue">--</div>
       <div class="command-tile-player" id="commandBestEdgePlayer"><span style="color:var(--text-muted)">Needs Odds sheet</span></div>
     </div>
-    <div class="command-tile command-feature-card red command-pitcher-card">
+    <div class="command-tile command-feature-card command-trading-card red command-pitcher-card">
       <div class="command-tile-label">🎯 Pitcher Target</div>
       <div class="command-tile-value" id="weakPitcherValue">--</div>
       <div class="command-tile-player" id="weakPitcherPlayer"><span style="color:var(--text-muted)">Loading...</span></div>
@@ -6402,6 +8314,125 @@ tickerEl.innerHTML = `FIRST PITCH IN: <span>${hours.toString().padStart(2,'0')}:
 }
 }
 
+
+function commandEscapeHtml(v) {
+  return String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function commandNumber(v, fallback = 0) {
+  const n = Number(v);
+  return isFinite(n) ? n : fallback;
+}
+function commandPct(v, digits = 1, signed = false) {
+  if (v === null || v === undefined || v === '' || !isFinite(Number(v))) return '--';
+  const n = Number(v);
+  return `${signed && n > 0 ? '+' : ''}${n.toFixed(digits)}%`;
+}
+function commandPlayerInitials(name) {
+  const parts = String(name || '?').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+}
+function commandHeadshot(name, team = '') {
+  const safe = commandEscapeHtml(name || 'Player');
+  let url = '';
+  try { url = getHeadshotUrl(name); } catch (err) { url = ''; }
+  const style = team ? ` style="${teamVisualStyle(team)}"` : '';
+  if (url) return `<img src="${url}" alt="${safe}"${style} onerror="this.outerHTML='<div class=&quot;command-card-face-fallback&quot;>${commandPlayerInitials(name)}</div>'">`;
+  return `<div class="command-card-face-fallback">${commandPlayerInitials(name)}</div>`;
+}
+function commandTeamLogoWatermark(team) {
+  const logo = teamLogos && team ? teamLogos[String(team).toUpperCase()] : '';
+  return logo ? `<img class="command-card-watermark" src="${logo}" alt="" onerror="this.style.display='none'">` : '';
+}
+function commandPlayerMeta(p) {
+  if (!p) return 'Waiting for upload';
+  const team = commandEscapeHtml(p.Team || '');
+  const opp = commandEscapeHtml(p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter');
+  const hand = commandEscapeHtml(String(p['Pitcher Hand'] || p['P Hand'] || '').toUpperCase());
+  return `${team}${opp ? ` • vs ${opp}${hand ? ` (${hand})` : ''}` : ''}`;
+}
+function commandDetail(label, value) {
+  const cleanValue = (value === null || value === undefined || value === '') ? 'N/A' : value;
+  return `<div class="command-card-detail"><b>${commandEscapeHtml(cleanValue)}</b><span>${commandEscapeHtml(label)}</span></div>`;
+}
+function commandShortNum(v, digits = 1, suffix = '') {
+  const n = Number(v);
+  return isFinite(n) ? `${n.toFixed(digits)}${suffix}` : 'N/A';
+}
+function commandRatePct(v, digits = 1) {
+  const n = Number(v);
+  if (!isFinite(n)) return 'N/A';
+  return `${(Math.abs(n) <= 1 ? n * 100 : n).toFixed(digits)}%`;
+}
+function commandDefaultStats(p, existing = []) {
+  const labels = new Set(existing.map(x => String(x.label || '').toLowerCase()));
+  const add = (label, value) => { if (!labels.has(String(label).toLowerCase())) existing.push({ label, value }); };
+  add('BBI', commandShortNum(p.calculatedBBI, 1));
+  add('HR Prob', commandPct(p.calculatedHRProbability, 1));
+  add('EV', commandShortNum(safeGet(p, 'EV', 'Avg EV', 'Average EV', 'Exit Velocity'), 1));
+  add('Barrel', commandRatePct(safeGet(p, 'Barrel %', 'Barrel%', 'Barrel Rate'), 1));
+  add('Hard Hit', commandRatePct(safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit Rate'), 1));
+  add('P HR/9', commandShortNum(safeGet(p, 'Pitcher HR/9', 'Pitcher HR9', 'HR/9'), 2));
+  return existing.slice(0, 6);
+}
+function commandMeter(value) {
+  const n = Number(String(value || '').replace(/[^0-9.\-]/g, ''));
+  const pct = isFinite(n) ? Math.max(6, Math.min(100, n > 10 ? n : n * 10)) : 40;
+  return `<div class="command-card-meter"><div class="command-card-meter-top"><span>Signal Meter</span><b>${commandEscapeHtml(value || '--')}</b></div><div class="command-card-meter-track"><i style="width:${pct}%"></i></div></div>`;
+}
+function commandRenderEmpty(idValue, idPlayer, value, message, icon = '⚾') {
+  setCommandCenterText(idValue, commandEscapeHtml(value || '--'));
+  setCommandCenterText(idPlayer, `<div class="command-card-empty"><div class="command-card-empty-icon">${icon}</div><div>${commandEscapeHtml(message)}</div><div class="command-card-placeholder-grid">${commandDetail('Status','Ready')}${commandDetail('Data','Upload')}${commandDetail('Card','Live')}</div></div>`);
+}
+function commandRenderPlayerCard(opts) {
+  const p = opts.player;
+  setCommandCenterText(opts.valueId, commandEscapeHtml(opts.value || '--'));
+  if (!p) {
+    commandRenderEmpty(opts.valueId, opts.playerId, opts.value || '--', opts.empty || 'Waiting for upload', opts.icon || '⚾');
+    return;
+  }
+  const stats = commandDefaultStats(p, opts.stats || []).map(s => commandDetail(s.label, s.value)).join('');
+  const note = opts.note ? `<div class="command-card-note">${commandEscapeHtml(opts.note)}</div>` : '';
+  setCommandCenterText(opts.playerId, `
+    ${commandTeamLogoWatermark(p.Team)}
+    <div class="command-card-hero-row">
+      <div class="command-card-photo-stage">${commandHeadshot(p.Name, p.Team)}</div>
+      <div class="command-card-copy-block">
+        <div class="command-card-name">${commandEscapeHtml(p.Name || 'Unknown Player')}</div>
+        <div class="command-card-meta">${commandEscapeHtml(opts.meta || commandPlayerMeta(p))}</div>
+      </div>
+    </div>
+    <div class="command-card-details">${stats}</div>
+    ${commandMeter(opts.value || p.calculatedBBI || '--')}
+    ${note}
+  `);
+}
+function commandRenderPitcherCard(pitcher) {
+  if (!pitcher) {
+    commandRenderEmpty('weakPitcherValue', 'weakPitcherPlayer', '--', 'No pitcher target found', '🎯');
+    return;
+  }
+  setCommandCenterText('weakPitcherValue', Number(pitcher.maxHR9 || 0).toFixed(2));
+  const stats = [
+    commandDetail('vs LHB HR/9', Number(pitcher.lhb || 0).toFixed(2)),
+    commandDetail('vs RHB HR/9', Number(pitcher.rhb || 0).toFixed(2)),
+    commandDetail('Team', pitcher.team || 'N/A'),
+    commandDetail('Signal', 'HR Risk')
+  ].join('');
+  setCommandCenterText('weakPitcherPlayer', `
+    ${commandTeamLogoWatermark(pitcher.team)}
+    <div class="command-card-hero-row">
+      <div class="command-card-photo-stage">${commandHeadshot(pitcher.name, pitcher.team)}</div>
+      <div class="command-card-copy-block">
+        <div class="command-card-name">${commandEscapeHtml(pitcher.name || 'Unknown Pitcher')}</div>
+        <div class="command-card-meta">${commandEscapeHtml((pitcher.team || 'Pitcher') + ' • highest HR/9 split')}</div>
+      </div>
+    </div>
+    <div class="command-card-details">${stats}</div>
+    ${commandMeter(Number(pitcher.maxHR9 || 0).toFixed(2))}
+    <div class="command-card-note">Worst HR split on today's pitching board</div>
+  `);
+}
 function setCommandCenterText(id, value) {
 const el = document.getElementById(id);
 if (el) el.innerHTML = value;
@@ -6432,12 +8463,22 @@ const edgePlayers = activePlayers
   .sort((a,b) => Number(b.bettingEdge) - Number(a.bettingEdge));
 if (edgePlayers.length) {
   const p = edgePlayers[0];
-  const hs = createHeadshotHtml(p.Name, 'sm', p.Team);
-  setCommandCenterText('commandBestEdgeValue', `${p.bettingEdge >= 0 ? '+' : ''}${Number(p.bettingEdge).toFixed(1)}%`);
-  setCommandCenterText('commandBestEdgePlayer', `${hs} ${p.Name}`);
+  const model = isFinite(Number(p.calculatedHRProbability)) ? Number(p.calculatedHRProbability) : null;
+  const implied = isFinite(Number(p.impliedProbability)) ? Number(p.impliedProbability) : null;
+  commandRenderPlayerCard({
+    valueId: 'commandBestEdgeValue',
+    playerId: 'commandBestEdgePlayer',
+    value: `${Number(p.bettingEdge) >= 0 ? '+' : ''}${Number(p.bettingEdge).toFixed(1)}%`,
+    player: p,
+    stats: [
+      { label: 'Model', value: model !== null ? `${model.toFixed(1)}%` : '--' },
+      { label: 'Implied', value: implied !== null ? `${implied.toFixed(1)}%` : '--' },
+      { label: 'Odds', value: p.bettingOdds || '--' }
+    ],
+    note: 'Largest model edge versus the market'
+  });
 } else {
-  setCommandCenterText('commandBestEdgeValue', '--');
-  setCommandCenterText('commandBestEdgePlayer', `<span style="color:var(--text-muted)">Needs Odds sheet</span>`);
+  commandRenderEmpty('commandBestEdgeValue', 'commandBestEdgePlayer', '--', 'Needs Odds sheet', '📈');
 }
 
 const longshots = activePlayers
@@ -6450,12 +8491,21 @@ const longshots = activePlayers
   });
 if (longshots.length) {
   const p = longshots[0].p;
-  const hs = createHeadshotHtml(p.Name, 'sm', p.Team);
-  setCommandCenterText('commandBestLongshotValue', p.bettingOdds || `+${longshots[0].oddsNum}`);
-  setCommandCenterText('commandBestLongshotPlayer', `${hs} ${p.Name}`);
+  commandRenderPlayerCard({
+    valueId: 'commandBestLongshotValue',
+    playerId: 'commandBestLongshotPlayer',
+    value: p.bettingOdds || `+${longshots[0].oddsNum}`,
+    player: p,
+    stats: [
+      { label: 'BBI', value: Number(p.calculatedBBI || 0).toFixed(1) },
+      { label: 'HR Prob', value: commandPct(p.calculatedHRProbability, 1) },
+      { label: 'Edge', value: isFinite(Number(p.bettingEdge)) ? `${Number(p.bettingEdge) >= 0 ? '+' : ''}${Number(p.bettingEdge).toFixed(1)}%` : '--' }
+    ],
+    note: '+600 or longer with the best value profile'
+  });
 } else {
-  setCommandCenterText('commandBestLongshotValue', '--');
-  setCommandCenterText('commandBestLongshotPlayer', `<span style="color:var(--text-muted)">No +600 found</span>`);
+  const fallback = [...activePlayers].filter(p => !p.bettingOdds).length === activePlayers.length;
+  commandRenderEmpty('commandBestLongshotValue', 'commandBestLongshotPlayer', '--', fallback ? 'Needs Odds sheet' : 'No +600 longshot found', '🚀');
 }
 
 const games = new Map();
@@ -6486,48 +8536,58 @@ if (bestGame) {
 function updateHeaderStats() {
 const activePlayers = playerData.filter(p => !p.isRemoved);
 if(activePlayers.length > 0) {
-const sortedByBBI = [...activePlayers].sort((a,b) => (b.calculatedBBI||0) - (a.calculatedBBI||0));
-const topP = sortedByBBI[0];
-document.getElementById('topBBIValue').innerText = topP.calculatedBBI.toFixed(1);
-const hs = createHeadshotHtml(topP.Name, 'sm', topP.Team);
-document.getElementById('topBBIPlayer').innerHTML = `${hs} ${topP.Name}`;
+  const sortedByBBI = [...activePlayers].sort((a,b) => (b.calculatedBBI||0) - (a.calculatedBBI||0));
+  const topP = sortedByBBI[0];
+  const topRank = sortedByBBI.findIndex(x => normalizeName(x.Name) === normalizeName(topP.Name)) + 1;
+  commandRenderPlayerCard({
+    valueId: 'topBBIValue',
+    playerId: 'topBBIPlayer',
+    value: Number(topP.calculatedBBI || 0).toFixed(1),
+    player: topP,
+    stats: [
+      { label: 'Rank', value: `#${topRank || 1}` },
+      { label: 'HR Prob', value: commandPct(topP.calculatedHRProbability, 1) },
+      { label: 'Tier', value: topRank <= 10 ? 'Tier 1' : topRank <= 60 ? 'Tier 2' : 'Watch' }
+    ],
+    note: 'Best overall BBI score on the slate'
+  });
+} else {
+  commandRenderEmpty('topBBIValue', 'topBBIPlayer', '--', 'Waiting for upload', '👑');
 }
 let hotBatCandidates = activePlayers.filter(p => {
-const norm = normalizeName(p.Name);
-const lw = lastWeekMap[norm] || {};
-const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR'));
-const lwwOBA = cleanNumber(safeGet(lw, 'wOBA', 'wOBA Last Week', 'wOBA%'));
-return lwHRs >= 3 || lwwOBA >= 0.450;
+  const norm = normalizeName(p.Name);
+  const lw = lastWeekMap[norm] || {};
+  const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR'));
+  const lwwOBA = cleanNumber(safeGet(lw, 'wOBA', 'wOBA Last Week', 'wOBA%'));
+  return lwHRs >= 3 || lwwOBA >= 0.450;
 });
 if(hotBatCandidates.length > 0) {
-hotBatCandidates.sort((a,b) => (b.calculatedBBI||0) - (a.calculatedBBI||0));
-const hotP = hotBatCandidates[0];
-document.getElementById('hotBatValue').innerText = hotP.calculatedBBI.toFixed(1);
-const hs = createHeadshotHtml(hotP.Name, 'sm', hotP.Team);
-document.getElementById('hotBatPlayer').innerHTML = `${hs} ${hotP.Name}`;
+  hotBatCandidates.sort((a,b) => (b.calculatedBBI||0) - (a.calculatedBBI||0));
+  const hotP = hotBatCandidates[0];
+  setCommandCenterText('hotBatValue', Number(hotP.calculatedBBI || 0).toFixed(1));
+  setCommandCenterText('hotBatPlayer', `${createHeadshotHtml(hotP.Name, 'sm', hotP.Team)} ${commandEscapeHtml(hotP.Name)}`);
 } else {
-document.getElementById('hotBatValue').innerText = "--";
-document.getElementById('hotBatPlayer').innerHTML = "<span style='color:var(--text-muted)'>No qualifiers</span>";
+  setCommandCenterText('hotBatValue', '--');
+  setCommandCenterText('hotBatPlayer', "<span style='color:var(--text-muted)'>No qualifiers</span>");
 }
 let rawPitchers = window.top5SheetData || [];
+let commandPitcherTarget = null;
 if(rawPitchers.length > 0) {
-let processed = rawPitchers.map(row => {
-let pName = String(safeGet(row, 'Pitcher', 'Name', 'Player', 'A') || '').trim();
-let pTeamRaw = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
-let pTeam = resolvePitcherOwnTeam(pName, pTeamRaw);
-let valC = cleanNumber(safeGet(row, 'HR/9 vs LHB', 'HR/9 vs L', 'HR/9 LHB', 'HR/9 L', 'C'));
-let valD = cleanNumber(safeGet(row, 'HR/9 vs RHB', 'HR/9 vs R', 'HR/9 RHB', 'HR/9 R', 'D'));
-const filledSides = fillPitcherHR9SidesFromHR(pName, valC, valD);
-return { name: pName, team: pTeam, lhb: filledSides.lhb, rhb: filledSides.rhb, maxHR9: Math.max(filledSides.lhb, filledSides.rhb) };
-}).filter(p => p.name && p.name !== '' && p.maxHR9 > 0);
-if(processed.length > 0) {
-processed.sort((a,b) => b.maxHR9 - a.maxHR9);
-const weakP = processed[0];
-document.getElementById('weakPitcherValue').innerText = weakP.maxHR9.toFixed(2);
-const hs = createHeadshotHtml(weakP.name, 'sm');
-document.getElementById('weakPitcherPlayer').innerHTML = `${hs} ${weakP.name}`;
+  let processed = rawPitchers.map(row => {
+    let pName = String(safeGet(row, 'Pitcher', 'Name', 'Player', 'A') || '').trim();
+    let pTeamRaw = String(safeGet(row, 'Team', 'Tm', 'B') || '').trim();
+    let pTeam = resolvePitcherOwnTeam(pName, pTeamRaw);
+    let valC = cleanNumber(safeGet(row, 'HR/9 vs LHB', 'HR/9 vs L', 'HR/9 LHB', 'HR/9 L', 'C'));
+    let valD = cleanNumber(safeGet(row, 'HR/9 vs RHB', 'HR/9 vs R', 'HR/9 RHB', 'HR/9 R', 'D'));
+    const filledSides = fillPitcherHR9SidesFromHR(pName, valC, valD);
+    return { name: pName, team: pTeam, lhb: filledSides.lhb, rhb: filledSides.rhb, maxHR9: Math.max(filledSides.lhb, filledSides.rhb) };
+  }).filter(p => p.name && p.name !== '' && p.maxHR9 > 0);
+  if(processed.length > 0) {
+    processed.sort((a,b) => b.maxHR9 - a.maxHR9);
+    commandPitcherTarget = processed[0];
+  }
 }
-}
+commandRenderPitcherCard(commandPitcherTarget);
 updateCommandCenterExtras(activePlayers);
 }
 function updateSlateTicker() {
