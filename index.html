@@ -7176,6 +7176,266 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
+
+
+<style id="v43-8-mobile-command-center-clean-fix">
+/* =========================
+   v43.8 MOBILE COMMAND CENTER CLEAN FIX
+   Mobile-only. Desktop Command Center layout is untouched.
+   Fixes bundled/overlapped Command Center cards on phones by turning
+   each command tile into a clean stacked app card.
+   ========================= */
+@media (max-width: 768px) {
+  #statsRibbon.command-center-ai-core {
+    padding: 12px !important;
+    margin: 0 auto 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  #statsRibbon .command-center-core-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  #statsRibbon .command-side-stack {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #statsRibbon .command-logo-core {
+    order: -1 !important;
+    min-height: 150px !important;
+    height: 150px !important;
+    border-radius: 18px !important;
+    margin-bottom: 0 !important;
+  }
+
+  #statsRibbon .command-core-logo-wrap {
+    width: 92px !important;
+    height: 92px !important;
+  }
+
+  #statsRibbon .command-core-status {
+    bottom: 9px !important;
+    font-size: 8px !important;
+    padding: 5px 8px !important;
+  }
+
+  #statsRibbon .command-trading-card,
+  #statsRibbon .command-feature-card,
+  #statsRibbon .command-tile {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  #statsRibbon .command-trading-card .command-tile-label {
+    height: auto !important;
+    min-height: 34px !important;
+    padding: 9px 11px !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+    letter-spacing: .8px !important;
+  }
+
+  #statsRibbon .command-trading-card .command-tile-label::after {
+    font-size: 7px !important;
+    padding: 2px 6px !important;
+  }
+
+  /* Put the big score in the normal flow so it cannot cover the player/details. */
+  #statsRibbon .command-trading-card .command-tile-value {
+    position: relative !important;
+    inset: auto !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 88px !important;
+    max-width: none !important;
+    margin: 10px 12px 0 !important;
+    padding: 7px 10px !important;
+    font-size: 28px !important;
+    line-height: 1 !important;
+    z-index: 2 !important;
+    box-sizing: border-box !important;
+  }
+
+  #statsRibbon .command-trading-card .command-tile-player {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    padding: 10px 12px 12px !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+  }
+
+  #statsRibbon .command-card-hero-row {
+    display: grid !important;
+    grid-template-columns: 64px minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+    gap: 10px !important;
+    align-items: center !important;
+    min-height: 64px !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    text-align: left !important;
+  }
+
+  #statsRibbon .command-card-photo-stage,
+  #statsRibbon .command-card-photo-stage::before {
+    width: 62px !important;
+    height: 62px !important;
+    min-width: 62px !important;
+    min-height: 62px !important;
+    margin: 0 !important;
+    justify-self: start !important;
+  }
+
+  #statsRibbon .command-card-photo-stage img,
+  #statsRibbon .command-card-face-fallback {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    border-width: 2px !important;
+    font-size: 20px !important;
+  }
+
+  #statsRibbon .command-card-copy-block {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  #statsRibbon .command-card-name {
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: left !important;
+    font-size: 15px !important;
+    line-height: 1.12 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    text-transform: uppercase !important;
+    padding: 0 !important;
+  }
+
+  #statsRibbon .command-card-meta {
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: left !important;
+    font-size: 9px !important;
+    line-height: 1.18 !important;
+    margin-top: 4px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+  }
+
+  #statsRibbon .command-card-details,
+  #statsRibbon .command-trading-card.command-pitcher-card .command-card-details {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: auto !important;
+    gap: 7px !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  #statsRibbon .command-card-detail {
+    min-height: 44px !important;
+    height: auto !important;
+    padding: 8px 6px !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  #statsRibbon .command-card-detail b {
+    font-size: 13px !important;
+    line-height: 1.05 !important;
+    white-space: nowrap !important;
+  }
+
+  #statsRibbon .command-card-detail span {
+    font-size: 7.5px !important;
+    line-height: 1.05 !important;
+    margin-top: 4px !important;
+    white-space: nowrap !important;
+  }
+
+  #statsRibbon .command-card-meter {
+    height: 34px !important;
+    min-height: 34px !important;
+    margin: 0 !important;
+  }
+
+  #statsRibbon .command-card-note {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+  }
+
+  #statsRibbon .command-card-empty {
+    min-height: 96px !important;
+    padding: 18px 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  #statsRibbon .command-card-watermark {
+    width: 96px !important;
+    height: 96px !important;
+    right: -24px !important;
+    bottom: 10px !important;
+    opacity: .045 !important;
+  }
+
+  #statsRibbon .command-ai-ticker {
+    margin-top: 12px !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
