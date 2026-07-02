@@ -6894,6 +6894,288 @@ tbody tr:hover .stats-player-mini .player-headshot {
 .h2h-team-count { color: var(--text-muted); font-family: monospace; font-size: 11px; flex: 0 0 auto; }
 .h2h-team-empty { color: var(--text-muted); font-size: 12px; line-height: 1.45; padding-bottom: 8px; }
 </style>
+
+
+<style id="drl-mobile-layout-preview-v43-7">
+/* =========================
+   v43.7 MOBILE LAYOUT PREVIEW
+   CSS-only responsive pass. No scoring, sheet mapping, workbook parsing,
+   weights, or data-pull logic changed.
+   ========================= */
+@media (max-width: 768px) {
+  html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+  body {
+    padding: 10px !important;
+    align-items: stretch !important;
+    background: radial-gradient(circle at 50% 0%, #0d1f38 0%, var(--bg-main) 72%) !important;
+  }
+  .container { max-width: 100% !important; width: 100% !important; }
+
+  /* Header / upload */
+  .header-area { padding: 14px 12px !important; border-radius: 14px !important; margin-bottom: 12px !important; }
+  .header-top-row { flex-direction: column !important; gap: 10px !important; margin-bottom: 10px !important; }
+  .main-logo { width: 64px !important; height: 64px !important; }
+  h1 { font-size: 20px !important; line-height: 1.05 !important; letter-spacing: -.4px !important; }
+  .subtitle { font-size: 10px !important; letter-spacing: 1.1px !important; }
+  .date-display { font-size: 10px !important; }
+  .upload-box { padding: 14px 12px !important; margin-bottom: 12px !important; border-radius: 14px !important; }
+  input[type="file"] { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; font-size: 12px !important; }
+
+  /* Top command center becomes a clean vertical mobile board */
+  .command-center-board,
+  .command-center-ai-core { padding: 12px !important; border-radius: 16px !important; max-width: 100% !important; }
+  .command-center-topline,
+  .command-center-ai-topline { align-items: flex-start !important; gap: 8px !important; margin-bottom: 10px !important; }
+  .command-center-title { font-size: 10px !important; letter-spacing: 1.1px !important; }
+  .command-center-version { font-size: 9px !important; padding: 5px 8px !important; }
+  .command-center-core-layout { display: flex !important; flex-direction: column !important; gap: 10px !important; }
+  .command-side-stack { display: flex !important; flex-direction: column !important; gap: 10px !important; }
+  .command-logo-core { order: -1 !important; min-height: 180px !important; border-radius: 20px !important; }
+  .command-core-logo-wrap { width: 102px !important; height: 102px !important; }
+  .command-logo-core::before { width: 155px !important; height: 155px !important; }
+  .command-logo-core::after { width: 188px !important; height: 188px !important; }
+  .command-core-ring-one { width: 132px !important; height: 132px !important; }
+  .command-core-ring-two { width: 170px !important; height: 170px !important; }
+  .command-core-ring-three { width: 206px !important; height: 206px !important; }
+  .command-core-status { bottom: 12px !important; font-size: 8px !important; padding: 5px 8px !important; }
+  .command-feature-card,
+  .command-tile { min-height: 112px !important; padding: 12px !important; border-radius: 14px !important; }
+  .command-feature-card .command-tile-label,
+  .command-tile-label { font-size: 9px !important; letter-spacing: .8px !important; }
+  .command-feature-card .command-tile-value,
+  .command-tile-value { font-size: 28px !important; margin-top: 8px !important; }
+  .command-feature-card .command-tile-player,
+  .command-tile-player {
+    grid-template-columns: 48px minmax(0,1fr) !important;
+    min-height: 48px !important;
+    margin-top: 9px !important;
+    font-size: 12px !important;
+    gap: 9px !important;
+  }
+  .command-feature-card .command-tile-player img,
+  .command-tile-player img {
+    width: 46px !important; height: 46px !important; min-width: 46px !important; min-height: 46px !important;
+  }
+  .command-ai-ticker { margin-top: 10px !important; padding: 8px 10px !important; border-radius: 12px !important; }
+  .command-ai-ticker .ticker-label { font-size: 8px !important; padding-right: 8px !important; }
+  .command-ai-ticker #tickerText { font-size: 9px !important; }
+
+  /* Navigation: phone-friendly swipe row */
+  .nav-tabs {
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 7px !important;
+    padding: 2px 2px 10px !important;
+    margin-bottom: 12px !important;
+    scrollbar-width: thin;
+  }
+  .nav-tab {
+    flex: 0 0 auto !important;
+    padding: 10px 13px !important;
+    font-size: 10px !important;
+    border-radius: 999px !important;
+    letter-spacing: .65px !important;
+  }
+
+  /* Controls */
+  .controls-bar { display: grid !important; grid-template-columns: 1fr !important; gap: 12px !important; padding: 14px !important; margin-bottom: 14px !important; border-radius: 14px !important; }
+  .filter-group { width: 100% !important; min-width: 0 !important; }
+  .search-input,
+  .select-input-sm,
+  .team-filter-future,
+  .team-filter-future-wrap,
+  .team-filter-trigger,
+  .parlayTeamSelect,
+  .h2h-search { width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; }
+  .team-logo-dropdown { min-width: 100% !important; width: 100% !important; grid-template-columns: 1fr !important; max-height: 270px !important; }
+  .model-sandbox-panel { margin-bottom: 14px !important; }
+  .model-sandbox-toggle { padding: 12px !important; gap: 10px !important; }
+  .model-sandbox-title { font-size: 12px !important; }
+  .model-sandbox-sub { font-size: 10px !important; }
+
+  /* Dashboard/sidebar blocks */
+  .dashboard-grid,
+  .edge-page-grid,
+  .game-center-grid,
+  .weather-lab-grid,
+  #weatherRankContainer.weather-lab-grid { display: grid !important; grid-template-columns: 1fr !important; gap: 14px !important; }
+  .home-sidebar-stack { gap: 14px !important; }
+  .panel { padding: 14px !important; border-radius: 14px !important; }
+  h2 { font-size: 12px !important; padding-bottom: 9px !important; }
+  .top12-carousel { display: flex !important; overflow-x: auto !important; gap: 10px !important; padding-bottom: 12px !important; }
+  .top12-card { min-width: 230px !important; flex: 0 0 230px !important; }
+
+  /* Main rankings: convert desktop table into mobile player cards */
+  #tab-home .table-wrapper {
+    overflow: visible !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  #tab-home .table-wrapper table,
+  #tab-home .table-wrapper thead,
+  #tab-home .table-wrapper tbody,
+  #tab-home .table-wrapper tr,
+  #tab-home .table-wrapper td {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  #tab-home .table-wrapper thead { display: none !important; }
+  #tab-home .table-wrapper table { min-width: 0 !important; border-collapse: separate !important; }
+  #tab-home .table-wrapper tbody tr {
+    position: relative !important;
+    margin: 0 0 14px !important;
+    padding: 12px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(255,255,255,.09) !important;
+    border-left: 5px solid var(--team-color, var(--accent)) !important;
+    background: radial-gradient(circle at 94% 0%, var(--team-glow, rgba(225,6,0,.16)), transparent 32%), linear-gradient(145deg, rgba(17,31,53,.82), rgba(5,11,20,.94)) !important;
+    box-shadow: 0 16px 38px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.07) !important;
+    overflow: hidden !important;
+  }
+  #tab-home .table-wrapper tbody tr:hover { transform: none !important; }
+  #tab-home .table-wrapper tbody td {
+    border: 0 !important;
+    padding: 8px 0 !important;
+    text-align: left !important;
+    background: transparent !important;
+  }
+  #tab-home .rank-cell {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    padding: 5px 8px !important;
+    border-radius: 999px !important;
+    color: #06111d !important;
+    background: linear-gradient(135deg, #facc15, #f97316) !important;
+    font-size: 11px !important;
+    z-index: 2 !important;
+  }
+  #tab-home .espn-player-cell { padding-top: 4px !important; padding-right: 48px !important; }
+  #tab-home .espn-player-line { grid-template-columns: 54px minmax(0,1fr) !important; gap: 11px !important; align-items: center !important; }
+  #tab-home .espn-headshot-wrap { width: 54px !important; }
+  #tab-home .espn-headshot-wrap .player-headshot { width: 52px !important; height: 52px !important; margin: 0 !important; }
+  #tab-home .espn-player-name { font-size: 16px !important; white-space: normal !important; line-height: 1.12 !important; display: -webkit-box !important; -webkit-line-clamp: 2 !important; -webkit-box-orient: vertical !important; }
+  #tab-home .espn-matchup-row { white-space: normal !important; overflow: visible !important; line-height: 1.25 !important; font-size: 11px !important; flex-wrap: wrap !important; }
+  #tab-home .espn-badge-row { max-width: 100% !important; margin-top: 8px !important; gap: 4px !important; }
+  #tab-home .espn-badge-row .metric-badge { font-size: 8px !important; padding: 4px 6px !important; }
+  #tab-home .why-row-sentence { max-width: 100% !important; white-space: normal !important; border-radius: 10px !important; line-height: 1.25 !important; }
+  #tab-home .bats-cell,
+  #tab-home .weather-cell,
+  #tab-home .score-cell,
+  #tab-home .hrprob-cell,
+  #tab-home .odds-cell,
+  #tab-home .edge-cell,
+  #tab-home .action-cell {
+    display: grid !important;
+    grid-template-columns: 92px minmax(0,1fr) !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 38px !important;
+    border-top: 1px solid rgba(255,255,255,.06) !important;
+    font-size: 12px !important;
+  }
+  #tab-home .bats-cell::before { content: 'Bats'; }
+  #tab-home .weather-cell::before { content: 'Weather'; }
+  #tab-home .score-cell::before { content: 'Score'; }
+  #tab-home .hrprob-cell::before { content: 'HR %'; }
+  #tab-home .odds-cell::before { content: 'Odds'; }
+  #tab-home .edge-cell::before { content: 'Edge'; }
+  #tab-home .action-cell::before { content: 'Action'; }
+  #tab-home .bats-cell::before,
+  #tab-home .weather-cell::before,
+  #tab-home .score-cell::before,
+  #tab-home .hrprob-cell::before,
+  #tab-home .odds-cell::before,
+  #tab-home .edge-cell::before,
+  #tab-home .action-cell::before {
+    color: var(--text-muted) !important;
+    font-size: 9px !important;
+    font-weight: 1000 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .75px !important;
+  }
+  #tab-home .weather-cell { width: 100% !important; font-size: 11px !important; line-height: 1.25 !important; }
+  #tab-home .score-cell .index-score { width: fit-content !important; font-size: 23px !important; }
+  #tab-home .bbi-breakdown { min-width: 0 !important; width: 100% !important; max-width: 180px !important; }
+  #tab-home .action-cell { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; justify-content: flex-start !important; }
+  #tab-home .action-cell::before { flex: 0 0 92px !important; }
+  #tab-home .action-cell .btn-lock,
+  #tab-home .action-cell .btn-remove,
+  #tab-home .action-cell .btn-restore,
+  #tab-home .action-cell .btn-bomb { padding: 8px 10px !important; font-size: 10px !important; }
+  .backtest-finalize-wrap { border-radius: 14px !important; padding: 14px !important; margin-top: 6px !important; }
+  .btn-finalize-backtest { width: 100% !important; }
+
+  /* Other tabs stay usable with swipe tables instead of crushed columns */
+  .table-wrapper:not(#tab-home .table-wrapper),
+  .stats-table-wrapper,
+  .full-edge-table-wrapper,
+  .signal-table-wrapper,
+  .orientation-audit-wrapper,
+  .compare-table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+  .stats-table,
+  .full-edge-table,
+  .signal-table,
+  .orientation-audit-table,
+  .compare-table { min-width: 900px !important; }
+  .stats-table th.stats-player-sticky,
+  .stats-table td.stats-player-sticky,
+  .compare-table th:first-child,
+  .compare-table td:first-child { position: static !important; box-shadow: none !important; }
+
+  /* Modals */
+  .modal-overlay { padding: 10px !important; align-items: flex-start !important; overflow-y: auto !important; }
+  .modal-card { max-height: none !important; width: 100% !important; border-radius: 16px !important; flex-direction: column !important; }
+  .modal-left { width: 100% !important; padding: 24px 18px 16px !important; border-right: 0 !important; border-bottom: 1px solid var(--border) !important; box-sizing: border-box !important; }
+  .modal-right { padding: 16px !important; gap: 16px !important; }
+  .modal-stats-grid,
+  .hr-blueprint-grid,
+  .pitch-lab-grid,
+  .weather-lab-meta,
+  .weather-lab-boost-grid,
+  .backtest-kpi-grid,
+  .compare-control-grid,
+  .compare-score-row { grid-template-columns: 1fr !important; }
+  .modal-player-name { font-size: 21px !important; }
+  .modal-bbi-value { font-size: 38px !important; }
+
+  /* Community / side widgets */
+  .community-picks-scroll .community-pick-card {
+    grid-template-columns: 30px minmax(0,1fr) !important;
+    grid-template-areas: 'rank main' 'rank side' !important;
+    padding: 12px 10px !important;
+    min-height: 104px !important;
+  }
+  .community-picks-scroll .community-name-line { grid-template-columns: 40px minmax(0,1fr) !important; gap: 9px !important; }
+  .community-picks-scroll .player-headshot { width: 40px !important; height: 40px !important; }
+  .community-picks-scroll .community-pick-side { grid-template-columns: auto auto 1fr !important; gap: 6px !important; }
+  .mlbhr-feed-panel { position: relative !important; top: auto !important; max-height: none !important; }
+  .mlbhr-feed-body { max-height: 420px !important; }
+}
+
+@media (max-width: 390px) {
+  body { padding: 8px !important; }
+  h1 { font-size: 18px !important; }
+  #tab-home .espn-player-cell { padding-right: 42px !important; }
+  #tab-home .espn-player-line { grid-template-columns: 48px minmax(0,1fr) !important; }
+  #tab-home .espn-headshot-wrap .player-headshot { width: 46px !important; height: 46px !important; }
+  #tab-home .bats-cell,
+  #tab-home .weather-cell,
+  #tab-home .score-cell,
+  #tab-home .hrprob-cell,
+  #tab-home .odds-cell,
+  #tab-home .edge-cell { grid-template-columns: 78px minmax(0,1fr) !important; }
+  #tab-home .action-cell::before { flex-basis: 78px !important; }
+  .nav-tab { padding: 9px 11px !important; }
+}
+</style>
+
 </head>
 <body>
 
@@ -7577,6 +7859,27 @@ function findByTeam(sheetKey, team) {
 }
 function firstValue(...vals) { for (const v of vals) { if (v !== undefined && v !== null && v !== '' && !(typeof v === 'number' && isNaN(v))) return v; } return undefined; }
 function firstNumber(...vals) { for (const v of vals) { const n = cleanNumberOrNull(v); if (n !== null && n !== undefined && !isNaN(n)) return n; } return null; }
+function saneBatterMaxEVValue(v) {
+  const n = cleanNumberOrNull(v);
+  // Batter Max EV should live in the normal Statcast max-exit-velo band.
+  // This blocks accidental distance-style values like 350-450 from polluting backtest analysis.
+  return (n !== null && n >= 80 && n <= 130) ? n : null;
+}
+function trueBarrellMaxEVForPlayer(playerOrName) {
+  const name = typeof playerOrName === 'string' ? playerOrName : (playerOrName && playerOrName.Name);
+  const row = lookupStat('BARRELL', name);
+  if (!row) return null;
+  // IMPORTANT: only trust the Barrell sheet maxEV column for batter Max EV.
+  // Do not use generic "Max" columns because those can be distance/max-HR fields in the 300s.
+  return saneBatterMaxEVValue(safeGet(row, 'maxEV'));
+}
+function firstSaneBatterMaxEV(...vals) {
+  for (const v of vals) {
+    const n = saneBatterMaxEVValue(v);
+    if (n !== null) return n;
+  }
+  return null;
+}
 function firstRate(...vals) { const n = firstNumber(...vals); return n === null ? null : hybridRate(n); }
 function modelHRProbability(score, player) {
   // Market-facing HR probability calibration.
@@ -9788,7 +10091,7 @@ function getStatsValue(player, key, rank) {
     case 'barrel': { const n = fromRateSources(r.barrel, safeGet(barrellRow,'Barrel%','Barrel %','Brls/BBE %'), safeGet(player,'Barrel %','Barrel%','Barrel Rate')); return val(n, fmtPct(n), pctClass(n, 14, 9)); }
     case 'hardhit': { const n = fromRateSources(r.hardHit, safeGet(barrellRow,'HardHit%','Hard Hit %'), safeGet(player,'Hard Hit %','HardHit%','Hard Hit Rate')); return val(n, fmtPct(n), pctClass(n, 48, 40)); }
     case 'avgEV': { const n = firstNumber(r.avgEV, safeGet(barrellRow,'EV','Avg EV','Average EV'), safeGet(ssRow,'Avg','Avg EV'), safeGet(player,'EV','Avg EV','Average EV','Exit Velocity')); return val(n, fmtNum(n,1), pctClass(n, 92, 89)); }
-    case 'maxEV': { const n = firstNumber(safeGet(barrellRow,'maxEV'), r.maxEV, safeGet(player,'Max EV','maxEV','Maximum EV')); return val(n, fmtNum(n,1), pctClass(n, 112, 108)); }
+    case 'maxEV': { const n = trueBarrellMaxEVForPlayer(player) || firstSaneBatterMaxEV(r.maxEV, safeGet(player,'Max EV','maxEV','Maximum EV')); return val(n, fmtNum(n,1), pctClass(n, 112, 108)); }
     case 'ev90': { const n = firstNumber(r.ev90, safeGet(barrellRow,'EV90','90th EV','90th Percentile EV'), safeGet(ssRow,'EV90'), safeGet(player,'EV90','90th EV','90th Percentile EV')); return val(n, fmtNum(n,1), pctClass(n, 105, 102)); }
     case 'ev50': { const n = firstNumber(r.ev50, safeGet(barrellRow,'EV50'), safeGet(ssRow,'EV50'), safeGet(player,'EV50')); return val(n, fmtNum(n,1), pctClass(n, 96, 93)); }
     case 'mph95': { const n = fromRateSources(r.mph95, safeGet(ssRow,'95 MPH+ %','95+ %','95 MPH+'), safeGet(barrellRow,'95 MPH+ %','95+ %'), safeGet(player,'95 MPH+ %','95+ %','95+ MPH %')); return val(n, fmtPct(n), pctClass(n, 48, 38)); }
@@ -10699,7 +11002,7 @@ else if (pa < 100 && totalHR <= 1) credibilityMultiplier = 0.85;
 else if (pa < 150 && hrFB === 0) credibilityMultiplier = 0.95;
 else if (pa >= 150) credibilityMultiplier = 1.0;
 const ev = cleanNumber(safeGet(p, 'Avg EV', 'EV')) || 88;
-const maxEV = cleanNumber(safeGet(lookupStat('BARRELL', p.Name) || {}, 'maxEV')) || cleanNumber(safeGet(p, 'Max EV', 'MaxEV')) || ev;
+const maxEV = trueBarrellMaxEVForPlayer(p) || firstSaneBatterMaxEV(safeGet(p, 'Max EV', 'MaxEV')) || ev;
 const barrelRate = cleanNumber(baseBarrel);
 if (barrelRate > 0.14 || ev > 92) credibilityMultiplier = Math.min(1.0, credibilityMultiplier + 0.20);
 const barrelRateStabilized = applyStabilization(barrelRate, LEAGUE_AVERAGES.barrelRate, pa, STABILIZATION.barrelRate);
@@ -11414,7 +11717,7 @@ function hybridRaw(p) {
   if (useTotal > 0) pitchLevelEV = evTotal / useTotal;
   const weatherHand = matchupHitterSide;
   const wxBarrel = firstRate(safeGet(barrellRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(ssRow, 'Brls/BBE %'), safeGet(scastRow, 'Brls/BBE %'), safeGet(p, 'Barrel %', 'Barrel%'));
-  const wxMaxEV = firstNumber(safeGet(barrellRow, 'maxEV'), safeGet(p, 'Max EV', 'MaxEV'));
+  const wxMaxEV = trueBarrellMaxEVForPlayer(p) || firstSaneBatterMaxEV(safeGet(p, 'Max EV', 'MaxEV'));
   const wxFlyBall = firstRate(safeGet(pulledRow, 'FB %', 'FB%'), safeGet(bbHandRow, 'FB%', 'FB %'), safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %'));
   const wxPullAir = firstRate(safeGet(pulledRow, 'Pulled Air %', 'Pull Air %', 'Air Pull %', 'Pull Air'), safeGet(p, 'Pulled Air %', 'Pull Air %', 'Air Pull %'));
   const wxPull = firstRate(safeGet(pulledRow, 'Pull %', 'Pull%'), safeGet(bbHandRow, 'Pull%', 'Pull %'), safeGet(p, 'Pull %', 'Pull%', 'PullRate'));
@@ -11446,7 +11749,7 @@ function hybridRaw(p) {
     avgEV: firstNumber(safeGet(ssRow, 'Avg', 'Avg EV', 'Average EV'), safeGet(barrellRow, 'EV', 'Avg EV', 'Average EV'), safeGet(scastRow, 'Avg', 'Avg EV', 'Average EV'), safeGet(p, 'Avg EV', 'AVG EV', 'EV')),
     ev50: firstNumber(safeGet(ssRow, 'EV50'), safeGet(scastRow, 'EV50')),
     ev90: firstNumber(safeGet(barrellRow, 'EV90'), safeGet(pitcherBBRow, 'EV90')),
-    maxEV: firstNumber(safeGet(barrellRow, 'maxEV'), safeGet(p, 'Max EV', 'MaxEV')),
+    maxEV: trueBarrellMaxEVForPlayer(p) || firstSaneBatterMaxEV(safeGet(p, 'Max EV', 'MaxEV')),
     hardHit: firstRate(safeGet(bbHandRow, 'Hard%', 'Hard %', 'HardHit%', 'Hard Hit %'), safeGet(barrellRow, 'HardHit%', 'Hard Hit %', 'Hard Hit'), safeGet(scastRow, 'Hard Hit %', 'HardHit%'), safeGet(p, 'Hard Hit %', 'HardHit%', 'Hard Hit%')),
     sweetSpot: firstRate(safeGet(ssRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(scastRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(p, 'Sweet Spot %', 'Sweetspot %')),
     mph95: firstRate(safeGet(ssRow, '95 MPH+ %', '95+ %', '95 MPH+'), safeGet(scastRow, '95 MPH+ %', '95+ %')),
@@ -12859,6 +13162,8 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Weather_Humidity_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.humidityScore)
   };
   flattenBacktestObject('Raw', p.hybridRawSnapshot || p.hybridRaw || {}, row);
+  const trustedBacktestMaxEV = trueBarrellMaxEVForPlayer(p);
+  row.Raw_maxEV = trustedBacktestMaxEV !== null ? backtestNum(trustedBacktestMaxEV) : '';
   flattenBacktestObject('PitchLab', p.pitchLabProfile || {}, row);
   Object.keys(p || {}).forEach(k => {
     if (['category','hybridRaw','hybridRawSnapshot','hybridCategoryContributions','hybridCategoryWeightsUsed','pitchLabProfile'].includes(k)) return;
@@ -12962,7 +13267,9 @@ function getBacktestMetricConfidence(validCount, hitCount, missCount, totalRows)
 }
 function getSignalStats(rows, key, metric) {
   const valid = rows.filter(r => r[key] !== '' && r[key] !== null && r[key] !== undefined && isFinite(Number(r[key])));
-  const values = valid.map(r => ({ row: r, value: backtestMetricDisplayValue(Number(r[key]), metric) })).filter(x => x.value !== null && isFinite(x.value));
+  const values = valid.map(r => ({ row: r, value: backtestMetricDisplayValue(Number(r[key]), metric) }))
+    .filter(x => x.value !== null && isFinite(x.value))
+    .filter(x => !(key === 'Raw_maxEV' && (x.value < 80 || x.value > 130)));
   const hits = values.filter(x => Number(x.row.HR_Result) === 1);
   const misses = values.filter(x => Number(x.row.HR_Result) !== 1);
   const hitAvg = mean(hits.map(x => x.value));
