@@ -2184,7 +2184,9 @@ tbody tr.cody-diamond-row:hover td {
    v37.5 ANIMATED STADIUM WIND LAB
    Weather-page visual upgrade + hitter-side wind transparency.
    ========================= */
-#weatherRankContainer.weather-lab-grid { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important; align-items: stretch; }
+#weatherRankContainer.weather-lab-grid { grid-template-columns: repeat(auto-fit, minmax(360px, 420px)) !important; justify-content: center !important; align-items: stretch; }
+.weather-tab-centered { width: 100%; max-width: 1440px; margin: 0 auto; }
+#tab-tools .table-wrapper { overflow-x: visible; }
 .weather-lab-card { --wind-rot:0deg; --boost-color:#94a3b8; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.09); border-left:5px solid var(--boost-color); border-radius:18px; padding:0; background:linear-gradient(145deg, rgba(5,11,20,.94), rgba(17,31,53,.70)); box-shadow:0 18px 50px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.06); }
 .weather-lab-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:15px 16px 10px; border-bottom:1px solid rgba(255,255,255,.07); background:radial-gradient(circle at 92% 0%, rgba(56,189,248,.13), transparent 34%); }
 .weather-lab-matchup { color:#fff; font-size:16px; font-weight:1000; line-height:1.25; }
@@ -7896,45 +7898,13 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </div>
 </div>
 <div id="tab-tools" class="tab-content">
-<div class="dashboard-grid">
-<div style="display:flex; flex-direction:column; gap:24px;">
-<div class="panel">
-<h2>Live Calibration Station</h2>
-<div class="slider-container"><div class="slider-header"><span>HR/FB % Weight</span><span id="valWeightHRFB">100%</span></div><input type="range" id="weightHRFB" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
-<div class="slider-container"><div class="slider-header"><span>Pitcher HR/9 Weight</span><span id="valWeightPitcherHR9">100%</span></div><input type="range" id="weightPitcherHR9" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
-<div class="slider-container"><div class="slider-header"><span>Barrel Rate Quality Weight</span><span id="valWeightBarrel">100%</span></div><input type="range" id="weightBarrel" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
-<div class="slider-container"><div class="slider-header"><span>Park Dimensions Weight</span><span id="valWeightPark">100%</span></div><input type="range" id="weightPark" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
-<div class="slider-container"><div class="slider-header"><span>Pulled Air % Weight</span><span id="valWeightPulled">100%</span></div><input type="range" id="weightPulled" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
-<div class="slider-container"><div class="slider-header"><span>Weather Impact Weight</span><span id="valWeightWeather">100%</span></div><input type="range" id="weightWeather" class="slider-control" min="0" max="200" value="100" oninput="updateWeightLabels()"></div>
-<button onclick="recalculateAllBBIScores()" class="btn-blue" style="padding:10px; font-size:11px; margin-top:6px;">🔄 Force Recalculate Index</button>
-</div>
-<div class="panel">
-<h2>Parlay Generator</h2>
-<div style="display: flex; gap: 8px; margin-bottom: 12px;">
-<button onclick="generateOptimalSlip('pack2')" class="btn-blue" style="padding:10px; font-size:11px; flex:1;">🚀 Power 2-Pack</button>
-<button onclick="generateOptimalSlip('pack3')" class="btn-blue" style="padding:10px; font-size:11px; flex:1;">💥 Power 3-Pack</button>
-</div>
-<button onclick="generateOptimalSlip('stack')" class="btn-blue" style="padding:10px; font-size:11px; width:100%; margin-bottom:12px; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-color: #8b5cf6;">🏟️ Correlated Team Stack</button>
-<div id="optimalResults">Trigger generator arrays above to construct highly optimized projection slips automatically.</div>
-</div>
-<div class="panel">
-<h2>BBI Parlay Constructor</h2>
-<div id="parlaySelects" class="parlay-grid">
-<select id="parlayTeam1" class="parlayTeamSelect"><option value="">-- Leg 1 Team --</option></select>
-<select id="parlayTeam2" class="parlayTeamSelect"><option value="">-- Leg 2 Team --</option></select>
-<select id="parlayTeam3" class="parlayTeamSelect"><option value="">-- Leg 3 Team --</option></select>
-</div>
-<button onclick="generateParlay()" class="btn-accent">Generate Ticket Legs</button>
-<div id="parlayResults">Select active matchup combinations above to build custom ticket arrays.</div>
-</div>
-</div>
-<div>
+<div class="weather-tab-centered">
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
 <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🌬️ Weather Wind Lab</h2>
 <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Original animated field wind cards preserved.</p>
 </div>
-<div id="weatherRankContainer" style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+<div id="weatherRankContainer" style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 420px)); justify-content: center; align-items: stretch; gap: 15px;">
 <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</div>
 </div>
 <div class="panel orientation-audit-panel">
@@ -7956,9 +7926,6 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </div>
 </div>
 </div>
-</div>
-</div>
-
 
 <div id="tab-synergy" class="tab-content">
   <div class="panel">
