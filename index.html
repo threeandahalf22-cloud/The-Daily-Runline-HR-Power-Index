@@ -7436,6 +7436,120 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
+
+<style id="v45-5-pregame-game-center-merge-style">
+/* =========================
+   v45.5 PREGAME SLATE + GAME CENTER MERGE
+   Layout/UI only. No scoring, data sources, or weights changed.
+   ========================= */
+#pregameSlateBoard .slate-game-center-grid {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+#pregameSlateBoard .slate-game-center-card {
+  min-width: 0 !important;
+  width: 100% !important;
+  min-height: 292px !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  padding: 14px !important;
+  overflow: hidden !important;
+}
+#pregameSlateBoard .game-center-matchup {
+  font-size: 15px !important;
+  line-height: 1.1 !important;
+  margin-bottom: 8px !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+#pregameSlateBoard .game-center-matchup img {
+  width: 24px !important;
+  height: 24px !important;
+  flex: 0 0 auto !important;
+}
+#pregameSlateBoard .game-center-park {
+  margin-bottom: 10px !important;
+  min-height: 14px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+#pregameSlateBoard .slate-game-kpis {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  margin-bottom: 10px !important;
+}
+#pregameSlateBoard .game-kpi {
+  min-width: 0 !important;
+  padding: 7px 5px !important;
+}
+#pregameSlateBoard .game-kpi-val {
+  font-size: 14px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+#pregameSlateBoard .slate-game-lines {
+  gap: 6px !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+#pregameSlateBoard .game-line {
+  grid-template-columns: 70px minmax(0,1fr) auto !important;
+  gap: 7px !important;
+  padding: 7px !important;
+  min-width: 0 !important;
+}
+#pregameSlateBoard .game-line-label,
+#pregameSlateBoard .game-line-main,
+#pregameSlateBoard .game-line-side {
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+#pregameSlateBoard .game-line-label { font-size: 8px !important; }
+#pregameSlateBoard .game-line-main { font-size: 11px !important; }
+#pregameSlateBoard .game-line-side { font-size: 11px !important; max-width: 76px !important; }
+#pregameSlateBoard .slate-game-center-footer {
+  margin-top: 10px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 6px !important;
+}
+#pregameSlateBoard .slate-env-pill {
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+#pregameSlateBoard .slate-env-pill.cold {
+  background: rgba(148,163,184,.10) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(148,163,184,.18) !important;
+}
+@media(max-width: 1380px) {
+  #pregameSlateBoard .slate-game-center-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
+@media(max-width: 1120px) {
+  #pregameSlateBoard .slate-game-center-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+@media(max-width: 820px) {
+  #pregameSlateBoard .slate-game-center-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media(max-width: 560px) {
+  #pregameSlateBoard .slate-game-center-grid { grid-template-columns: 1fr !important; }
+  #pregameSlateBoard .slate-game-center-card { min-height: 270px !important; }
+}
+</style>
+
 </head>
 <body>
 
@@ -7511,7 +7625,6 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <button class="nav-tab" onclick="switchTab('pitchlab', this)">🧪 Pitch Lab</button>
 <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
 <button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
-<button class="nav-tab" onclick="switchTab('gamecenter', this)">📺 Game Center</button>
 <button class="nav-tab" onclick="switchTab('synergy', this)">⚡ Synergy Bonuses</button>
 <button class="nav-tab" onclick="switchTab('backtest', this)">📊 Backtest Lab</button>
 <button class="nav-tab" onclick="switchTab('bbidiagnostics', this)">🎯 BBI / Rank Buckets</button>
@@ -7828,16 +7941,6 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </div>
 
 
-<div id="tab-gamecenter" class="tab-content">
-  <div class="game-center-header">
-    <div class="game-center-title">📺 Game Center</div>
-    <div class="game-center-sub">Game-first dashboard: HR environment, top threat, sleeper, weakest pitcher, weather and Vegas-style team context.</div>
-  </div>
-  <div id="gameCenterGrid" class="game-center-grid">
-    <div class="storyline-empty" style="grid-column:1/-1;">Upload today's workbook to build game cards.</div>
-  </div>
-</div>
-
 <div id="tab-synergy" class="tab-content">
   <div class="panel">
     <h2>⚡ Synergy Bonuses</h2>
@@ -7943,7 +8046,6 @@ if (tabName === 'h2h') renderH2HFullTable();
 if (tabName === 'pitchlab') renderPitchLabTable();
 if (tabName === 'edge') renderEdgePanels();
 if (tabName === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
-if (tabName === 'gamecenter') renderGameCenterTab();
 if (tabName === 'backtest') renderBacktestLab();
 if (tabName === 'bbidiagnostics') renderBBIRankDiagnostics();
 if (tabName === 'synergy') renderSynergyBonusesTab();
@@ -8544,28 +8646,56 @@ function renderPregameSlateBoard() {
   if (!board) return;
   const active = playerData.filter(p => !p.isRemoved && p.Team);
   if (!active.length) { board.style.display = 'none'; return; }
+
   const games = new Map();
   active.forEach(p => {
     const key = p.gameId || getHomeTeamForPlayer(p) || p.Team;
     if (!games.has(key)) games.set(key, []);
     games.get(key).push(p);
   });
+
   const cards = Array.from(games.entries()).map(([gid, players]) => {
-    const home = getHomeTeamForPlayer(players[0]) || players[0].Team;
+    const sorted = [...players].sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0));
+    const top = sorted[0] || players[0];
+    const sleeper = sorted.find(p => cleanNumber(String(p.bettingOdds || '').replace('+','')) >= 600) || sorted[Math.min(2, sorted.length-1)] || top;
+    const weak = [...players].sort((a,b)=>cleanNumber(b['Pitcher HR/9'] || b['P HR/9'])-cleanNumber(a['Pitcher HR/9'] || a['P HR/9']))[0] || top;
+    const home = getHomeTeamForPlayer(top) || getHomeTeamForPlayer(players[0]) || players[0].Team;
     const teams = Array.from(new Set(players.map(x => x.Team).filter(Boolean)));
-    let away = teams.find(t => t !== home) || teams[0] || 'TBD';
-    const top = [...players].sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0))[0];
-    const avgTop = [...players].sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0)).slice(0,3).reduce((sum,p)=>sum+(p.calculatedBBI||0),0) / Math.max(1, Math.min(3, players.length));
+    const away = teams.find(t => t !== home) || teams[0] || 'TBD';
     const visual = getStadiumVisualForPlayer(top || players[0]);
-    const w = weatherSettings[(top || players[0]).gameId];
-    const wx = w && !w.isDome ? `${w.windSpeed || 0} MPH ${String(w.windDir || '').toUpperCase()}` : 'DOME / NEUTRAL';
-    const tier = avgTop >= 90 ? 'nuclear' : avgTop >= 82 ? 'hot' : '';
-    const label = avgTop >= 90 ? '🚀 Nuclear HR Env' : avgTop >= 82 ? '🔥 Hot HR Env' : avgTop >= 74 ? '⚾ Playable Env' : '❄ Pitcher Lean';
-    return `<div class="slate-game-card" style="${teamVisualStyle(home)}" onclick="filterRankingsToSlateGame('${away}', '${home}')"><div class="slate-game-teams">${renderTeamLogo(away,28)}<span>${away}</span><span class="slate-game-at">@</span><span>${home}</span>${renderTeamLogo(home,28)}</div><div class="slate-game-park">🏟️ ${visual.name}</div><div class="slate-game-bottom"><span class="slate-env-pill ${tier}">${label}</span><span class="slate-env-pill">${wx}</span></div></div>`;
+    const env = environmentScoreForPlayers(players);
+    const wx = weatherSettings[(top || players[0]).gameId];
+    const wxTxt = wx && !wx.isDome ? `${wx.temp || 72}° • ${wx.windSpeed || 0} MPH ${String(wx.windDir || '').toUpperCase()}` : 'DOME / NEUTRAL';
+    const tier = env >= 9 ? 'nuclear' : env >= 8 ? 'hot' : env >= 7 ? '' : 'cold';
+    const envLabel = env >= 9 ? '🚀 Nuclear' : env >= 8 ? '🔥 Hot' : env >= 7 ? '⚾ Playable' : '❄ Pitcher Lean';
+    const topName = top && top.Name ? top.Name : 'Top bat';
+    const topScore = top ? (top.calculatedBBI || 0).toFixed(1) : '--';
+    const weakName = weak ? (weak['Opp Pitcher'] || weak['Opp Pitcher Name'] || 'Starter') : 'Starter';
+    const weakHR9 = weak ? cleanNumber(weak['Pitcher HR/9'] || weak['P HR/9']).toFixed(2) : '--';
+    const clickAway = escJSString(away);
+    const clickHome = escJSString(home);
+    return `<div class="slate-game-card slate-game-center-card" style="${teamVisualStyle(home)}" onclick="filterRankingsToSlateGame('${clickAway}', '${clickHome}')">
+      <div class="game-center-matchup">${renderTeamLogo(away,28)}<span>${away}</span><span class="game-center-at">@</span><span>${home}</span>${renderTeamLogo(home,28)}</div>
+      <div class="game-center-park" title="${visual.name}">🏟️ ${visual.name}</div>
+      <div class="game-center-kpis slate-game-kpis">
+        <div class="game-kpi"><div class="game-kpi-label">HR Env</div><div class="game-kpi-val hot">${env.toFixed(1)}/10</div></div>
+        <div class="game-kpi"><div class="game-kpi-label">Players</div><div class="game-kpi-val">${players.length}</div></div>
+        <div class="game-kpi"><div class="game-kpi-label">Top BBI</div><div class="game-kpi-val good">${topScore}</div></div>
+      </div>
+      <div class="game-center-lines slate-game-lines">
+        <div class="game-line"><div class="game-line-label">Top Threat</div><div class="game-line-main" title="${topName}">${topName}</div><div class="game-line-side">${topScore}</div></div>
+        <div class="game-line"><div class="game-line-label">Sleeper</div><div class="game-line-main" title="${sleeper.Name}">${sleeper.Name}</div><div class="game-line-side">${renderOddsWithBook(sleeper)}</div></div>
+        <div class="game-line"><div class="game-line-label">Pitcher Risk</div><div class="game-line-main" title="${weakName}">${weakName}</div><div class="game-line-side">${weakHR9}</div></div>
+        <div class="game-line"><div class="game-line-label">Weather</div><div class="game-line-main" title="${wxTxt}">${wxTxt}</div><div class="game-line-side">${(top.envMultiplier || 1).toFixed(2)}x</div></div>
+      </div>
+      <div class="slate-game-bottom slate-game-center-footer"><span class="slate-env-pill ${tier}">${envLabel} ${env.toFixed(1)}/10</span><span class="slate-env-pill">Click to rank game</span></div>
+    </div>`;
   }).join('');
-  board.innerHTML = `<div class="slate-board-header"><div><div class="slate-board-title">📡 Pregame Slate Board</div><div class="slate-board-sub">Game tiles built from today's uploaded workbook</div></div><div class="slate-board-sub">${games.size} games loaded</div></div><div class="slate-games-grid">${cards}</div>`;
+
+  board.innerHTML = `<div class="slate-board-header"><div><div class="slate-board-title">📡 Pregame Slate Board</div><div class="slate-board-sub">Game tiles built from today's uploaded workbook</div></div><div class="slate-board-sub">${games.size} games loaded</div></div><div class="slate-games-grid slate-game-center-grid">${cards}</div>`;
   board.style.display = 'block';
 }
+
 function renderTop12Carousel() {
   const wrap = document.getElementById('top12CarouselWrap');
   const rail = document.getElementById('top12Carousel');
@@ -12614,39 +12744,9 @@ function environmentScoreForPlayers(players) {
   return Math.max(0, Math.min(10, (base / 10) + env));
 }
 function renderGameCenterTab() {
-  const grid = document.getElementById('gameCenterGrid');
-  if (!grid) return;
-  const active = playerData.filter(p => !p.isRemoved && p.Team);
-  if (!active.length) { grid.innerHTML = `<div class="storyline-empty" style="grid-column:1/-1;">Upload today's workbook to build game cards.</div>`; return; }
-  const games = new Map();
-  active.forEach(p => { const key = p.gameId || getHomeTeamForPlayer(p) || p.Team; if (!games.has(key)) games.set(key, []); games.get(key).push(p); });
-  const cards = Array.from(games.entries()).map(([gid, players]) => {
-    const sorted = [...players].sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0));
-    const top = sorted[0];
-    const sleeper = sorted.find(p => cleanNumber(String(p.bettingOdds || '').replace('+','')) >= 600) || sorted[Math.min(2, sorted.length-1)] || top;
-    const weak = [...players].sort((a,b)=>cleanNumber(b['Pitcher HR/9'] || b['P HR/9'])-cleanNumber(a['Pitcher HR/9'] || a['P HR/9']))[0] || top;
-    const home = getHomeTeamForPlayer(top);
-    const teams = Array.from(new Set(players.map(x => x.Team).filter(Boolean)));
-    const away = teams.find(t => t !== home) || teams[0] || 'TBD';
-    const visual = getStadiumVisualForPlayer(top);
-    const env = environmentScoreForPlayers(players);
-    const wx = weatherSettings[top.gameId];
-    const wxTxt = wx && !wx.isDome ? `${wx.temp || 72}° • ${wx.windSpeed || 0} MPH ${String(wx.windDir || '').toUpperCase()}` : 'DOME / NEUTRAL';
-    const teamTotal = firstNumber(safeGet(top, 'Team Total', 'TeamTotal', 'TT'), safeGet(top, 'Implied Runs', 'ImpliedRuns')) || null;
-    return `<div class="game-center-card" style="${teamVisualStyle(home)}">
-      <div class="game-center-matchup">${renderTeamLogo(away,32)}<span>${away}</span><span class="game-center-at">@</span><span>${home}</span>${renderTeamLogo(home,32)}</div>
-      <div class="game-center-park">🏟️ ${visual.name}</div>
-      <div class="game-center-kpis"><div class="game-kpi"><div class="game-kpi-label">HR Env</div><div class="game-kpi-val hot">${env.toFixed(1)}/10</div></div><div class="game-kpi"><div class="game-kpi-label">Players</div><div class="game-kpi-val">${players.length}</div></div><div class="game-kpi"><div class="game-kpi-label">Vegas</div><div class="game-kpi-val good">${teamTotal ? teamTotal.toFixed(1) : '--'}</div></div></div>
-      <div class="game-center-lines">
-        <div class="game-line"><div class="game-line-label">Top Threat</div><div class="game-line-main">${top.Name}</div><div class="game-line-side">${(top.calculatedBBI||0).toFixed(1)}</div></div>
-        <div class="game-line"><div class="game-line-label">Sleeper</div><div class="game-line-main">${sleeper.Name}</div><div class="game-line-side">${renderOddsWithBook(sleeper)}</div></div>
-        <div class="game-line"><div class="game-line-label">Weak Pitcher</div><div class="game-line-main">${weak['Opp Pitcher'] || weak['Opp Pitcher Name'] || 'Starter'}</div><div class="game-line-side">${cleanNumber(weak['Pitcher HR/9'] || weak['P HR/9']).toFixed(2)}</div></div>
-        <div class="game-line"><div class="game-line-label">Weather</div><div class="game-line-main">${wxTxt}</div><div class="game-line-side">${(top.envMultiplier || 1).toFixed(2)}x</div></div>
-      </div>
-    </div>`;
-  }).join('');
-  grid.innerHTML = cards || '<div class="storyline-empty" style="grid-column:1/-1;">No games found.</div>';
+  renderPregameSlateBoard();
 }
+
 
 function renderMainTableBoard(data, overallRankMap = null) {
 const tbody = document.getElementById('tableBody');
