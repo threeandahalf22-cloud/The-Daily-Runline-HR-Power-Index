@@ -8070,6 +8070,7 @@ const LEAGUE_AVERAGES = { iso: 0.185, barrelRate: 0.083, hardHitRate: 0.35, fbRa
 const STABILIZATION = { barrelRate: 150, iso: 250, hrfb: 400, pulledAir: 200, hrPA: 170, pitcherIP: 60 };
 let playerData = [];
 let vsPitcherData = {};
+let bvpRawRows = [];
 let plDataMap = {};
 let lastWeekMap = {};
 let bullpenData = {};
@@ -9158,7 +9159,7 @@ const workbook = XLSX.read(data, {type: 'array'});
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], vsFBRaw = [], vsCHRaw = [], vsCVRaw = [], vsSLRaw = [], vsCURaw = [];
 let batTrackingSheetNames = {}; 
-teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} }; zoneBMap = {}; zonePMap = {};
+teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} }; zoneBMap = {}; zonePMap = {};
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
@@ -9168,8 +9169,14 @@ if (nameClean === 'PARKFACTORR') parkFactorRMap = mapRowsByTeam(sheetToJsonSmart
 if (nameClean === 'ODDS') oddsRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name']);
 if (nameClean === 'HR' || nameClean === 'HOMERUN') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'SHEET1' && (!hrRaw || hrRaw.length === 0)) hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'VSPITCHER' || nameClean === 'BVP') vpRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'SHEET2' && (!vpRaw || vpRaw.length === 0)) vpRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'VSPITCHER' || nameClean === 'BVP') {
+  vpRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name','Batter','Hitter','Pitcher','SLG','HR','EV','LA']);
+  bvpRawRows = vpRaw;
+}
+if (nameClean === 'SHEET2' && (!vpRaw || vpRaw.length === 0)) {
+  vpRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name','Batter','Hitter','Pitcher','SLG','HR','EV','LA']);
+  bvpRawRows = vpRaw;
+}
 if (nameClean === 'PLDATA' || nameClean === 'PL') plRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'LASTWEEK') lwRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'WEATHER') { weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]); statSheetMaps['WEATHER'] = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM'])); }
@@ -11005,30 +11012,38 @@ const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` 
 const headshotHtml = createHeadshotHtml(row.batter, 'sm');
 return `<td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot">${headshotHtml}<span style="font-weight:700; color:#fff;">${row.batter}</span></div></td><td style="color:#cbd5e1;">${logoImg}${row.team || '-'}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher || 'Starter'}</td><td style="font-family:monospace; color:#38bdf8;">${h2hDisplayValue(row.pa, 0)}</td><td style="font-family:monospace; font-weight:900; color:var(--accent);">${h2hDisplayValue(row.slg, 3)}</td><td style="font-family:monospace; font-weight:700; color:#eab308;">${h2hDisplayValue(row.hr, 0)}</td><td style="font-family:monospace; color:#f1f5f9;">${h2hDisplayValue(row.ev, 1, ' mph')}</td><td style="font-family:monospace; color:#c084fc; font-weight:800;">${h2hDisplayValue(row.la, 1, '°')}</td>`;
 }
+function h2hNumber(value) {
+if (value === null || value === undefined || value === '') return null;
+if (typeof value === 'string' && value.trim() === '') return null;
+const n = cleanNumber(value);
+return isNaN(n) ? null : n;
+}
 function renderH2HFullTable() {
 const tbody = document.getElementById('h2hFullTableBody');
 if (!tbody) return;
 let h2hData = [];
 const seen = new Set();
-Object.keys(vsPitcherData || {}).forEach(key => {
-const vsp = vsPitcherData[key];
+const sourceRows = (bvpRawRows && bvpRawRows.length)
+  ? bvpRawRows
+  : Object.keys(vsPitcherData || {}).map(key => vsPitcherData[key]);
+(sourceRows || []).forEach((vsp, idx) => {
 if (!vsp || typeof vsp !== 'object') return;
-const batter = String(safeGet(vsp, 'Player', 'Name', 'Batter', 'Hitter', 'Batter Name', 'player_name') || getNameFromRow(vsp) || '').trim();
+const batter = String(safeGet(vsp, 'Player', 'Name', 'Batter', 'Hitter', 'Batter Name', 'Hitter Name', 'player_name', 'batter_name', 'hitter_name', 'last_name, first_name') || getNameFromRow(vsp) || '').trim();
 if (!batter) return;
 const normName = normalizeName(batter);
 const player = playerData.find(p => normalizeName(p.Name) === normName) || {};
-const pitcher = String(safeGet(vsp, 'Pitcher', 'Opposing Pitcher', 'Opp Pitcher', 'Pitcher Name', 'Opp Pitcher Name') || player['Opp Pitcher'] || player['Opp Pitcher Name'] || 'Starter').trim();
-const team = String(safeGet(vsp, 'Team', 'TEAM', 'Batter Team', 'Tm') || player.Team || '').trim().toUpperCase();
-const uniqueKey = `${normName}|${normalizeName(pitcher)}|${team}`;
+const pitcher = String(safeGet(vsp, 'Pitcher', 'Opposing Pitcher', 'Opp Pitcher', 'Pitcher Name', 'Opp Pitcher Name', 'pitcher_name') || player['Opp Pitcher'] || player['Opp Pitcher Name'] || 'Starter').trim();
+const team = String(safeGet(vsp, 'Team', 'TEAM', 'Batter Team', 'BatterTeam', 'Tm', 'Bat Team') || player.Team || '').trim().toUpperCase();
+const uniqueKey = `${normName}|${normalizeName(pitcher)}|${team}|${idx}`;
 if (seen.has(uniqueKey)) return;
 seen.add(uniqueKey);
-const pa = cleanNumber(safeGet(vsp, 'PA', 'PAs', 'AB', 'Matchup PA', 'BVP PA'));
-const slg = cleanNumber(safeGet(vsp, 'SLG', 'Slugging', 'BVP SLG', 'SLG vs Pitcher', 'SLG vs P', 'xSLG', 'xSLG vs P', 'xSLG vs'));
-const hr = cleanNumber(safeGet(vsp, 'HR', 'HRs', 'Matchup HR', 'Matchup HRs', 'HR vs Pitcher', 'HR vs P', 'BVP HR'));
-const ev = cleanNumber(safeGet(vsp, 'EV', 'Avg EV', 'Exit Velocity', 'Average Exit Velocity', 'BVP EV'));
-const la = cleanNumber(safeGet(vsp, 'LA', 'Launch Angle', 'Avg LA', 'Average Launch Angle', 'LaunchAngle', 'BVP LA'));
-const hasAnyBvpStat = [pa, slg, hr, ev, la].some(v => v !== null && v !== undefined && !isNaN(v) && Number(v) !== 0);
-if (!hasAnyBvpStat) return;
+const pa = h2hNumber(safeGet(vsp, 'PA', 'PAs', 'AB', 'Matchup PA', 'BVP PA', 'vspPA', 'vsP PA'));
+const slg = h2hNumber(safeGet(vsp, 'SLG', 'Slugging', 'BVP SLG', 'Matchup SLG', 'SLG vs Pitcher', 'SLG vs P', 'xSLG', 'Matchup xSLG', 'xSLG vs P', 'xSLG vs'));
+const hr = h2hNumber(safeGet(vsp, 'HR', 'HRs', 'Matchup HR', 'Matchup HRs', 'HR vs Pitcher', 'HR vs P', 'BVP HR', 'vsP HR'));
+const ev = h2hNumber(safeGet(vsp, 'EV', 'Avg EV', 'Exit Velocity', 'Average Exit Velocity', 'BVP EV', 'Matchup EV', 'vsP EV'));
+const la = h2hNumber(safeGet(vsp, 'LA', 'Launch Angle', 'Avg LA', 'Average Launch Angle', 'LaunchAngle', 'BVP LA', 'Matchup LA'));
+const hasAnyBvpStat = [pa, slg, hr, ev, la].some(v => v !== null && v !== undefined && !isNaN(v));
+if (!hasAnyBvpStat && !pitcher && !team) return;
 h2hData.push({ batter, team, pitcher, pa, slg, hr, ev, la });
 });
 h2hData.sort((a, b) => {
@@ -11812,15 +11827,15 @@ function hybridRaw(p) {
     lwHR: rawNumber(lw, 'HRs', 'HRsLastWeek', 'HR'),
     lwISO: rawNumber(lw, 'ISO'),
     pitchLevelEV: pitchLevelEV,
-    bvpPA: rawNumber(bvp, 'vspPA', 'PA', 'PAs', 'AB'),
-    bvpHR: rawNumber(bvp, 'Matchup HR', 'HR', 'HRs'),
+    bvpPA: rawNumber(bvp, 'vspPA', 'PA', 'PAs', 'AB', 'Matchup PA', 'BVP PA', 'vsP PA'),
+    bvpHR: rawNumber(bvp, 'Matchup HR', 'HR', 'HRs', 'BVP HR', 'HR vs Pitcher', 'HR vs P', 'vsP HR'),
     bvpK: rawRate(bvp, 'K%', 'K %'),
     bvpWhiff: rawRate(bvp, 'Whiff%', 'Whiff %'),
     bvpBA: rawNumber(bvp, 'BA'),
-    bvpXSLG: rawNumber(bvp, 'Matchup xSLG', 'xSLG'),
+    bvpXSLG: rawNumber(bvp, 'Matchup xSLG', 'xSLG', 'SLG', 'Slugging', 'BVP SLG', 'Matchup SLG', 'SLG vs Pitcher', 'SLG vs P'),
     bvpXWOBA: rawNumber(bvp, 'xwOBA', 'xWOBA'),
-    bvpEV: rawNumber(bvp, 'Matchup EV', 'EV', 'Avg EV'),
-    bvpLA: rawNumber(bvp, 'LA', 'Launch Angle')
+    bvpEV: rawNumber(bvp, 'Matchup EV', 'EV', 'Avg EV', 'Exit Velocity', 'Average Exit Velocity', 'BVP EV', 'vsP EV'),
+    bvpLA: rawNumber(bvp, 'LA', 'Launch Angle', 'Avg LA', 'Average Launch Angle', 'LaunchAngle', 'BVP LA', 'Matchup LA')
   };
 }
 function buildHybridRanges(players) {
