@@ -7733,6 +7733,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <div style="padding: 12px 20px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
 <input type="text" class="h2h-search" id="pitchLabSearch" placeholder="🔍 Search batter or pitcher name..." oninput="renderPitchLabTable()" style="margin-bottom:0;" />
 <select id="pitchLabFilter" class="select-input-sm" onchange="renderPitchLabTable()" style="width:160px;"><option value="ALL">All Matchups</option><option value="ELITE">Elite 80+</option><option value="GOOD">Good 65+</option><option value="BAD">Bad Under 45</option></select>
+<select id="pitchLabTeamFilter" class="select-input-sm" onchange="renderPitchLabTable()" style="width:150px;"><option value="ALL">All Teams</option></select>
+<select id="pitchLabSort" class="select-input-sm" onchange="renderPitchLabTable()" style="width:165px;"><option value="SCORE">Sort: Pitch Lab</option><option value="TEAM">Sort: Team</option><option value="BATTER">Sort: Batter</option></select>
 </div>
 <table>
 <thead><tr><th style="width: 50px;">Rank</th><th style="text-align: left; padding-left: 20px;">Batter</th><th>Team</th><th>Pitcher</th><th>Top Pitch Threat</th><th>Arsenal Mix</th><th>Exploit</th><th>Synergy</th></tr></thead>
@@ -10627,17 +10629,47 @@ function renderPitchLab10Card(profile, idx) {
 function renderPitchLabTable() {
   const tbody = document.getElementById('pitchLabTableBody');
   if (!tbody) return;
-  let data = playerData.filter(p => !p.isRemoved && isPitchLabQualified(p)).map(p => p.pitchLabProfile || buildPitchLabProfile(p)).filter(Boolean);
+
+  // Pitch Lab full-list view: include every active player with a buildable profile.
+  // This only changes the Pitch Lab tab display/filtering. It does not alter scoring, rankings, or qualifiers anywhere else.
+  let data = playerData
+    .filter(p => !p.isRemoved)
+    .map(p => p.pitchLabProfile || buildPitchLabProfile(p))
+    .filter(Boolean);
   pitchLabData = data;
+
   const searchEl = document.getElementById('pitchLabSearch');
   const filterEl = document.getElementById('pitchLabFilter');
+  const teamEl = document.getElementById('pitchLabTeamFilter');
+  const sortEl = document.getElementById('pitchLabSort');
   const searchVal = searchEl ? searchEl.value.toLowerCase().trim() : '';
   const filter = filterEl ? filterEl.value : 'ALL';
+  const selectedTeam = teamEl ? teamEl.value : 'ALL';
+  const sortMode = sortEl ? sortEl.value : 'SCORE';
+
+  if (teamEl) {
+    const current = teamEl.value || 'ALL';
+    const teams = [...new Set(data.map(x => String(x.player.Team || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+    const options = ['<option value="ALL">All Teams</option>'].concat(teams.map(t => `<option value="${t.replace(/"/g, '&quot;')}">${t}</option>`)).join('');
+    if (teamEl.innerHTML !== options) teamEl.innerHTML = options;
+    teamEl.value = teams.includes(current) ? current : 'ALL';
+  }
+
   if (searchVal) data = data.filter(x => String(x.player.Name || '').toLowerCase().includes(searchVal) || String(x.pitcherName || '').toLowerCase().includes(searchVal));
+  const activeTeam = teamEl ? teamEl.value : selectedTeam;
+  if (activeTeam && activeTeam !== 'ALL') data = data.filter(x => String(x.player.Team || '').trim() === activeTeam);
   if (filter === 'ELITE') data = data.filter(x => x.score >= 80);
   if (filter === 'GOOD') data = data.filter(x => x.score >= 65);
   if (filter === 'BAD') data = data.filter(x => x.score < 45);
-  data.sort((a,b) => b.score - a.score);
+
+  if (sortMode === 'TEAM') {
+    data.sort((a,b) => String(a.player.Team || '').localeCompare(String(b.player.Team || '')) || (b.score || 0) - (a.score || 0));
+  } else if (sortMode === 'BATTER') {
+    data.sort((a,b) => String(a.player.Name || '').localeCompare(String(b.player.Name || '')));
+  } else {
+    data.sort((a,b) => (b.score || 0) - (a.score || 0));
+  }
+
   const cardBox = document.getElementById('pitchLabSummaryCards');
   if (cardBox) {
     const leader = data[0];
@@ -10645,13 +10677,13 @@ function renderPitchLabTable() {
     const bestP = data.slice().sort((a,b)=>(b.pitcherDamageScore||0)-(a.pitcherDamageScore||0))[0];
     const bestEV = data.slice().sort((a,b)=>(Number(b.pitchEVValue)||0)-(Number(a.pitchEVValue)||0))[0];
     cardBox.innerHTML = leader ? `
-      <div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab 10 Leader</div><div class="pitch-lab-score">${leader.score.toFixed(0)}</div><div class="pitch-lab-sub">${leader.player.Name} vs ${leader.pitcherName || 'Starter'}</div></div>
+      <div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab Leader</div><div class="pitch-lab-score">${leader.score.toFixed(0)}</div><div class="pitch-lab-sub">${leader.player.Name} vs ${leader.pitcherName || 'Starter'}</div></div>
       <div class="pitch-lab-card"><div class="pitch-lab-title">Best Batter Shape</div><div class="pitch-lab-score">${bestBat ? bestBat.batterShapeScore.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestBat ? bestBat.player.Name + ' // FB%, Pull%, LD%, EV' : 'No data'}</div></div>
       <div class="pitch-lab-card"><div class="pitch-lab-title">Most Attackable Arsenal</div><div class="pitch-lab-score">${bestP ? bestP.pitcherDamageScore.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestP ? bestP.pitcherName + ' damage allowed profile' : 'No data'}</div></div>
-      <div class="pitch-lab-card"><div class="pitch-lab-title">Highest Pitch EV</div><div class="pitch-lab-score">${bestEV && bestEV.pitchEVValue ? Number(bestEV.pitchEVValue).toFixed(1) : '--'}</div><div class="pitch-lab-sub">${bestEV ? bestEV.player.Name + ' // avg EV vs pitch mix' : 'Waiting for EV data'}</div></div>` : `<div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab 10</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>`;
+      <div class="pitch-lab-card"><div class="pitch-lab-title">Highest Pitch EV</div><div class="pitch-lab-score">${bestEV && bestEV.pitchEVValue ? Number(bestEV.pitchEVValue).toFixed(1) : '--'}</div><div class="pitch-lab-sub">${bestEV ? bestEV.player.Name + ' // avg EV vs pitch mix' : 'Waiting for EV data'}</div></div>` : `<div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>`;
   }
-  if (!data.length) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No pitch lab profiles matching filters or 150+ PA/AB qualifier...</td></tr>`; return; }
-  tbody.innerHTML = `<tr><td colspan="8" style="padding:0; border-bottom:0;"><div class="pitchlab10-shell">${data.slice(0, 40).map((profile, idx) => renderPitchLab10Card(profile, idx)).join('')}</div></td></tr>`;
+  if (!data.length) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No pitch lab profiles matching the current filters...</td></tr>`; return; }
+  tbody.innerHTML = `<tr><td colspan="8" style="padding:0; border-bottom:0;"><div class="pitchlab10-shell">${data.map((profile, idx) => renderPitchLab10Card(profile, idx)).join('')}</div></td></tr>`;
 }
 
 function compassFromDeg(deg) {
