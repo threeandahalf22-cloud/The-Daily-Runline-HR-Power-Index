@@ -7550,6 +7550,25 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
+
+
+<style id="pregame-slate-red-values-only">
+/* =========================
+   PREGAME SLATE BOARD VALUE COLOR FIX ONLY
+   Makes the right-side/value numbers red instead of team-colored.
+   Layout, scoring, data sources, and workbook logic untouched.
+   ========================= */
+#pregameSlateBoard .slate-game-center-card .game-kpi-val,
+#pregameSlateBoard .slate-game-center-card .game-kpi-val.hot,
+#pregameSlateBoard .slate-game-center-card .game-kpi-val.good,
+#pregameSlateBoard .slate-game-center-card .game-line-side,
+#pregameSlateBoard .slate-game-center-card .game-line-side *,
+#pregameSlateBoard .slate-game-center-card .odds-with-book,
+#pregameSlateBoard .slate-game-center-card .odds-with-book > span:first-child {
+  color: #ff4d4f !important;
+}
+</style>
+
 </head>
 <body>
 
