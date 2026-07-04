@@ -7609,7 +7609,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
     <div class="command-core-ring command-core-ring-two"></div>
     <div class="command-core-ring command-core-ring-three"></div>
     <div class="command-core-logo-wrap">
-      <img id="commandCenterLogo" src="https://i.imgur.com/Czha5qm.png" alt="The Daily Run Line Logo" onerror="this.style.display='none';">
+      <img id="commandCenterLogo" src="https://i.imgur.com/phmiHFU.png" alt="The Daily Run Line Logo" onerror="this.style.display='none';">
     </div>
     <div class="command-core-status"><span class="live-dot"></span> SYSTEM ONLINE</div>
   </div>
@@ -13268,7 +13268,6 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Category_BattedBall: backtestNum(p.category && p.category.battedBall),
     Category_Weather: backtestNum(p.category && p.category.weather),
     Category_Park: backtestNum(p.category && p.category.park),
-    Category_Recent: backtestNum(p.category && p.category.recent),
     Category_BVP: backtestNum(p.category && p.category.bvp),
     Category_Bullpen: backtestNum(p.category && p.category.bullpen),
     Category_Discipline: backtestNum(p.category && p.category.discipline),
@@ -13278,7 +13277,6 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Contribution_BattedBall: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.battedBall),
     Contribution_Weather: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.weather),
     Contribution_Park: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.park),
-    Contribution_Recent: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.recent),
     Contribution_BVP: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.bvp),
     Synergy_Bonus: backtestNum(p.calculatedSynergy),
     Synergy_Raw: backtestNum(p.calculatedRawSynergy),
@@ -13452,11 +13450,10 @@ function getSuggestedWeights(rows) {
     battedBall: HYBRID_CATEGORY_WEIGHTS.battedBall || 0,
     weather: HYBRID_CATEGORY_WEIGHTS.weather || 0,
     park: HYBRID_CATEGORY_WEIGHTS.park || 0,
-    recent: HYBRID_CATEGORY_WEIGHTS.recent || 0,
     bvp: HYBRID_CATEGORY_WEIGHTS.bvp || 0
   };
   const keyMap = {
-    power: 'Category_Power', pitchLevel: 'Category_PitchLab', pitcher: 'Category_Pitcher', battedBall: 'Category_BattedBall', weather: 'Category_Weather', park: 'Category_Park', recent: 'Category_Recent', bvp: 'Category_BVP'
+    power: 'Category_Power', pitchLevel: 'Category_PitchLab', pitcher: 'Category_Pitcher', battedBall: 'Category_BattedBall', weather: 'Category_Weather', park: 'Category_Park', bvp: 'Category_BVP'
   };
   const strengths = Object.keys(current).map(cat => ({ cat, strength: getSignalStats(rows, keyMap[cat], { format:'score' }).strength || 0.01 }));
   const totalStrength = strengths.reduce((s,x)=>s+x.strength,0) || 1;
@@ -13546,18 +13543,6 @@ const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
     ['Zone_Batter_Chase_Swing','Batter Chase Swing %'],
     ['Zone_Batter_Chase_Contact','Batter Chase Contact %'],
     ['Zone_Pitcher_Chase_Zone','Pitcher Chase Zone %']
-  ]},
-  { bucket:'Recent Form', type:'Recent form scoring stat', keys:[
-    ['Raw_lwBarrel','Last Week Barrel %'],
-    ['Raw_lwXSLG','Last Week xSLG'],
-    ['Raw_lwEV','Last Week EV'],
-    ['Raw_lwMaxEV','Last Week Max EV'],
-    ['Raw_lwHardHit','Last Week Hard Hit %'],
-    ['Raw_lwISO','Last Week ISO'],
-    ['Raw_lwHR','Last Week HR'],
-    ['Raw_lwSLG','Last Week SLG'],
-    ['Raw_lwXWOBA','Last Week xwOBA'],
-    ['Raw_lwLA','Last Week Launch Angle']
   ]},
   { bucket:'BvP', type:'BvP scoring stat', keys:[
     ['Raw_bvpPA','BvP PA'],
@@ -13905,7 +13890,6 @@ function renderBacktestLab() {
     { key:'Category_BattedBall', label:'Batted-ball category', format:'score', type:'Category score' },
     { key:'Category_Weather', label:'Weather category', format:'score', type:'Category score' },
     { key:'Category_Park', label:'Park category', format:'score', type:'Category score' },
-    { key:'Category_Recent', label:'Recent form category', format:'score', type:'Category score' },
     { key:'Category_BVP', label:'BVP category', format:'score', type:'Category score' },
     { key:'Category_Bullpen', label:'Bullpen category', format:'score', type:'Category score' },
     { key:'Category_Discipline', label:'Discipline category', format:'score', type:'Category score' }
@@ -13925,7 +13909,7 @@ function renderBacktestLab() {
     .sort((a,b) => (a.sourceOrder - b.sourceOrder));
 
   const weights = getSuggestedWeights(rows);
-  const labels = { power:'Hitter Power', pitchLevel:'Pitch Lab', pitcher:'Pitcher Vulnerability', battedBall:'Batted Ball Shape', weather:'Weather', park:'Park Factor', recent:'Recent Form', bvp:'BVP' };
+  const labels = { power:'Hitter Power', pitchLevel:'Pitch Lab', pitcher:'Pitcher Vulnerability', battedBall:'Batted Ball Shape', weather:'Weather', park:'Park Factor', bvp:'BVP' };
   const weightRows = Object.keys(weights.current).map(cat => {
     const cur = weights.current[cat] * 100;
     const sug = weights.suggested[cat] * 100;
