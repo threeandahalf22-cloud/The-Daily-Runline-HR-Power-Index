@@ -8022,7 +8022,8 @@ function hideAIProcessingOverlay() {}
 function switchTab(tabName, btn) {
 document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
 document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-document.getElementById('tab-' + tabName).classList.add('active');
+const activeTabEl = document.getElementById('tab-' + tabName);
+if (activeTabEl) activeTabEl.classList.add('active');
 if (btn) btn.classList.add('active');
 if (tabName === 'stats') renderStatsTable();
 if (tabName === 'pitchers') renderAllPitchers();
@@ -8032,7 +8033,11 @@ if (tabName === 'h2h') renderH2HFullTable();
 if (tabName === 'pitchlab') renderPitchLabTable();
 if (tabName === 'edge') renderEdgePanels();
 if (tabName === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
-if (tabName === 'backtest') renderBacktestLab();
+if (tabName === 'backtest') {
+  const c = document.getElementById('backtestLabContainer');
+  if (c) c.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">Loading Backtest Lab...</div>`;
+  setTimeout(() => { try { renderBacktestLab(); } catch (err) { console.error('Backtest Lab render failed:', err); const box = document.getElementById('backtestLabContainer'); if (box) box.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;"><b>Backtest Lab error:</b> ${err && err.message ? err.message : err}</div>`; } }, 0);
+}
 if (tabName === 'bbidiagnostics') renderBBIRankDiagnostics();
 if (tabName === 'synergy') renderSynergyBonusesTab();
 }
@@ -9411,22 +9416,27 @@ uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}"
 });
 rebuildTeamLogoDropdown();
 document.getElementById('graphicsPanel').style.display = 'block';
-refreshOpenWeatherForSlate().finally(() => {
-recalculateAllBBIScores();
-renderFanaticsJackpot();
-renderAllPitchers();
-renderHotBatTable();
-renderH2HFullTable();
-renderPitchLabTable();
-renderEdgePanels();
-renderBestBettingEdges();
-renderEdgePanels();
-renderWeatherRankings();
-updateHeaderStats();
-updateSlateTicker();
-saveCachedData();
-renderGameCenterTab();
+refreshOpenWeatherForSlate().catch(err => console.warn('Live weather refresh skipped during upload:', err)).finally(() => {
+  const uploadStep = (label, fn) => { try { if (typeof fn === 'function') fn(); } catch (err) { console.error('Upload refresh failed at ' + label + ':', err); } };
+  uploadStep('recalculateAllBBIScores', recalculateAllBBIScores);
+  uploadStep('renderFanaticsJackpot', renderFanaticsJackpot);
+  uploadStep('renderAllPitchers', renderAllPitchers);
+  uploadStep('renderHotBatTable', renderHotBatTable);
+  uploadStep('renderH2HFullTable', renderH2HFullTable);
+  uploadStep('renderPitchLabTable', renderPitchLabTable);
+  uploadStep('renderEdgePanels', renderEdgePanels);
+  uploadStep('renderBestBettingEdges', renderBestBettingEdges);
+  uploadStep('renderWeatherRankings', renderWeatherRankings);
+  uploadStep('updateHeaderStats', updateHeaderStats);
+  uploadStep('updateSlateTicker', updateSlateTicker);
+  uploadStep('saveCachedData', saveCachedData);
+  uploadStep('renderGameCenterTab', renderGameCenterTab);
 });
+};
+reader.onerror = function(err) {
+  console.error('Workbook file read failed:', err);
+  alert('Could not read that workbook file. Please make sure it is a normal .xlsx/.xls/.csv file and try again.');
+  try { e.target.value = ''; } catch (_) {}
 };
 reader.readAsArrayBuffer(f);
 }
@@ -13193,8 +13203,12 @@ async function backtestSetState(key, value) {
 async function loadBacktestHistory() {
   const saved = await backtestGetState(BACKTEST_HISTORY_KEY);
   backtestHistory = Array.isArray(saved) ? saved : [];
-  renderBacktestLab();
-  if (typeof renderBBIRankDiagnostics === 'function') renderBBIRankDiagnostics();
+  // Do not run the heavy backtest optimizer during page startup/upload flow.
+  // It is reference-only research and should render only when its tab is active.
+  const activeBacktest = document.querySelector('#tab-backtest.active');
+  const activeDiagnostics = document.querySelector('#tab-bbidiagnostics.active');
+  if (activeBacktest) renderBacktestLab();
+  if (activeDiagnostics && typeof renderBBIRankDiagnostics === 'function') renderBBIRankDiagnostics();
 }
 async function saveBacktestHistory() {
   await backtestSetState(BACKTEST_HISTORY_KEY, backtestHistory);
@@ -13460,26 +13474,246 @@ function getSignalStats(rows, key, metric) {
   const direction = diff === null ? '-' : diff > 0 ? 'Higher in HRs' : diff < 0 ? 'Lower in HRs' : 'No separation';
   return { key, count: values.length, hitCount: hits.length, missCount: misses.length, hitRate: values.length ? (hits.length / values.length) * 100 : null, hitAvg, missAvg, diff, strength, confidence, direction, metric };
 }
-function getSuggestedWeights(rows) {
-  const current = {
-    power: HYBRID_CATEGORY_WEIGHTS.power || 0,
-    pitchLevel: HYBRID_CATEGORY_WEIGHTS.pitchLevel || 0,
-    pitcher: HYBRID_CATEGORY_WEIGHTS.pitcher || 0,
-    battedBall: HYBRID_CATEGORY_WEIGHTS.battedBall || 0,
-    weather: HYBRID_CATEGORY_WEIGHTS.weather || 0,
-    park: HYBRID_CATEGORY_WEIGHTS.park || 0,
-    bvp: HYBRID_CATEGORY_WEIGHTS.bvp || 0
-  };
-  const keyMap = {
-    power: 'Category_Power', pitchLevel: 'Category_PitchLab', pitcher: 'Category_Pitcher', battedBall: 'Category_BattedBall', weather: 'Category_Weather', park: 'Category_Park', bvp: 'Category_BVP'
-  };
-  const strengths = Object.keys(current).map(cat => ({ cat, strength: getSignalStats(rows, keyMap[cat], { format:'score' }).strength || 0.01 }));
-  const totalStrength = strengths.reduce((s,x)=>s+x.strength,0) || 1;
-  const totalCurrent = Object.values(current).reduce((s,x)=>s+x,0) || 1;
-  const suggested = {};
-  strengths.forEach(x => suggested[x.cat] = (x.strength / totalStrength) * totalCurrent);
-  return { current, suggested, keyMap };
+function getBacktestWeightCategories() {
+  return [
+    { cat:'power', label:'Hitter Power', key:'Category_Power', min:0.08, max:0.42 },
+    { cat:'battedBall', label:'Batted Ball Shape', key:'Category_BattedBall', min:0.05, max:0.32 },
+    { cat:'pitcher', label:'Pitcher Vulnerability', key:'Category_Pitcher', min:0.06, max:0.35 },
+    { cat:'pitchLevel', label:'Pitch Lab / Pitch Matchup', key:'Category_PitchLab', min:0.04, max:0.32 },
+    { cat:'bvp', label:'BVP', key:'Category_BVP', min:0.00, max:0.18 },
+    { cat:'weather', label:'Weather', key:'Category_Weather', min:0.00, max:0.14 },
+    { cat:'park', label:'Park Factor', key:'Category_Park', min:0.00, max:0.10 }
+  ];
 }
+function backtestNormalizeWeightsWithBounds(raw, cats, totalTarget) {
+  const total = totalTarget || 1;
+  const out = {};
+  let remaining = total;
+  let open = cats.map(c => c.cat);
+  cats.forEach(c => out[c.cat] = Math.max(0, Number(raw[c.cat]) || 0));
+  for (let guard = 0; guard < 12; guard++) {
+    const openSum = open.reduce((s,k)=>s+(Number(out[k])||0),0) || 1;
+    const nextOpen = [];
+    let changed = false;
+    open.forEach(k => {
+      const c = cats.find(x => x.cat === k);
+      let v = (out[k] / openSum) * remaining;
+      if (v < c.min) { out[k] = c.min; remaining -= c.min; changed = true; }
+      else if (v > c.max) { out[k] = c.max; remaining -= c.max; changed = true; }
+      else { out[k] = v; nextOpen.push(k); }
+    });
+    open = nextOpen;
+    if (!changed || !open.length) break;
+  }
+  if (open.length) {
+    const openSum = open.reduce((s,k)=>s+(Number(out[k])||0),0) || 1;
+    open.forEach(k => { out[k] = (out[k] / openSum) * remaining; });
+  }
+  const finalTotal = Object.values(out).reduce((s,v)=>s+(Number(v)||0),0) || 1;
+  Object.keys(out).forEach(k => out[k] = (out[k] / finalTotal) * total);
+  return out;
+}
+function getCurrentBacktestCategoryWeights() {
+  const out = {};
+  getBacktestWeightCategories().forEach(c => { out[c.cat] = Number(HYBRID_CATEGORY_WEIGHTS[c.cat]) || 0; });
+  const total = Object.values(out).reduce((s,v)=>s+v,0) || 1;
+  Object.keys(out).forEach(k => out[k] /= total);
+  return out;
+}
+function groupBacktestRowsBySlate(rows) {
+  const map = new Map();
+  (rows || []).forEach((r, idx) => {
+    const slate = String(r.Slate_ID || r.Date || 'ALL');
+    if (!map.has(slate)) map.set(slate, []);
+    map.get(slate).push({ row:r, idx });
+  });
+  return [...map.values()].filter(g => g.length >= 2 && g.some(x => Number(x.row.HR_Result) === 1));
+}
+function getBacktestCategoryValue(row, category) {
+  const n = backtestSafeNumber(row && row[category.key]);
+  return n === null || !isFinite(n) ? 50 : Math.max(0, Math.min(100, n));
+}
+function calculateBacktestAucFromScores(scored) {
+  const sorted = (scored || [])
+    .filter(x => x && isFinite(x.score))
+    .slice()
+    .sort((a,b)=>a.score-b.score);
+  const positives = sorted.reduce((s,x)=>s+(x.hr ? 1 : 0),0);
+  const negatives = sorted.length - positives;
+  if (!positives || !negatives) return null;
+  let rankSum = 0;
+  let i = 0;
+  while (i < sorted.length) {
+    let j = i + 1;
+    while (j < sorted.length && sorted[j].score === sorted[i].score) j++;
+    const avgRank = ((i + 1) + j) / 2;
+    for (let k=i; k<j; k++) if (sorted[k].hr) rankSum += avgRank;
+    i = j;
+  }
+  return (rankSum - (positives * (positives + 1) / 2)) / (positives * negatives);
+}
+function evaluateBacktestWeightSet(rows, weights, cats) {
+  const usable = (rows || []).filter(r => cats.some(c => backtestSafeNumber(r[c.key]) !== null));
+  const scoredAll = usable.map(r => ({
+    row:r,
+    score:cats.reduce((s,c)=>s + ((Number(weights[c.cat]) || 0) * getBacktestCategoryValue(r, c)), 0),
+    hr:Number(r.HR_Result) === 1 ? 1 : 0
+  }));
+  const totalPlayers = scoredAll.length;
+  const totalHR = scoredAll.reduce((s,x)=>s+x.hr,0);
+  const totalMiss = totalPlayers - totalHR;
+  const auc = calculateBacktestAucFromScores(scoredAll);
+  const hitScores = scoredAll.filter(x=>x.hr).map(x=>x.score);
+  const missScores = scoredAll.filter(x=>!x.hr).map(x=>x.score);
+  const hitAvgScore = mean(hitScores);
+  const missAvgScore = mean(missScores);
+  const scoreSeparation = (hitAvgScore !== null && missAvgScore !== null) ? hitAvgScore - missAvgScore : null;
+
+  // Keep familiar slate-ranking diagnostics for the table, but the optimization objective is global HR-vs-non-HR AUC.
+  const groups = groupBacktestRowsBySlate(usable);
+  let top5HR = 0, top10HR = 0, top25HR = 0, top50HR = 0;
+  let avgHrRankSum = 0, hrRankCount = 0, reciprocalRankSum = 0, ndcgSum = 0, percentileScoreSum = 0, slateCount = 0, slatePlayers = 0, slateHR = 0;
+  groups.forEach(group => {
+    const scored = group.map(x => ({
+      row:x.row,
+      score:cats.reduce((s,c)=>s + ((Number(weights[c.cat]) || 0) * getBacktestCategoryValue(x.row, c)), 0),
+      hr:Number(x.row.HR_Result) === 1 ? 1 : 0
+    })).sort((a,b)=>b.score-a.score);
+    const n = scored.length;
+    const h = scored.reduce((s,x)=>s+x.hr,0);
+    if (!n || !h) return;
+    slateCount += 1; slatePlayers += n; slateHR += h;
+    const topN = k => scored.slice(0, Math.min(k, n)).reduce((s,x)=>s+x.hr,0);
+    top5HR += topN(5); top10HR += topN(10); top25HR += topN(25); top50HR += topN(50);
+    let slateDcg = 0, idealDcg = 0;
+    scored.forEach((x, idx) => {
+      const rank = idx + 1;
+      if (idx < h) idealDcg += 1 / Math.log2(rank + 1);
+      if (x.hr) {
+        avgHrRankSum += rank; hrRankCount += 1;
+        const percentileScore = n > 1 ? (n - idx - 1) / (n - 1) : 1;
+        percentileScoreSum += percentileScore;
+        reciprocalRankSum += 1 / rank;
+        slateDcg += 1 / Math.log2(rank + 1);
+      }
+    });
+    ndcgSum += idealDcg ? slateDcg / idealDcg : 0;
+  });
+  const groupCount = groups.length || 1;
+  const baselineRatePct = totalPlayers ? (totalHR / totalPlayers) * 100 : 0;
+  const top5RatePct = slatePlayers ? (top5HR / Math.min(slatePlayers, groupCount * 5 || slatePlayers)) * 100 : 0;
+  const top10RatePct = slatePlayers ? (top10HR / Math.min(slatePlayers, groupCount * 10 || slatePlayers)) * 100 : 0;
+  const top25RatePct = slatePlayers ? (top25HR / Math.min(slatePlayers, groupCount * 25 || slatePlayers)) * 100 : 0;
+  const top50RatePct = slatePlayers ? (top50HR / Math.min(slatePlayers, groupCount * 50 || slatePlayers)) * 100 : 0;
+  const objective = auc === null ? -Infinity : auc * 100;
+  return {
+    objective,
+    auc,
+    slateCount, totalPlayers, totalHR, totalMiss, baselineRatePct,
+    top5HR, top10HR, top25HR, top50HR, top5RatePct, top10RatePct, top25RatePct, top50RatePct,
+    top5Lift: baselineRatePct ? top5RatePct / baselineRatePct : null,
+    top10Lift: baselineRatePct ? top10RatePct / baselineRatePct : null,
+    top25Lift: baselineRatePct ? top25RatePct / baselineRatePct : null,
+    top50Lift: baselineRatePct ? top50RatePct / baselineRatePct : null,
+    avgHrRank: hrRankCount ? avgHrRankSum / hrRankCount : null,
+    avgRankPercentile: hrRankCount ? (percentileScoreSum / hrRankCount) * 100 : null,
+    meanReciprocalRank: hrRankCount ? reciprocalRankSum / hrRankCount : null,
+    ndcg: slateCount ? ndcgSum / slateCount : null,
+    hitAvgScore, missAvgScore, scoreSeparation
+  };
+}
+function moveBacktestWeight(base, fromCat, toCat, amount, cats, total) {
+  if (fromCat === toCat || amount <= 0) return null;
+  const raw = {...base};
+  const fromMeta = cats.find(c => c.cat === fromCat);
+  const toMeta = cats.find(c => c.cat === toCat);
+  if (!fromMeta || !toMeta) return null;
+  const available = Math.max(0, (Number(raw[fromCat]) || 0) - fromMeta.min);
+  const room = Math.max(0, toMeta.max - (Number(raw[toCat]) || 0));
+  const shift = Math.min(amount, available, room);
+  if (shift <= 0.0000001) return null;
+  raw[fromCat] = (Number(raw[fromCat]) || 0) - shift;
+  raw[toCat] = (Number(raw[toCat]) || 0) + shift;
+  return backtestNormalizeWeightsWithBounds(raw, cats, total || 1);
+}
+function optimizeBacktestWeightsDeterministic(rows, cats, current, totalCurrent) {
+  let best = { weights:backtestNormalizeWeightsWithBounds(current, cats, totalCurrent), performance:null };
+  best.performance = evaluateBacktestWeightSet(rows, best.weights, cats);
+
+  // Deterministic coordinate search: shift weight from every bucket to every other bucket in a fixed order.
+  // No random candidates, no seeded RNG, no mutations, and no row cap.
+  const steps = [0.08, 0.04, 0.025, 0.015, 0.01, 0.005, 0.0025];
+  steps.forEach(step => {
+    let improved = true;
+    let guard = 0;
+    while (improved && guard < 20) {
+      improved = false;
+      guard += 1;
+      for (let fromIdx=0; fromIdx<cats.length; fromIdx++) {
+        for (let toIdx=0; toIdx<cats.length; toIdx++) {
+          if (fromIdx === toIdx) continue;
+          const cand = moveBacktestWeight(best.weights, cats[fromIdx].cat, cats[toIdx].cat, step, cats, totalCurrent);
+          if (!cand) continue;
+          const perf = evaluateBacktestWeightSet(rows, cand, cats);
+          if (perf.objective > best.performance.objective + 1e-10) {
+            best = { weights:cand, performance:perf };
+            improved = true;
+          }
+        }
+      }
+    }
+  });
+  return best;
+}
+function getBacktestWeightConfidence(rows, cats, bestWeights, bestPerformance, cat) {
+  const catMeta = cats.find(c => c.cat === cat);
+  if (!catMeta || !bestPerformance || !isFinite(bestPerformance.objective)) return 'Low';
+  const hrCount = (rows || []).filter(r => Number(r.HR_Result) === 1).length;
+  if ((rows || []).length < 250 || hrCount < 10) return 'Low';
+  const shifts = [0.01, -0.01, 0.025, -0.025];
+  const drops = [];
+  shifts.forEach(shift => {
+    const raw = {...bestWeights};
+    const target = Math.max(catMeta.min, Math.min(catMeta.max, (Number(raw[cat]) || 0) + shift));
+    const actualShift = target - (Number(raw[cat]) || 0);
+    if (Math.abs(actualShift) < 0.000001) return;
+    raw[cat] = target;
+    const others = cats.filter(c => c.cat !== cat);
+    const otherSum = others.reduce((s,c)=>s+(Number(raw[c.cat])||0),0) || 1;
+    const targetOtherSum = (Object.values(bestWeights).reduce((s,v)=>s+(Number(v)||0),0) || 1) - target;
+    others.forEach(c => raw[c.cat] = ((Number(raw[c.cat]) || 0) / otherSum) * targetOtherSum);
+    const adjusted = backtestNormalizeWeightsWithBounds(raw, cats, 1);
+    const perf = evaluateBacktestWeightSet(rows, adjusted, cats);
+    if (isFinite(perf.objective)) drops.push(bestPerformance.objective - perf.objective);
+  });
+  const avgDrop = drops.length ? drops.reduce((s,v)=>s+Math.max(0,v),0) / drops.length : 0;
+  if ((rows || []).length >= 1000 && hrCount >= 35 && avgDrop >= 0.35) return 'High';
+  if ((rows || []).length >= 500 && hrCount >= 20 && avgDrop >= 0.12) return 'Medium';
+  return 'Low';
+}
+function getSuggestedWeights(rows) {
+  const cats = getBacktestWeightCategories();
+  const current = getCurrentBacktestCategoryWeights();
+  const keyMap = {};
+  cats.forEach(c => keyMap[c.cat] = c.key);
+  const totalCurrent = Object.values(current).reduce((s,v)=>s+v,0) || 1;
+  const usableRows = (rows || []).filter(r => cats.some(c => backtestSafeNumber(r[c.key]) !== null));
+  const hrCount = usableRows.filter(r => Number(r.HR_Result) === 1).length;
+  const currentPerformance = evaluateBacktestWeightSet(usableRows, current, cats);
+  let best = { weights:{...current}, performance:currentPerformance };
+  if (usableRows.length >= 40 && hrCount >= 3) {
+    best = optimizeBacktestWeightsDeterministic(usableRows, cats, current, totalCurrent);
+  }
+  const improvementPct = (isFinite(currentPerformance.objective) && currentPerformance.objective !== 0)
+    ? ((best.performance.objective - currentPerformance.objective) / Math.abs(currentPerformance.objective)) * 100 : 0;
+  const confidence = usableRows.length < 250 || hrCount < 10 ? 'Low sample'
+    : usableRows.length < 1000 || hrCount < 35 ? 'Building'
+    : 'Usable';
+  const confidenceByCategory = {};
+  cats.forEach(c => confidenceByCategory[c.cat] = getBacktestWeightConfidence(usableRows, cats, best.weights, best.performance, c.cat));
+  return { current, suggested:best.weights, keyMap, categories:cats, currentPerformance, suggestedPerformance:best.performance, improvementPct, confidence, confidenceByCategory, usableRows:usableRows.length, hrCount };
+}
+
 
 
 const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
@@ -13714,6 +13948,221 @@ function renderBacktestSignalRows(signals, limit=35) {
   }).join('');
 }
 
+const BACKTEST_CURRENT_RAW_WEIGHT_MAP = {
+  Raw_barrel:24, Raw_hardHit:18, Raw_avgEV:15, Raw_ev90:12, Raw_xHR:10, Raw_xslg:8, Raw_xwoba:7, Raw_mph95:4, Raw_sweetSpot:2,
+  Raw_pullAir:28, Raw_launchAngle:25, Raw_hrFb:20, Raw_fbld:15, Raw_flyBall:8, Raw_pull:4,
+  Raw_pitcherHR9:19, Raw_pitcherHRFB:9, Raw_pitcherFB:6, Raw_pitcherPull:5, Raw_pitcherSweet:5, Raw_pitcherGB:4, Raw_pitcherFBLD:3,
+  Raw_pitcherBarrel:9, Raw_pitcherHardHit:7, Raw_pitcherEV:6, Raw_pitcherEV90:5, Raw_pitcherEV50:5, Raw_pitcher95:4, Raw_pitcherMaxEV:3, Raw_pitcherXERA:7, Raw_pitcherStuff:5,
+  Raw_pitchLevelEV:20, PitchLab_Score:80, PitchLab_Mix_Score:25, PitchLab_Zone_Score:25, PitchLab_Pitch_Quality_Score:25, PitchLab_Bat_Tracking_Score:25,
+  Raw_bvpXSLG:43, Raw_bvpEV:33, Raw_bvpHR:24,
+  Weather_Wind_Points:56, Weather_Temp_Points:44, Weather_Temp:44, Weather_WindSpeed:56,
+  Raw_parkFactor:65, Handed_Park_Factor:65, ParkFactorL_or_R_Used:65, Raw_pullFence:35, Raw_cf:35
+};
+function getBacktestCurrentRawWeight(metric) {
+  if (!metric || !metric.key) return 0;
+  if (BACKTEST_CURRENT_RAW_WEIGHT_MAP[metric.key] !== undefined) return BACKTEST_CURRENT_RAW_WEIGHT_MAP[metric.key];
+  const k = String(metric.key || '').toLowerCase();
+  if (k.includes('modifier') || k.includes('synergy') || k.includes('confidence')) return 0;
+  return 0;
+}
+function getBacktestStatBucketKey(metric) {
+  return String((metric && metric.bucket) || (metric && metric.type) || 'Other');
+}
+function percentileBacktestStatValue(value, min, max, reverse) {
+  if (value === null || value === undefined || !isFinite(value)) return 50;
+  if (max === min) return 50;
+  let score = ((value - min) / (max - min)) * 100;
+  score = Math.max(0, Math.min(100, score));
+  return reverse ? 100 - score : score;
+}
+function prepareBacktestStatOptimizationGroups(rows, metrics) {
+  const signalsByKey = new Map();
+  metrics.forEach(m => signalsByKey.set(m.key, getSignalStats(rows, m.key, m)));
+  const grouped = new Map();
+  metrics.forEach(m => {
+    const bucket = getBacktestStatBucketKey(m);
+    if (!grouped.has(bucket)) grouped.set(bucket, []);
+    grouped.get(bucket).push(m);
+  });
+  return { grouped, signalsByKey };
+}
+function evaluateBacktestStatWeightSet(rows, metrics, weights, signalsByKey) {
+  const groups = groupBacktestRowsBySlate(rows);
+  let objective = 0, slateCount = 0, totalPlayers = 0, totalHR = 0, top10HR = 0, top25HR = 0, avgHrRankSum = 0, hrRankCount = 0;
+  groups.forEach(group => {
+    const usableMetrics = metrics.filter(m => group.some(x => backtestSafeNumber(x.row[m.key]) !== null));
+    if (!usableMetrics.length) return;
+    const extents = {};
+    usableMetrics.forEach(m => {
+      const vals = group.map(x => backtestMetricDisplayValue(backtestSafeNumber(x.row[m.key]), m)).filter(v => v !== null && isFinite(v));
+      if (!vals.length) return;
+      vals.sort((a,b)=>a-b);
+      const lo = vals[Math.floor(vals.length * 0.05)] ?? vals[0];
+      const hi = vals[Math.floor(vals.length * 0.95)] ?? vals[vals.length - 1];
+      extents[m.key] = { min:lo, max:hi };
+    });
+    const scored = group.map(x => {
+      let score = 0, wsum = 0;
+      usableMetrics.forEach(m => {
+        const w = Number(weights[m.key]) || 0;
+        if (w <= 0 || !extents[m.key]) return;
+        const raw = backtestMetricDisplayValue(backtestSafeNumber(x.row[m.key]), m);
+        const sig = signalsByKey.get(m.key);
+        const reverse = sig && sig.diff < 0;
+        score += percentileBacktestStatValue(raw, extents[m.key].min, extents[m.key].max, reverse) * w;
+        wsum += w;
+      });
+      return { row:x.row, score: wsum ? score / wsum : 50, hr:Number(x.row.HR_Result) === 1 ? 1 : 0 };
+    }).sort((a,b)=>b.score-a.score);
+    const n = scored.length;
+    const h = scored.reduce((s,x)=>s+x.hr,0);
+    if (!n || !h) return;
+    slateCount += 1; totalPlayers += n; totalHR += h;
+    const t10 = scored.slice(0, Math.min(10,n)).reduce((s,x)=>s+x.hr,0);
+    const t25 = scored.slice(0, Math.min(25,n)).reduce((s,x)=>s+x.hr,0);
+    top10HR += t10; top25HR += t25;
+    const baselineRate = h / n;
+    const top10Lift = (t10 / Math.min(10,n)) / baselineRate;
+    const top25Lift = (t25 / Math.min(25,n)) / baselineRate;
+    let rankScore = 0;
+    scored.forEach((x, idx) => {
+      if (x.hr) { avgHrRankSum += idx + 1; hrRankCount += 1; rankScore += (n - idx) / n; }
+    });
+    objective += (top10Lift * 4.0) + (top25Lift * 2.5) + ((rankScore / h) * 3.5);
+  });
+  return { objective: slateCount ? objective / slateCount : -Infinity, slateCount, totalPlayers, totalHR, top10HR, top25HR, avgHrRank: hrRankCount ? avgHrRankSum / hrRankCount : null };
+}
+function normalizeStatWeights(raw, metrics) {
+  const out = {};
+  metrics.forEach(m => out[m.key] = Math.max(0, Number(raw[m.key]) || 0));
+  const total = Object.values(out).reduce((s,v)=>s+v,0);
+  if (!total) {
+    const equal = metrics.length ? 100 / metrics.length : 0;
+    metrics.forEach(m => out[m.key] = equal);
+    return out;
+  }
+  metrics.forEach(m => out[m.key] = (out[m.key] / total) * 100);
+  return out;
+}
+function moveBacktestStatWeight(base, fromKey, toKey, amount, metrics) {
+  if (fromKey === toKey || amount <= 0) return null;
+  const raw = {...base};
+  const shift = Math.min(amount, Math.max(0, Number(raw[fromKey]) || 0));
+  if (shift <= 0.000001) return null;
+  raw[fromKey] = (Number(raw[fromKey]) || 0) - shift;
+  raw[toKey] = (Number(raw[toKey]) || 0) + shift;
+  return normalizeStatWeights(raw, metrics);
+}
+function optimizeBacktestStatWeightsDeterministic(rows, usable, current, signalsByKey) {
+  let best = { weights:{...current}, perf:evaluateBacktestStatWeightSet(rows, usable, current, signalsByKey) };
+  const steps = [12, 7, 4, 2, 1];
+  steps.forEach(step => {
+    let improved = true;
+    let guard = 0;
+    while (improved && guard < 12) {
+      improved = false;
+      guard += 1;
+      for (let fromIdx=0; fromIdx<usable.length; fromIdx++) {
+        for (let toIdx=0; toIdx<usable.length; toIdx++) {
+          if (fromIdx === toIdx) continue;
+          const cand = moveBacktestStatWeight(best.weights, usable[fromIdx].key, usable[toIdx].key, step, usable);
+          if (!cand) continue;
+          const perf = evaluateBacktestStatWeightSet(rows, usable, cand, signalsByKey);
+          if (perf.objective > best.perf.objective + 1e-10) {
+            best = { weights:cand, perf };
+            improved = true;
+          }
+        }
+      }
+    }
+  });
+  return best;
+}
+function optimizeBacktestRawStatWeights(rows, metrics) {
+  /*
+    Backtest tab stability patch:
+    The previous version ran a nested coordinate-search optimizer for every raw-stat bucket during render.
+    With a large saved backtest history, clicking the Backtest tab could freeze or throw a browser error.
+
+    This replacement is still deterministic and still uses ALL finalized backtest rows. It computes suggested
+    raw-stat weights from each stat's historical HR-vs-non-HR separation, sample size, and confidence. Same
+    saved history = same suggested weights. No randomness, no row cap, no mutations, no live scoring changes.
+  */
+  const optRows = Array.isArray(rows) ? rows : [];
+  const safeMetrics = Array.isArray(metrics) ? metrics : [];
+  const { grouped, signalsByKey } = prepareBacktestStatOptimizationGroups(optRows, safeMetrics);
+  const result = new Map();
+  const totalRows = optRows.length || 1;
+  const totalHR = optRows.filter(r => Number(r.HR_Result) === 1).length;
+
+  grouped.forEach((bucketMetrics, bucket) => {
+    const usable = (bucketMetrics || []).filter(m => {
+      const sig = signalsByKey.get(m.key);
+      return sig && sig.count >= 10 && sig.hitCount > 0 && sig.missCount > 0;
+    });
+    if (!usable.length) return;
+
+    let current = {};
+    usable.forEach(m => current[m.key] = getBacktestCurrentRawWeight(m));
+    current = normalizeStatWeights(current, usable);
+
+    const rawScores = {};
+    usable.forEach(m => {
+      const sig = signalsByKey.get(m.key) || {};
+      const coverage = Math.max(0.15, Math.min(1, (Number(sig.count) || 0) / totalRows));
+      const hrCoverage = totalHR ? Math.max(0.15, Math.min(1, (Number(sig.hitCount) || 0) / totalHR)) : 0.15;
+      const confidenceMult = sig.confidence === 'Usable' ? 1.15 : sig.confidence === 'Building' ? 1.0 : 0.70;
+      const directionMult = sig.diff === 0 || sig.diff === null || sig.diff === undefined ? 0.25 : 1.0;
+      // Strength is absolute HR/miss separation after metric formatting. This allows both higher-is-better
+      // and lower-is-better raw inputs to be surfaced without changing live scoring.
+      rawScores[m.key] = Math.max(0, Number(sig.strength) || 0) * coverage * hrCoverage * confidenceMult * directionMult;
+    });
+
+    let suggested = normalizeStatWeights(rawScores, usable);
+    const suggestedTotal = Object.values(suggested).reduce((s,v)=>s+(Number(v)||0),0);
+    if (!suggestedTotal) suggested = {...current};
+
+    usable.forEach(m => {
+      const cur = Number(current[m.key]) || 0;
+      const sug = Number(suggested[m.key]) || 0;
+      const sig = signalsByKey.get(m.key);
+      const sampleLabel = !sig ? 'Low sample' : (optRows.length < 250 || totalHR < 10 ? 'Low sample' : sig.confidence);
+      result.set(m.key, {
+        current: cur,
+        suggested: sug,
+        delta: sug - cur,
+        confidence: sampleLabel,
+        bucket,
+        improvementPct: 0
+      });
+    });
+  });
+
+  safeMetrics.forEach(m => {
+    if (!result.has(m.key)) {
+      result.set(m.key, {
+        current: getBacktestCurrentRawWeight(m),
+        suggested: 0,
+        delta: 0,
+        confidence: 'Low sample',
+        bucket: getBacktestStatBucketKey(m),
+        improvementPct: 0
+      });
+    }
+  });
+  return result;
+}
+
+function renderBacktestRawStatWeightRows(signals, statWeights, limit=120) {
+  return signals.slice(0, limit).map(s => {
+    const cls = s.diff > 0 ? 'signal-positive' : s.diff < 0 ? 'signal-negative' : 'signal-neutral';
+    const sign = s.diff > 0 ? '+' : '';
+    const w = statWeights && statWeights.get(s.key) ? statWeights.get(s.key) : { current:0, suggested:0, delta:0, confidence:s.confidence };
+    const dcls = w.delta > 0.75 ? 'signal-positive' : w.delta < -0.75 ? 'signal-negative' : 'signal-neutral';
+    return `<tr><td>${s.label}</td><td>${s.type || '-'}</td><td>${s.bucket || '-'}</td><td>${fmtBack(w.current,1,'%')}</td><td>${fmtBack(w.suggested,1,'%')}</td><td class="${dcls}">${w.delta >= 0 ? '+' : ''}${fmtBack(w.delta,1,'%')}</td><td>${s.count}</td><td>${s.hitCount}</td><td>${fmtBack(s.hitRate,2,'%')}</td><td>${fmtSignalValue(s.hitAvg, s.metric)}</td><td>${fmtSignalValue(s.missAvg, s.metric)}</td><td class="${cls}">${sign}${fmtSignalValue(s.diff, s.metric)}</td><td>${s.direction}</td><td>${fmtBack(s.strength,2)}</td><td>${w.confidence || s.confidence}</td></tr>`;
+  }).join('');
+}
+
 function backtestFirstValue(row, keys) {
   if (!row || !keys) return null;
   for (const key of keys) {
@@ -13895,6 +14344,7 @@ function renderBBIRankDiagnostics() {
 function renderBacktestLab() {
   const container = document.getElementById('backtestLabContainer');
   if (!container) return;
+  try {
   const rows = getBacktestRows();
   if (!rows.length) {
     container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No finalized backtests yet. Mark HR hitters with 💣 on the rankings page, then click Finalize Today's Backtest at the bottom.</div>`;
@@ -13931,19 +14381,25 @@ function renderBacktestLab() {
     .sort((a,b) => (a.sourceOrder - b.sourceOrder));
 
   const weights = getSuggestedWeights(rows);
-  const labels = { power:'Hitter Power', pitchLevel:'Pitch Lab', pitcher:'Pitcher Vulnerability', battedBall:'Batted Ball Shape', weather:'Weather', park:'Park Factor', bvp:'BVP' };
-  const weightRows = Object.keys(weights.current).map(cat => {
-    const cur = weights.current[cat] * 100;
-    const sug = weights.suggested[cat] * 100;
+  const weightRows = weights.categories.map(meta => {
+    const cat = meta.cat;
+    const cur = (weights.current[cat] || 0) * 100;
+    const sug = (weights.suggested[cat] || 0) * 100;
     const delta = sug - cur;
     const stat = getSignalStats(rows, weights.keyMap[cat], { format:'score' });
     const cls = delta > 0.75 ? 'signal-positive' : delta < -0.75 ? 'signal-negative' : 'signal-neutral';
     const sepCls = stat.diff > 0 ? 'signal-positive' : stat.diff < 0 ? 'signal-negative' : 'signal-neutral';
-    return `<tr><td>${labels[cat] || cat}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(stat.hitAvg,2)}</td><td>${fmtBack(stat.missAvg,2)}</td><td class="${sepCls}">${stat.diff >= 0 ? '+' : ''}${fmtBack(stat.diff,2)}</td><td>${fmtBack(stat.strength,2)}</td><td>${stat.confidence}</td></tr>`;
+    return `<tr><td>${meta.label}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(stat.hitAvg,2)}</td><td>${fmtBack(stat.missAvg,2)}</td><td class="${sepCls}">${stat.diff >= 0 ? '+' : ''}${fmtBack(stat.diff,2)}</td><td>${fmtBack(stat.strength,2)}</td><td>${weights.confidenceByCategory && weights.confidenceByCategory[cat] ? weights.confidenceByCategory[cat] : stat.confidence}</td></tr>`;
   }).join('');
+  const curPerf = weights.currentPerformance || {};
+  const sugPerf = weights.suggestedPerformance || {};
+  const optimizerSummaryRows = `
+    <tr><td>Current Live Weights</td><td>${fmtBack(curPerf.objective,2)}</td><td>${fmtBack(curPerf.top5RatePct,2,'%')}</td><td>${fmtBack(curPerf.top10RatePct,2,'%')}</td><td>${fmtBack(curPerf.top25RatePct,2,'%')}</td><td>${curPerf.top10Lift ? curPerf.top10Lift.toFixed(2)+'x' : '-'}</td><td>${fmtBack(curPerf.avgHrRank,1)}</td><td>${fmtBack(curPerf.avgRankPercentile,1,'%')}</td><td>${fmtBack(curPerf.ndcg,3)}</td></tr>
+    <tr><td>Optimized Suggested Weights</td><td class="signal-positive">${fmtBack(sugPerf.objective,2)}</td><td>${fmtBack(sugPerf.top5RatePct,2,'%')}</td><td>${fmtBack(sugPerf.top10RatePct,2,'%')}</td><td>${fmtBack(sugPerf.top25RatePct,2,'%')}</td><td>${sugPerf.top10Lift ? sugPerf.top10Lift.toFixed(2)+'x' : '-'}</td><td>${fmtBack(sugPerf.avgHrRank,1)}</td><td>${fmtBack(sugPerf.avgRankPercentile,1,'%')}</td><td>${fmtBack(sugPerf.ndcg,3)}</td></tr>`;
 
   const categoryRows = renderBacktestSignalRows(categorySignals, 18);
-  const rawRows = renderBacktestSignalRows(rawSignals, 120);
+  const statWeightMap = optimizeBacktestRawStatWeights(rows, dynamicMetrics);
+  const rawRows = renderBacktestRawStatWeightRows(rawSignals, statWeightMap, 120);
 
   const strongestRaw = rawSignals[0];
   const strongestCategory = categorySignals[0];
@@ -13957,18 +14413,29 @@ function renderBacktestLab() {
     </div>
 
     <h2>🧠 Current vs Suggested Weights</h2>
-    <p class="backtest-note">Suggested weights are calculated from historical separation between HR hitters and non-HR hitters. They are reference-only and do not alter live scoring. The HR Avg and Miss Avg columns show why a category is being rewarded or faded.</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Category</th><th>Current Weight</th><th>Suggested Weight</th><th>Difference</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Separation</th><th>Signal Strength</th><th>Sample</th></tr></thead><tbody>${weightRows}</tbody></table></div>
+    <p class="backtest-note">Suggested weights now use every finalized player snapshot in your saved backtest history and a fully deterministic HR-vs-non-HR ranking objective. The optimizer rewards weight systems that assign higher BBI scores to players who actually hit HRs than to players who did not. Same history = same suggested weights. Reference-only: this never changes live scoring.</p>
+    <div class="backtest-kpi-grid">
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Optimizer sample</div><div class="backtest-kpi-value">${Number(weights.usableRows || 0).toLocaleString()}</div><div class="backtest-kpi-sub">HR rows: ${weights.hrCount} • ${weights.confidence}</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Historical improvement</div><div class="backtest-kpi-value">${fmtBack(weights.improvementPct,1,'%')}</div><div class="backtest-kpi-sub">Suggested vs current AUC objective</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Suggested Top 10 Lift</div><div class="backtest-kpi-value">${weights.suggestedPerformance.top10Lift ? weights.suggestedPerformance.top10Lift.toFixed(2)+'x' : '-'}</div><div class="backtest-kpi-sub">vs overall HR baseline</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Avg HR Rank</div><div class="backtest-kpi-value">${fmtBack(weights.suggestedPerformance.avgHrRank,1)}</div><div class="backtest-kpi-sub">Lower is better</div></div>
+    </div>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Tested System</th><th>HR Separation AUC</th><th>Top 5 HR%</th><th>Top 10 HR%</th><th>Top 25 HR%</th><th>Top 10 Lift</th><th>Avg HR Rank</th><th>Avg Rank %</th><th>NDCG</th></tr></thead><tbody>${optimizerSummaryRows}</tbody></table></div>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Category</th><th>Current Weight</th><th>Suggested Weight</th><th>Difference</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Separation</th><th>Signal Strength</th><th>Confidence</th></tr></thead><tbody>${weightRows}</tbody></table></div>
 
     <h2>📊 Category Signal Board</h2>
     <p class="backtest-note">This is only the broad model-category view. It explains how the major scoring buckets are separating HR hitters from misses, but it is not enough by itself to change weights.</p>
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${categoryRows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before category signals are useful.</td></tr>'}</tbody></table></div>
 
     <h2>🔬 Individual Raw Stat Analysis</h2>
-    <p class="backtest-note">This now shows every available individual stat that feeds the weighted BBI scoring buckets, including pitcher HR/9, hitter EV/barrel data, batted-ball shape, pitch lab, BvP, weather, park, and scoring context. It reads your existing saved backtest snapshots, so changing this view does not delete or reset past finalized data. Older snapshots that did not save a specific stat will simply show fewer rows until new finalized slates add those fields.</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
+    <p class="backtest-note">This now shows every available individual stat that feeds the weighted BBI scoring buckets, plus a current stat weight and optimized suggested stat weight inside its bucket. The suggested stat weights are also outcome-ranked against finalized HR results, so they reward stats that historically moved HR hitters higher in the slate rankings.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Bucket</th><th>Current Stat W</th><th>Suggested Stat W</th><th>Diff</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="15" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
   `;
   initSortableSignalTables(container);
+  } catch (err) {
+    console.error('Backtest Lab render failed:', err);
+    container.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;line-height:1.45;"><b>Backtest Lab error:</b> ${err && err.message ? err.message : err}<br><span style="color:var(--text-muted);">The page stayed functional. Export your backup JSON if needed, then re-open after this patch.</span></div>`;
+  }
 }
 
 async function resetLastBacktestUpload() {
