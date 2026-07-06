@@ -7571,6 +7571,66 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
+
+<style id="hotbat-drl-mobile-tabs-upgrade">
+/* =========================
+   HOT BAT DRL LEADERBOARD + MOBILE TAB DISCOVERY
+   UI only. No scoring/weights changed.
+   ========================= */
+.hotbat-shell { display:flex; flex-direction:column; gap:18px; }
+.hotbat-hero {
+  position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.09); border-left:5px solid var(--accent);
+  border-radius:18px; padding:18px 20px; background:radial-gradient(circle at 92% 0%, rgba(225,6,0,.18), transparent 34%), linear-gradient(145deg, rgba(5,11,20,.94), rgba(17,31,53,.70));
+  box-shadow:0 18px 50px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.hotbat-hero::after { content:''; position:absolute; inset:-55% -35%; background:linear-gradient(110deg, transparent 40%, rgba(255,255,255,.07) 50%, transparent 60%); animation: hotbat-shine 8s linear infinite; pointer-events:none; }
+@keyframes hotbat-shine { 0%{transform:translateX(-42%)} 100%{transform:translateX(42%)} }
+.hotbat-hero-inner { position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end; gap:14px; flex-wrap:wrap; }
+.hotbat-kicker { color:var(--accent); font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:5px; }
+.hotbat-title { color:#fff; font-size:24px; font-weight:1000; text-transform:uppercase; letter-spacing:-.4px; }
+.hotbat-sub { color:var(--text-muted); font-size:12px; font-weight:800; margin-top:5px; line-height:1.35; }
+.hotbat-live-pill { display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(225,6,0,.25); background:rgba(225,6,0,.08); color:var(--accent); border-radius:999px; padding:8px 11px; font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.8px; }
+.hotbat-leader-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px; }
+.hotbat-leader-card {
+  overflow:hidden; position:relative; border:1px solid rgba(255,255,255,.09); border-left:4px solid var(--accent); border-radius:16px;
+  background:radial-gradient(circle at 92% 0%, rgba(225,6,0,.12), transparent 34%), linear-gradient(145deg, rgba(5,11,20,.92), rgba(17,31,53,.70));
+  color:#f8fafc; box-shadow:0 14px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.hotbat-leader-card::after { content:''; position:absolute; inset:-55% -30%; background:linear-gradient(110deg, transparent 42%, rgba(255,255,255,.055) 50%, transparent 58%); animation: hotbat-shine 10s linear infinite; pointer-events:none; }
+.hotbat-leader-head { position:relative; z-index:1; display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 13px; border-bottom:1px solid rgba(255,255,255,.08); background:rgba(9,18,34,.78); }
+.hotbat-leader-title { color:#fff; font-size:12px; font-weight:1000; text-transform:uppercase; letter-spacing:.55px; }
+.hotbat-leader-stat { color:var(--accent); font-size:10px; font-weight:1000; text-transform:uppercase; }
+.hotbat-leader-row { position:relative; z-index:1; display:grid; grid-template-columns:28px 38px minmax(0,1fr) auto; gap:10px; align-items:center; padding:9px 13px; border-bottom:1px solid rgba(255,255,255,.07); cursor:pointer; transition:background .16s ease, transform .16s ease, box-shadow .16s ease; }
+.hotbat-leader-row:hover { background:rgba(225,6,0,.08); transform:translateX(2px); box-shadow:inset 3px 0 0 var(--accent); }
+.hotbat-leader-row:last-child { border-bottom:0; }
+.hotbat-rank { color:var(--text-muted); font-family:monospace; font-size:12px; font-weight:1000; text-align:center; }
+.hotbat-rank.top { color:#facc15; text-shadow:0 0 12px rgba(250,204,21,.32); }
+.hotbat-face { width:34px; height:34px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.05); border:1px solid rgba(225,6,0,.22); }
+.hotbat-face .player-headshot { width:34px !important; height:34px !important; margin:0 !important; border-width:1px !important; border-color:var(--accent) !important; box-shadow:0 0 0 3px rgba(225,6,0,.08), 0 6px 14px rgba(0,0,0,.32) !important; }
+.hotbat-player-copy { min-width:0; }
+.hotbat-player-name { color:#fff; font-size:12px; font-weight:1000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hotbat-player-meta { color:var(--stadium-lights); font-size:9px; font-weight:900; text-transform:uppercase; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hotbat-value { color:#facc15; font-family:monospace; font-size:14px; font-weight:1000; text-align:right; white-space:nowrap; text-shadow:0 0 12px rgba(250,204,21,.18); }
+.hotbat-table-wrap table { min-width: 980px; }
+.hotbat-table-wrap th { white-space:nowrap; }
+.hotbat-table-wrap td { white-space:nowrap; }
+@media(max-width: 720px) {
+  body { padding: 12px; }
+  .nav-tabs {
+    position: sticky; top: 0; z-index: 999; justify-content:flex-start; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    gap:8px; padding:10px 8px 12px; margin:0 -8px 18px; background:rgba(6,12,22,.96); border:1px solid rgba(255,255,255,.08); border-radius:14px; box-shadow:0 12px 32px rgba(0,0,0,.35);
+    scrollbar-width: thin; scrollbar-color: rgba(225,6,0,.70) rgba(255,255,255,.06);
+  }
+  .nav-tabs::before { content:'Tabs →'; flex:0 0 auto; align-self:center; color:var(--accent); font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.8px; padding:0 2px 0 4px; }
+  .nav-tabs::-webkit-scrollbar { height:6px; }
+  .nav-tabs::-webkit-scrollbar-track { background:rgba(255,255,255,.06); border-radius:999px; }
+  .nav-tabs::-webkit-scrollbar-thumb { background:linear-gradient(90deg,var(--accent),#38bdf8); border-radius:999px; }
+  .nav-tab { flex:0 0 auto; padding:10px 14px; font-size:11px; border-radius:999px; white-space:nowrap; }
+  .nav-tab.active { box-shadow:0 0 18px rgba(225,6,0,.28); }
+  .hotbat-title { font-size:20px; }
+  .hotbat-leader-grid { grid-template-columns:1fr; }
+}
+</style>
 </head>
 <body>
 
@@ -7825,16 +7885,31 @@ tbody tr:hover .stats-player-mini .player-headshot {
   </div>
 </div>
 <div id="tab-hotbat" class="tab-content">
-<div class="table-wrapper">
-<div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
-<h2 style="margin:0; border:none; padding:0; font-size: 16px;">🔥 Hot Bat - Players On Fire</h2>
-<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Players with 3+ HRs last week OR .450+ wOBA last week</p>
-</div>
-<div style="padding: 12px 20px;"><input type="text" class="h2h-search" id="hotbatSearch" placeholder="🔍 Search player name..." oninput="filterHotBatTable()" /></div>
-<table>
-<thead><tr><th style="text-align: left; padding-left: 20px;">Player</th><th>Team</th><th>Opposing Pitcher</th><th>Last Week HRs</th><th>Last Week wOBA</th><th>BBI Score</th></tr></thead>
-<tbody id="hotbatTableBody"><tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
-</table>
+<div class="hotbat-shell">
+  <div class="hotbat-hero">
+    <div class="hotbat-hero-inner">
+      <div>
+        <div class="hotbat-kicker">DRL last 7 days leaderboard</div>
+        <div class="hotbat-title">🔥 Hot Bat Stat Leaders</div>
+        <div class="hotbat-sub">Top 5 hitters from the last week in HR, EV, EV90, Barrel, SLG, Hard Hit %, Max EV and ISO.</div>
+      </div>
+      <div class="hotbat-live-pill"><span class="live-dot"></span> Last Week Sheet</div>
+    </div>
+  </div>
+  <div id="hotbatLeadersGrid" class="hotbat-leader-grid">
+    <div class="hotbat-leader-card"><div class="hotbat-leader-head"><div class="hotbat-leader-title">Awaiting Upload</div><div class="hotbat-leader-stat">Top 5</div></div><div class="hotbat-leader-row"><div class="hotbat-player-name">Upload workbook to load leaders...</div></div></div>
+  </div>
+  <div class="table-wrapper hotbat-table-wrap">
+    <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
+      <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🔥 Full Hot Bat Board</h2>
+      <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Sortable-style reference table for the same last-week power stats. Scoring is untouched.</p>
+    </div>
+    <div style="padding: 12px 20px;"><input type="text" class="h2h-search" id="hotbatSearch" placeholder="🔍 Search player name..." oninput="filterHotBatTable()" /></div>
+    <table>
+      <thead><tr><th style="text-align: left; padding-left: 20px;">Player</th><th>Team</th><th>Opposing Pitcher</th><th>HR</th><th>EV</th><th>EV90</th><th>Barrel</th><th>SLG</th><th>Hard Hit %</th><th>Max EV</th><th>ISO</th><th>BBI</th></tr></thead>
+      <tbody id="hotbatTableBody"><tr><td colspan="12" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
+    </table>
+  </div>
 </div>
 </div>
 <div id="tab-h2h" class="tab-content">
@@ -9870,49 +9945,105 @@ fanaticsJackpotData.forEach((p, idx) => {
     grid.appendChild(card);
 });
 }
-function renderHotBatTable() {
-const tbody = document.getElementById('hotbatTableBody');
-if (!tbody) return;
-hotBatData = [];
-playerData.forEach(p => {
-const normName = normalizeName(p.Name);
-const lw = lastWeekMap[normName] || {};
-const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR'));
-const lwwOBA = cleanNumber(safeGet(lw, 'wOBA', 'wOBA Last Week', 'wOBA%'));
-if (lwHRs >= 3 || lwwOBA >= 0.450) {
-hotBatData.push({ player: p, name: p.Name, team: p.Team, pitcher: p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter', lwHRs: lwHRs, lwwOBA: lwwOBA, bbi: p.calculatedBBI || 0 });
+function hotBatStatValue(lw, keys, isPct = false) {
+  const raw = safeGet(lw, ...keys);
+  if (raw === undefined || raw === null || raw === '') return 0;
+  let val = cleanNumber(raw);
+  if (isPct && val > 0 && val <= 1) val = val * 100;
+  return val || 0;
 }
-});
-hotBatData.sort((a, b) => b.bbi - a.bbi);
-if (hotBatData.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No players qualify for Hot Bat (3+ HRs last week OR .450+ wOBA last week)...</td></tr>`; return; }
-tbody.innerHTML = '';
-hotBatData.forEach(row => {
-const logoUrl = teamLogos[row.team] || '';
-const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
-const headshotHtml = createHeadshotHtml(row.name, 'sm');
-const tr = document.createElement('tr');
-tr.innerHTML = `<td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot">${headshotHtml}<span style="font-weight:700; color:#fff;">${row.name}</span></div></td><td style="color:#cbd5e1;">${logoImg}${row.team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher}</td><td style="font-family:monospace; font-weight:900; color:#ff4500;">${row.lwHRs}</td><td style="font-family:monospace; font-weight:900; color:#e10600;">${row.lwwOBA.toFixed(3)}</td><td><span class="index-score">${row.bbi.toFixed(1)}</span></td>`;
-tbody.appendChild(tr);
-});
+function formatHotBatValue(val, type) {
+  if (!Number.isFinite(Number(val))) return '--';
+  val = Number(val) || 0;
+  if (type === 'count') return String(Math.round(val));
+  if (type === 'avg3') return val.toFixed(3);
+  if (type === 'pct') return `${val.toFixed(1)}%`;
+  if (type === 'ev') return val.toFixed(1);
+  return val.toFixed(1);
+}
+function buildHotBatRows() {
+  return playerData.map(p => {
+    const normName = normalizeName(p.Name);
+    const lw = lastWeekMap[normName] || {};
+    return {
+      player: p,
+      name: p.Name,
+      team: p.Team,
+      pitcher: p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter',
+      hr: hotBatStatValue(lw, ['HRs', 'HRsLastWeek', 'HR', 'Home Runs'], false),
+      ev: hotBatStatValue(lw, ['EV', 'Avg EV', 'Average EV', 'Exit Velocity', 'Exit Velo'], false),
+      ev90: hotBatStatValue(lw, ['EV90', 'EV 90', '90EV', '90th EV', '90th Percentile EV', 'EV90th'], false),
+      barrel: hotBatStatValue(lw, ['Barrel', 'Barrels', 'Barrel%', 'Barrel %', 'Barrel Rate', 'Barrel Rate %'], true),
+      slg: hotBatStatValue(lw, ['SLG', 'Slugging', 'Slugging %'], false),
+      hardhit: hotBatStatValue(lw, ['Hard Hit %', 'HardHit%', 'Hard Hit', 'HardHit', 'Hard Hit Rate', 'Hard Hit Rate %'], true),
+      maxev: hotBatStatValue(lw, ['Max EV', 'MaxEV', 'Max Exit Velocity', 'Maximum EV'], false),
+      iso: hotBatStatValue(lw, ['ISO', 'Isolated Power'], false),
+      woba: hotBatStatValue(lw, ['wOBA', 'wOBA Last Week', 'wOBA%'], false),
+      bbi: p.calculatedBBI || 0
+    };
+  }).filter(r => r.hr || r.ev || r.ev90 || r.barrel || r.slg || r.hardhit || r.maxev || r.iso || r.woba);
+}
+function renderHotBatLeadersGrid(rows) {
+  const grid = document.getElementById('hotbatLeadersGrid');
+  if (!grid) return;
+  const leaderDefs = [
+    { key:'hr', label:'Home Runs', short:'HR', type:'count' },
+    { key:'ev', label:'Exit Velocity', short:'EV', type:'ev' },
+    { key:'ev90', label:'EV 90', short:'EV90', type:'ev' },
+    { key:'barrel', label:'Barrel Rate', short:'Barrel', type:'pct' },
+    { key:'slg', label:'Slugging', short:'SLG', type:'avg3' },
+    { key:'hardhit', label:'Hard Hit Rate', short:'Hard Hit %', type:'pct' },
+    { key:'maxev', label:'Max Exit Velocity', short:'Max EV', type:'ev' },
+    { key:'iso', label:'ISO', short:'ISO', type:'avg3' }
+  ];
+  if (!rows.length) {
+    grid.innerHTML = `<div class="hotbat-leader-card"><div class="hotbat-leader-head"><div class="hotbat-leader-title">No Last Week Data</div><div class="hotbat-leader-stat">Top 5</div></div><div class="hotbat-leader-row"><div class="hotbat-player-name">Upload a LastWeek sheet with HR, EV, EV90, Barrel, SLG, Hard Hit %, Max EV and ISO.</div></div></div>`;
+    return;
+  }
+  grid.innerHTML = leaderDefs.map(def => {
+    const leaders = rows.filter(r => Number(r[def.key]) > 0).sort((a,b) => Number(b[def.key]) - Number(a[def.key])).slice(0,5);
+    const body = leaders.length ? leaders.map((r, idx) => {
+      const logoUrl = teamLogos[r.team] || '';
+      const teamLogo = logoUrl ? `<img src="${logoUrl}" style="width:14px;height:14px;object-fit:contain;vertical-align:middle;margin-right:4px;">` : '';
+      return `<div class="hotbat-leader-row" onclick="scrollToPlayer('${String(r.name).replace(/'/g, "\\'")}')">
+        <div class="hotbat-rank ${idx === 0 ? 'top' : ''}">${idx + 1}</div>
+        <div class="hotbat-face">${createHeadshotHtml(r.name, 'sm', r.team)}</div>
+        <div class="hotbat-player-copy"><div class="hotbat-player-name">${r.name}</div><div class="hotbat-player-meta">${teamLogo}${r.team || '--'} • ${r.pitcher || 'Starter'}</div></div>
+        <div class="hotbat-value">${formatHotBatValue(r[def.key], def.type)}</div>
+      </div>`;
+    }).join('') : `<div class="hotbat-leader-row"><div class="hotbat-player-name">No ${def.short} data found</div></div>`;
+    return `<div class="hotbat-leader-card"><div class="hotbat-leader-head"><div class="hotbat-leader-title">${def.label}</div><div class="hotbat-leader-stat">${def.short}</div></div>${body}</div>`;
+  }).join('');
+}
+function renderHotBatRows(rows) {
+  const tbody = document.getElementById('hotbatTableBody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="12" style="padding: 40px; color: var(--text-muted); font-style: italic;">No last-week hot bat data found. Upload a LastWeek sheet with HR, EV, EV90, Barrel, SLG, Hard Hit %, Max EV and ISO...</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = '';
+  rows.forEach(row => {
+    const logoUrl = teamLogos[row.team] || '';
+    const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
+    const headshotHtml = createHeadshotHtml(row.name, 'sm', row.team);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot">${headshotHtml}<span style="font-weight:700; color:#fff;">${row.name}</span></div></td><td style="color:#cbd5e1;">${logoImg}${row.team || '--'}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher || 'Starter'}</td><td style="font-family:monospace; font-weight:900; color:#ff4500;">${formatHotBatValue(row.hr, 'count')}</td><td style="font-family:monospace; font-weight:900; color:#e10600;">${formatHotBatValue(row.ev, 'ev')}</td><td style="font-family:monospace; font-weight:900; color:#e10600;">${formatHotBatValue(row.ev90, 'ev')}</td><td style="font-family:monospace; font-weight:900; color:#e10600;">${formatHotBatValue(row.barrel, 'pct')}</td><td style="font-family:monospace; font-weight:900; color:#e10600;">${formatHotBatValue(row.slg, 'avg3')}</td><td style="font-family:monospace; font-weight:900; color:#e10600;">${formatHotBatValue(row.hardhit, 'pct')}</td><td style="font-family:monospace; font-weight:900; color:#e10600;">${formatHotBatValue(row.maxev, 'ev')}</td><td style="font-family:monospace; font-weight:900; color:#e10600;">${formatHotBatValue(row.iso, 'avg3')}</td><td><span class="index-score">${row.bbi.toFixed(1)}</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function renderHotBatTable() {
+  hotBatData = buildHotBatRows().sort((a, b) => (b.hr - a.hr) || (b.maxev - a.maxev) || (b.barrel - a.barrel) || (b.bbi - a.bbi));
+  renderHotBatLeadersGrid(hotBatData);
+  renderHotBatRows(hotBatData);
 }
 function filterHotBatTable() {
-const searchVal = document.getElementById('hotbatSearch').value.toLowerCase().trim();
-const tbody = document.getElementById('hotbatTableBody');
-if (!tbody) return;
-let filtered = hotBatData;
-if (searchVal) filtered = hotBatData.filter(r => r.name.toLowerCase().includes(searchVal));
-if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="padding: 40px; color: var(--text-muted); font-style: italic;">No hot bats match your search...</td></tr>`; return; }
-tbody.innerHTML = '';
-filtered.forEach(row => {
-const logoUrl = teamLogos[row.team] || '';
-const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
-const headshotHtml = createHeadshotHtml(row.name, 'sm');
-const tr = document.createElement('tr');
-tr.innerHTML = `<td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot">${headshotHtml}<span style="font-weight:700; color:#fff;">${row.name}</span></div></td><td style="color:#cbd5e1;">${logoImg}${row.team}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher}</td><td style="font-family:monospace; font-weight:900; color:#ff4500;">${row.lwHRs}</td><td style="font-family:monospace; font-weight:900; color:#e10600;">${row.lwwOBA.toFixed(3)}</td><td><span class="index-score">${row.bbi.toFixed(1)}</span></td>`;
-tbody.appendChild(tr);
-});
+  const input = document.getElementById('hotbatSearch');
+  const searchVal = input ? input.value.toLowerCase().trim() : '';
+  let filtered = hotBatData;
+  if (searchVal) filtered = hotBatData.filter(r => r.name.toLowerCase().includes(searchVal) || String(r.team || '').toLowerCase().includes(searchVal));
+  renderHotBatRows(filtered);
 }
-
 
 function scoreFromRange(v, min, max, reverse=false) {
   const n = cleanNumberOrNull(v);
@@ -13783,25 +13914,26 @@ function getSuggestedWeights(rows) {
 
 
 const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
-  { bucket:'Power', type:'Power scoring stat', keys:[
+  // Backtest Raw Stat Board: scoring-input only.
+  // Do not add display-only/audit/context stats here. This list is meant to mirror the live scoring buckets.
+  { bucket:'Power', type:'Power scoring input', keys:[
     ['Raw_barrel','Barrel %'],
-    ['Raw_brlsPA','Brls/PA %'],
+    ['Raw_lwBarrel','Last-Week Barrel %'],
     ['Raw_hardHit','Hard Hit %'],
-    ['Raw_ev50','EV50'],
+    ['Raw_lwHardHit','Last-Week Hard Hit %'],
     ['Raw_avgEV','Avg EV'],
-    ['Raw_sweetSpot','Sweet Spot %'],
-    ['Raw_mph95','95+ MPH %'],
-    ['Raw_xHR','xHR'],
-    ['Raw_maxEV','Max EV'],
-    // Stored for audit because these are used in gates/synergy even when not direct power-subweight rows.
-    ['Raw_iso','ISO'],
-    ['Raw_slg','SLG'],
-    ['Raw_xwoba','xwOBA'],
+    ['Raw_lwEV','Last-Week EV'],
     ['Raw_ev90','EV90'],
-    ['Raw_noDoubter','No Doubter %'],
-    ['Raw_hrMinusXhr','HR - xHR']
+    ['Raw_lwEV90','Last-Week EV90'],
+    ['Raw_xHR','xHR'],
+    ['Raw_xslg','xSLG'],
+    ['Raw_lwXSLG','Last-Week xSLG'],
+    ['Raw_xwoba','xwOBA'],
+    ['Raw_lwXWOBA','Last-Week xwOBA'],
+    ['Raw_mph95','95+ MPH %'],
+    ['Raw_sweetSpot','Sweet Spot %']
   ]},
-  { bucket:'Pitcher Vulnerability', type:'Pitcher scoring stat', keys:[
+  { bucket:'Pitcher Vulnerability', type:'Pitcher scoring input', keys:[
     ['Raw_pitcherHR9','Pitcher HR/9'],
     ['Raw_pitcherHRFB','Pitcher HR/FB'],
     ['Raw_pitcherFB','Pitcher FB %'],
@@ -13817,104 +13949,40 @@ const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
     ['Raw_pitcher95','Pitcher 95+ MPH Allowed %'],
     ['Raw_pitcherMaxEV','Pitcher Max EV Allowed'],
     ['Raw_pitcherXERA','Pitcher xERA'],
-    ['Raw_pitcherStuff','Pitcher Stuff+'],
-    ['Raw_armAngle','Pitcher Arm Angle / RZ']
+    ['Raw_pitcherStuff','Pitcher Stuff+']
   ]},
-  { bucket:'Batted Ball', type:'Batted-ball scoring stat', keys:[
+  { bucket:'Batted Ball', type:'Batted-ball scoring input', keys:[
     ['Raw_pullAir','Pulled Air %'],
+    ['Raw_launchAngle','Launch Angle'],
+    ['Raw_hrFb','HR/FB %'],
     ['Raw_fbld','FB/LD'],
     ['Raw_flyBall','Fly Ball %'],
-    ['Raw_launchAngle','Launch Angle'],
-    ['Raw_avgDistance','Avg Distance'],
-    // Additional batted-ball inputs that affect gates, weather fit, and context bonuses.
-    ['Raw_lineDrive','Line Drive %'],
-    ['Raw_air','Air %'],
-    ['Raw_pull','Pull %'],
-    ['Raw_hrFb','HR/FB %'],
-    ['Raw_batSpeed','Bat Speed'],
-    ['Raw_sqUpCon','Squared-Up Contact %'],
-    ['Raw_blastCon','Blast Contact %']
+    ['Raw_pull','Pull %']
   ]},
-  { bucket:'Pitch Lab', type:'Pitch Lab scoring stat', keys:[
+  { bucket:'Pitch Lab / Matchup', type:'Pitch-matchup scoring input', keys:[
     ['PitchLab_Score','Pitch Lab Score'],
-    ['Raw_pitchLevelEV','Pitch-Level EV'],
-    ['PitchLab_Mix_Score','Pitch Mix Score'],
-    ['PitchLab_Zone_Score','Zone Score'],
-    ['PitchLab_Pitch_Quality_Score','Pitch Quality Score'],
-    ['PitchLab_Bat_Tracking_Score','Bat Tracking Score'],
-    ['PitchLab_FB_Edge','Fastball Grade'],
-    ['PitchLab_SL_Edge','Slider Grade'],
-    ['PitchLab_CH_Edge','Changeup Grade'],
-    ['PitchLab_CU_Edge','Curve Grade'],
-    ['PitchLab_FC_Edge','Cutter Grade'],
-    ['PitchLab_SI_Edge','Sinker Grade'],
-    ['PitchLab_FS_Edge','Splitter Grade'],
-    ['Zone_Heart_Score','Zone Heart Score'],
-    ['Zone_Shadow_Score','Zone Shadow Score'],
-    ['Zone_Chase_Score','Zone Chase Score'],
-    ['Zone_Batter_Heart_Contact','Batter Heart Contact %'],
-    ['Zone_Batter_Heart_Swing','Batter Heart Swing %'],
-    ['Zone_Pitcher_Heart_Zone','Pitcher Heart Zone %'],
-    ['Zone_Batter_Shadow_Contact','Batter Shadow Contact %'],
-    ['Zone_Batter_Shadow_Swing','Batter Shadow Swing %'],
-    ['Zone_Pitcher_Shadow_Zone','Pitcher Shadow Zone %'],
-    ['Zone_Batter_Chase_Swing','Batter Chase Swing %'],
-    ['Zone_Batter_Chase_Contact','Batter Chase Contact %'],
-    ['Zone_Pitcher_Chase_Zone','Pitcher Chase Zone %']
+    ['Raw_pitchLevelEV','Pitch-Level EV']
   ]},
-  { bucket:'BvP', type:'BvP scoring stat', keys:[
-    ['Raw_bvpPA','BvP PA'],
-    ['Raw_bvpHR','BvP HR'],
-    ['Raw_bvpBA','BvP BA'],
+  { bucket:'BvP', type:'BvP scoring input', keys:[
     ['Raw_bvpXSLG','BvP xSLG'],
-    ['Raw_bvpXWOBA','BvP xwOBA'],
     ['Raw_bvpEV','BvP EV'],
-    ['Raw_bvpLA','BvP Launch Angle'],
-    ['Raw_bvpK','BvP K%'],
-    ['Raw_bvpWhiff','BvP Whiff%'],
-    ['BVP_Modifier','BvP Modifier'],
-    ['Input_calculatedBvPConfidence','BvP Confidence'],
-    ['Input_calculatedBvPRawScore','BvP Raw Score']
+    ['Raw_bvpHR','BvP HR'],
+    ['Raw_bvpPA','BvP PA Confidence Gate']
   ]},
-  { bucket:'Weather', type:'Weather scoring stat', keys:[
+  { bucket:'Weather', type:'Weather scoring input', keys:[
     ['Raw_weatherScore','Weather Score'],
-    ['Raw_weatherImpactMultiplier','Weather Impact Multiplier'],
-    ['Weather_Temp','Temperature'],
-    ['Weather_WindSpeed','Wind Speed'],
     ['Weather_Score_Used','Weather Score Used'],
-    ['Weather_Multiplier','Weather Multiplier'],
     ['Weather_Wind_Points','Wind Points'],
-    ['Weather_Hitter_Shape','Weather Hitter Shape'],
-    ['Weather_Pitcher_Air','Weather Pitcher Air'],
-    ['Weather_Park_Carry','Weather Park Carry'],
     ['Weather_Temp_Points','Temperature Points'],
-    ['Weather_Humidity_Points','Humidity Points']
+    ['Weather_Temp','Temperature'],
+    ['Weather_WindSpeed','Wind Speed']
   ]},
-  { bucket:'Park', type:'Park scoring stat', keys:[
+  { bucket:'Park', type:'Park scoring input', keys:[
     ['Raw_parkFactor','Park Factor'],
-    ['Raw_pullFence','Pull-Side Fence'],
-    ['Raw_cf','Center Field Distance'],
     ['Handed_Park_Factor','Handed Park Factor'],
-    ['ParkFactorL_or_R_Used','Park Factor L/R Used']
-  ]},
-  { bucket:'Bullpen / Discipline', type:'Secondary scoring stat', keys:[
-    ['Raw_bullpenHR9','Bullpen HR/9'],
-    ['Raw_bullpenFIP','Bullpen FIP'],
-    ['Raw_bullpenBarrel','Bullpen Barrel %'],
-    ['Raw_bullpenHardHit','Bullpen Hard Hit %'],
-    ['Raw_bullpenEV','Bullpen EV Allowed'],
-    ['Raw_kRate','K%'],
-    ['Raw_hSwing','H-Swing %'],
-    ['Raw_hContact','H-Contact %']
-  ]},
-  { bucket:'Model Context / Bonuses', type:'Scoring context stat', keys:[
-    ['Synergy_Bonus','Synergy Bonus'],
-    ['Synergy_Raw','Raw Synergy Points'],
-    ['Power_Modifier','Power Modifier'],
-    ['Pitcher_Modifier','Pitcher Modifier'],
-    ['Pull_Modifier','Pull / Batted-Ball Modifier'],
-    ['Quality_Modifier','Quality Modifier'],
-    ['Data_Confidence','Data Confidence']
+    ['ParkFactorL_or_R_Used','Park Factor L/R Used'],
+    ['Raw_pullFence','Pull-Side Fence'],
+    ['Raw_cf','Center Field Distance']
   ]}
 ];
 
@@ -14494,7 +14562,7 @@ function renderBacktestLab() {
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${categoryRows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before category signals are useful.</td></tr>'}</tbody></table></div>
 
     <h2>🔬 Individual Raw Stat Analysis</h2>
-    <p class="backtest-note">This now shows every available individual stat that feeds the weighted BBI scoring buckets, plus a current stat weight and optimized suggested stat weight inside its bucket. The suggested stat weights are also outcome-ranked against finalized HR results, so they reward stats that historically moved HR hitters higher in the slate rankings.</p>
+    <p class="backtest-note">This now shows only the individual stats that directly feed the live scoring buckets. Display-only, audit-only, and context-only fields are excluded so the table matches the actual weight system you are trying to evaluate.</p>
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Bucket</th><th>Current Stat W</th><th>Suggested Stat W</th><th>Diff</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="15" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
   `;
   initSortableSignalTables(container);
