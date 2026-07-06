@@ -8186,7 +8186,7 @@ let pitchWinMap = {};
 let pitchBagMap = {};
 let onlyHomersData = [];
 let onlyHomersProfiles = { batters:{}, pitchers:{}, league:{}, meta:{} };
-let batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+let batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} };
 let zoneBMap = {};
 let zonePMap = {};
 let batTrackingMaps = { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
@@ -9120,7 +9120,7 @@ pitchWinMap = cacheData.pitchWinMap || {};
 pitchBagMap = cacheData.pitchBagMap || {};
 onlyHomersData = cacheData.onlyHomersData || [];
 onlyHomersProfiles = cacheData.onlyHomersProfiles || buildOnlyHomersProfiles(onlyHomersData || []);
-batterPitchMaps = cacheData.batterPitchMaps || { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} };
+batterPitchMaps = cacheData.batterPitchMaps || { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} };
 zoneBMap = cacheData.zoneBMap || {};
 zonePMap = cacheData.zonePMap || {};
 batTrackingMaps = cacheData.batTrackingMaps || { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
@@ -9273,9 +9273,9 @@ reader.onload = function(e) {
 const data = new Uint8Array(e.target.result);
 const workbook = XLSX.read(data, {type: 'array'});
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [];
-let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], vsFBRaw = [], vsCHRaw = [], vsCVRaw = [], vsSLRaw = [], vsCURaw = [];
+let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
 let batTrackingSheetNames = {}; 
-teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{}, CH:{}, CV:{}, SL:{}, CU:{} }; zoneBMap = {}; zonePMap = {};
+teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} }; zoneBMap = {}; zonePMap = {};
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
@@ -9305,11 +9305,22 @@ if (nameClean === 'STUFF') stuffRaw = XLSX.utils.sheet_to_json(workbook.Sheets[s
 if (nameClean === 'PITCHEV') pitchEVRaw = sheetToJsonSmart(workbook, sheetName, ['Name','Player']);
 if (nameClean === 'PW') pitchWinRaw = sheetToJsonSmart(workbook, sheetName, ['Name','Player']);
 if (nameClean === 'PITCHBAG') pitchBagRaw = sheetToJsonSmart(workbook, sheetName, ['last_name, first_name','pitch_type']);
-if (nameClean === 'VSFB') vsFBRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
-if (nameClean === 'VSCH') vsCHRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
-if (nameClean === 'VSCV') vsCVRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
-if (nameClean === 'VSSL') vsSLRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
-if (nameClean === 'VSCU') vsCURaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSFBR') vsFBRRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSFBL') vsFBLRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSCHR') vsCHRRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSCHL') vsCHLRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSCVR') vsCVRRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSCVL') vsCVLRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSSLR') vsSLRRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSSLL') vsSLLRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSCUR') vsCURRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+if (nameClean === 'VSCUL') vsCULRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
+// Backward-compatible fallback: old unsplit pitch-shape sheets feed both pitcher-hand buckets if present.
+if (nameClean === 'VSFB') { const rows = sheetToJsonSmart(workbook, sheetName, ['Player']); vsFBRRaw = rows; vsFBLRaw = rows; }
+if (nameClean === 'VSCH') { const rows = sheetToJsonSmart(workbook, sheetName, ['Player']); vsCHRRaw = rows; vsCHLRaw = rows; }
+if (nameClean === 'VSCV') { const rows = sheetToJsonSmart(workbook, sheetName, ['Player']); vsCVRRaw = rows; vsCVLRaw = rows; }
+if (nameClean === 'VSSL') { const rows = sheetToJsonSmart(workbook, sheetName, ['Player']); vsSLRRaw = rows; vsSLLRaw = rows; }
+if (nameClean === 'VSCU') { const rows = sheetToJsonSmart(workbook, sheetName, ['Player']); vsCURRaw = rows; vsCULRaw = rows; }
 if (nameClean === 'ZONEB') zoneBMap = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name']));
 if (nameClean === 'ZONEP') zonePMap = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Pitcher','Player','Name']));
 if (['FBL','FBR','BBL','BBR','OSL','OSR'].includes(nameClean)) batTrackingSheetNames[nameClean] = sheetName;
@@ -9333,7 +9344,7 @@ stuffMap = buildPitchTypeMap(stuffRaw);
 pitchEVMap = mapRowsByName(pitchEVRaw);
 pitchWinMap = mapRowsByName(pitchWinRaw);
 pitchBagMap = buildPitchBagMap(pitchBagRaw);
-batterPitchMaps = { FB: mapRowsByName(vsFBRaw), CH: mapRowsByName(vsCHRaw), CV: mapRowsByName(vsCVRaw), SL: mapRowsByName(vsSLRaw), CU: mapRowsByName(vsCURaw) };
+batterPitchMaps = { FB: { R: mapRowsByName(vsFBRRaw), L: mapRowsByName(vsFBLRaw) }, CH: { R: mapRowsByName(vsCHRRaw), L: mapRowsByName(vsCHLRaw) }, CV: { R: mapRowsByName(vsCVRRaw), L: mapRowsByName(vsCVLRaw) }, SL: { R: mapRowsByName(vsSLRRaw), L: mapRowsByName(vsSLLRaw) }, CU: { R: mapRowsByName(vsCURRaw), L: mapRowsByName(vsCULRaw) } };
 batTrackingMaps = { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
 ['FBL','FBR','BBL','BBR','OSL','OSR'].forEach(k => { if (batTrackingSheetNames[k]) batTrackingMaps[k] = buildBatTrackingMap(workbook, batTrackingSheetNames[k]); });
 bullpenRaw.forEach(x => { if(x.Team || x.TeamID) bullpenData[String(x.Team || x.TeamID).trim()] = x; });
@@ -10118,9 +10129,16 @@ function batTrackingPitchGrade(playerName, group, pitcherHand) {
   const score = Math.max(0, Math.min(100, (blast * 100 * 0.45) + (squared * 100 * 0.35) + (speed * 0.20)));
   return { score, grade: gradeFromScore(score), sheet: sheetKey, batSpeed: row.batSpeed, squaredSwing: squared, blastSwing: blast, note: `${sheetKey}: ${pctFmt(blast)} blast / ${pctFmt(squared)} sq / ${cleanNumber(row.batSpeed).toFixed(1)} mph` };
 }
+function getBatterPitchShapeRow(playerName, group, pitcherHand) {
+  const g = String(group || '').trim().toUpperCase();
+  const hand = String(pitcherHand || '').trim().toUpperCase().startsWith('L') ? 'L' : 'R';
+  const bucket = batterPitchMaps[g] || {};
+  const handedMap = bucket[hand] || bucket;
+  return handedMap[normalizeName(playerName)] || {};
+}
 function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
   const pt = pitchType || { key: group, group };
-  const row = (batterPitchMaps[group] || {})[normalizeName(playerName)] || {};
+  const row = getBatterPitchShapeRow(playerName, group, pitcherHand);
   let shape = { score: 50, grade: 'C', bbe: 0, air: 0, fb: 0, pull: 0, ld: 0, note: 'No pitch-shape sheet data' };
   if (Object.keys(row).length) {
     const bbe = cleanNumber(safeGet(row, 'BBE'));
@@ -13733,7 +13751,11 @@ function makeEmptyBucket(start, end) {
 function buildBacktestBucketRows(rows, mode) {
   const buckets = [];
   if (mode === 'rank') {
-    for (let start = 0; start < 270; start += 10) buckets.push(makeEmptyBucket(start, start + 10));
+    for (let start = 0; start < 270; start += 10) {
+      const b = makeEmptyBucket(start, start + 10);
+      b.label = `${start + 1}-${start + 10}`;
+      buckets.push(b);
+    }
   } else {
     for (let start = 0; start < 100; start += 5) buckets.push(makeEmptyBucket(start, start + 5));
   }
