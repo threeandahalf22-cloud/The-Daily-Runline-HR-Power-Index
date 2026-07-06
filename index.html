@@ -13256,10 +13256,56 @@ function flattenBacktestObject(prefix, obj, out) {
     if (v === null || v === undefined || typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') out[`${prefix}_${cleanKey}`] = backtestPrimitive(v);
   });
 }
+
+function backtestWeightPctValue(weights, key) {
+  const n = weights && weights[key] !== undefined ? Number(weights[key]) : NaN;
+  return isFinite(n) ? n : '';
+}
+function backtestContributionValue(contrib, key) {
+  const n = contrib && contrib[key] !== undefined ? Number(contrib[key]) : NaN;
+  return isFinite(n) ? n : '';
+}
+function deriveBacktestWeightFromScoreContribution(score, contribution) {
+  const s = backtestSafeNumber(score);
+  const c = backtestSafeNumber(contribution);
+  if (s === null || c === null || !isFinite(s) || !isFinite(c) || Math.abs(s) < 0.000001) return '';
+  const w = c / s;
+  return isFinite(w) ? w : '';
+}
+function enrichBacktestSnapshotRow(row) {
+  if (!row || typeof row !== 'object') return row;
+  const out = { ...row };
+  const pairs = [
+    ['Power','Category_Power','Contribution_Power'],
+    ['Pitcher','Category_Pitcher','Contribution_Pitcher'],
+    ['PitchLab','Category_PitchLab','Contribution_PitchLab'],
+    ['BattedBall','Category_BattedBall','Contribution_BattedBall'],
+    ['BVP','Category_BVP','Contribution_BVP'],
+    ['Weather','Category_Weather','Contribution_Weather'],
+    ['Park','Category_Park','Contribution_Park'],
+    ['Bullpen','Category_Bullpen','Contribution_Bullpen'],
+    ['Discipline','Category_Discipline','Contribution_Discipline']
+  ];
+  pairs.forEach(([name, scoreKey, contributionKey]) => {
+    const weightKey = `Weight_${name}`;
+    if (out[weightKey] === undefined || out[weightKey] === '') {
+      out[weightKey] = deriveBacktestWeightFromScoreContribution(out[scoreKey], out[contributionKey]);
+    }
+    const pctKey = `${weightKey}_Pct`;
+    if (out[pctKey] === undefined || out[pctKey] === '') {
+      const w = backtestSafeNumber(out[weightKey]);
+      out[pctKey] = w === null ? '' : w * 100;
+    }
+  });
+  return out;
+}
+
 function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
   const handObj = getBatterHandDisplay(p);
   const w = weatherSettings[p.gameId] || {};
   const visual = getStadiumVisualForPlayer(p);
+  const categoryWeightsUsed = p.hybridCategoryWeightsUsed || p.hybridEffectiveCategoryWeights || getActiveHybridCategoryWeights();
+  const categoryContributions = p.hybridCategoryContributions || {};
   const row = {
     Slate_ID: slateId,
     Finalized_At: finalizedAt,
@@ -13303,13 +13349,33 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Category_BVP: backtestNum(p.category && p.category.bvp),
     Category_Bullpen: backtestNum(p.category && p.category.bullpen),
     Category_Discipline: backtestNum(p.category && p.category.discipline),
-    Contribution_Power: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.power),
-    Contribution_PitchLab: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.pitchLevel),
-    Contribution_Pitcher: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.pitcher),
-    Contribution_BattedBall: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.battedBall),
-    Contribution_Weather: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.weather),
-    Contribution_Park: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.park),
-    Contribution_BVP: backtestNum(p.hybridCategoryContributions && p.hybridCategoryContributions.bvp),
+    Weight_Power: backtestWeightPctValue(categoryWeightsUsed, 'power'),
+    Weight_PitchLab: backtestWeightPctValue(categoryWeightsUsed, 'pitchLevel'),
+    Weight_Pitcher: backtestWeightPctValue(categoryWeightsUsed, 'pitcher'),
+    Weight_BattedBall: backtestWeightPctValue(categoryWeightsUsed, 'battedBall'),
+    Weight_Weather: backtestWeightPctValue(categoryWeightsUsed, 'weather'),
+    Weight_Park: backtestWeightPctValue(categoryWeightsUsed, 'park'),
+    Weight_BVP: backtestWeightPctValue(categoryWeightsUsed, 'bvp'),
+    Weight_Bullpen: backtestWeightPctValue(categoryWeightsUsed, 'bullpen'),
+    Weight_Discipline: backtestWeightPctValue(categoryWeightsUsed, 'discipline'),
+    Weight_Power_Pct: backtestWeightPctValue(categoryWeightsUsed, 'power') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'power') * 100,
+    Weight_PitchLab_Pct: backtestWeightPctValue(categoryWeightsUsed, 'pitchLevel') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'pitchLevel') * 100,
+    Weight_Pitcher_Pct: backtestWeightPctValue(categoryWeightsUsed, 'pitcher') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'pitcher') * 100,
+    Weight_BattedBall_Pct: backtestWeightPctValue(categoryWeightsUsed, 'battedBall') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'battedBall') * 100,
+    Weight_Weather_Pct: backtestWeightPctValue(categoryWeightsUsed, 'weather') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'weather') * 100,
+    Weight_Park_Pct: backtestWeightPctValue(categoryWeightsUsed, 'park') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'park') * 100,
+    Weight_BVP_Pct: backtestWeightPctValue(categoryWeightsUsed, 'bvp') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'bvp') * 100,
+    Weight_Bullpen_Pct: backtestWeightPctValue(categoryWeightsUsed, 'bullpen') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'bullpen') * 100,
+    Weight_Discipline_Pct: backtestWeightPctValue(categoryWeightsUsed, 'discipline') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'discipline') * 100,
+    Contribution_Power: backtestNum(backtestContributionValue(categoryContributions, 'power')),
+    Contribution_PitchLab: backtestNum(backtestContributionValue(categoryContributions, 'pitchLevel')),
+    Contribution_Pitcher: backtestNum(backtestContributionValue(categoryContributions, 'pitcher')),
+    Contribution_BattedBall: backtestNum(backtestContributionValue(categoryContributions, 'battedBall')),
+    Contribution_Weather: backtestNum(backtestContributionValue(categoryContributions, 'weather')),
+    Contribution_Park: backtestNum(backtestContributionValue(categoryContributions, 'park')),
+    Contribution_BVP: backtestNum(backtestContributionValue(categoryContributions, 'bvp')),
+    Contribution_Bullpen: backtestNum(backtestContributionValue(categoryContributions, 'bullpen')),
+    Contribution_Discipline: backtestNum(backtestContributionValue(categoryContributions, 'discipline')),
     Synergy_Bonus: backtestNum(p.calculatedSynergy),
     Synergy_Raw: backtestNum(p.calculatedRawSynergy),
     Power_Modifier: backtestNum(p.calculatedPowerModifier),
@@ -13363,7 +13429,7 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
       if (row[`Input_${cleanKey}`] === undefined) row[`Input_${cleanKey}`] = backtestPrimitive(v);
     }
   });
-  return row;
+  return enrichBacktestSnapshotRow(row);
 }
 async function finalizeTodayBacktest() {
   ensureOfficialWeightsForFinalActions();
@@ -13384,7 +13450,7 @@ async function finalizeTodayBacktest() {
   renderBBIRankDiagnostics();
   alert(`Backtest finalized. Saved ${rows.length} player snapshots with ${bombCount} HR winners.`);
 }
-function getBacktestRows() { return backtestHistory.flatMap(s => s.rows || []); }
+function getBacktestRows() { return backtestHistory.flatMap(s => (s.rows || []).map(enrichBacktestSnapshotRow)); }
 function mean(arr) { const nums = arr.map(Number).filter(n => isFinite(n)); return nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : null; }
 function fmtBack(v, digits=1, suffix='') { if (v === null || v === undefined || isNaN(v)) return '-'; return `${Number(v).toFixed(digits)}${suffix}`; }
 function backtestMetricDisplayValue(v, metric) {
