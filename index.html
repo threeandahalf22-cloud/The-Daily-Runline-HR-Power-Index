@@ -7631,6 +7631,95 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .hotbat-leader-grid { grid-template-columns:1fr; }
 }
 </style>
+
+<style id="odds-tab-full-board-style">
+/* =========================
+   ODDS TAB — ESPN BETTING BOARD CARDS
+   Card layout only. Main rankings still use best book + best odds.
+   No glow effects: dark ESPN-style panels, subtle red accents.
+   ========================= */
+.odds-page-shell { display:flex; flex-direction:column; gap:16px; }
+.odds-page-hero {
+  border:1px solid rgba(255,255,255,.09);
+  border-left:5px solid var(--accent);
+  border-radius:18px;
+  padding:16px 18px;
+  background:linear-gradient(145deg, rgba(5,11,20,.96), rgba(12,22,38,.92));
+  box-shadow:0 14px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.odds-page-kicker { color:var(--accent); font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:1.4px; margin-bottom:4px; }
+.odds-page-title { color:#fff; font-size:22px; font-weight:1000; text-transform:uppercase; letter-spacing:.2px; margin:0; }
+.odds-page-sub { color:var(--text-muted); font-size:12px; font-weight:750; margin:6px 0 0; line-height:1.35; }
+.odds-board-tools {
+  display:flex; gap:12px; flex-wrap:wrap; align-items:stretch; justify-content:space-between;
+  padding:14px; border:1px solid rgba(255,255,255,.08); border-left:5px solid var(--accent); border-radius:16px;
+  background:linear-gradient(145deg, rgba(5,11,20,.94), rgba(14,25,43,.86));
+  box-shadow:0 12px 28px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.odds-board-tools-left { display:flex; gap:12px; flex-wrap:wrap; align-items:end; }
+.odds-board-summary { display:flex; align-items:center; justify-content:center; min-width:185px; color:#e2e8f0; font-size:11px; font-weight:1000; text-transform:uppercase; letter-spacing:.8px; border:1px solid rgba(225,6,0,.24); border-radius:12px; padding:12px 14px; background:rgba(225,6,0,.07); }
+.odds-board-summary b { color:#fff; font-family:monospace; font-size:14px; }
+.odds-board-legend { display:flex; gap:7px; flex-wrap:wrap; margin:0; }
+.odds-legend-pill { display:inline-flex; align-items:center; gap:6px; border:1px solid rgba(255,255,255,.08); border-radius:999px; padding:6px 9px; background:rgba(5,11,20,.70); color:#cbd5e1; font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.55px; }
+.odds-legend-pill i { width:8px; height:8px; border-radius:50%; display:inline-block; }
+.odds-legend-pill.best i { background:#e10600; }
+.odds-legend-pill.near i { background:#eab308; }
+.odds-legend-pill.worst i { background:#64748b; }
+.odds-card-feed { display:grid; grid-template-columns:repeat(auto-fit, minmax(430px, 1fr)); gap:16px; }
+.odds-player-card {
+  --team-color:var(--accent);
+  --team-glow-soft:rgba(225,6,0,.08);
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.09);
+  border-left:5px solid var(--team-color);
+  border-radius:18px;
+  background:linear-gradient(145deg, rgba(6,12,22,.98), rgba(13,24,41,.94));
+  box-shadow:0 14px 34px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.05);
+  transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.odds-player-card:hover { transform:translateY(-2px); border-color:var(--team-color); box-shadow:0 18px 42px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.07); }
+.odds-card-top { display:grid; grid-template-columns:40px 62px minmax(0,1fr); gap:12px; align-items:center; padding:16px 16px 13px; border-bottom:1px solid rgba(255,255,255,.07); background:linear-gradient(90deg, rgba(255,255,255,.025), transparent); cursor:pointer; }
+.odds-rank-box { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:#111827; border:1px solid rgba(255,255,255,.09); color:#cbd5e1; font-family:monospace; font-weight:1000; font-size:12px; }
+.odds-card-headshot .player-headshot { width:58px !important; height:58px !important; margin:0 !important; border-color:var(--team-color) !important; box-shadow:none !important; }
+.odds-card-name { color:#fff; font-size:17px; line-height:1.05; font-weight:1000; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.odds-card-meta { margin-top:5px; display:flex; align-items:center; gap:6px; color:#94a3b8; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.35px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.odds-card-meta .team-logo-img { width:18px; height:18px; margin:0; }
+.odds-card-mid { display:grid; grid-template-columns:190px minmax(0,1fr); gap:14px; padding:15px 16px 16px; }
+.odds-best-panel { border:1px solid rgba(225,6,0,.30); border-radius:15px; background:linear-gradient(180deg, rgba(225,6,0,.11), rgba(5,11,20,.72)); padding:13px 12px; text-align:center; display:flex; flex-direction:column; justify-content:center; min-height:132px; }
+.odds-best-label { color:#cbd5e1; font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:1.4px; }
+.odds-best-number { margin-top:8px; color:#fff; font-family:monospace; font-size:38px; line-height:1; font-weight:1000; }
+.odds-best-book { margin-top:9px; display:flex; justify-content:center; }
+.odds-best-diff { margin-top:9px; color:#eab308; font-family:monospace; font-size:11px; font-weight:1000; text-transform:uppercase; }
+.odds-book-list { display:flex; flex-direction:column; gap:7px; min-width:0; }
+.odds-book-list-title { color:#94a3b8; font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:1.1px; margin-bottom:1px; }
+.odds-book-row { display:grid; grid-template-columns:94px 1fr auto; gap:10px; align-items:center; min-height:34px; border:1px solid rgba(255,255,255,.07); border-radius:10px; background:rgba(255,255,255,.025); padding:7px 9px; }
+.odds-book-row.best { border-color:rgba(225,6,0,.44); background:rgba(225,6,0,.085); }
+.odds-book-row.near { border-color:rgba(234,179,8,.28); background:rgba(234,179,8,.06); }
+.odds-book-row.empty { opacity:.62; }
+.odds-book-name { display:flex; align-items:center; gap:6px; min-width:0; font-size:10px; font-weight:1000; color:#e2e8f0; text-transform:uppercase; letter-spacing:.35px; }
+.odds-book-price { font-family:monospace; font-size:15px; font-weight:1000; color:#fff; text-align:right; }
+.odds-book-row.best .odds-book-price { color:#fff; }
+.odds-best-tag { display:inline-flex; align-items:center; justify-content:center; min-width:46px; padding:5px 7px; border-radius:999px; background:var(--accent); color:#fff; font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.6px; }
+.odds-near-tag { color:#eab308; font-size:9px; font-weight:1000; text-transform:uppercase; }
+.odds-card-footer { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:11px 16px 14px; border-top:1px solid rgba(255,255,255,.07); color:var(--text-muted); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.6px; }
+.odds-card-footer b { color:#fff; font-family:monospace; }
+.odds-board-empty { grid-column:1 / -1; padding:48px 20px; color:var(--text-muted); text-align:center; font-style:italic; border:1px dashed rgba(255,255,255,.12); border-radius:16px; background:rgba(5,11,20,.65); }
+.odds-price-cell, .odds-best-book-cell, .odds-diff-cell { font-family:monospace; font-weight:1000; }
+@media(max-width: 900px) { .odds-card-feed { grid-template-columns:1fr; } }
+@media(max-width: 620px) {
+  .odds-board-tools, .odds-board-tools-left { flex-direction:column; align-items:stretch; }
+  .odds-board-tools-left .filter-group, .odds-board-tools-left .search-input, .odds-board-tools-left select { width:100% !important; }
+  .odds-card-top { grid-template-columns:34px 52px minmax(0,1fr); gap:9px; padding:14px 12px; }
+  .odds-rank-box { width:32px; height:32px; font-size:11px; }
+  .odds-card-headshot .player-headshot { width:50px !important; height:50px !important; }
+  .odds-card-name { font-size:14px; }
+  .odds-card-mid { grid-template-columns:1fr; padding:13px 12px; }
+  .odds-best-panel { min-height:104px; }
+  .odds-book-row { grid-template-columns:90px 1fr auto; gap:7px; }
+  .odds-card-footer { padding:10px 12px 13px; flex-direction:column; align-items:flex-start; }
+}
+</style>
 </head>
 <body>
 
@@ -7700,6 +7789,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <div class="nav-tabs">
 <button class="nav-tab active" onclick="switchTab('home', this)">🏠 Home</button>
 <button class="nav-tab" onclick="switchTab('stats', this)">📊 Stats</button>
+<button class="nav-tab" onclick="switchTab('odds', this)">💰 Odds</button>
 <button class="nav-tab" onclick="switchTab('pitchers', this)">🎯 Pitchers</button>
 <button class="nav-tab" onclick="switchTab('hotbat', this)">🔥 Hot Bat</button>
 <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
@@ -7860,6 +7950,26 @@ tbody tr:hover .stats-player-mini .player-headshot {
       </table>
     </div>
   </div>
+</div>
+
+<div id="tab-odds" class="tab-content">
+<div class="panel odds-page-shell">
+  <div class="odds-page-hero">
+    <div class="odds-page-kicker">💰 Daily Runline Odds Central</div>
+    <h2 class="odds-page-title" style="border:none; padding:0; margin:0;">ESPN-Style Betting Board</h2>
+    <p class="odds-page-sub">One player card per hitter. Best available price is featured first, with Bet365, FanDuel, Caesars, and Hard Rock listed underneath.</p>
+  </div>
+  <div class="odds-board-legend"><span class="odds-legend-pill best"><i></i>Best Available</span><span class="odds-legend-pill near"><i></i>Within 10</span><span class="odds-legend-pill worst"><i></i>Other Price</span></div>
+  <div class="odds-board-tools">
+    <div class="odds-board-tools-left">
+      <div class="filter-group"><label>Search Player</label><input type="text" id="oddsSearchFilter" class="search-input" placeholder="Type player name..." oninput="renderOddsBoard()"></div>
+      <div class="filter-group"><label>Team</label><select id="oddsTeamFilter" class="select-input-sm" onchange="renderOddsBoard()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
+      <div class="filter-group"><label>Sort</label><select id="oddsSortFilter" class="select-input-sm" onchange="renderOddsBoard()" style="width:180px;"><option value="RANK">Model Rank</option><option value="BEST">Highest Odds</option><option value="DIFF">Biggest Book Difference</option><option value="ALPHA">Player A-Z</option></select></div>
+    </div>
+    <div class="odds-board-summary" id="oddsBoardSummary">Players: <b>0</b></div>
+  </div>
+  <div class="odds-card-feed" id="oddsBoardBody"><div class="odds-board-empty">Upload workbook with an Odds sheet to load every sportsbook price.</div></div>
+</div>
 </div>
 
 
@@ -8101,6 +8211,7 @@ const activeTabEl = document.getElementById('tab-' + tabName);
 if (activeTabEl) activeTabEl.classList.add('active');
 if (btn) btn.classList.add('active');
 if (tabName === 'stats') renderStatsTable();
+if (tabName === 'odds') renderOddsBoard();
 if (tabName === 'pitchers') renderAllPitchers();
 if (tabName === 'environment' && window.renderHREnvironmentTable40) window.renderHREnvironmentTable40();
 if (tabName === 'hotbat') renderHotBatTable();
@@ -8272,8 +8383,9 @@ let zonePMap = {};
 let batTrackingMaps = { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
 let statSheetMaps = {};
 let oddsMap = {};
+let oddsBookColumns = [];
 let pitchLabData = [];
-let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {};
+let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = [];
 let pitcherTeamMap = {};
 const STAT_MODEL_SHEETS = ['WEATHER','BARRELL','SS','SCASTL','SCASTR','PAL','PAR','RHPBB','LHPBB','ISO','ISOR','ISOL','ISOX','PXHR','PITCHERBB','PSS','PITCHMAX','PITCHER','PITCHERR','PITCHERL','PITCHERFB','PITCHERBBL','PITCHERBBR','LASTST','BULLPEN','BULLPENEV','BULLPENL7','BULLPENEVL7','LINEUPS','PA','PARKFACTOR','PARKFACTORL','PARKFACTORR','RZ'];
 function normalizedKey(k) { return String(k || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
@@ -8479,8 +8591,8 @@ function getBetGrade(modelPct, edge, evPct, bbi) {
 }
 function attachOddsAndEdge(p) {
   const row = oddsMap[normalizeName(p.Name)] || {};
-  const odds = safeGet(row, 'Best Odds', 'Best HR Odds', 'Betting Odds', 'HR Odds', 'Odds', 'Home Run Odds', 'HR');
-  const book = safeGet(row, 'Book', 'Sportsbook', 'Sports Book', 'Best Book', 'Best Sportsbook');
+  const odds = safeGet(row, 'highest odds', 'Highest Odds', 'those odds', 'Those Odds', 'Best Odds', 'Best HR Odds', 'Betting Odds', 'HR Odds', 'Odds', 'Home Run Odds', 'HR');
+  const book = safeGet(row, 'book with highest odds', 'Book With Highest Odds', 'highest book', 'Highest Book', 'Book', 'Sportsbook', 'Sports Book', 'Best Book', 'Best Sportsbook');
   const implied = americanOddsToImplied(odds);
   const hrProb = modelHRProbability(p.calculatedBBI || 0, p);
   const evPct = calculateExpectedValuePct(hrProb, odds);
@@ -9227,6 +9339,7 @@ renderPitchLabTable();
 renderEdgePanels();
 renderBestBettingEdges();
 renderEdgePanels();
+renderOddsBoard();
 renderWeatherRankings();
 updateHeaderStats();
 updateSlateTicker();
@@ -9355,7 +9468,7 @@ const workbook = XLSX.read(data, {type: 'array'});
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
 let batTrackingSheetNames = {}; 
-teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; pitcherTeamMap = {}; batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} }; zoneBMap = {}; zonePMap = {};
+teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = []; pitcherTeamMap = {}; batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} }; zoneBMap = {}; zonePMap = {};
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
@@ -9408,6 +9521,7 @@ if (nameClean === 'HA') processHomeAwaySheet(workbook.Sheets[sheetName]);
 if (nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
 });
 oddsRaw.forEach(row => { const nm = getNameFromRow(row); addNameAlias(oddsMap, nm, row); });
+oddsBookColumns = detectOddsBookColumns(oddsRaw);
 window.top5SheetData = top5Raw;
 if (idRaw && idRaw.length > 0) {
 idRaw.forEach(row => {
@@ -9501,6 +9615,7 @@ refreshOpenWeatherForSlate().catch(err => console.warn('Live weather refresh ski
   uploadStep('renderPitchLabTable', renderPitchLabTable);
   uploadStep('renderEdgePanels', renderEdgePanels);
   uploadStep('renderBestBettingEdges', renderBestBettingEdges);
+  uploadStep('renderOddsBoard', renderOddsBoard);
   uploadStep('renderWeatherRankings', renderWeatherRankings);
   uploadStep('updateHeaderStats', updateHeaderStats);
   uploadStep('updateSlateTicker', updateSlateTicker);
@@ -11395,6 +11510,164 @@ tr.innerHTML = getH2HRowHtml(row);
 tbody.appendChild(tr);
 });
 }
+
+const ALLOWED_ODDS_BOOKS = [
+  { key:'bet365', label:'bet365', order:1, aliases:['bet365','b365','365'] },
+  { key:'fanduel', label:'fanduel', order:2, aliases:['fanduel','fd','fan duel'] },
+  { key:'caesars', label:'caesars', order:3, aliases:['caesars','caesar','czr'] },
+  { key:'hardrock', label:'hardrock', order:4, aliases:['hardrock','hard rock','hardrockbet','hr','hdrk'] }
+];
+function oddsBookMetaFromHeader(header) {
+  const raw = String(header || '').trim();
+  const stripped = raw.replace(/\s*odds\s*$/i, '').trim();
+  const key = normalizedKey(stripped || raw);
+  return ALLOWED_ODDS_BOOKS.find(b => b.aliases.some(a => normalizedKey(a) === key)) || null;
+}
+function oddsHeaderToBookName(header) {
+  const meta = oddsBookMetaFromHeader(header);
+  if (meta) return meta.label;
+  let h = String(header || '').trim();
+  h = h.replace(/\s*odds\s*$/i, '').trim();
+  return h || String(header || '').trim();
+}
+function isBookOddsColumn(header) {
+  // Only true sportsbook columns are allowed here.
+  // This prevents "book with highest odds" from being treated like a book column
+  // and accidentally parsing "bet365" as +365.
+  return !!oddsBookMetaFromHeader(header);
+}
+function detectOddsBookColumns(rows) {
+  const found = [];
+  (rows || []).forEach(row => {
+    Object.keys(row || {}).forEach(k => {
+      if (isBookOddsColumn(k) && !found.includes(k)) found.push(k);
+    });
+  });
+  return found.sort((a,b) => {
+    const ma = oddsBookMetaFromHeader(a) || { order:99, label:a };
+    const mb = oddsBookMetaFromHeader(b) || { order:99, label:b };
+    return ma.order - mb.order || ma.label.localeCompare(mb.label);
+  });
+}
+function oddsProfitSortValue(oddsRaw) {
+  const profit = americanOddsProfitPer100(oddsRaw);
+  return profit === null ? null : profit;
+}
+function getOddsDetailForPlayer(p) {
+  const row = oddsMap[normalizeName(p && p.Name)] || {};
+  const cols = oddsBookColumns && oddsBookColumns.length ? oddsBookColumns : detectOddsBookColumns([row]);
+  const books = cols.map(col => {
+    const raw = row[col];
+    const val = formatAmericanOdds(raw);
+    const profit = oddsProfitSortValue(raw);
+    return { col, book: oddsHeaderToBookName(col), raw, val, profit };
+  });
+  const valid = books.filter(b => b.profit !== null);
+  const best = valid.length ? valid.reduce((a,b) => b.profit > a.profit ? b : a, valid[0]) : null;
+  const worst = valid.length ? valid.reduce((a,b) => b.profit < a.profit ? b : a, valid[0]) : null;
+  const diff = best && worst ? Math.round(best.profit - worst.profit) : null;
+  return { row, books, best, worst, diff };
+}
+function populateOddsTeamFilter() {
+  const sel = document.getElementById('oddsTeamFilter');
+  if (!sel) return;
+  const current = sel.value || 'ALL';
+  const teams = [...new Set((playerData || []).map(p => p.Team).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="ALL">All Teams</option>' + teams.map(t => `<option value="${t}">${t}</option>`).join('');
+  if (teams.includes(current)) sel.value = current;
+}
+function renderOddsBoard() {
+  populateOddsTeamFilter();
+  const body = document.getElementById('oddsBoardBody');
+  const summary = document.getElementById('oddsBoardSummary');
+  if (!body) return;
+  const cols = oddsBookColumns || [];
+  if (!cols.length) {
+    body.innerHTML = `<div class="odds-board-empty">Upload an Odds sheet with sportsbook columns like bet365 odds, caesars odds, fanduel odds and hardrock odds.</div>`;
+    if (summary) summary.innerHTML = 'Players: <b>0</b>';
+    return;
+  }
+  const search = String(document.getElementById('oddsSearchFilter')?.value || '').toLowerCase().trim();
+  const team = document.getElementById('oddsTeamFilter')?.value || 'ALL';
+  const sort = document.getElementById('oddsSortFilter')?.value || 'RANK';
+  const overallRankMap = (typeof getOverallBBIRankMap === 'function') ? getOverallBBIRankMap(false) : new Map();
+  let rows = (playerData || [])
+    .filter(p => !p.isRemoved)
+    .map((p, idx) => ({
+      p,
+      idx,
+      rank:(typeof getOverallBBIRank === 'function' ? getOverallBBIRank(p, overallRankMap) : (idx + 1)),
+      detail:getOddsDetailForPlayer(p)
+    }))
+    .filter(x => x.detail.books.some(b => b.profit !== null));
+  if (search) rows = rows.filter(x => String(x.p.Name || '').toLowerCase().includes(search));
+  if (team !== 'ALL') rows = rows.filter(x => x.p.Team === team);
+  if (sort === 'BEST') rows.sort((a,b) => ((b.detail.best && b.detail.best.profit) || -9999) - ((a.detail.best && a.detail.best.profit) || -9999));
+  else if (sort === 'DIFF') rows.sort((a,b) => ((b.detail.diff) || -9999) - ((a.detail.diff) || -9999));
+  else if (sort === 'ALPHA') rows.sort((a,b) => String(a.p.Name || '').localeCompare(String(b.p.Name || '')));
+  else rows.sort((a,b) => (a.rank || (a.idx + 1)) - (b.rank || (b.idx + 1)));
+  if (summary) summary.innerHTML = `<span>Players: <b>${rows.length}</b> &nbsp; Books: <b>${cols.length}</b></span>`;
+  if (!rows.length) {
+    body.innerHTML = `<div class="odds-board-empty">No players match the current Odds filters.</div>`;
+    return;
+  }
+  body.innerHTML = rows.map((x, i) => {
+    const p = x.p, detail = x.detail;
+    const pitcher = p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter';
+    const headshot = createHeadshotHtml(p.Name, 'sm', p.Team || '');
+    const logoImg = p.Team && teamLogos[p.Team] ? `<img class="team-logo-img" src="${teamLogos[p.Team]}" alt="${p.Team}">` : '';
+    const rank = x.rank || (i + 1);
+    const bestOdds = detail.best ? formatAmericanOdds(detail.best.raw) : '-';
+    const bestBookName = detail.best ? detail.best.book : '-';
+    const bestBookBadge = detail.best ? (renderBookBadge(bestBookName) || `<span>${bestBookName}</span>`) : '-';
+    const diff = detail.diff !== null ? `+${detail.diff}` : '-';
+    const bbi = Number(p.calculatedBBI || 0);
+    const hrProb = (p.calculatedHRProbability !== undefined && p.calculatedHRProbability !== null) ? formatPlainPct(p.calculatedHRProbability) : '-';
+    const rowsHtml = detail.books.map(b => {
+      let cls = 'empty';
+      let tag = '';
+      if (b.profit !== null && detail.best && detail.worst) {
+        if (Math.abs(b.profit - detail.best.profit) < 0.001) { cls = 'best'; tag = '<span class="odds-best-tag">Best</span>'; }
+        else if (detail.best.profit - b.profit <= 10) { cls = 'near'; tag = '<span class="odds-near-tag">Close</span>'; }
+        else { cls = ''; tag = '<span></span>'; }
+      }
+      const badge = renderBookBadge(b.book) || `<span>${b.book}</span>`;
+      return `<div class="odds-book-row ${cls}">
+        <div class="odds-book-name">${badge}</div>
+        <div class="odds-book-price">${b.val || '-'}</div>
+        <div>${tag}</div>
+      </div>`;
+    }).join('');
+    return `<article class="odds-player-card" style="${teamVisualStyle(p.Team)}">
+      <div class="odds-card-top" onclick="openPlayerModalByName('${escJSString(p.Name)}')">
+        <div class="odds-rank-box">#${rank}</div>
+        <div class="odds-card-headshot">${headshot}</div>
+        <div class="odds-card-player-copy">
+          <div class="odds-card-name">${p.Name || '-'}</div>
+          <div class="odds-card-meta">${logoImg}<span>${p.Team || '-'}</span><span>•</span><span>vs ${pitcher}</span></div>
+        </div>
+      </div>
+      <div class="odds-card-mid">
+        <div class="odds-best-panel">
+          <div class="odds-best-label">Best Available</div>
+          <div class="odds-best-number">${bestOdds}</div>
+          <div class="odds-best-book">${bestBookBadge}</div>
+          <div class="odds-best-diff">Book Spread ${diff}</div>
+        </div>
+        <div class="odds-book-list">
+          <div class="odds-book-list-title">Sportsbook Comparison</div>
+          ${rowsHtml}
+        </div>
+      </div>
+      <div class="odds-card-footer">
+        <span>Model Rank <b>#${rank}</b></span>
+        <span>BBI <b>${isFinite(bbi) ? bbi.toFixed(1) : '-'}</b></span>
+        <span>HR Prob <b>${hrProb}</b></span>
+      </div>
+    </article>`;
+  }).join('');
+}
+
 function formatPctValue(v, digits = 1) {
   if (v === null || v === undefined || isNaN(v)) return '-';
   return `${v >= 0 ? '+' : ''}${Number(v).toFixed(digits)}%`;
@@ -12867,6 +13140,7 @@ renderFanaticsJackpot();
 renderTodaysStorylines();
 renderBestBettingEdges();
 renderEdgePanels();
+renderOddsBoard();
 renderGameCenterTab();
 }
 
@@ -15717,7 +15991,7 @@ try {
     try { recalculateAllBBIScores(); } catch(err) { console.error('Sandbox recalc failed:', err); }
 
     // Make the change visible everywhere without touching layout or model weights.
-    ['renderFanaticsJackpot','renderAllPitchers','renderHotBatTable','renderH2HFullTable','renderPitchLabTable','renderEdgePanels','renderBestBettingEdges','renderWeatherRankings','renderGameCenterTab','renderBBITierStats','renderStatsTab','renderSynergyBonusesTab','updateHeaderStats','updateSlateTicker'].forEach(safeCall);
+    ['renderFanaticsJackpot','renderAllPitchers','renderHotBatTable','renderH2HFullTable','renderPitchLabTable','renderEdgePanels','renderBestBettingEdges','renderOddsBoard','renderWeatherRankings','renderGameCenterTab','renderBBITierStats','renderStatsTab','renderSynergyBonusesTab','updateHeaderStats','updateSlateTicker'].forEach(safeCall);
   };
 
   window.returnToOfficialWeights = function(){
@@ -15730,7 +16004,7 @@ try {
     if (badge) badge.textContent = 'OFFICIAL MODEL';
 
     try { recalculateAllBBIScores(); } catch(err) { console.error('Official recalc failed:', err); }
-    ['renderFanaticsJackpot','renderAllPitchers','renderHotBatTable','renderH2HFullTable','renderPitchLabTable','renderEdgePanels','renderBestBettingEdges','renderWeatherRankings','renderGameCenterTab','renderBBITierStats','renderStatsTab','renderSynergyBonusesTab','updateHeaderStats','updateSlateTicker'].forEach(safeCall);
+    ['renderFanaticsJackpot','renderAllPitchers','renderHotBatTable','renderH2HFullTable','renderPitchLabTable','renderEdgePanels','renderBestBettingEdges','renderOddsBoard','renderWeatherRankings','renderGameCenterTab','renderBBITierStats','renderStatsTab','renderSynergyBonusesTab','updateHeaderStats','updateSlateTicker'].forEach(safeCall);
   };
 
   try {
