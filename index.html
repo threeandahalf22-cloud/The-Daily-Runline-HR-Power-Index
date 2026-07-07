@@ -7720,421 +7720,6 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .odds-card-footer { padding:10px 12px 13px; flex-direction:column; align-items:flex-start; }
 }
 </style>
-
-<style id="game-rankings-accordion-style">
-/* =========================
-   GAME-BY-GAME RANKINGS BOARD
-   Rankings section only. Collapsed cards show no players; expanded cards reuse the current rankings table rows.
-   ========================= */
-.game-rankings-board{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
-.game-rankings-empty{border:1px dashed rgba(255,255,255,.12);border-radius:16px;background:rgba(5,11,20,.55);color:var(--text-muted);padding:30px;text-align:center;font-style:italic;font-weight:800;}
-.game-rankings-header{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.09);border-left:5px solid var(--accent);border-radius:18px;padding:16px 18px;background:linear-gradient(145deg,rgba(5,11,20,.92),rgba(17,31,53,.68));box-shadow:0 18px 50px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.07);}
-.game-rankings-title{color:#fff;font-size:18px;font-weight:1000;text-transform:uppercase;letter-spacing:1.2px;}
-.game-rankings-sub{margin-top:5px;color:var(--text-muted);font-size:12px;font-weight:850;line-height:1.35;}
-.game-card{--away-color:#e10600;--home-color:#e10600;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.10);border-left:6px solid #e10600;border-right:6px solid #e10600;border-radius:16px;background:linear-gradient(180deg,#101722 0%,#070d16 100%);box-shadow:0 10px 26px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.06);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;}
-.game-card::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(225,6,0,.11),transparent 16%,transparent 84%,rgba(225,6,0,.09));opacity:.55;}
-.game-card:hover{transform:translateY(-2px);border-top-color:rgba(225,6,0,.42);border-bottom-color:rgba(225,6,0,.42);box-shadow:0 14px 32px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.08);}
-.game-card-toggle{width:100%;border:0;background:transparent;color:inherit;padding:0;cursor:pointer;text-align:left;}
-.game-card-main{display:grid;grid-template-columns:190px 1fr 190px 130px;gap:12px;align-items:center;padding:12px 18px;}
-.game-pitcher-side{display:grid;grid-template-columns:50px minmax(0,1fr);gap:10px;align-items:center;border:1px solid rgba(225,6,0,.24);border-radius:13px;background:#050b14;padding:9px 10px;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
-.game-pitcher-side.home{grid-template-columns:minmax(0,1fr) 50px;text-align:right;}
-.game-pitcher-photo{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #e10600;background:#091222;box-shadow:0 8px 16px rgba(0,0,0,.35);}
-.game-pitcher-placeholder{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #e10600;background:#091222;color:#e10600;font-size:18px;font-weight:1000;}
-.game-pitcher-copy{min-width:0;}
-.game-pitcher-label{color:var(--text-muted);font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;}
-.game-pitcher-name{margin-top:4px;color:#fff;font-size:12px;font-weight:1000;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.game-pitcher-team{margin-top:2px;color:#e10600;font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:.6px;}
-.game-time-box{border:1px solid rgba(225,6,0,.22);border-radius:12px;background:#050b14;padding:11px 10px;text-align:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
-.game-time-label{color:var(--text-muted);font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;}
-.game-time-value{margin-top:5px;color:#fff;font-family:monospace;font-size:20px;font-weight:1000;line-height:1;}
-.game-matchup-block{min-width:0;text-align:center;}
-.game-matchup-logos{display:flex;align-items:center;justify-content:center;gap:12px;color:#fff;font-size:22px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;}
-.game-matchup-logos img{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 8px 12px rgba(0,0,0,.38));}
-.game-at-symbol{color:var(--text-muted);font-size:12px;font-weight:1000;}
-.game-pitchers{margin-top:6px;color:#e2e8f0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.game-park-line{margin-top:4px;color:var(--text-muted);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.game-summary-stack{display:grid;grid-template-columns:1fr;gap:7px;}
-.game-summary-pill{border:1px solid rgba(225,6,0,.24);border-radius:999px;background:#050b14;color:#cbd5e1;padding:7px 9px;font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:.55px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.game-summary-pill.hot{color:#fff;background:#b00000;border-color:#e10600;}
-.game-summary-pill.gold{color:#fff;background:#b00000;border-color:#e10600;}
-.game-summary-pill.game-action-pill{background:#e10600;color:#fff;border-color:#e10600;}
-.game-card.open .game-summary-pill.game-action-pill{background:#050b14;color:#fff;border-color:rgba(225,6,0,.55);}
-.game-card-main,.game-card-toggle,.game-card-content{position:relative;z-index:1;}
-.game-card-chevron{position:absolute;right:16px;top:14px;color:#e10600;font-size:18px;font-weight:1000;transition:transform .2s ease;}
-.game-card.open .game-card-chevron{transform:rotate(180deg);}
-.game-card-content{display:none;border-top:1px solid rgba(225,6,0,.24);padding:14px;background:#050b14;}
-.game-card.open .game-card-content{display:block;}
-.game-card-content .table-wrapper{margin:0;}
-.game-card-content table{min-width:1180px;}
-.game-full-card{--away-color:#e10600;--home-color:#e10600;border-left-color:#e10600;border-right-color:#e10600;}
-.game-full-card .game-time-value{color:#fff;}
-@media(max-width:900px){.game-card-main{grid-template-columns:1fr;gap:10px;padding:14px;}.game-pitcher-side,.game-pitcher-side.home{grid-template-columns:46px minmax(0,1fr);text-align:left;}.game-pitcher-photo,.game-pitcher-placeholder{width:44px;height:44px;}.game-summary-stack{grid-template-columns:repeat(2,minmax(0,1fr));}.game-matchup-logos{font-size:18px;}.game-matchup-logos img{width:34px;height:34px;}}
-@media(max-width:560px){.game-summary-stack{grid-template-columns:1fr;}.game-pitchers,.game-park-line{white-space:normal;}.game-card-content{padding:10px;}.game-matchup-logos{gap:8px;font-size:16px;}}
-</style>
-
-
-
-<style id="game-rankings-mobile-safe-final">
-/* =========================
-   GAME CARD MOBILE SAFE FINAL
-   Rankings section only. Keeps flat DRL red borders and pitcher photos.
-   No scoring/data logic changed.
-   ========================= */
-.game-card{
-  border-left-color:#e10600 !important;
-  border-right-color:#e10600 !important;
-}
-.game-card:hover{
-  box-shadow:0 14px 32px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.08) !important;
-}
-.game-pitcher-photo,
-.game-pitcher-placeholder{
-  flex:0 0 auto !important;
-}
-@media(max-width:700px){
-  .game-rankings-board{gap:11px !important;}
-  .game-rankings-header{padding:14px !important;}
-  .game-rankings-title{font-size:16px !important;}
-  .game-rankings-sub{font-size:11px !important;}
-  .game-card{border-left-width:4px !important;border-right-width:4px !important;border-radius:14px !important;}
-  .game-card-main{
-    display:grid !important;
-    grid-template-columns:40px minmax(0,1fr) 40px !important;
-    grid-template-areas:
-      "away matchup home"
-      "summary summary summary" !important;
-    gap:8px !important;
-    align-items:center !important;
-    padding:10px 10px 9px !important;
-  }
-  .game-pitcher-side.away{grid-area:away !important;}
-  .game-pitcher-side.home{grid-area:home !important;}
-  .game-matchup-block{grid-area:matchup !important;min-width:0 !important;}
-  .game-summary-stack{grid-area:summary !important;}
-  .game-pitcher-side,
-  .game-pitcher-side.home{
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    width:40px !important;
-    min-width:40px !important;
-    height:40px !important;
-    padding:0 !important;
-    border:0 !important;
-    background:transparent !important;
-    box-shadow:none !important;
-  }
-  .game-pitcher-side.home{flex-direction:row !important;}
-  .game-pitcher-copy{display:none !important;}
-  .game-pitcher-photo,
-  .game-pitcher-placeholder{
-    width:38px !important;
-    height:38px !important;
-    min-width:38px !important;
-    min-height:38px !important;
-    margin:0 !important;
-    border-width:2px !important;
-    box-shadow:0 6px 12px rgba(0,0,0,.36) !important;
-  }
-  .game-pitcher-placeholder{font-size:14px !important;}
-  .game-matchup-logos{
-    gap:5px !important;
-    font-size:15px !important;
-    line-height:1 !important;
-    min-width:0 !important;
-    white-space:nowrap !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-  }
-  .game-matchup-logos img{width:24px !important;height:24px !important;margin:0 !important;}
-  .game-at-symbol{font-size:10px !important;}
-  .game-pitchers{
-    margin-top:5px !important;
-    font-size:9px !important;
-    line-height:1.15 !important;
-    white-space:nowrap !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-  }
-  .game-park-line{
-    margin-top:3px !important;
-    font-size:9px !important;
-    line-height:1.15 !important;
-    white-space:nowrap !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-  }
-  .game-summary-stack{
-    display:grid !important;
-    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-    gap:5px !important;
-    margin-top:2px !important;
-  }
-  .game-summary-pill{
-    padding:6px 5px !important;
-    font-size:8.5px !important;
-    line-height:1 !important;
-  }
-  .game-card-chevron{right:8px !important;top:7px !important;font-size:15px !important;}
-  .game-card-content{padding:8px !important;}
-  .game-card-content .table-wrapper{overflow-x:auto !important;}
-  .game-full-card .game-card-main{
-    grid-template-columns:1fr !important;
-    grid-template-areas:"matchup" "summary" !important;
-    padding:11px !important;
-  }
-  .game-full-card .game-time-box{display:none !important;}
-  .game-full-card .game-matchup-logos{font-size:15px !important;}
-}
-@media(max-width:380px){
-  .game-card-main{grid-template-columns:36px minmax(0,1fr) 36px !important;gap:6px !important;padding:9px 8px !important;}
-  .game-pitcher-side,.game-pitcher-side.home{width:36px !important;min-width:36px !important;height:36px !important;}
-  .game-pitcher-photo,.game-pitcher-placeholder{width:34px !important;height:34px !important;min-width:34px !important;min-height:34px !important;}
-  .game-matchup-logos{font-size:13px !important;gap:4px !important;}
-  .game-matchup-logos img{width:21px !important;height:21px !important;}
-  .game-summary-pill{font-size:7.8px !important;padding:5px 4px !important;}
-}
-</style>
-
-
-
-<style id="drl-final-black-red-no-blue-game-sections">
-/* =========================
-   FINAL DRL BLACK / RED GAME SECTIONS
-   Removes navy/blue from Today's Games, Actual Games, Game Center cards,
-   and mobile game rankings. Visual-only: no scoring/data/JS changed.
-   ========================= */
-:root {
-  --drl-espn-black: #111316;
-  --drl-espn-black-deep: #0b0d10;
-  --drl-espn-black-hover: #171a1f;
-  --drl-espn-border: #2b2f35;
-  --drl-espn-red: #e10600;
-}
-
-/* Today's Games / game-by-game rankings header */
-.game-rankings-header,
-.game-rankings-empty {
-  background: var(--drl-espn-black) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-border) !important;
-  box-shadow: 0 12px 26px rgba(0,0,0,.35) !important;
-}
-.game-rankings-header {
-  border-left: 5px solid var(--drl-espn-red) !important;
-}
-
-/* Today's Games / collapsed and expanded game cards */
-.game-card,
-.game-card-toggle,
-.game-card-main,
-.game-card-content,
-.game-full-card,
-.game-matchup-block,
-.game-summary-stack,
-.game-time-box,
-.game-pitcher-side,
-.game-pitcher-side.home {
-  background-color: var(--drl-espn-black) !important;
-  background-image: none !important;
-}
-.game-card,
-.game-full-card {
-  background: var(--drl-espn-black) !important;
-  border-top: 1px solid var(--drl-espn-border) !important;
-  border-bottom: 1px solid var(--drl-espn-border) !important;
-  border-left-color: var(--drl-espn-red) !important;
-  border-right-color: var(--drl-espn-red) !important;
-  box-shadow: 0 10px 24px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.04) !important;
-}
-.game-card::before,
-.game-card::after,
-.game-rankings-header::before,
-.game-rankings-header::after {
-  background: none !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-.game-card:hover,
-.game-full-card:hover {
-  background: var(--drl-espn-black-hover) !important;
-  background-image: none !important;
-  border-top-color: var(--drl-espn-red) !important;
-  border-bottom-color: var(--drl-espn-red) !important;
-  box-shadow: 0 14px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05) !important;
-}
-.game-card-content,
-.game-time-box,
-.game-pitcher-side,
-.game-summary-pill,
-.game-card.open .game-summary-pill.game-action-pill,
-.game-card-content .table-wrapper {
-  background: var(--drl-espn-black-deep) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-border) !important;
-  box-shadow: none !important;
-}
-.game-summary-pill.hot,
-.game-summary-pill.gold,
-.game-summary-pill.game-action-pill {
-  background: #b00000 !important;
-  background-image: none !important;
-  color: #fff !important;
-  border-color: var(--drl-espn-red) !important;
-}
-.game-pitcher-photo,
-.game-pitcher-placeholder {
-  background: var(--drl-espn-black-deep) !important;
-  border-color: var(--drl-espn-red) !important;
-  box-shadow: 0 6px 14px rgba(0,0,0,.45) !important;
-}
-
-/* Pregame slate / Actual Games cards */
-.slate-board,
-#pregameSlateBoard,
-#pregameSlateBoard .slate-board-header,
-#pregameSlateBoard .slate-games-grid,
-#pregameSlateBoard .slate-game-card,
-#pregameSlateBoard .slate-game-center-card,
-#pregameSlateBoard .slate-game-card.slate-game-center-card,
-.slate-game-card,
-.slate-game-center-card {
-  background-color: var(--drl-espn-black) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-border) !important;
-  box-shadow: 0 10px 24px rgba(0,0,0,.34) !important;
-}
-.slate-board,
-#pregameSlateBoard .slate-game-card,
-#pregameSlateBoard .slate-game-center-card,
-.slate-game-card,
-.slate-game-center-card {
-  border-left-color: var(--drl-espn-red) !important;
-}
-#pregameSlateBoard .slate-game-center-card,
-#pregameSlateBoard .slate-game-card.slate-game-center-card {
-  border: 2px solid var(--drl-espn-red) !important;
-}
-.slate-board::before,
-.slate-board::after,
-.slate-game-card::before,
-.slate-game-card::after,
-.slate-game-center-card::before,
-.slate-game-center-card::after,
-#pregameSlateBoard .slate-game-card::before,
-#pregameSlateBoard .slate-game-card::after,
-#pregameSlateBoard .slate-game-center-card::before,
-#pregameSlateBoard .slate-game-center-card::after {
-  background: none !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-.slate-game-card:hover,
-.slate-game-center-card:hover,
-#pregameSlateBoard .slate-game-card:hover,
-#pregameSlateBoard .slate-game-center-card:hover {
-  background: var(--drl-espn-black-hover) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-red) !important;
-  box-shadow: 0 14px 30px rgba(0,0,0,.42) !important;
-  filter: none !important;
-}
-.slate-env-pill,
-.slate-game-bottom,
-.slate-game-park {
-  background-image: none !important;
-}
-
-/* Game Center cards / rows */
-.game-center-header,
-.game-center-card,
-.game-line,
-.game-kpi {
-  background: var(--drl-espn-black) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-border) !important;
-  box-shadow: 0 10px 24px rgba(0,0,0,.34) !important;
-}
-.game-center-header,
-.game-center-card {
-  border-left-color: var(--drl-espn-red) !important;
-}
-.game-center-card::before,
-.game-center-card::after,
-.game-center-header::before,
-.game-center-header::after {
-  background: none !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-.game-center-card:hover {
-  background: var(--drl-espn-black-hover) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-red) !important;
-  box-shadow: 0 14px 30px rgba(0,0,0,.42) !important;
-}
-.game-line,
-.game-kpi {
-  background: var(--drl-espn-black-deep) !important;
-}
-
-/* Mobile reinforcement */
-@media(max-width:900px) {
-  .game-card,
-  .game-card-main,
-  .game-card-content,
-  .game-pitcher-side,
-  .game-pitcher-side.home,
-  .game-summary-pill,
-  .slate-board,
-  .slate-game-card,
-  .slate-game-center-card,
-  .game-center-header,
-  .game-center-card,
-  .game-line,
-  .game-kpi {
-    background-image: none !important;
-  }
-}
-</style>
-
-
-<style id="home-sidebar-right-final">
-/* =========================
-   HOME PAGE SIDEBARS RIGHT SIDE FINAL
-   Layout-only: moves the homepage sidebars to the right of the games/rankings.
-   No scoring/data/JS changed.
-   ========================= */
-.dashboard-grid {
-  align-items: start !important;
-}
-.dashboard-grid > .home-sidebar-stack {
-  order: 2 !important;
-}
-.dashboard-grid > div:not(.home-sidebar-stack) {
-  order: 1 !important;
-  min-width: 0 !important;
-}
-@media(min-width:1050px) {
-  .dashboard-grid {
-    grid-template-columns: minmax(0, 1fr) 380px !important;
-  }
-}
-@media(max-width:1049px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .dashboard-grid > .home-sidebar-stack {
-    order: 2 !important;
-  }
-  .dashboard-grid > div:not(.home-sidebar-stack) {
-    order: 1 !important;
-  }
-}
-</style>
 </head>
 <body>
 
@@ -8228,6 +7813,13 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">Upload your workbook with HR, vsPitcher, PLdata, lastweek, weather, <b>ID</b>, and <b>top5</b> sheets</div>
 </div>
 
+<div class="compare-launch-card">
+  <div>
+    <div class="compare-launch-title">🆚 Player Compare Lab</div>
+    <div class="compare-launch-sub">Compare up to 4 hitters side-by-side using the real HR inputs: BBI, HR%, total HR, EV/EV90, hard-hit/barrel data, pitcher HR/9, pitch lab, recent form, park and weather.</div>
+  </div>
+  <button type="button" class="compare-launch-btn" onclick="openCompareModal()">Compare Players</button>
+</div>
 
 <div class="dashboard-grid">
 <div class="home-sidebar-stack">
@@ -8262,8 +7854,33 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </div>
 <div>
 
-<div id="gameRankingsBoard" class="game-rankings-board">
-  <div class="game-rankings-empty">Upload today's workbook to load game-by-game rankings...</div>
+<div id="bbiTierHomePanel" class="bbi-tier-home-panel">
+  <div class="bbi-tier-top">
+    <div>
+      <div class="bbi-tier-title">BBI Tiers</div>
+      <div class="bbi-tier-sub">Backtest-based rank bands — filters stack with team, bats and search</div>
+    </div>
+    <div class="bbi-tier-count" id="bbiTierVisibleCount">Showing <b>0</b> players</div>
+  </div>
+  <div class="bbi-tier-tabs" id="bbiTierTabs">
+    <button type="button" class="bbi-tier-tab" data-tier="ALL" onclick="setBBITierFilter('ALL')">All Tiers</button>
+    <button type="button" class="bbi-tier-tab active" data-tier="1" onclick="setBBITierFilter('1')">Tier 1</button>
+    <button type="button" class="bbi-tier-tab" data-tier="2" onclick="setBBITierFilter('2')">Tier 2</button>
+    <button type="button" class="bbi-tier-tab" data-tier="3" onclick="setBBITierFilter('3')">Tier 3</button>
+    <button type="button" class="bbi-tier-tab" data-tier="4" onclick="setBBITierFilter('4')">Tier 4</button>
+    <button type="button" class="bbi-tier-tab" data-tier="5" onclick="setBBITierFilter('5')">Tier 5</button>
+  </div>
+  <div id="bbiTierStatsCard" class="bbi-tier-stat-card"></div>
+</div>
+<div class="controls-bar">
+<div class="filter-group team-filter-future-wrap"><label>Filter Team 1</label><div class="team-filter-future" data-filter="1"><select id="teamFilter1" class="select-input-sm native-team-select" onchange="syncTeamLogoDropdown(1); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button type="button" id="teamFilterTrigger" class="team-filter-trigger" onclick="toggleTeamLogoDropdown(event, 1)"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel">All Teams</span><span class="team-filter-chevron">▾</span></button><div id="teamLogoDropdown" class="team-logo-dropdown"></div></div></div>
+<div class="filter-group team-filter-future-wrap"><label>Filter Team 2</label><div class="team-filter-future" data-filter="2"><select id="teamFilter2" class="select-input-sm native-team-select" onchange="syncTeamLogoDropdown(2); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button type="button" id="teamFilterTrigger2" class="team-filter-trigger" onclick="toggleTeamLogoDropdown(event, 2)"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel2">All Teams</span><span class="team-filter-chevron">▾</span></button><div id="teamLogoDropdown2" class="team-logo-dropdown"></div></div></div>
+<div class="filter-group"><label>Filter Bats</label><select id="batsFilter" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">All</option><option value="L">Left</option><option value="R">Right</option><option value="S">Switch</option></select></div>
+<div class="filter-group"><label>Search Player Name</label><input type="text" id="searchFilter" class="search-input" placeholder="Type player name..." oninput="applyFiltersAndRender()" /></div>
+<div class="filter-group" style="margin-left: auto; flex-direction: row; align-items: center; gap: 10px;">
+<input type="checkbox" id="showRemovedCheck" onchange="applyFiltersAndRender()" style="cursor:pointer; width:auto;" />
+<label for="showRemovedCheck" style="cursor:pointer; margin-bottom:0; color:var(--accent);">Show Removed Bench Players</label>
+</div>
 </div>
 <div class="model-sandbox-panel" id="modelSandboxPanel">
   <button type="button" class="model-sandbox-toggle" onclick="toggleModelSandboxPanel()">
@@ -8287,12 +7904,11 @@ tbody tr:hover .stats-player-mini .player-headshot {
   </div>
 </div>
 
-<div class="table-wrapper legacy-rankings-table" style="display:none;">
+<div class="table-wrapper">
 <table>
 <thead><tr><th class="rank-col">Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="edge-col">Edge</th><th class="action-col">Action</th></tr></thead>
 <tbody id="tableBody"><tr><td colspan="11" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
-</div>
 <div class="backtest-finalize-wrap">
   <div class="backtest-finalize-copy"><b>Backtest workflow:</b> mark only HR hitters with 💣, then finalize. Bombed players save as HR = 1; everyone else in the current rankings saves as HR = 0.</div>
   <button type="button" class="btn-finalize-backtest" onclick="finalizeTodayBacktest()">✅ Finalize Today's Backtest</button>
@@ -9178,24 +8794,29 @@ function renderWhyRankBox(player) {
 function filterRankingsToSlateGame(awayTeam, homeTeam) {
   const away = String(awayTeam || '').trim().toUpperCase();
   const home = String(homeTeam || '').trim().toUpperCase();
+  const team1 = document.getElementById('teamFilter1');
+  const team2 = document.getElementById('teamFilter2');
+  const search = document.getElementById('searchFilter');
+  const bats = document.getElementById('batsFilter');
+
+  selectedQuickTeamFilter = 'ALL';
+  if (team1) team1.value = away || 'ALL';
+  if (team2) team2.value = home || 'ALL';
+  if (search) search.value = '';
+  if (bats) bats.value = 'ALL';
+
+  syncTeamLogoDropdown(1);
+  syncTeamLogoDropdown(2);
   applyFiltersAndRender();
+
   const homeTabButton = Array.from(document.querySelectorAll('.nav-tab')).find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("switchTab('home'"));
   switchTab('home', homeTabButton || null);
+
   setTimeout(() => {
-    let targetKey = null;
-    Object.entries(gameRankingGroupsCache || {}).forEach(([key, cfg]) => {
-      if (targetKey || key === 'full_bbi_rankings_card') return;
-      const teams = [...new Set((cfg.players || []).map(p => String(p.Team || '').toUpperCase()).filter(Boolean))];
-      if ((!away || teams.includes(away)) && (!home || teams.includes(home))) targetKey = key;
-    });
-    if (targetKey) {
-      const card = document.getElementById(targetKey);
-      if (card && !card.classList.contains('open')) toggleGameRankingsCard(targetKey);
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      const board = document.getElementById('gameRankingsBoard');
-      if (board) board.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    const controls = document.querySelector('.controls-bar');
+    const table = document.querySelector('.table-wrapper');
+    const target = controls || table;
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 80);
 }
 function renderPregameSlateBoard() {
@@ -13485,18 +13106,31 @@ function setBBITierFilter(tier) {
 }
 
 function applyFiltersAndRender() {
-const showRemovedEl = document.getElementById('showRemovedCheck');
-const showRemoved = showRemovedEl ? showRemovedEl.checked : false;
+syncTeamLogoDropdown(1);
+syncTeamLogoDropdown(2);
+const f1 = document.getElementById('teamFilter1').value;
+const f2 = document.getElementById('teamFilter2') ? document.getElementById('teamFilter2').value : 'ALL';
+const batsFilter = document.getElementById('batsFilter').value;
+const searchVal = document.getElementById('searchFilter').value.toLowerCase().trim();
+const showRemoved = document.getElementById('showRemovedCheck').checked;
 const overallRankMap = getOverallBBIRankMap(showRemoved);
 let filtered = playerData.filter(p => {
-  if (!showRemoved && p.isRemoved) return false;
-  const overallRank = getOverallBBIRank(p, overallRankMap);
-  p.overallBBIRank = overallRank;
-  p.bbiTier = getBBITierForRank(overallRank);
-  return true;
+if (!showRemoved && p.isRemoved) return false;
+const overallRank = getOverallBBIRank(p, overallRankMap);
+const playerTier = getBBITierForRank(overallRank);
+if (selectedBBITierFilter !== 'ALL' && playerTier !== selectedBBITierFilter) return false;
+if (selectedQuickTeamFilter !== 'ALL' && p.Team !== selectedQuickTeamFilter) return false;
+const selectedTeams = [f1, f2].filter(t => t && t !== 'ALL');
+if (selectedTeams.length && !selectedTeams.includes(p.Team)) return false;
+if (batsFilter !== 'ALL') { let batsVal = String(p['Bats'] || p['bats'] || p['Hand'] || p['Handedness'] || '').toUpperCase().trim(); if (!batsVal.includes(batsFilter)) return false; }
+if (searchVal && !p.Name.toLowerCase().includes(searchVal)) return false;
+p.overallBBIRank = overallRank;
+p.bbiTier = playerTier;
+return true;
 });
 filtered.sort((a, b) => (getOverallBBIRank(a, overallRankMap) || 9999) - (getOverallBBIRank(b, overallRankMap) || 9999));
-renderGameRankingsBoard(filtered, overallRankMap);
+renderBBITierStats(filtered.length);
+renderMainTableBoard(filtered, overallRankMap);
 renderPregameSlateBoard();
 renderTopTargetHero();
 renderTop12Carousel();
@@ -13545,153 +13179,8 @@ function renderGameCenterTab() {
 }
 
 
-
-let gameRankingGroupsCache = {};
-function gameRankEscapeHtml(v) {
-  return String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-}
-function gameRankSafeId(v) { return String(v || 'x').replace(/[^a-zA-Z0-9_-]/g, '_'); }
-function gameRankTableShell(tbodyId) {
-  return `<div class="table-wrapper"><table><thead><tr><th class="rank-col">Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="edge-col">Edge</th><th class="action-col">Action</th></tr></thead><tbody id="${tbodyId}"><tr><td colspan="9" style="padding: 30px; color: var(--text-muted); font-style: italic;">Open game to load hitters...</td></tr></tbody></table></div>`;
-}
-function gameRankStartTimeLabel(gameId) {
-  const w = weatherSettings && weatherSettings[gameId];
-  return (w && w.startTime) ? String(w.startTime).trim() : 'TBD';
-}
-function gameRankSortTime(gameId) {
-  const d = parseFirstPitchDateTime(gameRankStartTimeLabel(gameId));
-  return d ? d.getTime() : Number.MAX_SAFE_INTEGER;
-}
-function gameRankWeatherLabel(gameId) {
-  const w = weatherSettings && weatherSettings[gameId];
-  if (!w) return 'Weather TBD';
-  if (w.isDome) return 'Closed Dome';
-  const temp = w.temp !== undefined && w.temp !== null ? `${w.temp}°F` : '';
-  const wind = w.windSpeed !== undefined && w.windDir ? `${w.windSpeed} MPH ${String(w.windDir).toUpperCase()}` : '';
-  return [temp, wind].filter(Boolean).join(' • ') || 'Weather TBD';
-}
-function gameRankParkLabel(matchup, gameId) {
-  const w = weatherSettings && weatherSettings[gameId];
-  return gameRankEscapeHtml((w && w.stadiumName) || (matchup && (matchup.stadiumName || matchup.park || matchup.trueHomeTeam || matchup.homeTeam)) || 'Park TBD');
-}
-function gameRankPitcherDetails(players, awayTeam, homeTeam) {
-  const awayHitters = players.filter(p => String(p.Team || '').toUpperCase() === String(awayTeam || '').toUpperCase());
-  const homeHitters = players.filter(p => String(p.Team || '').toUpperCase() === String(homeTeam || '').toUpperCase());
-  const awayPitcher = homeHitters[0] ? (homeHitters[0]['Opp Pitcher'] || homeHitters[0]['Opp Pitcher Name'] || '') : '';
-  const homePitcher = awayHitters[0] ? (awayHitters[0]['Opp Pitcher'] || awayHitters[0]['Opp Pitcher Name'] || '') : '';
-  return { awayPitcher: String(awayPitcher || 'Away SP').trim(), homePitcher: String(homePitcher || 'Home SP').trim() };
-}
-function gameRankPitcherLine(players, awayTeam, homeTeam) {
-  const d = gameRankPitcherDetails(players, awayTeam, homeTeam);
-  return `${gameRankEscapeHtml(d.awayPitcher)} vs ${gameRankEscapeHtml(d.homePitcher)}`;
-}
-function gameRankPitcherCard(name, team, side) {
-  const safeName = gameRankEscapeHtml(name || 'Starter');
-  const safeTeam = gameRankEscapeHtml(team || '');
-  const url = getHeadshotUrl(name || '');
-  const face = url ? `<img class="game-pitcher-photo" src="${url}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;game-pitcher-placeholder&quot;>⚾</div>'">` : `<div class="game-pitcher-placeholder">⚾</div>`;
-  const copy = `<div class="game-pitcher-copy"><div class="game-pitcher-label">${side === 'home' ? 'Home SP' : 'Away SP'}</div><div class="game-pitcher-name">${safeName}</div><div class="game-pitcher-team">${safeTeam}</div></div>`;
-  return side === 'home' ? `<div class="game-pitcher-side home">${copy}${face}</div>` : `<div class="game-pitcher-side away">${face}${copy}</div>`;
-}
-function buildGameRankingGroups(players) {
-  const map = new Map();
-  (players || []).forEach(p => {
-    const gid = p.gameId || `team_${p.Team || 'UNK'}`;
-    if (!map.has(gid)) map.set(gid, []);
-    map.get(gid).push(p);
-  });
-  const groups = [];
-  map.forEach((list, gid) => {
-    list.sort((a,b)=>(b.calculatedBBI || 0) - (a.calculatedBBI || 0));
-    const matchup = (gameMatchups || []).find(m => m.id === gid) || {};
-    const awayTeam = String(matchup.awayTeam || matchup.teamA || list[0]?.Team || '').toUpperCase();
-    let homeTeam = String(matchup.trueHomeTeam || matchup.homeTeam || matchup.teamB || '').toUpperCase();
-    if (!homeTeam || homeTeam === awayTeam) {
-      const teams = [...new Set(list.map(p => String(p.Team || '').toUpperCase()).filter(Boolean))];
-      homeTeam = teams.find(t => t !== awayTeam) || homeTeam || teams[1] || teams[0] || '';
-    }
-    const env = environmentScoreForPlayers(list);
-    groups.push({ id: gid, list, matchup, awayTeam, homeTeam, sortTime: gameRankSortTime(gid), env });
-  });
-  groups.sort((a,b) => (a.sortTime - b.sortTime) || String(a.awayTeam).localeCompare(String(b.awayTeam)) || String(a.homeTeam).localeCompare(String(b.homeTeam)));
-  return groups;
-}
-function renderGameRankingsBoard(players, overallRankMap = null) {
-  const board = document.getElementById('gameRankingsBoard');
-  if (!board) return;
-  gameRankingGroupsCache = {};
-  if (!players || !players.length) {
-    board.innerHTML = `<div class="game-rankings-empty">Upload today's workbook to load game-by-game rankings...</div>`;
-    return;
-  }
-  const groups = buildGameRankingGroups(players);
-  let html = `<div class="game-rankings-header"><div class="game-rankings-title">🏟 Today's Games</div><div class="game-rankings-sub">Sorted by first pitch. Open a game to see only that matchup's hitters ranked 1-${groups.length ? Math.max(...groups.map(g=>g.list.length)) : 18}. Full BBI Rankings stays last.</div></div>`;
-  groups.forEach((g, idx) => {
-    const key = `game_${gameRankSafeId(g.id)}_${idx}`;
-    const tbodyId = `${key}_tbody`;
-    gameRankingGroupsCache[key] = { players:g.list, overallRankMap, rankMode:'local', tbodyId };
-    const awayLogo = teamLogos[g.awayTeam] ? `<img src="${teamLogos[g.awayTeam]}" alt="${g.awayTeam}">` : '';
-    const homeLogo = teamLogos[g.homeTeam] ? `<img src="${teamLogos[g.homeTeam]}" alt="${g.homeTeam}">` : '';
-    const envClass = g.env >= 7.0 ? 'gold' : (g.env >= 5.8 ? 'hot' : '');
-    const pitchers = gameRankPitcherDetails(g.list, g.awayTeam, g.homeTeam);
-    html += `<div class="game-card" id="${key}">
-      <button type="button" class="game-card-toggle" onclick="toggleGameRankingsCard('${key}')">
-        <span class="game-card-chevron">⌄</span>
-        <div class="game-card-main">
-          ${gameRankPitcherCard(pitchers.awayPitcher, g.awayTeam, 'away')}
-          <div class="game-matchup-block">
-            <div class="game-matchup-logos">${awayLogo}<span>${gameRankEscapeHtml(g.awayTeam || 'AWAY')}</span><span class="game-at-symbol">@</span><span>${gameRankEscapeHtml(g.homeTeam || 'HOME')}</span>${homeLogo}</div>
-            <div class="game-pitchers"><span class="game-time-label">First Pitch</span> <b>${gameRankEscapeHtml(gameRankStartTimeLabel(g.id))}</b> • ${gameRankPitcherLine(g.list, g.awayTeam, g.homeTeam)}</div>
-            <div class="game-park-line">${gameRankParkLabel(g.matchup, g.id)} • ${gameRankWeatherLabel(g.id)} • ${g.list.length} Hitters • HR Env ${g.env.toFixed(1)}</div>
-          </div>
-          ${gameRankPitcherCard(pitchers.homePitcher, g.homeTeam, 'home')}
-          <div class="game-summary-stack">
-            <div class="game-summary-pill ${envClass}">HR Env: ${g.env.toFixed(1)}</div>
-            <div class="game-summary-pill">${g.list.length} Hitters</div>
-            <div class="game-summary-pill game-action-pill">Open Game</div>
-          </div>
-        </div>
-      </button>
-      <div class="game-card-content">${gameRankTableShell(tbodyId)}</div>
-    </div>`;
-  });
-  const fullKey = 'full_bbi_rankings_card';
-  const fullTbody = 'full_bbi_rankings_tbody';
-  const fullPlayers = [...players].sort((a,b)=>(getOverallBBIRank(a, overallRankMap) || 9999) - (getOverallBBIRank(b, overallRankMap) || 9999));
-  gameRankingGroupsCache[fullKey] = { players:fullPlayers, overallRankMap, rankMode:'overall', tbodyId:fullTbody };
-  html += `<div class="game-card game-full-card" id="${fullKey}">
-    <button type="button" class="game-card-toggle" onclick="toggleGameRankingsCard('${fullKey}')">
-      <span class="game-card-chevron">⌄</span>
-      <div class="game-card-main">
-        <div class="game-time-box"><div class="game-time-label">Board</div><div class="game-time-value">FULL</div></div>
-        <div class="game-matchup-block"><div class="game-matchup-logos"><span>🏆 Full BBI Rankings</span></div><div class="game-pitchers">Complete slate in true overall BBI rank order</div><div class="game-park-line">Use this last when you want the full 1-${fullPlayers.length} board.</div></div>
-        <div class="game-summary-stack"><div class="game-summary-pill gold">${fullPlayers.length} Players</div><div class="game-summary-pill">Overall Ranks</div><div class="game-summary-pill game-action-pill">Open Full Board</div></div>
-      </div>
-    </button>
-    <div class="game-card-content">${gameRankTableShell(fullTbody)}</div>
-  </div>`;
-  board.innerHTML = html;
-}
-function toggleGameRankingsCard(key) {
-  const card = document.getElementById(key);
-  const cfg = gameRankingGroupsCache[key];
-  if (!card || !cfg) return;
-  const willOpen = !card.classList.contains('open');
-  card.classList.toggle('open', willOpen);
-  const actionPill = card.querySelector('.game-action-pill');
-  if (actionPill) {
-    const isFull = key === 'full_bbi_rankings_card';
-    actionPill.textContent = willOpen ? (isFull ? 'Close Full Board' : 'Close Game') : (isFull ? 'Open Full Board' : 'Open Game');
-  }
-  if (willOpen && !card.dataset.rendered) {
-    renderMainTableBoard(cfg.players || [], cfg.overallRankMap || null, cfg.tbodyId, cfg.rankMode || 'overall');
-    card.dataset.rendered = '1';
-  }
-}
-
-function renderMainTableBoard(data, overallRankMap = null, targetTbodyId = 'tableBody', rankMode = 'overall') {
-const tbody = document.getElementById(targetTbodyId);
-if (!tbody) return;
+function renderMainTableBoard(data, overallRankMap = null) {
+const tbody = document.getElementById('tableBody');
 if (data.length === 0) { renderBBITierStats(0); tbody.innerHTML = `<tr><td colspan="11" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`; return; }
 tbody.innerHTML = '';
 const globalSlateSorted = [...playerData].filter(p => !p.isRemoved);
@@ -13777,7 +13266,7 @@ const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
 const batterHand = getBatterHandDisplay(p);
 const orbitClass = idx < 10 ? ' orbit-ready' : '';
 const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
-const displayRank = rankMode === 'local' ? (idx + 1) : (p.overallBBIRank || (overallRankMap ? getOverallBBIRank(p, overallRankMap) : null) || (idx + 1));
+const displayRank = p.overallBBIRank || (overallRankMap ? getOverallBBIRank(p, overallRankMap) : null) || (idx + 1);
 tr.innerHTML = `<td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td><td class="action-cell">${bombBtn} ${actionBtn} ${lockBtn}</td>`;
 tbody.appendChild(tr);
 });
@@ -13870,11 +13359,7 @@ document.getElementById('tab-home').classList.add('active');
 document.querySelector('.nav-tab').classList.add('active');
 setTimeout(() => {
 const rowId = `player-row-${normalizeName(playerName)}`;
-let row = document.getElementById(rowId);
-if (!row && document.getElementById('full_bbi_rankings_card')) {
-  if (!document.getElementById('full_bbi_rankings_card').classList.contains('open')) toggleGameRankingsCard('full_bbi_rankings_card');
-  row = document.getElementById(rowId);
-}
+const row = document.getElementById(rowId);
 if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); row.classList.add('highlighted-row'); setTimeout(() => row.classList.remove('highlighted-row'), 2000); }
 }, 100);
 }
