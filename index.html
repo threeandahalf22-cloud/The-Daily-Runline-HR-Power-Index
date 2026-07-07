@@ -11886,8 +11886,8 @@ battedBallProfile: { pulledAirPct: 14, sweetSpotLaunchAngle: 25, hrFb: 20, fbld:
 pitcherVulnerability: { pitcherHR9: 5, pitcherBarrelAllowed: 17, pitcherGB: 7, pitcherSweetSpot: 16, pitcherHardHitAllowed: 10, pitcherFBpct: 14, pitcherHRFBpct: 4, pitcherEVallowed: 11, pitcherPullAllowed: 16 },
 pitchMatchup: { fastballRV: 28, breakingRV: 20, offspeedRV: 10, stuffPlus: 8, pitchingPlus: 6, fastballPct: 28 },
 weather: { wind: 56, temp: 44 },
-park: { hrParkFactor: 65, fenceDistance: 35 },
-bvp: { xslg: 43, ev: 33, hrHistory: 24 }
+park: { hrParkFactor: 95, fenceDistance: 5 },
+bvp: { xslg: 33, ev: 33, hrHistory: 34 }
 };
 function normalizeSubweights(sub) { const total = Object.values(sub).reduce((s, v) => s + (Number(v) || 0), 0); const out = {}; if (total <= 0) { Object.keys(sub).forEach(k => out[k] = 0); return out; } Object.keys(sub).forEach(k => out[k] = (Number(sub[k]) || 0) / total); return out; }
 const N_SUB = {};
