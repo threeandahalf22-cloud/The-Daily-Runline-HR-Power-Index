@@ -7720,6 +7720,49 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .odds-card-footer { padding:10px 12px 13px; flex-direction:column; align-items:flex-start; }
 }
 </style>
+
+
+<style id="game-center-clean-red-outline-final">
+/* =========================
+   GAME CENTER CLEAN RED OUTLINE
+   Simple outside border around every game tile. No glow.
+   Visual-only: no scoring/data logic changed.
+   ========================= */
+#pregameSlateBoard .slate-game-center-card,
+#pregameSlateBoard .slate-game-card.slate-game-center-card {
+  border: 2px solid #e10600 !important;
+  border-left: 2px solid #e10600 !important;
+  border-top: 2px solid #e10600 !important;
+  border-right: 2px solid #e10600 !important;
+  border-bottom: 2px solid #e10600 !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+  filter: none !important;
+  outline: none !important;
+}
+
+#pregameSlateBoard .slate-game-center-card::before,
+#pregameSlateBoard .slate-game-center-card::after,
+#pregameSlateBoard .slate-game-card.slate-game-center-card::before,
+#pregameSlateBoard .slate-game-card.slate-game-center-card::after {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+#pregameSlateBoard .slate-game-center-card:hover,
+#pregameSlateBoard .slate-game-card.slate-game-center-card:hover {
+  border-color: #ff2a2a !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+#pregameSlateBoard .slate-game-center-card:hover *,
+#pregameSlateBoard .slate-game-card.slate-game-center-card:hover * {
+  filter: none !important;
+}
+</style>
+
 </head>
 <body>
 
@@ -14573,13 +14616,11 @@ function optimizeBacktestRawStatWeights(rows, metrics) {
   return result;
 }
 
-function renderBacktestRawStatWeightRows(signals, statWeights, limit=120) {
+function renderBacktestRawStatWeightRows(signals, limit=120) {
   return signals.slice(0, limit).map(s => {
     const cls = s.diff > 0 ? 'signal-positive' : s.diff < 0 ? 'signal-negative' : 'signal-neutral';
     const sign = s.diff > 0 ? '+' : '';
-    const w = statWeights && statWeights.get(s.key) ? statWeights.get(s.key) : { current:0, suggested:0, delta:0, confidence:s.confidence };
-    const dcls = w.delta > 0.75 ? 'signal-positive' : w.delta < -0.75 ? 'signal-negative' : 'signal-neutral';
-    return `<tr><td>${s.label}</td><td>${s.type || '-'}</td><td>${s.bucket || '-'}</td><td>${fmtBack(w.current,1,'%')}</td><td>${fmtBack(w.suggested,1,'%')}</td><td class="${dcls}">${w.delta >= 0 ? '+' : ''}${fmtBack(w.delta,1,'%')}</td><td>${s.count}</td><td>${s.hitCount}</td><td>${fmtBack(s.hitRate,2,'%')}</td><td>${fmtSignalValue(s.hitAvg, s.metric)}</td><td>${fmtSignalValue(s.missAvg, s.metric)}</td><td class="${cls}">${sign}${fmtSignalValue(s.diff, s.metric)}</td><td>${s.direction}</td><td>${fmtBack(s.strength,2)}</td><td>${w.confidence || s.confidence}</td></tr>`;
+    return `<tr><td>${s.label}</td><td>${s.type || '-'}</td><td>${s.bucket || '-'}</td><td>${s.count}</td><td>${s.hitCount}</td><td>${fmtBack(s.hitRate,2,'%')}</td><td>${fmtSignalValue(s.hitAvg, s.metric)}</td><td>${fmtSignalValue(s.missAvg, s.metric)}</td><td class="${cls}">${sign}${fmtSignalValue(s.diff, s.metric)}</td><td>${s.direction}</td><td>${fmtBack(s.strength,2)}</td><td>${s.confidence}</td></tr>`;
   }).join('');
 }
 
@@ -14818,8 +14859,7 @@ function renderBacktestLab() {
     <tr><td>Optimized Suggested Weights</td><td class="signal-positive">${fmtBack(sugPerf.objective,2)}</td><td>${fmtBack(sugPerf.top5RatePct,2,'%')}</td><td>${fmtBack(sugPerf.top10RatePct,2,'%')}</td><td>${fmtBack(sugPerf.top25RatePct,2,'%')}</td><td>${sugPerf.top10Lift ? sugPerf.top10Lift.toFixed(2)+'x' : '-'}</td><td>${fmtBack(sugPerf.avgHrRank,1)}</td><td>${fmtBack(sugPerf.avgRankPercentile,1,'%')}</td><td>${fmtBack(sugPerf.ndcg,3)}</td></tr>`;
 
   const categoryRows = renderBacktestSignalRows(categorySignals, 18);
-  const statWeightMap = optimizeBacktestRawStatWeights(rows, dynamicMetrics);
-  const rawRows = renderBacktestRawStatWeightRows(rawSignals, statWeightMap, 120);
+  const rawRows = renderBacktestRawStatWeightRows(rawSignals, 120);
 
   const strongestRaw = rawSignals[0];
   const strongestCategory = categorySignals[0];
@@ -14848,8 +14888,8 @@ function renderBacktestLab() {
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${categoryRows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before category signals are useful.</td></tr>'}</tbody></table></div>
 
     <h2>🔬 Individual Raw Stat Analysis</h2>
-    <p class="backtest-note">This now shows only the individual stats that directly feed the live scoring buckets. Display-only, audit-only, and context-only fields are excluded so the table matches the actual weight system you are trying to evaluate.</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Bucket</th><th>Current Stat W</th><th>Suggested Stat W</th><th>Diff</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="15" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
+    <p class="backtest-note">This shows only the individual stats that directly feed the live scoring buckets. Current/suggested raw-stat weights were removed because the raw-stat optimizer was creating misleading recommendations. Use this table as a clean signal audit: rows, HR rate, HR vs miss averages, direction, strength, and sample confidence.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Bucket</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
   `;
   initSortableSignalTables(container);
   } catch (err) {
