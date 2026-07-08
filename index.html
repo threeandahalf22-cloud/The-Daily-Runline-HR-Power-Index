@@ -12732,10 +12732,12 @@ function calculateAttackZoneProfile(player) {
       let pitchPct = hasP ? pitcherStats.pitchPct : null;
       if (pitchPct === null && hasP) pitchPct = 1 / 9;
       const freqScore = attackZoneScaleScore('freq', pitchPct === null ? 1/9 : pitchPct);
+      // v47 Attack Zone refresh:
+      // Per-zone edge now measures pure hitter/pitcher collision, while the final Zone Score
+      // separately rewards whether the pitcher actually lives in the hitter's best damage zone.
       const edge = hybridWeightedAvg([
-        { value: batterDamage, weight: 0.45 },
-        { value: pitcherVulnerability, weight: 0.35 },
-        { value: freqScore, weight: 0.20 }
+        { value: batterDamage, weight: 0.55 },
+        { value: pitcherVulnerability, weight: 0.45 }
       ]);
       if (edge === null || edge === undefined || isNaN(edge)) continue;
       zones.push({
@@ -12756,12 +12758,19 @@ function calculateAttackZoneProfile(player) {
     }
     if (!zones.length) return { score: null, zones: [], topZone: null, summary: 'No BZ/PZ zone data found.' };
     const totalPct = zones.reduce((s,z) => s + (Number(z.pitchPct) || 0), 0);
-    const rawScore = zones.reduce((s,z) => s + (Number(z.edge) || 0) * (Number(z.pitchPct) || (1 / zones.length)), 0) / zones.reduce((s,z) => s + (Number(z.pitchPct) || (1 / zones.length)), 0);
-    const score = Math.max(0, Math.min(100, rawScore));
+    const weightedAvgEdge = zones.reduce((s,z) => s + (Number(z.edge) || 0) * (Number(z.pitchPct) || (1 / zones.length)), 0) / zones.reduce((s,z) => s + (Number(z.pitchPct) || (1 / zones.length)), 0);
     zones.sort((a,b) => (b.edge || 0) - (a.edge || 0));
     const topZone = zones[0] || null;
+    const bestOverlapEdge = topZone ? Number(topZone.edge) || 0 : 0;
+    const bestZoneUsageScore = topZone ? Number(topZone.pitchFrequencyScore) || 0 : 0;
+    const rawScore = hybridWeightedAvg([
+      { value: bestOverlapEdge, weight: 0.50 },
+      { value: bestZoneUsageScore, weight: 0.30 },
+      { value: weightedAvgEdge, weight: 0.20 }
+    ]);
+    const score = Math.max(0, Math.min(100, rawScore));
     const summary = topZone ? zoneBuildSummary(hitterName, pitcherName, topZone) : 'No edge';
-    return { score, zones, topZone, summary, totalPitchPct: totalPct, formula: '45% Batter Zone Damage / 35% Pitcher Zone Damage / 20% Pitch Frequency' };
+    return { score, zones, topZone, summary, totalPitchPct: totalPct, formula: '50% Best Zone Edge / 30% Best Zone Pitcher Usage / 20% Weighted Zone Average' };
   } catch (err) {
     console.warn('Attack Zone calculation failed for', player && player.Name, err);
     return { score: null, zones: [], topZone: null, summary: 'Attack Zone error-safe neutral.' };
@@ -12887,7 +12896,7 @@ function renderZoneProfileTab() {
   const pill = document.getElementById('zoneSummaryPill');
   if (pill) {
     const withData = data.filter(x => x.profile && x.profile.zones && x.profile.zones.length).length;
-    pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; Formula: <b>45/35/20</b>`;
+    pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; Formula: <b>50/30/20</b>`;
   }
   if (!data.length) { grid.innerHTML = `<div class="zone-empty">No players match the current Zone Profile filters.</div>`; return; }
   grid.innerHTML = data.map(({player:p, profile}, idx) => {
