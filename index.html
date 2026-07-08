@@ -8076,6 +8076,18 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .drl-upload-title { font-size:14px; }
 }
 </style>
+
+<style id="bet-finder-style">
+/* =========================
+   BET FINDER / SCOUTING BUILDER
+   UI filter only. Does not change scoring, weights, odds, weather, or backtest logic.
+   ========================= */
+.bet-finder-panel{position:relative;overflow:visible;border:1px solid rgba(225,6,0,.28);border-left:5px solid var(--accent);border-radius:18px;padding:18px;margin:0 0 20px;background:radial-gradient(circle at 92% 0%,rgba(225,6,0,.16),transparent 34%),linear-gradient(145deg,rgba(5,11,20,.94),rgba(17,31,53,.70));box-shadow:0 18px 50px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.07)}
+.bet-finder-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}.bet-finder-title{color:#fff;font-size:18px;font-weight:1000;text-transform:uppercase;letter-spacing:1.2px}.bet-finder-sub{color:var(--text-muted);font-size:12px;font-weight:800;margin-top:4px}.bet-finder-count{text-align:right;color:#fff;font-size:12px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px}.bet-finder-count b{display:block;color:var(--accent);font-family:monospace;font-size:30px;line-height:1}.bet-finder-presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}.bet-preset-btn{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);color:#cbd5e1;border-radius:999px;padding:9px 12px;font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px;cursor:pointer}.bet-preset-btn:hover,.bet-preset-btn.active{border-color:var(--accent);background:rgba(225,6,0,.10);color:#fff;transform:translateY(-1px)}
+.bet-finder-grid{display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));gap:13px}.bet-slider-card{border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:11px;background:rgba(5,11,20,.58)}.bet-slider-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.bet-slider-label{color:#fff;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px}.bet-slider-value{color:var(--accent);font-family:monospace;font-weight:1000}.bet-slider-card.disabled .bet-slider-value{color:var(--text-muted)}.bet-slider-card.disabled{opacity:.62}.bet-slider{width:100%;accent-color:#e10600}.bet-any-toggle{margin-top:7px;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}.bet-any-toggle input{width:auto}.bet-finder-checks{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:8px;margin-top:14px}.bet-check{display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;background:rgba(255,255,255,.035);color:#e2e8f0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.55px}.bet-check input{width:auto}.bet-finder-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.bet-action{border:0;border-radius:12px;padding:12px 15px;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;cursor:pointer}.bet-action.apply{background:linear-gradient(135deg,var(--accent),#b00000);color:#04080f}.bet-action.reset{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.10)}.bet-finder-results{margin-top:14px;display:none}.bet-finder-results.active{display:block}.bet-match-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:10px}.bet-match-card{border:1px solid rgba(255,255,255,.08);border-left:4px solid var(--team-color,var(--accent));border-radius:14px;padding:12px;background:rgba(5,11,20,.62);cursor:pointer}.bet-match-card:hover{border-color:var(--team-color,var(--accent));transform:translateY(-2px)}.bet-match-top{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;align-items:center}.bet-match-card .player-headshot{width:40px!important;height:40px!important;margin:0!important}.bet-match-name{color:#fff;font-size:13px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bet-match-meta{color:var(--stadium-lights);font-size:10px;font-weight:900;text-transform:uppercase;margin-top:2px}.bet-match-score{color:var(--accent);font-family:monospace;font-size:22px;font-weight:1000}.bet-pass-list{margin-top:10px;display:grid;gap:5px}.bet-pass-row{display:flex;justify-content:space-between;gap:8px;color:#cbd5e1;font-size:10px;font-weight:900}.bet-pass-row span:first-child{color:#10b981}.bet-finder-empty{color:var(--text-muted);font-style:italic;text-align:center;padding:18px;border:1px dashed rgba(255,255,255,.10);border-radius:12px;margin-top:10px}
+@media(max-width:1050px){.bet-finder-grid,.bet-finder-checks{grid-template-columns:repeat(2,minmax(0,1fr))}.bet-finder-head{flex-direction:column}.bet-finder-count{text-align:left}}@media(max-width:620px){.bet-finder-grid,.bet-finder-checks{grid-template-columns:1fr}}
+</style>
+
 </head>
 <body>
 
@@ -8210,6 +8222,23 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </div>
 </div>
 <div>
+
+
+<div class="bet-finder-panel" id="betFinderPanel">
+  <div class="bet-finder-head">
+    <div><div class="bet-finder-title">🎯 Bet Finder</div><div class="bet-finder-sub">Build the home run bet profile once, then let the rankings shrink to the hitters who qualify.</div></div>
+    <div class="bet-finder-count" id="betFinderCount"><b>0</b> Players Match</div>
+  </div>
+  <div class="bet-finder-presets" id="betFinderPresets">
+    <button type="button" class="bet-preset-btn" onclick="applyBetFinderPreset('conservative', this)">⭐ Conservative</button>
+    <button type="button" class="bet-preset-btn" onclick="applyBetFinderPreset('bomb', this)">🔥 Bomb Hunters</button>
+    <button type="button" class="bet-preset-btn" onclick="applyBetFinderPreset('longshot', this)">💰 Longshot Value</button>
+    <button type="button" class="bet-preset-btn active" onclick="applyBetFinderPreset('cody', this)">🎯 Cody's Filter</button>
+  </div>
+  <div class="bet-finder-grid" id="betFinderSliders"></div>
+  <div class="bet-finder-actions"><button type="button" class="bet-action apply" onclick="applyBetFinderFilters()">Apply</button><button type="button" class="bet-action reset" onclick="resetBetFinder()">Reset</button></div>
+  <div class="bet-finder-results" id="betFinderResults"></div>
+</div>
 
 <div id="bbiTierHomePanel" class="bbi-tier-home-panel">
   <div class="bbi-tier-top">
@@ -13990,7 +14019,14 @@ p.overallBBIRank = overallRank;
 p.bbiTier = playerTier;
 return true;
 });
+if (typeof initBetFinder === 'function') initBetFinder();
+const betDetailsMap = new Map();
+let betQualified = filtered.filter(p => { const d = (typeof betFinderPassDetails === 'function') ? betFinderPassDetails(p, overallRankMap) : {pass:true,reasons:[]}; betDetailsMap.set(p, d); return d.pass; });
+const betState = (typeof getBetFinderState === 'function') ? getBetFinderState() : {showQualified:false};
+if (betState.showQualified) filtered = betQualified;
 filtered.sort((a, b) => (getOverallBBIRank(a, overallRankMap) || 9999) - (getOverallBBIRank(b, overallRankMap) || 9999));
+betQualified.sort((a, b) => (getOverallBBIRank(a, overallRankMap) || 9999) - (getOverallBBIRank(b, overallRankMap) || 9999));
+if (typeof renderBetFinderResults === 'function') renderBetFinderResults(filtered, betQualified, betDetailsMap);
 renderBBITierStats(filtered.length);
 renderMainTableBoard(filtered, overallRankMap);
 renderPregameSlateBoard();
@@ -16896,6 +16932,108 @@ try {
     console.warn('Sandbox apply button bind failed:', err);
   }
 })();
+</script>
+
+
+<script id="bet-finder-script">
+/* =========================
+   BET FINDER FILTER LOGIC
+   Filters display only. Official BBI scoring is untouched.
+   ========================= */
+const BET_FINDER_METRICS = [
+  {key:'bbi', label:'Minimum BBI', def:64},
+  {key:'pitcher', label:'Minimum Pitcher Score', def:52},
+  {key:'pitchlab', label:'Minimum Pitch Level', def:56},
+  {key:'attackZone', label:'Minimum Zone Score', def:58}
+];
+const BET_FINDER_PRESETS = {
+  conservative:{bbi:65,pitcher:50,pitchlab:50,attackZone:55},
+  bomb:{bbi:62,pitcher:58,pitchlab:56,attackZone:58},
+  longshot:{bbi:58,pitcher:50,pitchlab:52,attackZone:54},
+  cody:{bbi:64,pitcher:52,pitchlab:56,attackZone:58}
+};
+window.betFinderActive = window.betFinderActive || false;
+function betFinderNum(v){ const n = cleanNumber(v); return (n===null||n===undefined||isNaN(n)) ? null : Number(n); }
+function betFinderFirstValid(values, fallback=50){
+  for (const v of values) {
+    const n = betFinderNum(v);
+    if (n !== null && n !== undefined && !isNaN(n)) return n;
+  }
+  return fallback;
+}
+function betFinderMetricValue(p,key){
+  if(!p) return 0;
+  if(key==='bbi') return betFinderFirstValid([p.calculatedBBI, p.BBI, p.bbi], 0);
+  if(key==='pitcher') return betFinderFirstValid([p.calculatedPitcherScore, p.category && p.category.pitcher, p.Category_Pitcher, p.PitcherScore], 50);
+  if(key==='pitchlab'){
+    let labProfile = p.pitchLabProfile || null;
+    if(!labProfile && typeof buildPitchLabProfile === 'function') {
+      try { labProfile = buildPitchLabProfile(p); } catch(e) { labProfile = null; }
+    }
+    return betFinderFirstValid([
+      labProfile && labProfile.score,
+      p.category && p.category.pitchLevel,
+      p.category && p.category.pitchlab,
+      p.Category_PitchLab,
+      p.pitchLabScore,
+      p.calculatedPitchLab,
+      p.pitchScore,
+      p['Pitch Lab Score'],
+      p['PitchLab_Score']
+    ], 50);
+  }
+  if(key==='attackZone') return betFinderFirstValid([p.calculatedAttackZoneScore, p.category && p.category.attackZone, p.Category_AttackZone, p.attackZoneScore], 50);
+  return 0;
+}
+function initBetFinder(){
+  const wrap = document.getElementById('betFinderSliders'); if(!wrap || wrap.dataset.ready) return;
+  wrap.dataset.ready = '1';
+  wrap.innerHTML = BET_FINDER_METRICS.map(m => `<div class="bet-slider-card" id="bfCard_${m.key}"><div class="bet-slider-top"><span class="bet-slider-label">${m.label}</span><span class="bet-slider-value" id="bfVal_${m.key}">${m.def}</span></div><input class="bet-slider" type="range" min="0" max="100" step="1" id="bf_${m.key}" value="${m.def}" oninput="betFinderSliderChanged('${m.key}')"></div>`).join('');
+  applyBetFinderPreset('cody', null, false);
+}
+function betFinderSliderChanged(key){ window.betFinderActive = false; updateBetFinderLabels(); renderBetFinderInactiveMessage(); }
+function updateBetFinderLabels(){
+  BET_FINDER_METRICS.forEach(m=>{ const input=document.getElementById('bf_'+m.key), val=document.getElementById('bfVal_'+m.key), card=document.getElementById('bfCard_'+m.key); if(!input||!val) return; val.textContent=input.value; if(card) card.classList.remove('disabled'); });
+}
+function getBetFinderState(){
+  initBetFinder(); const thresholds={}; BET_FINDER_METRICS.forEach(m=>{ const inp=document.getElementById('bf_'+m.key); thresholds[m.key]=inp?Number(inp.value||0):0; });
+  return {thresholds,any:{},showQualified:!!window.betFinderActive};
+}
+function betFinderPassDetails(player, overallRankMap){
+  const st=getBetFinderState(); const reasons=[]; let pass=true;
+  BET_FINDER_METRICS.forEach(m=>{ const got=betFinderMetricValue(player,m.key); const need=st.thresholds[m.key]; const ok=got>=need; if(!ok) pass=false; reasons.push({key:m.key,label:m.label.replace('Minimum ',''),got,need,ok}); });
+  return {pass,reasons};
+}
+function applyBetFinderPreset(name, btn, shouldRender=true){
+  initBetFinder(); const pre=BET_FINDER_PRESETS[name] || BET_FINDER_PRESETS.cody;
+  BET_FINDER_METRICS.forEach(m=>{ const inp=document.getElementById('bf_'+m.key); if(inp) inp.value = pre[m.key] ?? m.def; });
+  document.querySelectorAll('.bet-preset-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active'); else { const ix={conservative:0,bomb:1,longshot:2,cody:3}[name]; const b=document.querySelectorAll('.bet-preset-btn')[ix]; if(b) b.classList.add('active'); }
+  updateBetFinderLabels();
+  window.betFinderActive = shouldRender !== false;
+  if(shouldRender && typeof applyFiltersAndRender==='function') applyFiltersAndRender();
+}
+function applyBetFinderFilters(){ window.betFinderActive = true; if(typeof applyFiltersAndRender==='function') applyFiltersAndRender(); }
+function resetBetFinder(){
+  window.betFinderActive=false;
+  BET_FINDER_METRICS.forEach(m=>{ const inp=document.getElementById('bf_'+m.key); if(inp) inp.value=m.def; });
+  document.querySelectorAll('.bet-preset-btn').forEach(b=>b.classList.remove('active'));
+  updateBetFinderLabels();
+  if(typeof applyFiltersAndRender==='function') applyFiltersAndRender();
+}
+function renderBetFinderInactiveMessage(){
+  const count=document.getElementById('betFinderCount'); if(count) count.innerHTML='<b>0</b> Ready';
+  const box=document.getElementById('betFinderResults'); if(box){ box.classList.add('active'); box.innerHTML='<div class="bet-finder-empty">Adjust the sliders, then hit Apply to shrink the rankings. Reset restores the full rankings.</div>'; }
+}
+function renderBetFinderResults(allFiltered, qualified, detailsMap){
+  if(!window.betFinderActive){ renderBetFinderInactiveMessage(); return; }
+  const count=document.getElementById('betFinderCount'); if(count) count.innerHTML=`<b>${qualified.length}</b> ${qualified.length===1?'Player Matches':'Players Match'}`;
+  const box=document.getElementById('betFinderResults'); if(!box) return; box.classList.add('active');
+  if(!qualified.length){ box.innerHTML='<div class="bet-finder-empty">No players match this build. Lower one of the four sliders and hit Apply again.</div>'; return; }
+  const top=qualified.slice(0,8).map(p=>{ const d=detailsMap.get(p)||{reasons:[]}; const rows=d.reasons.map(r=>`<div class="bet-pass-row"><span>${r.ok?'✅':'❌'} ${r.label}</span><b>${Number(r.got).toFixed(1)} <span style="color:var(--text-muted)">(Needed ${r.need})</span></b></div>`).join(''); return `<div class="bet-match-card" style="${teamVisualStyle(p.Team)}" onclick="scrollToPlayer('${escJSString(p.Name)}')"><div class="bet-match-top">${createHeadshotHtml(p.Name,'sm',p.Team)}<div style="min-width:0"><div class="bet-match-name">${p.Name}</div><div class="bet-match-meta">${p.Team || ''} • vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</div></div><div class="bet-match-score">${(p.calculatedBBI||0).toFixed(1)}</div></div><div class="bet-pass-list">${rows}</div></div>`; }).join('');
+  box.innerHTML=`<div class="bet-finder-sub"><b style="color:#fff">${qualified.length} PLAYERS MATCH YOUR FILTERS</b> — BBI, Pitcher Score, Pitch Level, and Zone Score only.</div><div class="bet-match-list">${top}</div>`;
+}
+document.addEventListener('DOMContentLoaded', initBetFinder);
 </script>
 
 </body>
