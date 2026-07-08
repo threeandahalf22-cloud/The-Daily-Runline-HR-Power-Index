@@ -8024,6 +8024,58 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
+
+<style id="drl-performance-upload-style">
+/* =========================
+   FAST LOAD + PREMIUM UPLOAD BAR
+   Visual only. Scoring/data logic untouched.
+   ========================= */
+.drl-upload-box {
+  display: grid !important;
+  grid-template-columns: 54px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 16px !important;
+  text-align: left !important;
+  padding: 18px 20px !important;
+  border-style: solid !important;
+  border-color: rgba(225,6,0,.28) !important;
+  border-left: 5px solid var(--accent) !important;
+  background:
+    radial-gradient(circle at 12% 15%, rgba(225,6,0,.18), transparent 34%),
+    radial-gradient(circle at 92% 0%, rgba(56,189,248,.10), transparent 30%),
+    linear-gradient(145deg, rgba(5,11,20,.94), rgba(17,31,53,.70)) !important;
+  box-shadow: 0 18px 48px rgba(0,0,0,.38), 0 0 24px rgba(225,6,0,.08), inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+.drl-upload-orb {
+  width: 54px; height: 54px; border-radius: 16px;
+  display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(135deg, rgba(225,6,0,.22), rgba(5,11,20,.86));
+  border:1px solid rgba(225,6,0,.34);
+  box-shadow: 0 0 22px rgba(225,6,0,.16), inset 0 1px 0 rgba(255,255,255,.09);
+  font-size: 25px;
+}
+.drl-upload-copy { min-width:0; position:relative; z-index:1; }
+.drl-upload-kicker { color:var(--accent); font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:1.4px; margin-bottom:4px; }
+.drl-upload-title { color:#fff; font-size:17px; font-weight:1000; text-transform:uppercase; letter-spacing:.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.drl-upload-sub { margin-top:4px; color:var(--text-muted); font-size:11px; font-weight:800; }
+.drl-upload-btn {
+  position:relative; z-index:1; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  border-radius: 12px; padding: 13px 16px; cursor:pointer; white-space:nowrap;
+  color:#04080f; font-size:12px; font-weight:1000; text-transform:uppercase; letter-spacing:.8px;
+  background: linear-gradient(135deg, var(--accent), #b00000);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow: 0 12px 28px rgba(225,6,0,.20);
+  transition: transform .2s ease, filter .2s ease, box-shadow .2s ease;
+}
+.drl-upload-btn:hover { transform:translateY(-2px); filter:brightness(1.08); box-shadow:0 16px 34px rgba(225,6,0,.30); }
+.drl-upload-box input[type="file"] { position:absolute !important; width:1px !important; height:1px !important; opacity:0 !important; pointer-events:none !important; }
+@media(max-width:700px){
+  .drl-upload-box { grid-template-columns: 44px minmax(0,1fr) !important; }
+  .drl-upload-orb { width:44px; height:44px; border-radius:14px; }
+  .drl-upload-btn { grid-column:1 / -1; width:100%; box-sizing:border-box; }
+  .drl-upload-title { font-size:14px; }
+}
+</style>
 </head>
 <body>
 
@@ -8113,9 +8165,17 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <div class="spotlight-title"><span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>Top 12 Homerun Targets</div>
 <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
 </div>
-<div class="upload-box">
-<input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
-<div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">Upload your workbook with HR, vsPitcher, PLdata, lastweek, weather, <b>ID</b>, and <b>top5</b> sheets</div>
+<div class="upload-box drl-upload-box">
+  <div class="drl-upload-orb">⚾</div>
+  <div class="drl-upload-copy">
+    <div class="drl-upload-kicker">Daily Runline Data Upload</div>
+    <div class="drl-upload-title" id="uploadFileName">Drop in today’s HR model</div>
+    <div class="drl-upload-sub">BBI scores calculate first. Heavy tabs now build only when opened.</div>
+  </div>
+  <label class="drl-upload-btn" for="excelFile">
+    <span>⬆</span> Choose Workbook
+  </label>
+  <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
 </div>
 
 <div class="dashboard-grid">
@@ -9517,6 +9577,98 @@ function refreshOpenWeatherAndRerender() {
   refreshOpenWeatherForSlate().then(refreshAfterLiveWeatherUpdate).catch(err => console.warn('Live weather refresh failed', err));
 }
 
+
+/* =========================
+   v43.6 FAST LOAD WEATHER API FIX
+   Keeps lazy loading, but prevents weather from getting stuck on cloned spreadsheet/fallback values.
+   Live weather runs in the background and updates every matching game id by true home park.
+   ========================= */
+function fetchJSONWithTimeout(url, ms = 9000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { signal: ctrl.signal, cache: 'no-store' })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+    .finally(() => clearTimeout(t));
+}
+function getTrueHomeTeamFromMatchup(m) {
+  return String((m && (m.trueHomeTeam || m.homeTeam || m.teamB || m.teamA)) || '').trim().toUpperCase();
+}
+function cloneWeatherKeepingSheetFallback(existing, homeTeam, errorText) {
+  const stadium = stadiumCoordinates[homeTeam] || {};
+  const base = existing && Object.keys(existing).length ? existing : { temp: 72, windSpeed: 0, windDir: 'neutral', humidity: 0 };
+  return enrichWeatherWithFieldVector({
+    ...base,
+    isDome: !!stadium.dome || !!base.isDome,
+    weatherSource: base.weatherSource && base.weatherSource !== 'OpenWeather unavailable - neutral'
+      ? `${base.weatherSource} • API unavailable`
+      : 'Spreadsheet / API unavailable',
+    weatherError: errorText || 'OpenWeather request failed',
+    stadiumName: stadium.name || base.stadiumName || homeTeam,
+    homeTeam
+  }, homeTeam);
+}
+async function refreshOpenWeatherForSlate() {
+  if (!OPENWEATHER_API_KEY || !Array.isArray(gameMatchups) || gameMatchups.length === 0) return;
+
+  const gamesByHome = new Map();
+  (gameMatchups || []).forEach(m => {
+    const homeTeam = getTrueHomeTeamFromMatchup(m);
+    const stadium = stadiumCoordinates[homeTeam];
+    if (!homeTeam || !stadium || !m || !m.id) return;
+    if (!gamesByHome.has(homeTeam)) gamesByHome.set(homeTeam, []);
+    gamesByHome.get(homeTeam).push(m);
+  });
+
+  const jobs = [...gamesByHome.entries()].map(async ([homeTeam, games]) => {
+    const stadium = stadiumCoordinates[homeTeam];
+    if (!stadium) return;
+
+    if (stadium.dome) {
+      games.forEach(m => {
+        weatherSettings[m.id] = {
+          ...(weatherSettings[m.id] || {}),
+          isDome: true,
+          windDir: 'neutral',
+          windSpeed: 0,
+          windDeg: null,
+          windToDeg: null,
+          windType: 'neutral',
+          windFieldZone: 'neutral',
+          temp: (weatherSettings[m.id] && weatherSettings[m.id].temp) || 72,
+          humidity: (weatherSettings[m.id] && weatherSettings[m.id].humidity) || 0,
+          weatherSource: 'Dome preset',
+          stadiumName: stadium.name,
+          homeTeam
+        };
+      });
+      return;
+    }
+
+    const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${stadium.lat}&lon=${stadium.lon}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
+    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${stadium.lat}&lon=${stadium.lon}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
+
+    const [currentResult, forecastResult] = await Promise.allSettled([
+      fetchJSONWithTimeout(currentUrl),
+      fetchJSONWithTimeout(forecastUrl)
+    ]);
+
+    const currentData = currentResult.status === 'fulfilled' ? currentResult.value : null;
+    const forecastData = forecastResult.status === 'fulfilled' ? forecastResult.value : null;
+    if (!currentData && !forecastData) {
+      const errText = [currentResult.reason, forecastResult.reason].map(e => e && e.message ? e.message : String(e || '')).filter(Boolean).join(' / ') || 'OpenWeather failed';
+      games.forEach(m => { weatherSettings[m.id] = cloneWeatherKeepingSheetFallback(weatherSettings[m.id], homeTeam, errText); });
+      return;
+    }
+
+    games.forEach(m => {
+      const picked = chooseBestOpenWeatherBlock(currentData || (forecastData && forecastData.list && forecastData.list[0]), forecastData, weatherSettings[m.id]);
+      weatherSettings[m.id] = convertOpenWeatherToGameWeather(picked.data, homeTeam, weatherSettings[m.id], picked.sourceMode, picked.forecastDt);
+    });
+  });
+
+  await Promise.allSettled(jobs);
+}
+
 function getHeadshotUrl(playerName) {
 const id = playerIdMap[normalizeName(playerName)];
 if (!id) return null;
@@ -9945,23 +10097,25 @@ uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}"
 });
 rebuildTeamLogoDropdown();
 document.getElementById('graphicsPanel').style.display = 'block';
-refreshOpenWeatherForSlate().catch(err => console.warn('Live weather refresh skipped during upload:', err)).finally(() => {
+{
   const uploadStep = (label, fn) => { try { if (typeof fn === 'function') fn(); } catch (err) { console.error('Upload refresh failed at ' + label + ':', err); } };
+  const fileNameEl = document.getElementById('uploadFileName');
+  if (fileNameEl) fileNameEl.textContent = f && f.name ? f.name : 'Workbook loaded';
+
+  // FAST LOAD PATH v2:
+  // 1) Calculate/store all BBI scores immediately using spreadsheet weather.
+  // 2) Render Home right away so upload never waits on OpenWeather/network.
+  // 3) Refresh OpenWeather in the background, then recalculate/rerender from the live weather data.
   uploadStep('recalculateAllBBIScores', recalculateAllBBIScores);
-  uploadStep('renderFanaticsJackpot', renderFanaticsJackpot);
-  uploadStep('renderAllPitchers', renderAllPitchers);
-  uploadStep('renderHotBatTable', renderHotBatTable);
-  uploadStep('renderH2HFullTable', renderH2HFullTable);
-  uploadStep('renderPitchLabTable', renderPitchLabTable);
-  uploadStep('renderEdgePanels', renderEdgePanels);
-  uploadStep('renderBestBettingEdges', renderBestBettingEdges);
-  uploadStep('renderOddsBoard', renderOddsBoard);
-  uploadStep('renderWeatherRankings', renderWeatherRankings);
+  uploadStep('applyFiltersAndRender', applyFiltersAndRender);
   uploadStep('updateHeaderStats', updateHeaderStats);
   uploadStep('updateSlateTicker', updateSlateTicker);
   uploadStep('saveCachedData', saveCachedData);
-  uploadStep('renderGameCenterTab', renderGameCenterTab);
-});
+
+  refreshOpenWeatherForSlate()
+    .then(() => refreshAfterLiveWeatherUpdate())
+    .catch(err => console.warn('Live weather refresh skipped during upload:', err));
+}
 };
 reader.onerror = function(err) {
   console.error('Workbook file read failed:', err);
@@ -13847,9 +14001,10 @@ renderTop12Carousel();
 renderFanaticsJackpot();
 renderTodaysStorylines();
 renderBestBettingEdges();
-renderEdgePanels();
-renderOddsBoard();
-renderGameCenterTab();
+// Heavy tabs are lazy-rendered when opened, so Home filters stay fast.
+// renderEdgePanels();
+// renderOddsBoard();
+// renderGameCenterTab();
 }
 
 function compactWhyInsight(player) {
