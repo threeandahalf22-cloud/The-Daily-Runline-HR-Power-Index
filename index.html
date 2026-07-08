@@ -7720,6 +7720,96 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .odds-card-footer { padding:10px 12px 13px; flex-direction:column; align-items:flex-start; }
 }
 </style>
+
+<style id="home-rankings-left-sidebar-right-fix">
+/* Home page only: rankings on the left, sidebar stack on the right. Other tabs untouched. */
+@media (min-width: 1050px) {
+  #tab-home .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr) 380px !important;
+    align-items: start !important;
+  }
+  #tab-home .dashboard-grid > .home-sidebar-stack {
+    order: 2 !important;
+    align-self: start !important;
+    margin-top: 0 !important;
+  }
+  #tab-home .dashboard-grid > div:not(.home-sidebar-stack) {
+    order: 1 !important;
+    min-width: 0 !important;
+  }
+}
+#tab-home .compare-launch-card { display: none !important; }
+
+/* Pitch Lab only: keep hover cards/rows from covering the filter buttons. */
+#tab-pitchlab .pitch-lab-grid,
+#tab-pitchlab #pitchLabSummaryCards {
+  position: relative !important;
+  z-index: 1 !important;
+}
+#tab-pitchlab .pitch-lab-grid + div {
+  position: relative !important;
+  z-index: 20 !important;
+  background: rgba(5, 11, 20, 0.88) !important;
+}
+#tab-pitchlab table,
+#tab-pitchlab tbody,
+#tab-pitchlab tr {
+  position: relative !important;
+  z-index: 1 !important;
+}
+#tab-pitchlab .pitch-lab-card:hover,
+#tab-pitchlab tbody tr:hover {
+  transform: none !important;
+}
+</style>
+
+<style id="home-rankings-bomb-next-to-pf-no-actions">
+/* Home rankings only: bomb moved beside PF; Bench/Lock/Action column removed to prevent horizontal scroll. */
+#tab-home th.action-col,
+#tab-home td.action-cell { display: none !important; }
+#tab-home table { min-width: 0 !important; width: 100% !important; }
+#tab-home th.player-col,
+#tab-home .espn-player-cell { min-width: 390px !important; }
+#tab-home th.weather-col,
+#tab-home .weather-cell { width: 190px !important; }
+#tab-home th.score-col,
+#tab-home .score-cell { width: 132px !important; }
+#tab-home th.hr-col,
+#tab-home th.odds-col,
+#tab-home th.edge-col,
+#tab-home .hrprob-cell,
+#tab-home .odds-cell,
+#tab-home .edge-cell { width: 66px !important; }
+#tab-home .espn-name-row .btn-bomb {
+  flex: 0 0 auto;
+  margin-left: 2px;
+  padding: 3px 7px !important;
+  font-size: 12px !important;
+  line-height: 1.1;
+  border-radius: 999px;
+}
+#tab-home .espn-name-row { gap: 5px !important; }
+@media (max-width: 1250px) {
+  #tab-home table { min-width: 0 !important; width: 100% !important; }
+  #tab-home th.player-col,
+  #tab-home .espn-player-cell { min-width: 300px !important; }
+  #tab-home th.weather-col,
+  #tab-home .weather-cell { width: 145px !important; }
+  #tab-home th.score-col,
+  #tab-home .score-cell { width: 118px !important; }
+  #tab-home th.bats-col,
+  #tab-home .bats-cell { width: 60px !important; }
+  #tab-home th.hr-col,
+  #tab-home th.odds-col,
+  #tab-home th.edge-col,
+  #tab-home .hrprob-cell,
+  #tab-home .odds-cell,
+  #tab-home .edge-cell { width: 58px !important; }
+}
+@media (max-width: 760px) {
+  #tab-home table { min-width: 0 !important; }
+}
+</style>
 </head>
 <body>
 
@@ -7813,14 +7903,6 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">Upload your workbook with HR, vsPitcher, PLdata, lastweek, weather, <b>ID</b>, and <b>top5</b> sheets</div>
 </div>
 
-<div class="compare-launch-card">
-  <div>
-    <div class="compare-launch-title">🆚 Player Compare Lab</div>
-    <div class="compare-launch-sub">Compare up to 4 hitters side-by-side using the real HR inputs: BBI, HR%, total HR, EV/EV90, hard-hit/barrel data, pitcher HR/9, pitch lab, recent form, park and weather.</div>
-  </div>
-  <button type="button" class="compare-launch-btn" onclick="openCompareModal()">Compare Players</button>
-</div>
-
 <div class="dashboard-grid">
 <div class="home-sidebar-stack">
 <div class="panel">
@@ -7906,7 +7988,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 
 <div class="table-wrapper">
 <table>
-<thead><tr><th class="rank-col">Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="edge-col">Edge</th><th class="action-col">Action</th></tr></thead>
+<thead><tr><th class="rank-col">Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="edge-col">Edge</th></tr></thead>
 <tbody id="tableBody"><tr><td colspan="11" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 <div class="backtest-finalize-wrap">
@@ -12483,7 +12565,7 @@ function hybridScaleScoreFromPoints(rawValue, points) {
 function hybridFixedScore(key, rawValue) {
   return HYBRID_FIXED_SCALES[key] ? hybridScaleScoreFromPoints(rawValue, HYBRID_FIXED_SCALES[key]) : null;
 }
-function hybridScoreMetricBlended(raw, ranges, seasonKey, recentKey, seasonWeight=0.70, recentWeight=0.30) {
+function hybridScoreMetricBlended(raw, ranges, seasonKey, recentKey, seasonWeight=0.60, recentWeight=0.40) {
   const seasonScore = hybridScoreMetric(raw, ranges, seasonKey);
   const recentRaw = raw ? raw[recentKey] : null;
   const recentScaleKey = seasonKey;
@@ -12658,7 +12740,10 @@ function scoreHybridPlayer(p, ranges) {
   p.calculatedBvPActiveWeight = activeBvPBaseWeight * bvpConfidence;
   p.calculatedBvPRedistributedWeight = activeBvPBaseWeight - p.calculatedBvPActiveWeight;
   const bullpen = hybridAvg([hybridScoreMetric(r,ranges,'bullpenHR9'),hybridScoreMetric(r,ranges,'bullpenFIP'),hybridScoreMetric(r,ranges,'bullpenBarrel'),hybridScoreMetric(r,ranges,'bullpenHardHit')]);
-  const park = hybridAvg([hybridScoreMetric(r,ranges,'parkFactor'),hybridScoreMetric(r,ranges,'pullFence',true),hybridScoreMetric(r,ranges,'cf',true),hybridScoreMetric(r,ranges,'weatherScore')]);
+  // Park bucket now uses ONLY the handed park-factor index from PARKFACTORL/PARKFACTORR.
+  // No daily normalization, no LF/CF fence distance, and no weather double-counting.
+  // Example: ParkFactorL/R 93 => park score 93, 105 => park score 105.
+  const park = (r.parkFactor !== null && r.parkFactor !== undefined && !isNaN(Number(r.parkFactor)) && Number(r.parkFactor) > 0) ? Number(r.parkFactor) : 100;
   const weather = hybridAvg([hybridScoreMetric(r,ranges,'weatherScore')]);
   const paReliability = hybridWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'pa'), weight: 0.45 },
@@ -13257,9 +13342,6 @@ else if (pFactor <= 94) pfBadge = `<span class="pf-badge pf-red">PF ${pFactor}�
 const logoUrl = teamLogos[p.Team] || '';
 const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
 const stadiumPill = renderStadiumParkPill(p);
-let safeName = p.Name.replace(/'/g, "\\'");
-let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
-const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}', event)">💰 LOCK PICK</button>`;
 const bombActive = isBacktestBombed(p) ? ' active' : '';
 const bombBtn = `<button class="btn-bomb${bombActive}" title="Mark HR for backtest" onclick="event.stopPropagation(); toggleBacktestBomb('${escJSString(p.Name)}','${escJSString(p.Team)}')">💣</button>`;
 const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
@@ -13267,7 +13349,7 @@ const batterHand = getBatterHandDisplay(p);
 const orbitClass = idx < 10 ? ' orbit-ready' : '';
 const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
 const displayRank = p.overallBBIRank || (overallRankMap ? getOverallBBIRank(p, overallRankMap) : null) || (idx + 1);
-tr.innerHTML = `<td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td><td class="action-cell">${bombBtn} ${actionBtn} ${lockBtn}</td>`;
+tr.innerHTML = `<td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td>`;
 tbody.appendChild(tr);
 });
 }
@@ -14266,9 +14348,7 @@ const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
   { bucket:'Park', type:'Park scoring input', keys:[
     ['Raw_parkFactor','Park Factor'],
     ['Handed_Park_Factor','Handed Park Factor'],
-    ['ParkFactorL_or_R_Used','Park Factor L/R Used'],
-    ['Raw_pullFence','Pull-Side Fence'],
-    ['Raw_cf','Center Field Distance']
+    ['ParkFactorL_or_R_Used','Park Factor L/R Used']
   ]}
 ];
 
@@ -14376,7 +14456,7 @@ const BACKTEST_CURRENT_RAW_WEIGHT_MAP = {
   Raw_pitchLevelEV:20, PitchLab_Score:80, PitchLab_Mix_Score:25, PitchLab_Zone_Score:25, PitchLab_Pitch_Quality_Score:25, PitchLab_Bat_Tracking_Score:25,
   Raw_bvpXSLG:43, Raw_bvpEV:33, Raw_bvpHR:24,
   Weather_Wind_Points:56, Weather_Temp_Points:44, Weather_Temp:44, Weather_WindSpeed:56,
-  Raw_parkFactor:65, Handed_Park_Factor:65, ParkFactorL_or_R_Used:65, Raw_pullFence:35, Raw_cf:35
+  Raw_parkFactor:100, Handed_Park_Factor:100, ParkFactorL_or_R_Used:100
 };
 function getBacktestCurrentRawWeight(metric) {
   if (!metric || !metric.key) return 0;
