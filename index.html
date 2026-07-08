@@ -7721,420 +7721,373 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-<style id="game-rankings-accordion-style">
-/* =========================
-   GAME-BY-GAME RANKINGS BOARD
-   Rankings section only. Collapsed cards show no players; expanded cards reuse the current rankings table rows.
-   ========================= */
-.game-rankings-board{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
-.game-rankings-empty{border:1px dashed rgba(255,255,255,.12);border-radius:16px;background:rgba(5,11,20,.55);color:var(--text-muted);padding:30px;text-align:center;font-style:italic;font-weight:800;}
-.game-rankings-header{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.09);border-left:5px solid var(--accent);border-radius:18px;padding:16px 18px;background:linear-gradient(145deg,rgba(5,11,20,.92),rgba(17,31,53,.68));box-shadow:0 18px 50px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.07);}
-.game-rankings-title{color:#fff;font-size:18px;font-weight:1000;text-transform:uppercase;letter-spacing:1.2px;}
-.game-rankings-sub{margin-top:5px;color:var(--text-muted);font-size:12px;font-weight:850;line-height:1.35;}
-.game-card{--away-color:#e10600;--home-color:#e10600;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.10);border-left:6px solid #e10600;border-right:6px solid #e10600;border-radius:16px;background:linear-gradient(180deg,#101722 0%,#070d16 100%);box-shadow:0 10px 26px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.06);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;}
-.game-card::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(225,6,0,.11),transparent 16%,transparent 84%,rgba(225,6,0,.09));opacity:.55;}
-.game-card:hover{transform:translateY(-2px);border-top-color:rgba(225,6,0,.42);border-bottom-color:rgba(225,6,0,.42);box-shadow:0 14px 32px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.08);}
-.game-card-toggle{width:100%;border:0;background:transparent;color:inherit;padding:0;cursor:pointer;text-align:left;}
-.game-card-main{display:grid;grid-template-columns:190px 1fr 190px 130px;gap:12px;align-items:center;padding:12px 18px;}
-.game-pitcher-side{display:grid;grid-template-columns:50px minmax(0,1fr);gap:10px;align-items:center;border:1px solid rgba(225,6,0,.24);border-radius:13px;background:#050b14;padding:9px 10px;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
-.game-pitcher-side.home{grid-template-columns:minmax(0,1fr) 50px;text-align:right;}
-.game-pitcher-photo{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #e10600;background:#091222;box-shadow:0 8px 16px rgba(0,0,0,.35);}
-.game-pitcher-placeholder{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #e10600;background:#091222;color:#e10600;font-size:18px;font-weight:1000;}
-.game-pitcher-copy{min-width:0;}
-.game-pitcher-label{color:var(--text-muted);font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;}
-.game-pitcher-name{margin-top:4px;color:#fff;font-size:12px;font-weight:1000;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.game-pitcher-team{margin-top:2px;color:#e10600;font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:.6px;}
-.game-time-box{border:1px solid rgba(225,6,0,.22);border-radius:12px;background:#050b14;padding:11px 10px;text-align:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
-.game-time-label{color:var(--text-muted);font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;}
-.game-time-value{margin-top:5px;color:#fff;font-family:monospace;font-size:20px;font-weight:1000;line-height:1;}
-.game-matchup-block{min-width:0;text-align:center;}
-.game-matchup-logos{display:flex;align-items:center;justify-content:center;gap:12px;color:#fff;font-size:22px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;}
-.game-matchup-logos img{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 8px 12px rgba(0,0,0,.38));}
-.game-at-symbol{color:var(--text-muted);font-size:12px;font-weight:1000;}
-.game-pitchers{margin-top:6px;color:#e2e8f0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.game-park-line{margin-top:4px;color:var(--text-muted);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.game-summary-stack{display:grid;grid-template-columns:1fr;gap:7px;}
-.game-summary-pill{border:1px solid rgba(225,6,0,.24);border-radius:999px;background:#050b14;color:#cbd5e1;padding:7px 9px;font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:.55px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.game-summary-pill.hot{color:#fff;background:#b00000;border-color:#e10600;}
-.game-summary-pill.gold{color:#fff;background:#b00000;border-color:#e10600;}
-.game-summary-pill.game-action-pill{background:#e10600;color:#fff;border-color:#e10600;}
-.game-card.open .game-summary-pill.game-action-pill{background:#050b14;color:#fff;border-color:rgba(225,6,0,.55);}
-.game-card-main,.game-card-toggle,.game-card-content{position:relative;z-index:1;}
-.game-card-chevron{position:absolute;right:16px;top:14px;color:#e10600;font-size:18px;font-weight:1000;transition:transform .2s ease;}
-.game-card.open .game-card-chevron{transform:rotate(180deg);}
-.game-card-content{display:none;border-top:1px solid rgba(225,6,0,.24);padding:14px;background:#050b14;}
-.game-card.open .game-card-content{display:block;}
-.game-card-content .table-wrapper{margin:0;}
-.game-card-content table{min-width:1180px;}
-.game-full-card{--away-color:#e10600;--home-color:#e10600;border-left-color:#e10600;border-right-color:#e10600;}
-.game-full-card .game-time-value{color:#fff;}
-@media(max-width:900px){.game-card-main{grid-template-columns:1fr;gap:10px;padding:14px;}.game-pitcher-side,.game-pitcher-side.home{grid-template-columns:46px minmax(0,1fr);text-align:left;}.game-pitcher-photo,.game-pitcher-placeholder{width:44px;height:44px;}.game-summary-stack{grid-template-columns:repeat(2,minmax(0,1fr));}.game-matchup-logos{font-size:18px;}.game-matchup-logos img{width:34px;height:34px;}}
-@media(max-width:560px){.game-summary-stack{grid-template-columns:1fr;}.game-pitchers,.game-park-line{white-space:normal;}.game-card-content{padding:10px;}.game-matchup-logos{gap:8px;font-size:16px;}}
-</style>
-
-
-
-<style id="game-rankings-mobile-safe-final">
-/* =========================
-   GAME CARD MOBILE SAFE FINAL
-   Rankings section only. Keeps flat DRL red borders and pitcher photos.
-   No scoring/data logic changed.
-   ========================= */
-.game-card{
-  border-left-color:#e10600 !important;
-  border-right-color:#e10600 !important;
-}
-.game-card:hover{
-  box-shadow:0 14px 32px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.08) !important;
-}
-.game-pitcher-photo,
-.game-pitcher-placeholder{
-  flex:0 0 auto !important;
-}
-@media(max-width:700px){
-  .game-rankings-board{gap:11px !important;}
-  .game-rankings-header{padding:14px !important;}
-  .game-rankings-title{font-size:16px !important;}
-  .game-rankings-sub{font-size:11px !important;}
-  .game-card{border-left-width:4px !important;border-right-width:4px !important;border-radius:14px !important;}
-  .game-card-main{
-    display:grid !important;
-    grid-template-columns:40px minmax(0,1fr) 40px !important;
-    grid-template-areas:
-      "away matchup home"
-      "summary summary summary" !important;
-    gap:8px !important;
-    align-items:center !important;
-    padding:10px 10px 9px !important;
-  }
-  .game-pitcher-side.away{grid-area:away !important;}
-  .game-pitcher-side.home{grid-area:home !important;}
-  .game-matchup-block{grid-area:matchup !important;min-width:0 !important;}
-  .game-summary-stack{grid-area:summary !important;}
-  .game-pitcher-side,
-  .game-pitcher-side.home{
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    width:40px !important;
-    min-width:40px !important;
-    height:40px !important;
-    padding:0 !important;
-    border:0 !important;
-    background:transparent !important;
-    box-shadow:none !important;
-  }
-  .game-pitcher-side.home{flex-direction:row !important;}
-  .game-pitcher-copy{display:none !important;}
-  .game-pitcher-photo,
-  .game-pitcher-placeholder{
-    width:38px !important;
-    height:38px !important;
-    min-width:38px !important;
-    min-height:38px !important;
-    margin:0 !important;
-    border-width:2px !important;
-    box-shadow:0 6px 12px rgba(0,0,0,.36) !important;
-  }
-  .game-pitcher-placeholder{font-size:14px !important;}
-  .game-matchup-logos{
-    gap:5px !important;
-    font-size:15px !important;
-    line-height:1 !important;
-    min-width:0 !important;
-    white-space:nowrap !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-  }
-  .game-matchup-logos img{width:24px !important;height:24px !important;margin:0 !important;}
-  .game-at-symbol{font-size:10px !important;}
-  .game-pitchers{
-    margin-top:5px !important;
-    font-size:9px !important;
-    line-height:1.15 !important;
-    white-space:nowrap !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-  }
-  .game-park-line{
-    margin-top:3px !important;
-    font-size:9px !important;
-    line-height:1.15 !important;
-    white-space:nowrap !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-  }
-  .game-summary-stack{
-    display:grid !important;
-    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-    gap:5px !important;
-    margin-top:2px !important;
-  }
-  .game-summary-pill{
-    padding:6px 5px !important;
-    font-size:8.5px !important;
-    line-height:1 !important;
-  }
-  .game-card-chevron{right:8px !important;top:7px !important;font-size:15px !important;}
-  .game-card-content{padding:8px !important;}
-  .game-card-content .table-wrapper{overflow-x:auto !important;}
-  .game-full-card .game-card-main{
-    grid-template-columns:1fr !important;
-    grid-template-areas:"matchup" "summary" !important;
-    padding:11px !important;
-  }
-  .game-full-card .game-time-box{display:none !important;}
-  .game-full-card .game-matchup-logos{font-size:15px !important;}
-}
-@media(max-width:380px){
-  .game-card-main{grid-template-columns:36px minmax(0,1fr) 36px !important;gap:6px !important;padding:9px 8px !important;}
-  .game-pitcher-side,.game-pitcher-side.home{width:36px !important;min-width:36px !important;height:36px !important;}
-  .game-pitcher-photo,.game-pitcher-placeholder{width:34px !important;height:34px !important;min-width:34px !important;min-height:34px !important;}
-  .game-matchup-logos{font-size:13px !important;gap:4px !important;}
-  .game-matchup-logos img{width:21px !important;height:21px !important;}
-  .game-summary-pill{font-size:7.8px !important;padding:5px 4px !important;}
-}
-</style>
-
-
-
-<style id="drl-final-black-red-no-blue-game-sections">
-/* =========================
-   FINAL DRL BLACK / RED GAME SECTIONS
-   Removes navy/blue from Today's Games, Actual Games, Game Center cards,
-   and mobile game rankings. Visual-only: no scoring/data/JS changed.
-   ========================= */
-:root {
-  --drl-espn-black: #111316;
-  --drl-espn-black-deep: #0b0d10;
-  --drl-espn-black-hover: #171a1f;
-  --drl-espn-border: #2b2f35;
-  --drl-espn-red: #e10600;
-}
-
-/* Today's Games / game-by-game rankings header */
-.game-rankings-header,
-.game-rankings-empty {
-  background: var(--drl-espn-black) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-border) !important;
-  box-shadow: 0 12px 26px rgba(0,0,0,.35) !important;
-}
-.game-rankings-header {
-  border-left: 5px solid var(--drl-espn-red) !important;
-}
-
-/* Today's Games / collapsed and expanded game cards */
-.game-card,
-.game-card-toggle,
-.game-card-main,
-.game-card-content,
-.game-full-card,
-.game-matchup-block,
-.game-summary-stack,
-.game-time-box,
-.game-pitcher-side,
-.game-pitcher-side.home {
-  background-color: var(--drl-espn-black) !important;
-  background-image: none !important;
-}
-.game-card,
-.game-full-card {
-  background: var(--drl-espn-black) !important;
-  border-top: 1px solid var(--drl-espn-border) !important;
-  border-bottom: 1px solid var(--drl-espn-border) !important;
-  border-left-color: var(--drl-espn-red) !important;
-  border-right-color: var(--drl-espn-red) !important;
-  box-shadow: 0 10px 24px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.04) !important;
-}
-.game-card::before,
-.game-card::after,
-.game-rankings-header::before,
-.game-rankings-header::after {
-  background: none !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-.game-card:hover,
-.game-full-card:hover {
-  background: var(--drl-espn-black-hover) !important;
-  background-image: none !important;
-  border-top-color: var(--drl-espn-red) !important;
-  border-bottom-color: var(--drl-espn-red) !important;
-  box-shadow: 0 14px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05) !important;
-}
-.game-card-content,
-.game-time-box,
-.game-pitcher-side,
-.game-summary-pill,
-.game-card.open .game-summary-pill.game-action-pill,
-.game-card-content .table-wrapper {
-  background: var(--drl-espn-black-deep) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-border) !important;
-  box-shadow: none !important;
-}
-.game-summary-pill.hot,
-.game-summary-pill.gold,
-.game-summary-pill.game-action-pill {
-  background: #b00000 !important;
-  background-image: none !important;
-  color: #fff !important;
-  border-color: var(--drl-espn-red) !important;
-}
-.game-pitcher-photo,
-.game-pitcher-placeholder {
-  background: var(--drl-espn-black-deep) !important;
-  border-color: var(--drl-espn-red) !important;
-  box-shadow: 0 6px 14px rgba(0,0,0,.45) !important;
-}
-
-/* Pregame slate / Actual Games cards */
-.slate-board,
-#pregameSlateBoard,
-#pregameSlateBoard .slate-board-header,
-#pregameSlateBoard .slate-games-grid,
-#pregameSlateBoard .slate-game-card,
-#pregameSlateBoard .slate-game-center-card,
-#pregameSlateBoard .slate-game-card.slate-game-center-card,
-.slate-game-card,
-.slate-game-center-card {
-  background-color: var(--drl-espn-black) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-border) !important;
-  box-shadow: 0 10px 24px rgba(0,0,0,.34) !important;
-}
-.slate-board,
-#pregameSlateBoard .slate-game-card,
-#pregameSlateBoard .slate-game-center-card,
-.slate-game-card,
-.slate-game-center-card {
-  border-left-color: var(--drl-espn-red) !important;
-}
-#pregameSlateBoard .slate-game-center-card,
-#pregameSlateBoard .slate-game-card.slate-game-center-card {
-  border: 2px solid var(--drl-espn-red) !important;
-}
-.slate-board::before,
-.slate-board::after,
-.slate-game-card::before,
-.slate-game-card::after,
-.slate-game-center-card::before,
-.slate-game-center-card::after,
-#pregameSlateBoard .slate-game-card::before,
-#pregameSlateBoard .slate-game-card::after,
-#pregameSlateBoard .slate-game-center-card::before,
-#pregameSlateBoard .slate-game-center-card::after {
-  background: none !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-.slate-game-card:hover,
-.slate-game-center-card:hover,
-#pregameSlateBoard .slate-game-card:hover,
-#pregameSlateBoard .slate-game-center-card:hover {
-  background: var(--drl-espn-black-hover) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-red) !important;
-  box-shadow: 0 14px 30px rgba(0,0,0,.42) !important;
-  filter: none !important;
-}
-.slate-env-pill,
-.slate-game-bottom,
-.slate-game-park {
-  background-image: none !important;
-}
-
-/* Game Center cards / rows */
-.game-center-header,
-.game-center-card,
-.game-line,
-.game-kpi {
-  background: var(--drl-espn-black) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-border) !important;
-  box-shadow: 0 10px 24px rgba(0,0,0,.34) !important;
-}
-.game-center-header,
-.game-center-card {
-  border-left-color: var(--drl-espn-red) !important;
-}
-.game-center-card::before,
-.game-center-card::after,
-.game-center-header::before,
-.game-center-header::after {
-  background: none !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-.game-center-card:hover {
-  background: var(--drl-espn-black-hover) !important;
-  background-image: none !important;
-  border-color: var(--drl-espn-red) !important;
-  box-shadow: 0 14px 30px rgba(0,0,0,.42) !important;
-}
-.game-line,
-.game-kpi {
-  background: var(--drl-espn-black-deep) !important;
-}
-
-/* Mobile reinforcement */
-@media(max-width:900px) {
-  .game-card,
-  .game-card-main,
-  .game-card-content,
-  .game-pitcher-side,
-  .game-pitcher-side.home,
-  .game-summary-pill,
-  .slate-board,
-  .slate-game-card,
-  .slate-game-center-card,
-  .game-center-header,
-  .game-center-card,
-  .game-line,
-  .game-kpi {
-    background-image: none !important;
-  }
-}
-</style>
-
-
-<style id="home-sidebar-right-final">
-/* =========================
-   HOME PAGE SIDEBARS RIGHT SIDE FINAL
-   Layout-only: moves the homepage sidebars to the right of the games/rankings.
-   No scoring/data/JS changed.
-   ========================= */
-.dashboard-grid {
-  align-items: start !important;
-}
-.dashboard-grid > .home-sidebar-stack {
-  order: 2 !important;
-}
-.dashboard-grid > div:not(.home-sidebar-stack) {
-  order: 1 !important;
-  min-width: 0 !important;
-}
-@media(min-width:1050px) {
-  .dashboard-grid {
+<style id="home-rankings-left-sidebar-right-fix">
+/* Home page only: rankings on the left, sidebar stack on the right. Other tabs untouched. */
+@media (min-width: 1050px) {
+  #tab-home .dashboard-grid {
     grid-template-columns: minmax(0, 1fr) 380px !important;
+    align-items: start !important;
+  }
+  #tab-home .dashboard-grid > .home-sidebar-stack {
+    order: 2 !important;
+    align-self: start !important;
+    margin-top: 0 !important;
+  }
+  #tab-home .dashboard-grid > div:not(.home-sidebar-stack) {
+    order: 1 !important;
+    min-width: 0 !important;
   }
 }
-@media(max-width:1049px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .dashboard-grid > .home-sidebar-stack {
-    order: 2 !important;
-  }
-  .dashboard-grid > div:not(.home-sidebar-stack) {
-    order: 1 !important;
-  }
+#tab-home .compare-launch-card { display: none !important; }
+
+/* Pitch Lab only: keep hover cards/rows from covering the filter buttons. */
+#tab-pitchlab .pitch-lab-grid,
+#tab-pitchlab #pitchLabSummaryCards {
+  position: relative !important;
+  z-index: 1 !important;
+}
+#tab-pitchlab .pitch-lab-grid + div {
+  position: relative !important;
+  z-index: 20 !important;
+  background: rgba(5, 11, 20, 0.88) !important;
+}
+#tab-pitchlab table,
+#tab-pitchlab tbody,
+#tab-pitchlab tr {
+  position: relative !important;
+  z-index: 1 !important;
+}
+#tab-pitchlab .pitch-lab-card:hover,
+#tab-pitchlab tbody tr:hover {
+  transform: none !important;
 }
 </style>
+
+<style id="home-rankings-bomb-next-to-pf-no-actions">
+/* Home rankings only: bomb moved beside PF; Bench/Lock/Action column removed to prevent horizontal scroll. */
+#tab-home th.action-col,
+#tab-home td.action-cell { display: none !important; }
+#tab-home table { min-width: 0 !important; width: 100% !important; }
+#tab-home th.player-col,
+#tab-home .espn-player-cell { min-width: 390px !important; }
+#tab-home th.weather-col,
+#tab-home .weather-cell { width: 190px !important; }
+#tab-home th.score-col,
+#tab-home .score-cell { width: 132px !important; }
+#tab-home th.hr-col,
+#tab-home th.odds-col,
+#tab-home th.edge-col,
+#tab-home .hrprob-cell,
+#tab-home .odds-cell,
+#tab-home .edge-cell { width: 66px !important; }
+#tab-home .espn-name-row .btn-bomb {
+  flex: 0 0 auto;
+  margin-left: 2px;
+  padding: 3px 7px !important;
+  font-size: 12px !important;
+  line-height: 1.1;
+  border-radius: 999px;
+}
+#tab-home .espn-name-row { gap: 5px !important; }
+@media (max-width: 1250px) {
+  #tab-home table { min-width: 0 !important; width: 100% !important; }
+  #tab-home th.player-col,
+  #tab-home .espn-player-cell { min-width: 300px !important; }
+  #tab-home th.weather-col,
+  #tab-home .weather-cell { width: 145px !important; }
+  #tab-home th.score-col,
+  #tab-home .score-cell { width: 118px !important; }
+  #tab-home th.bats-col,
+  #tab-home .bats-cell { width: 60px !important; }
+  #tab-home th.hr-col,
+  #tab-home th.odds-col,
+  #tab-home th.edge-col,
+  #tab-home .hrprob-cell,
+  #tab-home .odds-cell,
+  #tab-home .edge-cell { width: 58px !important; }
+}
+@media (max-width: 760px) {
+  #tab-home table { min-width: 0 !important; }
+}
+</style>
+
+
+<style id="zone-profile-tab-style">
+/* =========================
+   ZONE PROFILE TAB
+   Modern ESPN black/red heat-map scouting page. Add-on only: no scoring changes.
+   ========================= */
+.zone-profile-shell { display:flex; flex-direction:column; gap:18px; }
+.zone-hero {
+  position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.09); border-left:5px solid var(--accent);
+  border-radius:20px; padding:20px; background:radial-gradient(circle at 86% 0%, rgba(225,6,0,.19), transparent 32%), linear-gradient(145deg, rgba(5,11,20,.96), rgba(17,31,53,.58));
+  box-shadow:0 22px 60px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.zone-hero::after { content:''; position:absolute; inset:-55% -30%; background:linear-gradient(110deg, transparent 42%, rgba(255,255,255,.06) 50%, transparent 58%); animation:zone-scan 8s linear infinite; pointer-events:none; }
+@keyframes zone-scan { 0%{transform:translateX(-42%)} 100%{transform:translateX(42%)} }
+.zone-hero-inner { position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+.zone-kicker { color:var(--accent); font-size:11px; font-weight:1000; letter-spacing:1.6px; text-transform:uppercase; }
+.zone-title { color:#fff; font-size:28px; font-weight:1000; line-height:1.05; text-transform:uppercase; margin-top:4px; }
+.zone-sub { color:var(--text-muted); font-size:12px; font-weight:800; margin-top:7px; max-width:760px; line-height:1.4; }
+.zone-legend { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.zone-legend-pill { display:inline-flex; align-items:center; gap:7px; padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(5,11,20,.62); color:#cbd5e1; font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.55px; }
+.zone-legend-pill i { width:11px; height:11px; border-radius:3px; display:inline-block; }
+.zone-legend-pill.good i { background:#e10600; } .zone-legend-pill.mid i { background:#1f2937; } .zone-legend-pill.bad i { background:#2563eb; }
+.zone-tools { display:flex; gap:12px; flex-wrap:wrap; align-items:end; justify-content:space-between; }
+.zone-tools-left { display:flex; gap:12px; flex-wrap:wrap; align-items:end; }
+.zone-summary-pill { border:1px solid rgba(255,255,255,.08); background:rgba(5,11,20,.64); color:var(--text-muted); border-radius:12px; padding:10px 12px; font-size:11px; font-weight:1000; text-transform:uppercase; letter-spacing:.65px; }
+.zone-summary-pill b { color:var(--accent); font-family:monospace; }
+.zone-card-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(430px, 1fr)); gap:16px; }
+.zone-player-card { --team-color:var(--accent); --team-glow:rgba(225,6,0,.18); position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.09); border-left:5px solid var(--team-color); border-radius:18px; background:radial-gradient(circle at 94% 0%, var(--team-glow), transparent 34%), linear-gradient(145deg, rgba(5,11,20,.92), rgba(17,31,53,.58)); box-shadow:0 16px 42px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.06); transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
+.zone-player-card:hover { transform:translateY(-3px); border-color:var(--team-color); box-shadow:0 22px 54px rgba(0,0,0,.42), 0 0 28px var(--team-glow); }
+.zone-card-top { display:grid; grid-template-columns:56px minmax(0,1fr) auto; gap:12px; align-items:center; padding:14px 15px; border-bottom:1px solid rgba(255,255,255,.07); }
+.zone-card-top .player-headshot { width:54px; height:54px; margin:0; }
+.zone-player-name { color:#fff; font-size:15px; font-weight:1000; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.zone-player-meta { margin-top:4px; color:var(--stadium-lights); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.45px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.zone-score-badge { min-width:74px; text-align:center; border-radius:13px; border:1px solid rgba(225,6,0,.25); background:rgba(225,6,0,.08); padding:8px 9px; }
+.zone-score-label { color:var(--text-muted); font-size:8px; font-weight:1000; letter-spacing:.8px; text-transform:uppercase; }
+.zone-score-value { color:var(--accent); font-family:monospace; font-size:24px; font-weight:1000; line-height:1; margin-top:3px; }
+.zone-card-body { display:grid; grid-template-columns:1fr 1fr; gap:13px; padding:14px 15px 15px; }
+.zone-map-panel { border:1px solid rgba(255,255,255,.07); border-radius:15px; padding:12px; background:rgba(5,11,20,.58); }
+.zone-map-title { color:#fff; font-size:11px; font-weight:1000; text-transform:uppercase; letter-spacing:.9px; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+.zone-map-title span { color:var(--text-muted); font-family:monospace; font-size:10px; }
+.zone-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
+.zone-cell { min-height:64px; border-radius:12px; border:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; justify-content:space-between; padding:8px; background:#111827; box-shadow:inset 0 1px 0 rgba(255,255,255,.07); cursor:help; transition:transform .18s ease, border-color .18s ease, filter .18s ease; }
+.zone-cell:hover { transform:scale(1.04); border-color:#fff; filter:brightness(1.08); z-index:2; }
+.zone-cell-num { color:rgba(255,255,255,.72); font-size:10px; font-family:monospace; font-weight:1000; }
+.zone-cell-main { color:#fff; font-family:monospace; font-size:16px; font-weight:1000; line-height:1; text-shadow:0 1px 8px rgba(0,0,0,.48); }
+.zone-cell-sub { color:rgba(255,255,255,.76); font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.45px; }
+.zone-cell.missing { background:rgba(31,41,55,.62) !important; opacity:.58; }
+.zone-card-footer { padding:0 15px 15px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.zone-mini-stat { border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.035); border-radius:12px; padding:9px 7px; text-align:center; min-width:0; }
+.zone-mini-label { color:var(--text-muted); font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.6px; }
+.zone-mini-value { margin-top:4px; color:#fff; font-family:monospace; font-size:13px; font-weight:1000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.zone-mini-value.hot { color:var(--accent); } .zone-mini-value.gold { color:#facc15; } .zone-mini-value.blue { color:#38bdf8; }
+.zone-empty { padding:46px; color:var(--text-muted); text-align:center; font-style:italic; border:1px dashed rgba(255,255,255,.10); border-radius:16px; background:rgba(5,11,20,.56); }
+@media(max-width: 760px) { .zone-card-grid { grid-template-columns:1fr; } .zone-card-body { grid-template-columns:1fr; } .zone-card-top { grid-template-columns:48px minmax(0,1fr); } .zone-score-badge { grid-column:1 / -1; } .zone-cell { min-height:58px; } }
+</style>
+
+
+
+<style id="zone-profile-2-full-upgrade-style">
+/* =========================
+   ZONE PROFILE 2.0 FULL UPGRADE
+   ESPN black/red strike-zone cards + hover scouting cards + click modal.
+   ========================= */
+.zone-profile-shell { gap:20px !important; }
+.zone-hero { border-left-color: var(--accent) !important; background: radial-gradient(circle at 84% 0%, rgba(225,6,0,.24), transparent 34%), linear-gradient(145deg, rgba(5,5,6,.98), rgba(20,20,23,.92) 52%, rgba(5,5,6,.98)) !important; box-shadow:0 24px 70px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.08) !important; }
+.zone-title { font-size:30px !important; }
+.zone-card-grid { grid-template-columns:repeat(auto-fit, minmax(500px, 1fr)) !important; gap:18px !important; }
+.zone-player-card { border-left:0 !important; border-top:4px solid var(--accent) !important; background: radial-gradient(circle at 88% 0%, rgba(225,6,0,.18), transparent 34%), linear-gradient(145deg, rgba(4,4,5,.98), rgba(18,18,21,.92)) !important; box-shadow:0 20px 54px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.07) !important; }
+.zone-player-card:hover { border-color:rgba(225,6,0,.65) !important; box-shadow:0 26px 70px rgba(0,0,0,.58), 0 0 30px rgba(225,6,0,.16) !important; }
+.zone-card-top { grid-template-columns:68px minmax(0,1fr) auto !important; padding:16px 17px !important; background:linear-gradient(90deg, rgba(225,6,0,.09), rgba(255,255,255,.02), transparent) !important; }
+.zone-card-top .player-headshot { width:64px !important; height:64px !important; border-color:var(--accent) !important; }
+.zone-player-name { font-size:17px !important; letter-spacing:.2px !important; }
+.zone-score-badge { min-width:88px !important; border-color:rgba(225,6,0,.40) !important; background:rgba(225,6,0,.10) !important; }
+.zone-score-value { font-size:30px !important; color:#fff !important; text-shadow:0 0 18px rgba(225,6,0,.45) !important; }
+.zone-card-body { gap:16px !important; padding:16px 17px !important; }
+.zone-map-panel { border-radius:16px !important; background:linear-gradient(180deg, rgba(5,5,6,.84), rgba(11,11,13,.92)) !important; border-color:rgba(255,255,255,.09) !important; }
+.zone-map-title { font-size:12px !important; }
+.zone-grid { gap:7px !important; border:2px solid rgba(255,255,255,.14); border-radius:16px; padding:7px; background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.18)); box-shadow:inset 0 1px 0 rgba(255,255,255,.06); }
+.zone-cell { position:relative; min-height:82px !important; border-radius:12px !important; padding:9px !important; cursor:pointer !important; overflow:visible !important; border:1px solid rgba(255,255,255,.13) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.10), 0 8px 18px rgba(0,0,0,.18) !important; }
+.zone-cell::after { content:''; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(135deg, rgba(255,255,255,.10), transparent 42%, rgba(0,0,0,.20)); pointer-events:none; }
+.zone-cell:hover { transform:translateY(-4px) scale(1.045) !important; border-color:#fff !important; filter:brightness(1.13) !important; z-index:50 !important; }
+.zone-cell.best-zone { outline:2px solid #facc15 !important; border-color:#facc15 !important; box-shadow:0 0 0 3px rgba(250,204,21,.12), 0 0 24px rgba(250,204,21,.30), inset 0 1px 0 rgba(255,255,255,.13) !important; }
+.zone-cell.best-zone .zone-cell-num::after { content:' BEST'; color:#facc15; font-family:monospace; font-size:8px; margin-left:4px; }
+.zone-cell-num,.zone-cell-main,.zone-cell-sub { position:relative; z-index:2; }
+.zone-cell-main { font-size:21px !important; }
+.zone-cell-sub { font-size:9px !important; }
+.zone-hover-card { display:none; position:absolute; left:50%; top:-10px; transform:translate(-50%, -100%); width:285px; z-index:99999; border:1px solid rgba(225,6,0,.45); border-top:3px solid var(--accent); border-radius:15px; padding:12px; background:linear-gradient(160deg, rgba(8,8,10,.98), rgba(25,25,28,.98)); box-shadow:0 22px 50px rgba(0,0,0,.65), 0 0 28px rgba(225,6,0,.18); pointer-events:none; text-align:left; }
+.zone-cell:hover .zone-hover-card { display:block; animation:zoneHoverPop .16s ease-out; }
+@keyframes zoneHoverPop { from { opacity:0; transform:translate(-50%, -92%) scale(.96); } to { opacity:1; transform:translate(-50%, -100%) scale(1); } }
+.zone-hover-title { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#fff; font-size:13px; font-weight:1000; text-transform:uppercase; letter-spacing:.7px; margin-bottom:9px; }
+.zone-hover-title span { color:#facc15; font-family:monospace; font-size:12px; }
+.zone-hover-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.zone-hover-stat { border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.035); border-radius:9px; padding:7px; }
+.zone-hover-label { color:var(--text-muted); font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.55px; }
+.zone-hover-value { margin-top:3px; color:#fff; font-family:monospace; font-size:12px; font-weight:1000; }
+.zone-hover-value.hot { color:#e10600; } .zone-hover-value.gold { color:#facc15; } .zone-hover-value.blue { color:#38bdf8; }
+.zone-card-footer { padding:0 17px 17px !important; }
+.zone-scout-summary { padding:0 17px 17px;color:var(--text-muted);font-size:11px;font-weight:800;line-height:1.4; }
+.zone-cell.missing { cursor:not-allowed !important; }
+.zone-modal-overlay { display:none; position:fixed; inset:0; z-index:2147483605; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.78); backdrop-filter:blur(9px); }
+.zone-modal-overlay.active { display:flex; }
+.zone-modal-card { width:min(1180px, 96vw); max-height:92vh; overflow:hidden; border-radius:22px; border:1px solid rgba(255,255,255,.10); border-top:5px solid var(--accent); background:linear-gradient(180deg, #111114, #050506); box-shadow:0 30px 90px rgba(0,0,0,.78), 0 0 46px rgba(225,6,0,.18); position:relative; animation:modal-pop .22s ease-out; }
+.zone-modal-close { position:absolute; right:16px; top:14px; z-index:4; width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:#fff; cursor:pointer; font-size:20px; }
+.zone-modal-close:hover { border-color:var(--accent); color:var(--accent); background:rgba(225,6,0,.10); }
+.zone-modal-header { padding:20px 24px 16px; background:radial-gradient(circle at 84% 0%, rgba(225,6,0,.20), transparent 34%), linear-gradient(90deg, rgba(225,6,0,.10), transparent); border-bottom:1px solid rgba(255,255,255,.08); }
+.zone-modal-kicker { color:var(--accent); font-size:11px; font-weight:1000; text-transform:uppercase; letter-spacing:1.6px; }
+.zone-modal-title { color:#fff; font-size:24px; font-weight:1000; text-transform:uppercase; line-height:1.08; margin-top:4px; }
+.zone-modal-sub { color:var(--text-muted); font-size:12px; font-weight:800; margin-top:5px; }
+.zone-modal-body { padding:18px 22px 22px; overflow-y:auto; max-height:calc(92vh - 112px); }
+.zone-modal-layout { display:grid; grid-template-columns:1fr 1.05fr 1fr; gap:16px; align-items:start; }
+.zone-report-panel { border:1px solid rgba(255,255,255,.08); border-radius:18px; background:linear-gradient(145deg, rgba(255,255,255,.04), rgba(0,0,0,.18)); overflow:hidden; }
+.zone-report-top { display:grid; grid-template-columns:76px minmax(0,1fr); gap:12px; align-items:center; padding:14px; border-bottom:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.025); }
+.zone-report-top .player-headshot, .zone-report-top .player-headshot-lg { width:72px !important; height:72px !important; margin:0 !important; }
+.zone-report-name { color:#fff; font-size:16px; font-weight:1000; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.zone-report-meta { color:var(--stadium-lights); font-size:10px; font-weight:900; text-transform:uppercase; margin-top:4px; }
+.zone-report-title { color:var(--accent); font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.zone-report-stats { padding:14px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.zone-report-stat { border:1px solid rgba(255,255,255,.07); border-radius:10px; background:rgba(5,5,6,.58); padding:8px; }
+.zone-report-label { color:var(--text-muted); font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.55px; }
+.zone-report-value { color:#fff; font-family:monospace; font-size:13px; font-weight:1000; margin-top:4px; }
+.zone-matchup-center { border:1px solid rgba(225,6,0,.28); border-radius:20px; background:radial-gradient(circle at 50% 0%, rgba(225,6,0,.20), transparent 38%), linear-gradient(180deg, rgba(12,12,14,.98), rgba(5,5,6,.96)); padding:16px; box-shadow:0 18px 42px rgba(0,0,0,.34); }
+.zone-match-zone { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+.zone-match-zone-badge { width:60px; height:60px; border-radius:18px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg, var(--accent), #760000); color:#fff; font-family:monospace; font-size:23px; font-weight:1000; box-shadow:0 0 26px rgba(225,6,0,.32); }
+.zone-stars { color:#facc15; font-size:20px; letter-spacing:2px; text-align:right; }
+.zone-match-kpis { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; margin-bottom:13px; }
+.zone-match-kpi { border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); border-radius:12px; padding:10px; text-align:center; }
+.zone-match-label { color:var(--text-muted); font-size:8px; font-weight:1000; text-transform:uppercase; letter-spacing:.6px; }
+.zone-match-value { color:#fff; font-family:monospace; font-size:20px; font-weight:1000; margin-top:4px; }
+.zone-match-value.hot { color:var(--accent); } .zone-match-value.gold { color:#facc15; } .zone-match-value.blue { color:#38bdf8; }
+.zone-written-summary { color:#d6dce7; font-size:12px; font-weight:800; line-height:1.45; border:1px solid rgba(255,255,255,.08); border-left:4px solid var(--accent); border-radius:14px; padding:12px; background:rgba(255,255,255,.035); }
+@media(max-width: 1100px){ .zone-card-grid{grid-template-columns:1fr !important;} .zone-modal-layout{grid-template-columns:1fr;} }
+@media(max-width: 760px){ .zone-card-body{grid-template-columns:1fr !important;} .zone-modal-body{padding:14px;} .zone-report-stats{grid-template-columns:1fr;} .zone-hover-card{display:none!important;} }
+</style>
+
+
+
+<style id="zone-hover-always-visible-fix">
+/* =========================
+   ZONE PROFILE HOVER POPUP VISIBILITY FIX
+   Keeps the 3x3 zone design the same, but lets every scouting hover card
+   float above the player card instead of being clipped.
+   ========================= */
+.zone-card-grid,
+.zone-player-card,
+.zone-card-body,
+.zone-map-panel,
+.zone-grid {
+  overflow: visible !important;
+}
+.zone-player-card:has(.zone-cell:hover),
+.zone-map-panel:has(.zone-cell:hover),
+.zone-grid:has(.zone-cell:hover) {
+  position: relative !important;
+  z-index: 2147482000 !important;
+}
+.zone-cell:hover {
+  z-index: 2147482500 !important;
+}
+.zone-hover-card {
+  z-index: 2147483000 !important;
+  max-width: min(285px, calc(100vw - 28px)) !important;
+  box-sizing: border-box !important;
+}
+/* Top two rows open downward so they do not disappear under the player header. */
+.zone-grid .zone-cell:nth-child(-n+6) .zone-hover-card {
+  top: calc(100% + 10px) !important;
+  bottom: auto !important;
+  transform: translateX(-50%) !important;
+}
+.zone-grid .zone-cell:nth-child(-n+6):hover .zone-hover-card {
+  animation: zoneHoverPopDown .16s ease-out !important;
+}
+/* Bottom row opens upward. */
+.zone-grid .zone-cell:nth-child(n+7) .zone-hover-card {
+  top: -10px !important;
+  bottom: auto !important;
+  transform: translate(-50%, -100%) !important;
+}
+/* Keep left/right edge zones inside the screen/card area. */
+.zone-grid .zone-cell:nth-child(3n+1) .zone-hover-card {
+  left: 0 !important;
+  right: auto !important;
+  transform: translateY(-100%) !important;
+}
+.zone-grid .zone-cell:nth-child(3n+1):nth-child(-n+6) .zone-hover-card {
+  transform: none !important;
+}
+.zone-grid .zone-cell:nth-child(3n) .zone-hover-card {
+  left: auto !important;
+  right: 0 !important;
+  transform: translateY(-100%) !important;
+}
+.zone-grid .zone-cell:nth-child(3n):nth-child(-n+6) .zone-hover-card {
+  transform: none !important;
+}
+.zone-grid .zone-cell:nth-child(3n+2) .zone-hover-card {
+  left: 50% !important;
+  right: auto !important;
+}
+@keyframes zoneHoverPopDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(.96); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+.zone-grid .zone-cell:nth-child(3n+1):nth-child(-n+6):hover .zone-hover-card,
+.zone-grid .zone-cell:nth-child(3n):nth-child(-n+6):hover .zone-hover-card {
+  animation: zoneHoverPopDownEdge .16s ease-out !important;
+}
+@keyframes zoneHoverPopDownEdge {
+  from { opacity: 0; transform: translateY(-6px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+</style>
+
+
+<style id="drl-performance-upload-style">
+/* =========================
+   FAST LOAD + PREMIUM UPLOAD BAR
+   Visual only. Scoring/data logic untouched.
+   ========================= */
+.drl-upload-box {
+  display: grid !important;
+  grid-template-columns: 54px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 16px !important;
+  text-align: left !important;
+  padding: 18px 20px !important;
+  border-style: solid !important;
+  border-color: rgba(225,6,0,.28) !important;
+  border-left: 5px solid var(--accent) !important;
+  background:
+    radial-gradient(circle at 12% 15%, rgba(225,6,0,.18), transparent 34%),
+    radial-gradient(circle at 92% 0%, rgba(56,189,248,.10), transparent 30%),
+    linear-gradient(145deg, rgba(5,11,20,.94), rgba(17,31,53,.70)) !important;
+  box-shadow: 0 18px 48px rgba(0,0,0,.38), 0 0 24px rgba(225,6,0,.08), inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+.drl-upload-orb {
+  width: 54px; height: 54px; border-radius: 16px;
+  display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(135deg, rgba(225,6,0,.22), rgba(5,11,20,.86));
+  border:1px solid rgba(225,6,0,.34);
+  box-shadow: 0 0 22px rgba(225,6,0,.16), inset 0 1px 0 rgba(255,255,255,.09);
+  font-size: 25px;
+}
+.drl-upload-copy { min-width:0; position:relative; z-index:1; }
+.drl-upload-kicker { color:var(--accent); font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:1.4px; margin-bottom:4px; }
+.drl-upload-title { color:#fff; font-size:17px; font-weight:1000; text-transform:uppercase; letter-spacing:.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.drl-upload-sub { margin-top:4px; color:var(--text-muted); font-size:11px; font-weight:800; }
+.drl-upload-btn {
+  position:relative; z-index:1; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  border-radius: 12px; padding: 13px 16px; cursor:pointer; white-space:nowrap;
+  color:#04080f; font-size:12px; font-weight:1000; text-transform:uppercase; letter-spacing:.8px;
+  background: linear-gradient(135deg, var(--accent), #b00000);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow: 0 12px 28px rgba(225,6,0,.20);
+  transition: transform .2s ease, filter .2s ease, box-shadow .2s ease;
+}
+.drl-upload-btn:hover { transform:translateY(-2px); filter:brightness(1.08); box-shadow:0 16px 34px rgba(225,6,0,.30); }
+.drl-upload-box input[type="file"] { position:absolute !important; width:1px !important; height:1px !important; opacity:0 !important; pointer-events:none !important; }
+@media(max-width:700px){
+  .drl-upload-box { grid-template-columns: 44px minmax(0,1fr) !important; }
+  .drl-upload-orb { width:44px; height:44px; border-radius:14px; }
+  .drl-upload-btn { grid-column:1 / -1; width:100%; box-sizing:border-box; }
+  .drl-upload-title { font-size:14px; }
+}
+</style>
+
+<style id="bet-finder-style">
+/* =========================
+   BET FINDER / SCOUTING BUILDER
+   UI filter only. Does not change scoring, weights, odds, weather, or backtest logic.
+   ========================= */
+.bet-finder-panel{position:relative;overflow:visible;border:1px solid rgba(225,6,0,.28);border-left:5px solid var(--accent);border-radius:18px;padding:18px;margin:0 0 20px;background:radial-gradient(circle at 92% 0%,rgba(225,6,0,.16),transparent 34%),linear-gradient(145deg,rgba(5,11,20,.94),rgba(17,31,53,.70));box-shadow:0 18px 50px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.07)}
+.bet-finder-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}.bet-finder-title{color:#fff;font-size:18px;font-weight:1000;text-transform:uppercase;letter-spacing:1.2px}.bet-finder-sub{color:var(--text-muted);font-size:12px;font-weight:800;margin-top:4px}.bet-finder-count{text-align:right;color:#fff;font-size:12px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px}.bet-finder-count b{display:block;color:var(--accent);font-family:monospace;font-size:30px;line-height:1}.bet-finder-presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}.bet-preset-btn{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);color:#cbd5e1;border-radius:999px;padding:9px 12px;font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px;cursor:pointer}.bet-preset-btn:hover,.bet-preset-btn.active{border-color:var(--accent);background:rgba(225,6,0,.10);color:#fff;transform:translateY(-1px)}
+.bet-finder-grid{display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));gap:13px}.bet-slider-card{border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:11px;background:rgba(5,11,20,.58)}.bet-slider-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.bet-slider-label{color:#fff;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px}.bet-slider-value{color:var(--accent);font-family:monospace;font-weight:1000}.bet-slider-card.disabled .bet-slider-value{color:var(--text-muted)}.bet-slider-card.disabled{opacity:.62}.bet-slider{width:100%;accent-color:#e10600}.bet-any-toggle{margin-top:7px;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}.bet-any-toggle input{width:auto}.bet-finder-checks{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:8px;margin-top:14px}.bet-check{display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;background:rgba(255,255,255,.035);color:#e2e8f0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.55px}.bet-check input{width:auto}.bet-finder-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.bet-action{border:0;border-radius:12px;padding:12px 15px;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;cursor:pointer}.bet-action.apply{background:linear-gradient(135deg,var(--accent),#b00000);color:#04080f}.bet-action.reset{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.10)}.bet-finder-results{margin-top:14px;display:none}.bet-finder-results.active{display:block}.bet-match-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:10px}.bet-match-card{border:1px solid rgba(255,255,255,.08);border-left:4px solid var(--team-color,var(--accent));border-radius:14px;padding:12px;background:rgba(5,11,20,.62);cursor:pointer}.bet-match-card:hover{border-color:var(--team-color,var(--accent));transform:translateY(-2px)}.bet-match-top{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;align-items:center}.bet-match-card .player-headshot{width:40px!important;height:40px!important;margin:0!important}.bet-match-name{color:#fff;font-size:13px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bet-match-meta{color:var(--stadium-lights);font-size:10px;font-weight:900;text-transform:uppercase;margin-top:2px}.bet-match-score{color:var(--accent);font-family:monospace;font-size:22px;font-weight:1000}.bet-pass-list{margin-top:10px;display:grid;gap:5px}.bet-pass-row{display:flex;justify-content:space-between;gap:8px;color:#cbd5e1;font-size:10px;font-weight:900}.bet-pass-row span:first-child{color:#10b981}.bet-finder-empty{color:var(--text-muted);font-style:italic;text-align:center;padding:18px;border:1px dashed rgba(255,255,255,.10);border-radius:12px;margin-top:10px}
+@media(max-width:1050px){.bet-finder-grid,.bet-finder-checks{grid-template-columns:repeat(2,minmax(0,1fr))}.bet-finder-head{flex-direction:column}.bet-finder-count{text-align:left}}@media(max-width:620px){.bet-finder-grid,.bet-finder-checks{grid-template-columns:1fr}}
+</style>
+
 </head>
 <body>
 
@@ -8209,6 +8162,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <button class="nav-tab" onclick="switchTab('hotbat', this)">🔥 Hot Bat</button>
 <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
 <button class="nav-tab" onclick="switchTab('pitchlab', this)">🧪 Pitch Lab</button>
+<button class="nav-tab" onclick="switchTab('zoneprofile', this)">🎯 Zone Profile</button>
 <button class="nav-tab" onclick="switchTab('edge', this)">💎 Edge Plays</button>
 <button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
 <button class="nav-tab" onclick="switchTab('synergy', this)">⚡ Synergy Bonuses</button>
@@ -8223,11 +8177,18 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <div class="spotlight-title"><span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>Top 12 Homerun Targets</div>
 <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
 </div>
-<div class="upload-box">
-<input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
-<div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">Upload your workbook with HR, vsPitcher, PLdata, lastweek, weather, <b>ID</b>, and <b>top5</b> sheets</div>
+<div class="upload-box drl-upload-box">
+  <div class="drl-upload-orb">⚾</div>
+  <div class="drl-upload-copy">
+    <div class="drl-upload-kicker">Daily Runline Data Upload</div>
+    <div class="drl-upload-title" id="uploadFileName">Drop in today’s HR model</div>
+    <div class="drl-upload-sub">BBI scores calculate first. Heavy tabs now build only when opened.</div>
+  </div>
+  <label class="drl-upload-btn" for="excelFile">
+    <span>⬆</span> Choose Workbook
+  </label>
+  <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
 </div>
-
 
 <div class="dashboard-grid">
 <div class="home-sidebar-stack">
@@ -8262,8 +8223,50 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </div>
 <div>
 
-<div id="gameRankingsBoard" class="game-rankings-board">
-  <div class="game-rankings-empty">Upload today's workbook to load game-by-game rankings...</div>
+
+<div class="bet-finder-panel" id="betFinderPanel">
+  <div class="bet-finder-head">
+    <div><div class="bet-finder-title">🎯 Bet Finder</div><div class="bet-finder-sub">Build the home run bet profile once, then let the rankings shrink to the hitters who qualify.</div></div>
+    <div class="bet-finder-count" id="betFinderCount"><b>0</b> Players Match</div>
+  </div>
+  <div class="bet-finder-presets" id="betFinderPresets">
+    <button type="button" class="bet-preset-btn" onclick="applyBetFinderPreset('conservative', this)">⭐ Conservative</button>
+    <button type="button" class="bet-preset-btn" onclick="applyBetFinderPreset('bomb', this)">🔥 Bomb Hunters</button>
+    <button type="button" class="bet-preset-btn" onclick="applyBetFinderPreset('longshot', this)">💰 Longshot Value</button>
+    <button type="button" class="bet-preset-btn active" onclick="applyBetFinderPreset('cody', this)">🎯 Cody's Filter</button>
+  </div>
+  <div class="bet-finder-grid" id="betFinderSliders"></div>
+  <div class="bet-finder-actions"><button type="button" class="bet-action apply" onclick="applyBetFinderFilters()">Apply</button><button type="button" class="bet-action reset" onclick="resetBetFinder()">Reset</button></div>
+  <div class="bet-finder-results" id="betFinderResults"></div>
+</div>
+
+<div id="bbiTierHomePanel" class="bbi-tier-home-panel">
+  <div class="bbi-tier-top">
+    <div>
+      <div class="bbi-tier-title">BBI Tiers</div>
+      <div class="bbi-tier-sub">Backtest-based rank bands — filters stack with team, bats and search</div>
+    </div>
+    <div class="bbi-tier-count" id="bbiTierVisibleCount">Showing <b>0</b> players</div>
+  </div>
+  <div class="bbi-tier-tabs" id="bbiTierTabs">
+    <button type="button" class="bbi-tier-tab" data-tier="ALL" onclick="setBBITierFilter('ALL')">All Tiers</button>
+    <button type="button" class="bbi-tier-tab active" data-tier="1" onclick="setBBITierFilter('1')">Tier 1</button>
+    <button type="button" class="bbi-tier-tab" data-tier="2" onclick="setBBITierFilter('2')">Tier 2</button>
+    <button type="button" class="bbi-tier-tab" data-tier="3" onclick="setBBITierFilter('3')">Tier 3</button>
+    <button type="button" class="bbi-tier-tab" data-tier="4" onclick="setBBITierFilter('4')">Tier 4</button>
+    <button type="button" class="bbi-tier-tab" data-tier="5" onclick="setBBITierFilter('5')">Tier 5</button>
+  </div>
+  <div id="bbiTierStatsCard" class="bbi-tier-stat-card"></div>
+</div>
+<div class="controls-bar">
+<div class="filter-group team-filter-future-wrap"><label>Filter Team 1</label><div class="team-filter-future" data-filter="1"><select id="teamFilter1" class="select-input-sm native-team-select" onchange="syncTeamLogoDropdown(1); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button type="button" id="teamFilterTrigger" class="team-filter-trigger" onclick="toggleTeamLogoDropdown(event, 1)"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel">All Teams</span><span class="team-filter-chevron">▾</span></button><div id="teamLogoDropdown" class="team-logo-dropdown"></div></div></div>
+<div class="filter-group team-filter-future-wrap"><label>Filter Team 2</label><div class="team-filter-future" data-filter="2"><select id="teamFilter2" class="select-input-sm native-team-select" onchange="syncTeamLogoDropdown(2); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button type="button" id="teamFilterTrigger2" class="team-filter-trigger" onclick="toggleTeamLogoDropdown(event, 2)"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel2">All Teams</span><span class="team-filter-chevron">▾</span></button><div id="teamLogoDropdown2" class="team-logo-dropdown"></div></div></div>
+<div class="filter-group"><label>Filter Bats</label><select id="batsFilter" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">All</option><option value="L">Left</option><option value="R">Right</option><option value="S">Switch</option></select></div>
+<div class="filter-group"><label>Search Player Name</label><input type="text" id="searchFilter" class="search-input" placeholder="Type player name..." oninput="applyFiltersAndRender()" /></div>
+<div class="filter-group" style="margin-left: auto; flex-direction: row; align-items: center; gap: 10px;">
+<input type="checkbox" id="showRemovedCheck" onchange="applyFiltersAndRender()" style="cursor:pointer; width:auto;" />
+<label for="showRemovedCheck" style="cursor:pointer; margin-bottom:0; color:var(--accent);">Show Removed Bench Players</label>
+</div>
 </div>
 <div class="model-sandbox-panel" id="modelSandboxPanel">
   <button type="button" class="model-sandbox-toggle" onclick="toggleModelSandboxPanel()">
@@ -8287,12 +8290,11 @@ tbody tr:hover .stats-player-mini .player-headshot {
   </div>
 </div>
 
-<div class="table-wrapper legacy-rankings-table" style="display:none;">
+<div class="table-wrapper">
 <table>
-<thead><tr><th class="rank-col">Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="edge-col">Edge</th><th class="action-col">Action</th></tr></thead>
+<thead><tr><th class="rank-col">Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="edge-col">Edge</th></tr></thead>
 <tbody id="tableBody"><tr><td colspan="11" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
-</div>
 <div class="backtest-finalize-wrap">
   <div class="backtest-finalize-copy"><b>Backtest workflow:</b> mark only HR hitters with 💣, then finalize. Bombed players save as HR = 1; everyone else in the current rankings saves as HR = 0.</div>
   <button type="button" class="btn-finalize-backtest" onclick="finalizeTodayBacktest()">✅ Finalize Today's Backtest</button>
@@ -8333,6 +8335,48 @@ tbody tr:hover .stats-player-mini .player-headshot {
         <tbody id="statsTableBody"><tr><td class="stats-empty">Upload workbook to load batter stats...</td></tr></tbody>
       </table>
     </div>
+  </div>
+</div>
+
+
+
+<div id="tab-zoneprofile" class="tab-content">
+  <div class="zone-profile-shell">
+    <div class="zone-hero">
+      <div class="zone-hero-inner">
+        <div>
+          <div class="zone-kicker">🎯 Zone Profile</div>
+          <div class="zone-title">Batter Damage + Pitcher Tendencies</div>
+          <div class="zone-sub">Every hitter gets a 3x3 attack-zone heat map. Red means the hitter/pitcher collision is dangerous for a homer. Blue means the zone is weaker or safer. The pitcher map shows where the opposing starter is vulnerable and how often he lives there.</div>
+        </div>
+        <div class="zone-legend">
+          <span class="zone-legend-pill good"><i></i>Hot / Attack</span>
+          <span class="zone-legend-pill mid"><i></i>Neutral</span>
+          <span class="zone-legend-pill bad"><i></i>Cold / Avoid</span>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Zone Board Controls</h2>
+      <div class="zone-tools">
+        <div class="zone-tools-left">
+          <div class="filter-group"><label>Search Player</label><input type="text" id="zoneSearch" class="search-input" placeholder="Type player name..." oninput="renderZoneProfileTab()"></div>
+          <div class="filter-group"><label>Team</label><select id="zoneTeamFilter" class="select-input-sm" onchange="renderZoneProfileTab()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
+          <div class="filter-group"><label>Pitcher</label><select id="zonePitcherFilter" class="select-input-sm" onchange="renderZoneProfileTab()" style="width:190px;"><option value="ALL">All Pitchers</option></select></div>
+          <div class="filter-group"><label>Sort</label><select id="zoneSortFilter" class="select-input-sm" onchange="renderZoneProfileTab()" style="width:170px;"><option value="RANK">Model Rank</option><option value="ZONE">Zone Score</option><option value="TOPEDGE">Best Zone Edge</option><option value="USAGE">Pitcher Usage</option><option value="ALPHA">Player A-Z</option></select></div>
+        </div>
+        <div class="zone-summary-pill" id="zoneSummaryPill">Players: <b>0</b></div>
+      </div>
+    </div>
+    <div id="zoneProfileGrid" class="zone-card-grid"><div class="zone-empty">Upload workbook with BZ1-BZ9 and PZ1-PZ9 sheets to load zone profiles...</div></div>
+  </div>
+</div>
+
+
+<div id="zoneProfileModal" class="zone-modal-overlay" onclick="if(event.target===this) closeZoneProfileModal()">
+  <div class="zone-modal-card">
+    <button type="button" class="zone-modal-close" onclick="closeZoneProfileModal()">×</button>
+    <div id="zoneProfileModalContent"></div>
   </div>
 </div>
 
@@ -8428,7 +8472,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
 <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🧪 Pitch Lab - Batter vs Arsenal</h2>
-<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">HR-only pitch-level matchup: pitcher usage, Stuff+, PitchBag HR damage allowed, hitter EV, barrel/air shape, FB%, pull-air, OnlyHomers pitch HR affinity, and ZoneB/ZoneP mistake fit. Rankings require 150+ PA/AB.</p>
+<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Rebuilt pitch-level HR matchup: pitcher usage, Stuff+, PitchBag damage allowed, batter EV, Pitch Win, FB%, Pull%, LD%, ZoneB/ZoneP, and hand-contact quality. Rankings require 150+ PA/AB.</p>
 </div>
 <div class="pitch-lab-grid" id="pitchLabSummaryCards">
 <div class="pitch-lab-card"><div class="pitch-lab-title">Arsenal Exploit Leader</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>
@@ -8601,6 +8645,7 @@ if (tabName === 'environment' && window.renderHREnvironmentTable40) window.rende
 if (tabName === 'hotbat') renderHotBatTable();
 if (tabName === 'h2h') renderH2HFullTable();
 if (tabName === 'pitchlab') renderPitchLabTable();
+if (tabName === 'zoneprofile') renderZoneProfileTab();
 if (tabName === 'edge') renderEdgePanels();
 if (tabName === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
 if (tabName === 'backtest') {
@@ -8771,7 +8816,7 @@ let oddsBookColumns = [];
 let pitchLabData = [];
 let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = [];
 let pitcherTeamMap = {};
-const STAT_MODEL_SHEETS = ['WEATHER','BARRELL','SS','SCASTL','SCASTR','PAL','PAR','RHPBB','LHPBB','ISO','ISOR','ISOL','ISOX','PXHR','PITCHERBB','PSS','PITCHMAX','PITCHER','PITCHERR','PITCHERL','PITCHERFB','PITCHERBBL','PITCHERBBR','LASTST','BULLPEN','BULLPENEV','BULLPENL7','BULLPENEVL7','LINEUPS','PA','PARKFACTOR','PARKFACTORL','PARKFACTORR','RZ'];
+const STAT_MODEL_SHEETS = ['WEATHER','BARRELL','SS','SCASTL','SCASTR','PAL','PAR','RHPBB','LHPBB','ISO','ISOR','ISOL','ISOX','PXHR','PITCHERBB','PSS','PITCHMAX','PITCHER','PITCHERR','PITCHERL','PITCHERFB','PITCHERBBL','PITCHERBBR','LASTST','BULLPEN','BULLPENEV','BULLPENL7','BULLPENEVL7','LINEUPS','PA','PARKFACTOR','PARKFACTORL','PARKFACTORR','RZ','BZ1','BZ2','BZ3','BZ4','BZ5','BZ6','BZ7','BZ8','BZ9','PZ1','PZ2','PZ3','PZ4','PZ5','PZ6','PZ7','PZ8','PZ9'];
 function normalizedKey(k) { return String(k || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function lookupStat(sheetKey, name) { return lookupNameMap(statSheetMaps[String(sheetKey || '').toUpperCase()] || {}, name) || {}; }
 function findByTeam(sheetKey, team) {
@@ -9112,7 +9157,7 @@ function renderBBIBreakdown(player) {
   const rows = [
     ['Power', scoreBarPct(cat.power, scoreToMiniPct(player.calculatedPowerModifier || player.calculatedQualityModifier, 1, .55))],
     ['Pitcher', scoreBarPct(cat.pitcherHRDamage ?? cat.pitcher, scoreToMiniPct(player.calculatedPVF || player.calculatedPitcherFB, 1, .60))],
-    ['Recent', scoreBarPct(cat.recent, 50)],
+    ['Attack', scoreBarPct(cat.attackZone, 50)],
     ['Weather', scoreBarPct(cat.weather, 50)],
     ['BVP', scoreBarPct(cat.bvp, 50)]
   ];
@@ -9178,24 +9223,29 @@ function renderWhyRankBox(player) {
 function filterRankingsToSlateGame(awayTeam, homeTeam) {
   const away = String(awayTeam || '').trim().toUpperCase();
   const home = String(homeTeam || '').trim().toUpperCase();
+  const team1 = document.getElementById('teamFilter1');
+  const team2 = document.getElementById('teamFilter2');
+  const search = document.getElementById('searchFilter');
+  const bats = document.getElementById('batsFilter');
+
+  selectedQuickTeamFilter = 'ALL';
+  if (team1) team1.value = away || 'ALL';
+  if (team2) team2.value = home || 'ALL';
+  if (search) search.value = '';
+  if (bats) bats.value = 'ALL';
+
+  syncTeamLogoDropdown(1);
+  syncTeamLogoDropdown(2);
   applyFiltersAndRender();
+
   const homeTabButton = Array.from(document.querySelectorAll('.nav-tab')).find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("switchTab('home'"));
   switchTab('home', homeTabButton || null);
+
   setTimeout(() => {
-    let targetKey = null;
-    Object.entries(gameRankingGroupsCache || {}).forEach(([key, cfg]) => {
-      if (targetKey || key === 'full_bbi_rankings_card') return;
-      const teams = [...new Set((cfg.players || []).map(p => String(p.Team || '').toUpperCase()).filter(Boolean))];
-      if ((!away || teams.includes(away)) && (!home || teams.includes(home))) targetKey = key;
-    });
-    if (targetKey) {
-      const card = document.getElementById(targetKey);
-      if (card && !card.classList.contains('open')) toggleGameRankingsCard(targetKey);
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      const board = document.getElementById('gameRankingsBoard');
-      if (board) board.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    const controls = document.querySelector('.controls-bar');
+    const table = document.querySelector('.table-wrapper');
+    const target = controls || table;
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 80);
 }
 function renderPregameSlateBoard() {
@@ -9554,6 +9604,98 @@ function refreshAfterLiveWeatherUpdate() {
 }
 function refreshOpenWeatherAndRerender() {
   refreshOpenWeatherForSlate().then(refreshAfterLiveWeatherUpdate).catch(err => console.warn('Live weather refresh failed', err));
+}
+
+
+/* =========================
+   v43.6 FAST LOAD WEATHER API FIX
+   Keeps lazy loading, but prevents weather from getting stuck on cloned spreadsheet/fallback values.
+   Live weather runs in the background and updates every matching game id by true home park.
+   ========================= */
+function fetchJSONWithTimeout(url, ms = 9000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { signal: ctrl.signal, cache: 'no-store' })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+    .finally(() => clearTimeout(t));
+}
+function getTrueHomeTeamFromMatchup(m) {
+  return String((m && (m.trueHomeTeam || m.homeTeam || m.teamB || m.teamA)) || '').trim().toUpperCase();
+}
+function cloneWeatherKeepingSheetFallback(existing, homeTeam, errorText) {
+  const stadium = stadiumCoordinates[homeTeam] || {};
+  const base = existing && Object.keys(existing).length ? existing : { temp: 72, windSpeed: 0, windDir: 'neutral', humidity: 0 };
+  return enrichWeatherWithFieldVector({
+    ...base,
+    isDome: !!stadium.dome || !!base.isDome,
+    weatherSource: base.weatherSource && base.weatherSource !== 'OpenWeather unavailable - neutral'
+      ? `${base.weatherSource} • API unavailable`
+      : 'Spreadsheet / API unavailable',
+    weatherError: errorText || 'OpenWeather request failed',
+    stadiumName: stadium.name || base.stadiumName || homeTeam,
+    homeTeam
+  }, homeTeam);
+}
+async function refreshOpenWeatherForSlate() {
+  if (!OPENWEATHER_API_KEY || !Array.isArray(gameMatchups) || gameMatchups.length === 0) return;
+
+  const gamesByHome = new Map();
+  (gameMatchups || []).forEach(m => {
+    const homeTeam = getTrueHomeTeamFromMatchup(m);
+    const stadium = stadiumCoordinates[homeTeam];
+    if (!homeTeam || !stadium || !m || !m.id) return;
+    if (!gamesByHome.has(homeTeam)) gamesByHome.set(homeTeam, []);
+    gamesByHome.get(homeTeam).push(m);
+  });
+
+  const jobs = [...gamesByHome.entries()].map(async ([homeTeam, games]) => {
+    const stadium = stadiumCoordinates[homeTeam];
+    if (!stadium) return;
+
+    if (stadium.dome) {
+      games.forEach(m => {
+        weatherSettings[m.id] = {
+          ...(weatherSettings[m.id] || {}),
+          isDome: true,
+          windDir: 'neutral',
+          windSpeed: 0,
+          windDeg: null,
+          windToDeg: null,
+          windType: 'neutral',
+          windFieldZone: 'neutral',
+          temp: (weatherSettings[m.id] && weatherSettings[m.id].temp) || 72,
+          humidity: (weatherSettings[m.id] && weatherSettings[m.id].humidity) || 0,
+          weatherSource: 'Dome preset',
+          stadiumName: stadium.name,
+          homeTeam
+        };
+      });
+      return;
+    }
+
+    const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${stadium.lat}&lon=${stadium.lon}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
+    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${stadium.lat}&lon=${stadium.lon}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
+
+    const [currentResult, forecastResult] = await Promise.allSettled([
+      fetchJSONWithTimeout(currentUrl),
+      fetchJSONWithTimeout(forecastUrl)
+    ]);
+
+    const currentData = currentResult.status === 'fulfilled' ? currentResult.value : null;
+    const forecastData = forecastResult.status === 'fulfilled' ? forecastResult.value : null;
+    if (!currentData && !forecastData) {
+      const errText = [currentResult.reason, forecastResult.reason].map(e => e && e.message ? e.message : String(e || '')).filter(Boolean).join(' / ') || 'OpenWeather failed';
+      games.forEach(m => { weatherSettings[m.id] = cloneWeatherKeepingSheetFallback(weatherSettings[m.id], homeTeam, errText); });
+      return;
+    }
+
+    games.forEach(m => {
+      const picked = chooseBestOpenWeatherBlock(currentData || (forecastData && forecastData.list && forecastData.list[0]), forecastData, weatherSettings[m.id]);
+      weatherSettings[m.id] = convertOpenWeatherToGameWeather(picked.data, homeTeam, weatherSettings[m.id], picked.sourceMode, picked.forecastDt);
+    });
+  });
+
+  await Promise.allSettled(jobs);
 }
 
 function getHeadshotUrl(playerName) {
@@ -9984,23 +10126,25 @@ uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}"
 });
 rebuildTeamLogoDropdown();
 document.getElementById('graphicsPanel').style.display = 'block';
-refreshOpenWeatherForSlate().catch(err => console.warn('Live weather refresh skipped during upload:', err)).finally(() => {
+{
   const uploadStep = (label, fn) => { try { if (typeof fn === 'function') fn(); } catch (err) { console.error('Upload refresh failed at ' + label + ':', err); } };
+  const fileNameEl = document.getElementById('uploadFileName');
+  if (fileNameEl) fileNameEl.textContent = f && f.name ? f.name : 'Workbook loaded';
+
+  // FAST LOAD PATH v2:
+  // 1) Calculate/store all BBI scores immediately using spreadsheet weather.
+  // 2) Render Home right away so upload never waits on OpenWeather/network.
+  // 3) Refresh OpenWeather in the background, then recalculate/rerender from the live weather data.
   uploadStep('recalculateAllBBIScores', recalculateAllBBIScores);
-  uploadStep('renderFanaticsJackpot', renderFanaticsJackpot);
-  uploadStep('renderAllPitchers', renderAllPitchers);
-  uploadStep('renderHotBatTable', renderHotBatTable);
-  uploadStep('renderH2HFullTable', renderH2HFullTable);
-  uploadStep('renderPitchLabTable', renderPitchLabTable);
-  uploadStep('renderEdgePanels', renderEdgePanels);
-  uploadStep('renderBestBettingEdges', renderBestBettingEdges);
-  uploadStep('renderOddsBoard', renderOddsBoard);
-  uploadStep('renderWeatherRankings', renderWeatherRankings);
+  uploadStep('applyFiltersAndRender', applyFiltersAndRender);
   uploadStep('updateHeaderStats', updateHeaderStats);
   uploadStep('updateSlateTicker', updateSlateTicker);
   uploadStep('saveCachedData', saveCachedData);
-  uploadStep('renderGameCenterTab', renderGameCenterTab);
-});
+
+  refreshOpenWeatherForSlate()
+    .then(() => refreshAfterLiveWeatherUpdate())
+    .catch(err => console.warn('Live weather refresh skipped during upload:', err));
+}
 };
 reader.onerror = function(err) {
   console.error('Workbook file read failed:', err);
@@ -10612,22 +10756,20 @@ function getPitchBagRow(pitcherName, pt) {
 }
 function pitcherPitchDamageScore(pitcherName, pt) {
   const row = getPitchBagRow(pitcherName, pt);
-  if (!row) return { score: 50, grade: 'C', note: 'No PitchBag HR damage data', row: null };
+  if (!row) return { score: 50, grade: 'C', note: 'No PitchBag damage data', row: null };
   const slg = firstNumber(safeGet(row,'slg','SLG'));
   const xslg = firstNumber(safeGet(row,'est_slg','xSLG','expected_slg'));
+  const woba = firstNumber(safeGet(row,'woba','wOBA'));
   const hard = firstNumber(safeGet(row,'hard_hit_percent','Hard Hit %','HardHit%'));
-  const barrel = firstNumber(safeGet(row,'barrel_batted_rate','Barrel %','Barrel%','barrel_percent'));
-  const ev = firstNumber(safeGet(row,'avg_hit_speed','EV','Exit Velo','Avg EV'));
-  const hr = firstNumber(safeGet(row,'home_run','HR','Home Runs'));
+  const whiff = firstNumber(safeGet(row,'whiff_percent','Whiff %','Whiff%'));
+  const k = firstNumber(safeGet(row,'k_percent','K %','K%'));
   const damage = Math.max(0, Math.min(100,
-    // HR-only pitcher pitch damage: expected slug/slug, barrels, hard contact, EV, and actual HRs allowed.
-    (safeScoreAvg([scoreFromRange(xslg, .260, .700), scoreFromRange(slg, .250, .700)]) * .34) +
-    (scoreFromRange(barrel, 4, 18) * .24) +
-    (scoreFromRange(hard, 25, 58) * .17) +
-    (scoreFromRange(ev, 86, 94) * .15) +
-    (scoreFromRange(hr, 0, 9) * .10)
+    (safeScoreAvg([scoreFromRange(slg, .250, .650), scoreFromRange(xslg, .260, .650)]) * .40) +
+    (scoreFromRange(hard, 25, 55) * .25) +
+    (scoreFromRange(woba, .250, .420) * .15) +
+    (safeScoreAvg([scoreFromRange(whiff, 12, 42, true), scoreFromRange(k, 12, 38, true)]) * .20)
   ));
-  return { score: damage, grade: gradeFromScore(damage), row, slg, xslg, hard, barrel, ev, hr, note: `P HR dmg ${damage.toFixed(0)} // xSLG ${xslg ?? '-'} / Brl ${barrel ?? '-'}% / HR ${hr ?? '-'}` };
+  return { score: damage, grade: gradeFromScore(damage), row, slg, xslg, woba, hard, whiff, k, note: `P dmg ${damage.toFixed(0)} // SLG ${slg ?? '-'} / xSLG ${xslg ?? '-'} / HH ${hard ?? '-'}%` };
 }
 function getPitchEVScore(playerName, pt) {
   const row = pitchEVMap[normalizeName(playerName)] || null;
@@ -10788,36 +10930,33 @@ function getBatterPitchShapeRow(playerName, group, pitcherHand) {
 function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
   const pt = pitchType || { key: group, group };
   const row = getBatterPitchShapeRow(playerName, group, pitcherHand);
-  let shape = { score: 50, grade: 'C', bbe: 0, air: 0, fb: 0, pull: 0, barrel: null, hrfb: null, maxev: null, note: 'No pitch-level HR shape sheet data' };
+  let shape = { score: 50, grade: 'C', bbe: 0, air: 0, fb: 0, pull: 0, ld: 0, note: 'No pitch-shape sheet data' };
   if (Object.keys(row).length) {
     const bbe = cleanNumber(safeGet(row, 'BBE'));
     const air = hybridRate(cleanNumber(safeGet(row, 'AIR %', 'Air %')));
     const fb = hybridRate(cleanNumber(safeGet(row, 'FB %', 'Fly Ball %')));
     const pull = hybridRate(cleanNumber(safeGet(row, 'Pull %')));
-    const barrel = hybridRate(cleanNumber(safeGet(row, 'Barrel %', 'Barrel%', 'Brl%', 'Brl %')));
-    const hrfb = hybridRate(cleanNumber(safeGet(row, 'HR/FB %', 'HR/FB%', 'HRFB%', 'HR FB %')));
-    const maxev = firstNumber(safeGet(row, 'Max EV', 'maxEV', 'MaxEV'));
+    const ld = hybridRate(cleanNumber(safeGet(row, 'LD %', 'Line Drive %')));
     const sample = Math.min(1, bbe / 50);
-    const airFbScore = safeScoreAvg([scoreFromRange(air, .42, .72), scoreFromRange(fb, .22, .50)]);
-    const pullAirScore = scoreFromRange(pull, .30, .58);
-    const barrelScore = scoreFromRange(barrel, .06, .22);
-    const hrfbScore = scoreFromRange(hrfb, .08, .34);
-    const maxEVScore = scoreFromRange(maxev, 105, 116);
+    const airFbScore = safeScoreAvg([scoreFromRange(air, .42, .72), scoreFromRange(fb, .22, .48)]);
+    const pullScore = scoreFromRange(pull, .30, .55);
+    const ldScore = scoreFromRange(ld, .13, .30);
     const sampleScore = sample * 100;
-    const rawScore = (airFbScore * .30) + (pullAirScore * .24) + (barrelScore * .22) + (hrfbScore * .14) + (maxEVScore * .06) + (sampleScore * .04);
+    const rawScore = (airFbScore * .45) + (pullScore * .25) + (ldScore * .18) + (sampleScore * .12);
     const score = Math.max(0, Math.min(100, rawScore));
-    shape = { score, grade: gradeFromScore(score), bbe, air, fb, pull, barrel, hrfb, maxev, note: `${pctFmt(air)} air / ${pctFmt(fb)} FB / ${pctFmt(pull)} pull / Brl ${barrel ? pctFmt(barrel) : '--'} / HRFB ${hrfb ? pctFmt(hrfb) : '--'}` };
+    shape = { score, grade: gradeFromScore(score), bbe, air, fb, pull, ld, note: `${pctFmt(air)} air / ${pctFmt(fb)} FB / ${pctFmt(pull)} pull / ${pctFmt(ld)} LD` };
   }
   const ev = getPitchEVScore(playerName, pt);
   const pw = getPitchWinScore(playerName, pt);
   const tracking = batTrackingPitchGrade(playerName, group, pitcherHand);
-  // HR-only pitch score: EV and air/barrel/pull HR shape lead. Pitch Win is display-only now, not part of score.
+  // New HR-specific pitch score: EV vs pitch + run value/production + batted-ball HR shape + handed contact quality.
   const blendedScore = Math.max(0, Math.min(100,
-    (ev.score * 0.38) +
-    (shape.score * 0.52) +
-    (tracking.score * 0.10)
+    (ev.score * 0.25) +
+    (pw.score * 0.25) +
+    (shape.score * 0.45) +
+    (tracking.score * 0.05)
   ));
-  return { ...shape, score: blendedScore, grade: gradeFromScore(blendedScore), shape, ev, pw, tracking, note: `${ev.note} | ${shape.note} | ${tracking.note}` };
+  return { ...shape, score: blendedScore, grade: gradeFromScore(blendedScore), shape, ev, pw, tracking, note: `${ev.note} | ${pw.note} | ${shape.note} | ${tracking.note}` };
 }
 
 function zoneRateValue(row, keys) {
@@ -10909,13 +11048,13 @@ function buildPitchLabProfile(player) {
     const onlyHomers = pitchHrAffinityScore(player.Name, pitcherName, pt);
     const stuffWeakness = Math.max(0, Math.min(100, 100 + (100 - stuff))); // lower Stuff+ helps hitter
     const usageExposure = Math.max(0, Math.min(100, usage * 180));
-    // True per-pitch HR matchup: hitter HR shape/EV vs this pitch + pitcher HR damage allowed + HR history + exposure.
+    // True per-pitch matchup: batter HR shape vs this pitch + pitcher damage allowed + Stuff+ + OnlyHomers confirmation.
     const edge = Math.max(0, Math.min(100,
-      (bat.score * 0.42) +
-      (pitcherDamage.score * 0.28) +
-      (onlyHomers.score * 0.16) +
-      (stuffWeakness * 0.08) +
-      (usageExposure * 0.06)
+      (bat.score * 0.45) +
+      (pitcherDamage.score * 0.25) +
+      (stuffWeakness * 0.15) +
+      (onlyHomers.score * 0.10) +
+      (usageExposure * 0.05)
     ));
     rows.push({ ...pt, usage, stuff, stuffWeakness, bat, pitcherDamage, onlyHomers, edge });
   });
@@ -10951,14 +11090,14 @@ function buildPitchLabProfile(player) {
   const fbRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.fb : null);
   const pullRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.pull : null);
   const ldRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.ld : null);
-  // Pitch Lab is now HR-only: pitch-level hitter damage, pitcher HR damage allowed, actual HR pitch affinity, zone mistake fit, and pitch exposure.
+  // Pitch Lab is now a mini HR model: batter pitch damage, pitcher pitch damage, Stuff+, ZoneB/ZoneP, OnlyHomers, and contact tracking.
   const finalScore = Math.max(0, Math.min(100,
-    ((batterShapeScore || 50) * 0.36) +
-    ((pitcherDamageScore || 50) * 0.26) +
-    ((onlyHomersScore || 50) * 0.16) +
-    ((zone.score || 50) * 0.12) +
-    ((pitchMixScore || 50) * 0.06) +
-    ((pitchQualityScore || 50) * 0.04)
+    ((batterShapeScore || 50) * 0.35) +
+    ((pitcherDamageScore || 50) * 0.25) +
+    ((pitchQualityScore || 50) * 0.10) +
+    ((zone.score || 50) * 0.15) +
+    ((onlyHomersScore || 50) * 0.10) +
+    ((batTrackingWeighted || 50) * 0.05)
   ));
   const top = rows[0] || null;
   return {
@@ -10980,7 +11119,7 @@ function buildPitchLabProfile(player) {
     zoneScore: Math.max(0, Math.min(100, zone.score || 50)),
     zone,
     grade: gradeFromScore(finalScore), top,
-    note: `HR Bat ${scoreBarPct(batterShapeScore || 50)} / P-HR Dmg ${scoreBarPct(pitcherDamageScore || 50)} / OH ${scoreBarPct(onlyHomersScore || 50)} / EV ${pitchEVValue !== null && pitchEVValue !== undefined && !isNaN(pitchEVValue) ? Number(pitchEVValue).toFixed(1) : '--'} / FB ${fbRateWeighted !== null && fbRateWeighted !== undefined && !isNaN(fbRateWeighted) ? pctFmt(fbRateWeighted) : '--'} / Pull ${pullRateWeighted !== null && pullRateWeighted !== undefined && !isNaN(pullRateWeighted) ? pctFmt(pullRateWeighted) : '--'}`
+    note: `Bat ${scoreBarPct(batterShapeScore || 50)} / P-Dmg ${scoreBarPct(pitcherDamageScore || 50)} / EV ${pitchEVValue !== null && pitchEVValue !== undefined && !isNaN(pitchEVValue) ? Number(pitchEVValue).toFixed(1) : '--'} / FB ${fbRateWeighted !== null && fbRateWeighted !== undefined && !isNaN(fbRateWeighted) ? pctFmt(fbRateWeighted) : '--'} / Pull ${pullRateWeighted !== null && pullRateWeighted !== undefined && !isNaN(pullRateWeighted) ? pctFmt(pullRateWeighted) : '--'}`
   };
 }
 function synergyItems(player) {
@@ -11227,6 +11366,8 @@ function getStatsValue(player, key, rank) {
     case 'iso': { const n = firstNumber(r.iso, safeGet(isoHandRow,'ISO'), safeGet(isoRow,'ISO'), safeGet(player,'ISO')); return val(n, fmtRate(n), pctClass(n, .240, .170)); }
     case 'slg': { const n = firstNumber(r.slg, safeGet(barrellRow,'SLG'), safeGet(isoHandRow,'SLG'), safeGet(isoRow,'SLG'), safeGet(player,'SLG','Slugging')); return val(n, fmtRate(n), pctClass(n, .500, .430)); }
     case 'pitchLabScore': return val(profile ? profile.score : null, profile ? profile.score.toFixed(0) : '-', profile && profile.score >= 70 ? 'stats-good' : profile && profile.score >= 55 ? 'stats-mid' : 'stats-bad');
+    case 'attackZoneScore': { const n = player.attackZoneProfile && player.attackZoneProfile.score !== null ? Number(player.attackZoneProfile.score) : null; return val(n, n === null ? '-' : n.toFixed(0), n >= 72 ? 'stats-good' : n >= 55 ? 'stats-mid' : 'stats-bad'); }
+    case 'attackZoneTop': return {raw: player.attackZoneProfile && player.attackZoneProfile.topZone ? player.attackZoneProfile.topZone.zone : -999, display: player.attackZoneProfile && player.attackZoneProfile.summary ? player.attackZoneProfile.summary : '-', cls:'stats-neutral'};
     case 'topPitch': return {raw: profile && profile.top ? profile.top.edge : -999, display: profile && profile.top ? profile.top.label : '-', cls:'stats-neutral'};
     case 'topPitchEdge': return val(profile && profile.top ? profile.top.edge : null, profile && profile.top ? profile.top.edge.toFixed(0) : '-', profile && profile.top && profile.top.edge >= 70 ? 'stats-good' : profile && profile.top && profile.top.edge >= 55 ? 'stats-mid' : 'stats-bad');
     case 'fbGrade': return val(gradeFromPitch(profile,['FB','FA','FF','Fastball']), fmtNum(gradeFromPitch(profile,['FB','FA','FF','Fastball']),0), pctClass(gradeFromPitch(profile,['FB','FA','FF','Fastball']),70,55));
@@ -11366,12 +11507,12 @@ function renderPitchLab10Card(profile, idx) {
   const logo = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
   const rows = (profile.rows || []).slice(0,4);
   const componentBars = [
-    pitchLab10Bar('Hitter HR Pitch Shape', profile.batterShapeScore, '36%'),
-    pitchLab10Bar('Pitcher HR Damage', profile.pitcherDamageScore, '26%'),
-    pitchLab10Bar('Zone Mistake Fit', profile.zoneScore, '12%'),
-    pitchLab10Bar('Stuff Weakness', profile.pitchQualityScore, '4%'),
-    pitchLab10Bar('Pitch Exposure', profile.pitchMixScore, '6%'),
-    pitchLab10Bar('OnlyHomers HR Fit', profile.onlyHomersScore, '16%')
+    pitchLab10Bar('Batter Shape', profile.batterShapeScore, '35%'),
+    pitchLab10Bar('Pitcher Damage', profile.pitcherDamageScore, '25%'),
+    pitchLab10Bar('Zone Match', profile.zoneScore, '15%'),
+    pitchLab10Bar('Stuff Weakness', profile.pitchQualityScore, '10%'),
+    pitchLab10Bar('Pitch EV', profile.pitchEVScore, ''),
+    pitchLab10Bar('Hand Contact', profile.batTrackingScore, '5%')
   ].join('');
   const pitchCards = rows.map(r => {
     const color = pitchLab10Color(r.key || r.group || r.label);
@@ -11389,7 +11530,7 @@ function renderPitchLab10Card(profile, idx) {
         ${pitchLab10Mini('EV', evVal)}
         ${pitchLab10Mini('FB%', fbVal)}
         ${pitchLab10Mini('Pull%', pullVal)}
-        ${pitchLab10Mini('OH HR Fit', r.onlyHomers && isFinite(r.onlyHomers.score) ? r.onlyHomers.score.toFixed(0) : '--')}
+        ${pitchLab10Mini('Pitch Win', pwVal)}
         ${pitchLab10Mini('Stuff+', stuff)}
       </div>
     </div>`;
@@ -11410,7 +11551,7 @@ function renderPitchLab10Card(profile, idx) {
       <div class="pitchlab10-section">
         <div class="pitchlab10-section-title">Profile Breakdown <span>${profile.note || ''}</span></div>
         <div class="pitchlab10-bars">${componentBars}</div>
-        <div class="pitchlab10-note"><b>Top Threat:</b> ${topText}. Display shows hitter EV, FB%, Pull%, OnlyHomers HR fit, Stuff+, and the HR-only Pitch Lab score math.</div>
+        <div class="pitchlab10-note"><b>Top Threat:</b> ${topText}. Display shows hitter EV, FB%, Pull%, Pitch Win, Stuff+, plus the unchanged Pitch Lab score math.</div>
       </div>
       <div class="pitchlab10-section">
         <div class="pitchlab10-section-title">Pitch-by-Pitch Matchup <span>${renderPitchMix(profile)}</span></div>
@@ -11471,7 +11612,7 @@ function renderPitchLabTable() {
     const bestEV = data.slice().sort((a,b)=>(Number(b.pitchEVValue)||0)-(Number(a.pitchEVValue)||0))[0];
     cardBox.innerHTML = leader ? `
       <div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab Leader</div><div class="pitch-lab-score">${leader.score.toFixed(0)}</div><div class="pitch-lab-sub">${leader.player.Name} vs ${leader.pitcherName || 'Starter'}</div></div>
-      <div class="pitch-lab-card"><div class="pitch-lab-title">Best HR Pitch Shape</div><div class="pitch-lab-score">${bestBat ? bestBat.batterShapeScore.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestBat ? bestBat.player.Name + ' // EV, FB%, Pull%, Barrel/HR Shape' : 'No data'}</div></div>
+      <div class="pitch-lab-card"><div class="pitch-lab-title">Best Batter Shape</div><div class="pitch-lab-score">${bestBat ? bestBat.batterShapeScore.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestBat ? bestBat.player.Name + ' // FB%, Pull%, LD%, EV' : 'No data'}</div></div>
       <div class="pitch-lab-card"><div class="pitch-lab-title">Most Attackable Arsenal</div><div class="pitch-lab-score">${bestP ? bestP.pitcherDamageScore.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestP ? bestP.pitcherName + ' damage allowed profile' : 'No data'}</div></div>
       <div class="pitch-lab-card"><div class="pitch-lab-title">Highest Pitch EV</div><div class="pitch-lab-score">${bestEV && bestEV.pitchEVValue ? Number(bestEV.pitchEVValue).toFixed(1) : '--'}</div><div class="pitch-lab-sub">${bestEV ? bestEV.player.Name + ' // avg EV vs pitch mix' : 'Waiting for EV data'}</div></div>` : `<div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>`;
   }
@@ -12296,15 +12437,16 @@ function parseUsageValue(raw) { let v = cleanNumber(raw); if (!v) return 0; if (
 
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const HYBRID_CATEGORY_WEIGHTS = {
-  // v45 scoring refresh. Must always total exactly 100%.
-  // Power 30, Batted Ball 20, Pitcher 17, Pitch Lab 16, BvP 9, Weather 5, Park 3.
-  // Recent Form was removed because selected recent contact quality is now blended into Hitter Power.
-  power: 0.28,
-  battedBall: 0.25,
-  pitcher: 0.15,
-  pitchLevel: 0.16,
-  bvp: 0.09,
-  weather: 0.05,
+  // v46 Attack Zone scoring refresh. Must always total exactly 100%.
+  // Power 26, Batted Ball 22, Pitcher 14, Pitch Lab 11, Attack Zone 13, BvP 8, Weather 4, Park 2.
+  // Attack Zone uses BZ1-BZ9 and PZ1-PZ9 Savant zone sheets when present; missing zone data is safely skipped.
+  power: 0.26,
+  battedBall: 0.22,
+  pitcher: 0.14,
+  pitchLevel: 0.11,
+  attackZone: 0.13,
+  bvp: 0.08,
+  weather: 0.04,
   park: 0.02
 };
 const MODEL_SANDBOX_WEIGHT_META = [
@@ -12312,6 +12454,7 @@ const MODEL_SANDBOX_WEIGHT_META = [
   { key:'battedBall', label:'Batted Ball' },
   { key:'pitcher', label:'Pitcher Vulnerability' },
   { key:'pitchLevel', label:'Pitch Matchup' },
+  { key:'attackZone', label:'Attack Zone' },
   { key:'bvp', label:'BVP' },
   { key:'weather', label:'Weather' },
   { key:'park', label:'Park' }
@@ -12486,6 +12629,360 @@ function cleanNumberOrNull(v) {
 function rawNumber(obj, ...keys) { return cleanNumberOrNull(safeGet(obj, ...keys)); }
 function rawRate(obj, ...keys) { return hybridRate(rawNumber(obj, ...keys)); }
 function firstValidNumber(...vals) { for (const v of vals) { if (v !== null && v !== undefined && !isNaN(v)) return v; } return null; }
+
+
+function zonePitchPercentValue(raw) {
+  if (raw === undefined || raw === null) return null;
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed === '-' || /^n\/?a$/i.test(trimmed) || /^not found$/i.test(trimmed)) return null;
+    const hasPercent = trimmed.includes('%');
+    const n = Number(trimmed.replace('%','').replace(/,/g,''));
+    if (isNaN(n)) return null;
+    if (hasPercent) return n / 100;
+    // Zone pitch_percent exports are usually stored as percentage points: 4.1 = 4.1%, 0.9 = 0.9%.
+    // Preserve true decimal-rate exports like 0.041 = 4.1% or 0.009 = 0.9%.
+    return n > 0.20 ? n / 100 : n;
+  }
+  const n = Number(raw);
+  if (isNaN(n)) return null;
+  return n > 0.20 ? n / 100 : n;
+}
+function zonePitchPercent(row) {
+  const rawPct = safeGet(row, 'pitch_percent', 'Pitch %', 'Pitch%', 'Pitches %', 'pitches_percent');
+  const pct = zonePitchPercentValue(rawPct);
+  if (pct !== null && pct !== undefined && !isNaN(pct) && pct > 0) return Math.max(0, Math.min(1, pct));
+  const pitches = rawNumber(row, 'pitches', 'Pitches');
+  const total = rawNumber(row, 'total_pitches', 'Total Pitches', 'Total_Pitches');
+  if (pitches !== null && total !== null && total > 0) return Math.max(0, Math.min(1, pitches / total));
+  return null;
+}
+function zoneStatRate(row, ...keys) { return rawRate(row, ...keys); }
+function zoneStatNumber(row, ...keys) { return rawNumber(row, ...keys); }
+function attackZoneScaleScore(kind, value) {
+  if (value === null || value === undefined || isNaN(Number(value))) return null;
+  const v = Number(value);
+  if (kind === 'xslg') return hybridScaleScoreFromPoints(v, [[0.250,0],[0.325,15],[0.400,32],[0.475,50],[0.550,68],[0.650,84],[0.800,96],[0.950,100]]);
+  if (kind === 'iso') return hybridScaleScoreFromPoints(v, [[0.050,0],[0.100,15],[0.150,32],[0.200,50],[0.250,66],[0.325,84],[0.425,96],[0.550,100]]);
+  if (kind === 'barrel') return hybridScaleScoreFromPoints(v, [[0.020,0],[0.040,12],[0.060,25],[0.080,42],[0.100,58],[0.130,74],[0.170,90],[0.220,100]]);
+  if (kind === 'barrelPA') return hybridScaleScoreFromPoints(v, [[0.005,0],[0.015,18],[0.025,38],[0.035,58],[0.050,76],[0.070,92],[0.090,100]]);
+  if (kind === 'hardhit') return hybridScaleScoreFromPoints(v, [[0.250,0],[0.300,15],[0.350,32],[0.400,50],[0.450,66],[0.500,80],[0.570,94],[0.650,100]]);
+  if (kind === 'ev') return hybridScaleScoreFromPoints(v, [[84,0],[86,12],[88,28],[90,48],[92,68],[94,84],[96,95],[98,100]]);
+  if (kind === 'maxev') return hybridScaleScoreFromPoints(v, [[98,0],[101,14],[104,32],[107,52],[110,72],[113,88],[116,97],[119,100]]);
+  if (kind === 'hr') return hybridScaleScoreFromPoints(v, [[0,0],[1,45],[2,70],[3,86],[5,100]]);
+  if (kind === 'avg') return hybridScaleScoreFromPoints(v, [[0.120,0],[0.180,18],[0.220,36],[0.260,55],[0.300,72],[0.340,88],[0.380,100]]);
+  if (kind === 'freq') return hybridScaleScoreFromPoints(v, [[0.000,0],[0.035,18],[0.070,34],[0.110,50],[0.150,66],[0.200,82],[0.280,94],[0.360,100]]);
+  return null;
+}
+function zoneFirstNumber(row, keys) { return row ? zoneStatNumber(row, ...keys) : null; }
+function zoneFirstRate(row, keys) { return row ? zoneStatRate(row, ...keys) : null; }
+function zoneExtractStats(row) {
+  row = row || {};
+  return {
+    hr: zoneFirstNumber(row, ['hrs','HR','HRs','Home Runs','home_runs']),
+    avg: zoneFirstNumber(row, ['ba','BA','AVG','avg','batting_avg','batting_average']),
+    slg: zoneFirstNumber(row, ['slg','SLG','slugging_percent','Slugging %']),
+    xslg: zoneFirstNumber(row, ['xslg','xSLG','estimated_slg_using_speedangle','Expected SLG']),
+    iso: zoneFirstNumber(row, ['iso','ISO']),
+    ev: zoneFirstNumber(row, ['launch_speed','Launch Speed','EV','Avg EV','average_ev']),
+    maxev: zoneFirstNumber(row, ['max_hit_speed','Max EV','max_ev','maxEV','Max Exit Velocity']),
+    barrel: zoneFirstRate(row, ['barrels_per_bbe_percent','Barrels/BBE %','Barrel %','barrel_percent']),
+    barrelPA: zoneFirstRate(row, ['barrels_per_pa_percent','Barrels/PA %']),
+    hardhit: zoneFirstRate(row, ['hardhit_percent','HardHit%','Hard Hit %','hard_hit_percent']),
+    sweetspot: zoneFirstRate(row, ['sweet_spot_percent','Sweet Spot %','sweetspot_percent']),
+    pull: zoneFirstRate(row, ['pull_percent','Pull %','pull_pct']),
+    fb: zoneFirstRate(row, ['fb_percent','FB %','fly_ball_percent','flyball_percent']),
+    gb: zoneFirstRate(row, ['gb_percent','GB %','ground_ball_percent','groundball_percent']),
+    la: zoneFirstNumber(row, ['launch_angle','Launch Angle','LA','avg_la']),
+    contact: zoneFirstRate(row, ['contact_percent','Contact %','contact_pct']),
+    whiff: zoneFirstRate(row, ['whiff_percent','Whiff %','whiff_pct']),
+    pitches: zoneFirstNumber(row, ['pitches','Pitches']),
+    pitchPct: zonePitchPercent(row)
+  };
+}
+function buildAttackZoneDamageScore(row) {
+  if (!row || !Object.keys(row).length) return null;
+  const s = zoneExtractStats(row);
+  return hybridWeightedAvg([
+    { value: attackZoneScaleScore('xslg', s.xslg), weight: 0.31 },
+    { value: attackZoneScaleScore('barrel', s.barrel), weight: 0.23 },
+    { value: attackZoneScaleScore('hardhit', s.hardhit), weight: 0.15 },
+    { value: attackZoneScaleScore('iso', s.iso), weight: 0.12 },
+    { value: attackZoneScaleScore('ev', s.ev), weight: 0.10 },
+    { value: attackZoneScaleScore('hr', s.hr), weight: 0.05 },
+    { value: attackZoneScaleScore('barrelPA', s.barrelPA), weight: 0.04 }
+  ]);
+}
+function calculateAttackZoneProfile(player) {
+  try {
+    const hitterName = player && player.Name;
+    const pitcherName = String(safeGet(player, 'Opp Pitcher', 'Opp Pitcher Name', 'Pitcher', 'Pitcher Name') || '').trim();
+    if (!hitterName || !pitcherName) return { score: null, zones: [], topZone: null, summary: 'No pitcher/hitter match.' };
+    const zones = [];
+    for (let i = 1; i <= 9; i++) {
+      const bRow = lookupStat('BZ' + i, hitterName);
+      const pRow = lookupStat('PZ' + i, pitcherName);
+      const hasB = bRow && Object.keys(bRow).length;
+      const hasP = pRow && Object.keys(pRow).length;
+      if (!hasB && !hasP) continue;
+      const batterStats = zoneExtractStats(hasB ? bRow : {});
+      const pitcherStats = zoneExtractStats(hasP ? pRow : {});
+      const batterDamage = hasB ? buildAttackZoneDamageScore(bRow) : null;
+      const pitcherVulnerability = hasP ? buildAttackZoneDamageScore(pRow) : null;
+      let pitchPct = hasP ? pitcherStats.pitchPct : null;
+      if (pitchPct === null && hasP) pitchPct = 1 / 9;
+      const freqScore = attackZoneScaleScore('freq', pitchPct === null ? 1/9 : pitchPct);
+      // v47 Attack Zone refresh:
+      // Per-zone edge now measures pure hitter/pitcher collision, while the final Zone Score
+      // separately rewards whether the pitcher actually lives in the hitter's best damage zone.
+      const edge = hybridWeightedAvg([
+        { value: batterDamage, weight: 0.55 },
+        { value: pitcherVulnerability, weight: 0.45 }
+      ]);
+      if (edge === null || edge === undefined || isNaN(edge)) continue;
+      zones.push({
+        zone: i,
+        batterDamage,
+        pitcherVulnerability,
+        pitchFrequencyScore: freqScore,
+        pitchPct: pitchPct === null ? null : Math.max(0, Math.min(1, Number(pitchPct))),
+        edge: Math.max(0, Math.min(100, edge)),
+        weightedEdge: Math.max(0, Math.min(100, edge)),
+        batterPitchPct: hasB ? batterStats.pitchPct : null,
+        pitcherPitches: pitcherStats.pitches,
+        hitterXSLG: batterStats.xslg,
+        pitcherXSLG: pitcherStats.xslg,
+        batterStats,
+        pitcherStats
+      });
+    }
+    if (!zones.length) return { score: null, zones: [], topZone: null, summary: 'No BZ/PZ zone data found.' };
+    const totalPct = zones.reduce((s,z) => s + (Number(z.pitchPct) || 0), 0);
+    const weightedAvgEdge = zones.reduce((s,z) => s + (Number(z.edge) || 0) * (Number(z.pitchPct) || (1 / zones.length)), 0) / zones.reduce((s,z) => s + (Number(z.pitchPct) || (1 / zones.length)), 0);
+    zones.sort((a,b) => (b.edge || 0) - (a.edge || 0));
+    const topZone = zones[0] || null;
+    const bestOverlapEdge = topZone ? Number(topZone.edge) || 0 : 0;
+    const bestZoneUsageScore = topZone ? Number(topZone.pitchFrequencyScore) || 0 : 0;
+    const rawScore = hybridWeightedAvg([
+      { value: bestOverlapEdge, weight: 0.50 },
+      { value: bestZoneUsageScore, weight: 0.30 },
+      { value: weightedAvgEdge, weight: 0.20 }
+    ]);
+    const score = Math.max(0, Math.min(100, rawScore));
+    const summary = topZone ? zoneBuildSummary(hitterName, pitcherName, topZone) : 'No edge';
+    return { score, zones, topZone, summary, totalPitchPct: totalPct, formula: '50% Best Zone Edge / 30% Best Zone Pitcher Usage / 20% Weighted Zone Average' };
+  } catch (err) {
+    console.warn('Attack Zone calculation failed for', player && player.Name, err);
+    return { score: null, zones: [], topZone: null, summary: 'Attack Zone error-safe neutral.' };
+  }
+}
+function zoneProfileEscape(s) {
+  return String(s ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+}
+function zoneProfileFmtNum(v, d=0) { return (v === null || v === undefined || isNaN(Number(v))) ? '--' : Number(v).toFixed(d); }
+function zoneProfileFmtPct(v) { return (v === null || v === undefined || isNaN(Number(v))) ? '--' : `${Math.round(Number(v) * 100)}%`; }
+function zoneProfileFmtAvg(v) { return (v === null || v === undefined || isNaN(Number(v))) ? '--' : Number(v).toFixed(3).replace(/^0/, ''); }
+function zoneProfileFmtStat(label, value) {
+  const key = String(label || '').toLowerCase();
+  if (value === null || value === undefined || isNaN(Number(value))) return '--';
+  if (key.includes('%') || key.includes('barrel') || key.includes('hard') || key.includes('sweet') || key.includes('pull') || key === 'fb' || key === 'gb' || key.includes('whiff') || key.includes('contact') || key.includes('usage')) return zoneProfileFmtPct(value);
+  if (key.includes('avg')) return zoneProfileFmtAvg(value);
+  if (key.includes('xslg') || key === 'slg') return Number(value).toFixed(3).replace(/^0/, '');
+  if (key.includes('ev') || key.includes('angle')) return Number(value).toFixed(1);
+  return Number(value).toFixed(0);
+}
+function zoneProfileHeatStyle(score) {
+  if (score === null || score === undefined || isNaN(Number(score))) return 'background:linear-gradient(135deg, rgba(31,41,55,.78), rgba(8,8,10,.90));';
+  const v = Math.max(0, Math.min(100, Number(score)));
+  if (v >= 67) return `background:linear-gradient(135deg, rgba(225,6,0,.92), rgba(95,0,0,.90));`;
+  if (v >= 52) return `background:linear-gradient(135deg, rgba(225,6,0,.52), rgba(40,40,44,.92));`;
+  if (v >= 40) return `background:linear-gradient(135deg, rgba(60,60,68,.86), rgba(14,14,16,.94));`;
+  return `background:linear-gradient(135deg, rgba(37,99,235,.78), rgba(10,20,46,.94));`;
+}
+function zoneProfileOrderedZones(profile) {
+  const map = {};
+  (profile && Array.isArray(profile.zones) ? profile.zones : []).forEach(z => { map[String(z.zone)] = z; });
+  return [1,2,3,4,5,6,7,8,9].map(i => map[String(i)] || { zone:i, missing:true });
+}
+function zoneStars(edge) {
+  const n = Number(edge);
+  const count = isNaN(n) ? 0 : Math.max(1, Math.min(5, Math.round(n / 20)));
+  return '★★★★★'.slice(0,count) + '☆☆☆☆☆'.slice(0,5-count);
+}
+function zoneBuildSummary(hitter, pitcher, zone) {
+  if (!zone || zone.missing) return 'No uploaded data for this zone.';
+  const edge = Math.round(Number(zone.edge) || 0);
+  const use = zoneProfileFmtPct(zone.pitchPct);
+  const b = Math.round(Number(zone.batterDamage) || 0);
+  const p = Math.round(Number(zone.pitcherVulnerability) || 0);
+  let tag = edge >= 75 ? 'premium HR target' : edge >= 62 ? 'strong attack spot' : edge >= 50 ? 'watch-list zone' : 'lower priority zone';
+  return `Zone ${zone.zone} is a ${tag}: ${hitter || 'the hitter'} grades ${b}/100 for damage here, ${pitcher || 'the pitcher'} grades ${p}/100 vulnerable here, and the pitch frequency is ${use}.`;
+}
+function zoneHoverStat(label, val, cls='') { return `<div class="zone-hover-stat"><div class="zone-hover-label">${zoneProfileEscape(label)}</div><div class="zone-hover-value ${cls}">${zoneProfileEscape(val)}</div></div>`; }
+function zoneProfileCell(zone, mode, playerIndex, isBest) {
+  const missing = !zone || zone.missing;
+  const score = missing ? null : (mode === 'pitcher' ? zone.pitcherVulnerability : zone.edge);
+  const main = missing ? '--' : Math.round(Number(score) || 0);
+  const sub = missing ? 'No Data' : (mode === 'pitcher' ? `${zoneProfileFmtPct(zone.pitchPct)} Use` : `${zoneProfileFmtPct(zone.pitchPct)} P%`);
+  const b = zone && zone.batterStats ? zone.batterStats : {};
+  const ps = zone && zone.pitcherStats ? zone.pitcherStats : {};
+  const hover = missing ? '' : `<div class="zone-hover-card">
+    <div class="zone-hover-title">Zone ${zone.zone}<span>${zoneStars(zone.edge)}</span></div>
+    <div class="zone-hover-grid">
+      ${zoneHoverStat('Edge', zoneProfileFmtNum(zone.edge,0), 'hot')}
+      ${zoneHoverStat('Pitcher Usage %', zoneProfileFmtPct(zone.pitchPct), 'blue')}
+      ${zoneHoverStat('Batter HR', zoneProfileFmtStat('HR', b.hr), 'gold')}
+      ${zoneHoverStat('xSLG', zoneProfileFmtStat('xSLG', b.xslg))}
+      ${zoneHoverStat('EV', zoneProfileFmtStat('EV', b.ev))}
+      ${zoneHoverStat('Barrel %', zoneProfileFmtPct(b.barrel))}
+      ${zoneHoverStat('Hard Hit %', zoneProfileFmtPct(b.hardhit))}
+      ${zoneHoverStat('Pitcher xSLG Allowed', zoneProfileFmtStat('xSLG', ps.xslg))}
+      ${zoneHoverStat('EV Allowed', zoneProfileFmtStat('EV', ps.ev))}
+      ${zoneHoverStat('HR Allowed', zoneProfileFmtStat('HR', ps.hr), 'gold')}
+      ${zoneHoverStat('Overall HR Opportunity', zoneProfileFmtNum(zone.edge,0), 'hot')}
+    </div>
+  </div>`;
+  const click = missing ? '' : ` onclick="openZoneProfileModal(${playerIndex}, ${zone.zone})"`;
+  return `<div class="zone-cell ${missing?'missing':''} ${isBest?'best-zone':''}" style="${zoneProfileHeatStyle(score)}"${click}><div class="zone-cell-num">Z${zone.zone}</div><div class="zone-cell-main">${main}</div><div class="zone-cell-sub">${sub}</div>${hover}</div>`;
+}
+function zoneReportStat(label, value, kind='') { return `<div class="zone-report-stat"><div class="zone-report-label">${zoneProfileEscape(label)}</div><div class="zone-report-value">${zoneProfileEscape(kind === 'pct' ? zoneProfileFmtPct(value) : zoneProfileFmtStat(label, value))}</div></div>`; }
+function zoneMatchKpi(label, value, cls='') { return `<div class="zone-match-kpi"><div class="zone-match-label">${zoneProfileEscape(label)}</div><div class="zone-match-value ${cls}">${zoneProfileEscape(value)}</div></div>`; }
+function populateZoneProfileFilters(data) {
+  const teamSel = document.getElementById('zoneTeamFilter');
+  const pitcherSel = document.getElementById('zonePitcherFilter');
+  if (teamSel) {
+    const cur = teamSel.value || 'ALL';
+    const teams = [...new Set((playerData || []).map(p => String(p.Team||'').trim()).filter(Boolean))].sort();
+    teamSel.innerHTML = '<option value="ALL">All Teams</option>' + teams.map(t => `<option value="${zoneProfileEscape(t)}">${zoneProfileEscape(t)}</option>`).join('');
+    if (teams.includes(cur)) teamSel.value = cur;
+  }
+  if (pitcherSel) {
+    const cur = pitcherSel.value || 'ALL';
+    const pitchers = [...new Set((data || playerData || []).map(p => String(safeGet(p,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    pitcherSel.innerHTML = '<option value="ALL">All Pitchers</option>' + pitchers.map(x => `<option value="${zoneProfileEscape(x)}">${zoneProfileEscape(x)}</option>`).join('');
+    if (pitchers.includes(cur)) pitcherSel.value = cur;
+  }
+}
+function renderZoneMap(zones, mode, playerIndex, topZoneNum) {
+  return `<div class="zone-grid">${zones.map(z => zoneProfileCell(z, mode, playerIndex, !z.missing && Number(z.zone) === Number(topZoneNum))).join('')}</div>`;
+}
+window.zoneProfileModalData = [];
+function renderZoneProfileTab() {
+  const grid = document.getElementById('zoneProfileGrid');
+  if (!grid) return;
+  const base = (playerData || []).filter(p => !p.isRemoved);
+  populateZoneProfileFilters(base);
+  const search = (document.getElementById('zoneSearch')?.value || '').toLowerCase().trim();
+  const team = document.getElementById('zoneTeamFilter')?.value || 'ALL';
+  const pitcherFilter = document.getElementById('zonePitcherFilter')?.value || 'ALL';
+  const sort = document.getElementById('zoneSortFilter')?.value || 'RANK';
+  const ranked = [...(playerData || [])].sort((a,b)=>cleanNumber(b.calculatedBBI)-cleanNumber(a.calculatedBBI));
+  const rankMap = {}; ranked.forEach((p,i)=>rankMap[normalizeName(p.Name)] = i+1);
+  let data = base.map(p => ({ player:p, profile: calculateAttackZoneProfile(p) }));
+  data.forEach(x => { x.player.attackZoneProfile = x.profile; x.player.calculatedAttackZoneScore = x.profile && x.profile.score !== null ? x.profile.score : null; x.player.attackZoneSummary = x.profile && x.profile.summary ? x.profile.summary : ''; });
+  if (search) data = data.filter(x => String(x.player.Name||'').toLowerCase().includes(search));
+  if (team !== 'ALL') data = data.filter(x => String(x.player.Team||'') === team);
+  if (pitcherFilter !== 'ALL') data = data.filter(x => String(safeGet(x.player,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '').trim() === pitcherFilter);
+  data.sort((a,b) => {
+    const at = a.profile && a.profile.topZone ? a.profile.topZone : {};
+    const bt = b.profile && b.profile.topZone ? b.profile.topZone : {};
+    if (sort === 'ZONE') return (Number(b.profile && b.profile.score) || -1) - (Number(a.profile && a.profile.score) || -1);
+    if (sort === 'TOPEDGE') return (Number(bt.edge) || -1) - (Number(at.edge) || -1);
+    if (sort === 'USAGE') return (Number(bt.pitchPct) || -1) - (Number(at.pitchPct) || -1);
+    if (sort === 'ALPHA') return String(a.player.Name||'').localeCompare(String(b.player.Name||''));
+    return (rankMap[normalizeName(a.player.Name)] || 9999) - (rankMap[normalizeName(b.player.Name)] || 9999);
+  });
+  window.zoneProfileModalData = data;
+  const pill = document.getElementById('zoneSummaryPill');
+  if (pill) {
+    const withData = data.filter(x => x.profile && x.profile.zones && x.profile.zones.length).length;
+    pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; Formula: <b>50/30/20</b>`;
+  }
+  if (!data.length) { grid.innerHTML = `<div class="zone-empty">No players match the current Zone Profile filters.</div>`; return; }
+  grid.innerHTML = data.map(({player:p, profile}, idx) => {
+    const zones = zoneProfileOrderedZones(profile);
+    const top = profile && profile.topZone ? profile.topZone : null;
+    const pitcher = String(safeGet(p,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || 'Opp Starter').trim();
+    const hand = String(safeGet(p,'Bats','Bat Side','Hand') || '-').toUpperCase().slice(0,1);
+    const rank = rankMap[normalizeName(p.Name)] || '-';
+    const zoneScore = profile && profile.score !== null && profile.score !== undefined ? Math.round(profile.score) : '--';
+    const topText = top ? `Z${top.zone}` : '--';
+    const topEdge = top ? Math.round(Number(top.edge)||0) : '--';
+    const topUse = top ? zoneProfileFmtPct(top.pitchPct) : '--';
+    const summary = profile && profile.summary ? profile.summary : 'No BZ/PZ zone data found.';
+    const topZoneNum = top ? top.zone : null;
+    return `<div class="zone-player-card" style="${teamVisualStyle(p.Team || '')}">
+      <div class="zone-card-top">
+        ${createHeadshotHtml(p.Name,'sm',p.Team)}
+        <div style="min-width:0;"><div class="zone-player-name" title="${zoneProfileEscape(p.Name)}">${zoneProfileEscape(p.Name)}</div><div class="zone-player-meta">#${rank} // ${zoneProfileEscape(p.Team || '-')} // ${hand} // vs ${zoneProfileEscape(pitcher)}</div></div>
+        <div class="zone-score-badge"><div class="zone-score-label">Zone Score</div><div class="zone-score-value">${zoneScore}</div></div>
+      </div>
+      <div class="zone-card-body">
+        <div class="zone-map-panel"><div class="zone-map-title">Batter Attack Map <span>Edge</span></div>${renderZoneMap(zones, 'edge', idx, topZoneNum)}</div>
+        <div class="zone-map-panel"><div class="zone-map-title">Pitcher Tendency Map <span>Usage</span></div>${renderZoneMap(zones, 'pitcher', idx, topZoneNum)}</div>
+      </div>
+      <div class="zone-card-footer">
+        <div class="zone-mini-stat"><div class="zone-mini-label">Best Zone</div><div class="zone-mini-value hot">${topText}</div></div>
+        <div class="zone-mini-stat"><div class="zone-mini-label">Top Edge</div><div class="zone-mini-value gold">${topEdge}</div></div>
+        <div class="zone-mini-stat"><div class="zone-mini-label">Pitcher Use</div><div class="zone-mini-value blue">${topUse}</div></div>
+      </div>
+      <div class="zone-scout-summary">${zoneProfileEscape(summary)}</div>
+    </div>`;
+  }).join('');
+}
+function openZoneProfileModal(playerIndex, zoneNum) {
+  const item = (window.zoneProfileModalData || [])[playerIndex];
+  if (!item || !item.profile) return;
+  const p = item.player || {};
+  const zone = (item.profile.zones || []).find(z => Number(z.zone) === Number(zoneNum));
+  if (!zone) return;
+  const pitcher = String(safeGet(p,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || 'Opp Starter').trim();
+  const hand = String(safeGet(p,'Bats','Bat Side','Hand') || '-').toUpperCase().slice(0,1);
+  const b = zone.batterStats || {};
+  const ps = zone.pitcherStats || {};
+  const expectedDamage = hybridWeightedAvg([{value:zone.batterDamage,weight:.55},{value:zone.pitcherVulnerability,weight:.45}]);
+  const content = document.getElementById('zoneProfileModalContent');
+  if (!content) return;
+  content.innerHTML = `<div class="zone-modal-header">
+    <div class="zone-modal-kicker">Zone Profile 2.0 Scouting Report</div>
+    <div class="zone-modal-title">${zoneProfileEscape(p.Name)} vs ${zoneProfileEscape(pitcher)} // Zone ${zone.zone}</div>
+    <div class="zone-modal-sub">Edge formula: 45% batter zone damage + 35% pitcher zone damage + 20% pitch frequency. Missing workbook fields show --.</div>
+  </div>
+  <div class="zone-modal-body">
+    <div class="zone-modal-layout">
+      <div class="zone-report-panel">
+        <div class="zone-report-top">${createHeadshotHtml(p.Name,'lg',p.Team)}<div><div class="zone-report-name">${zoneProfileEscape(p.Name)}</div><div class="zone-report-meta">${zoneProfileEscape(p.Team || '-')} // ${hand} bat // Batter Zone Damage ${zoneProfileFmtNum(zone.batterDamage,0)}</div></div></div>
+        <div class="zone-report-stats"><div class="zone-report-title" style="grid-column:1/-1;">Batter Power Stats In Zone</div>
+          ${zoneReportStat('HR', b.hr)}${zoneReportStat('AVG', b.avg)}${zoneReportStat('SLG', b.slg)}${zoneReportStat('xSLG', b.xslg)}${zoneReportStat('EV', b.ev)}${zoneReportStat('Max EV', b.maxev)}${zoneReportStat('Barrel %', b.barrel, 'pct')}${zoneReportStat('Hard Hit %', b.hardhit, 'pct')}${zoneReportStat('Sweet Spot %', b.sweetspot, 'pct')}${zoneReportStat('Pull %', b.pull, 'pct')}${zoneReportStat('FB %', b.fb, 'pct')}${zoneReportStat('Launch Angle', b.la)}${zoneReportStat('Contact %', b.contact, 'pct')}
+        </div>
+      </div>
+      <div class="zone-matchup-center">
+        <div class="zone-match-zone"><div><div class="zone-modal-kicker">Matchup Center</div><div class="zone-modal-title" style="font-size:20px;">Zone ${zone.zone}</div></div><div><div class="zone-match-zone-badge">Z${zone.zone}</div><div class="zone-stars">${zoneStars(zone.edge)}</div></div></div>
+        <div class="zone-match-kpis">
+          ${zoneMatchKpi('Zone Edge', zoneProfileFmtNum(zone.edge,0), 'hot')}
+          ${zoneMatchKpi('Pitch Frequency', zoneProfileFmtPct(zone.pitchPct), 'blue')}
+          ${zoneMatchKpi('Expected Damage', zoneProfileFmtNum(expectedDamage,0), 'gold')}
+          ${zoneMatchKpi('HR Rating', zoneStars(zone.edge), 'gold')}
+        </div>
+        <div class="zone-written-summary">${zoneProfileEscape(zoneBuildSummary(p.Name, pitcher, zone))}</div>
+      </div>
+      <div class="zone-report-panel">
+        <div class="zone-report-top">${createHeadshotHtml(pitcher,'lg','')}<div><div class="zone-report-name">${zoneProfileEscape(pitcher)}</div><div class="zone-report-meta">Opposing pitcher // Zone Vulnerability ${zoneProfileFmtNum(zone.pitcherVulnerability,0)}</div></div></div>
+        <div class="zone-report-stats"><div class="zone-report-title" style="grid-column:1/-1;">Pitcher Allowed / Tendency In Zone</div>
+          ${zoneReportStat('Usage %', zone.pitchPct, 'pct')}${zoneReportStat('Pitches', ps.pitches)}${zoneReportStat('HR Allowed', ps.hr)}${zoneReportStat('AVG Allowed', ps.avg)}${zoneReportStat('xSLG Allowed', ps.xslg)}${zoneReportStat('EV Allowed', ps.ev)}${zoneReportStat('Max EV Allowed', ps.maxev)}${zoneReportStat('Barrel Allowed', ps.barrel, 'pct')}${zoneReportStat('Hard Hit Allowed', ps.hardhit, 'pct')}${zoneReportStat('FB %', ps.fb, 'pct')}${zoneReportStat('GB %', ps.gb, 'pct')}${zoneReportStat('Whiff %', ps.whiff, 'pct')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+  const overlay = document.getElementById('zoneProfileModal');
+  if (overlay) overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+}
+function closeZoneProfileModal() {
+  const overlay = document.getElementById('zoneProfileModal');
+  if (overlay) overlay.classList.remove('active');
+  document.body.classList.remove('modal-open');
+}
 
 function weatherClampScore(v) { return Math.max(0, Math.min(100, Number(v) || 0)); }
 function weatherScaleBetween(v, low, high) {
@@ -12692,6 +13189,10 @@ function hybridRaw(p) {
   const seasonPAForHRPA = firstNumber(safeGet(lookupStat('PA', p.Name), 'PA', 'PAs'), safeGet(p, 'PA', 'pa', 'PAs', 'Plate Appearances', 'AB'));
   const seasonHRForHRPA = firstNumber(safeGet(pxhrRow, 'HR', 'Actual HR', 'Home Runs', 'Homeruns'), safeGet(p, 'Total HR', 'HR', 'Homeruns', 'Home Runs'));
   const stabilizedHRPAInfo = calculateStabilizedHRPA(seasonHRForHRPA || 0, seasonPAForHRPA || 0);
+  const attackZoneProfile = calculateAttackZoneProfile(p);
+  p.attackZoneProfile = attackZoneProfile;
+  p.calculatedAttackZoneScore = attackZoneProfile && attackZoneProfile.score !== null ? attackZoneProfile.score : null;
+  p.attackZoneSummary = attackZoneProfile && attackZoneProfile.summary ? attackZoneProfile.summary : '';
   return {
     barrel: firstRate(safeGet(barrellRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(ssRow, 'Brls/BBE %'), safeGet(scastRow, 'Brls/BBE %'), safeGet(p, 'Barrel %', 'Barrel%')),
     brlsPA: firstRate(safeGet(barrellRow, 'Brls/PA %', 'Barrels/PA %'), safeGet(ssRow, 'Brls/PA %'), safeGet(scastRow, 'Brls/PA %')),
@@ -12753,6 +13254,11 @@ function hybridRaw(p) {
     rawHRPA: stabilizedHRPAInfo.raw,
     stabilizedHRPA: stabilizedHRPAInfo.stabilized,
     hrPAStabilizationPoint: STABILIZATION.hrPA,
+    attackZone: attackZoneProfile && attackZoneProfile.score !== null ? attackZoneProfile.score : null,
+    attackZoneTopZone: attackZoneProfile && attackZoneProfile.topZone ? attackZoneProfile.topZone.zone : null,
+    attackZoneTopPitchPct: attackZoneProfile && attackZoneProfile.topZone ? attackZoneProfile.topZone.pitchPct : null,
+    attackZoneTopEdge: attackZoneProfile && attackZoneProfile.topZone ? attackZoneProfile.topZone.edge : null,
+    attackZoneTotalPitchPct: attackZoneProfile ? attackZoneProfile.totalPitchPct : null,
     paPg: firstNumber(safeGet(lookupStat('PA', p.Name), 'PA/G', 'PA PG', 'PA/Game'), safeGet(p, 'PA PG', 'PA/Game', 'PApg', 'PA per game')),
     battingOrder: firstNumber(safeGet(lookupStat('LINEUPS', p.Name), 'Spot', 'BO', 'Batting Order'), safeGet(p, 'BO', 'Batting Order', 'Lineup Spot')),
     teamTotal: firstNumber(safeGet(p, 'Total', 'Team Total', 'Game Total', 'O/U', 'Over/Under')),
@@ -12867,7 +13373,7 @@ function hybridScaleScoreFromPoints(rawValue, points) {
 function hybridFixedScore(key, rawValue) {
   return HYBRID_FIXED_SCALES[key] ? hybridScaleScoreFromPoints(rawValue, HYBRID_FIXED_SCALES[key]) : null;
 }
-function hybridScoreMetricBlended(raw, ranges, seasonKey, recentKey, seasonWeight=0.70, recentWeight=0.30) {
+function hybridScoreMetricBlended(raw, ranges, seasonKey, recentKey, seasonWeight=0.60, recentWeight=0.40) {
   const seasonScore = hybridScoreMetric(raw, ranges, seasonKey);
   const recentRaw = raw ? raw[recentKey] : null;
   const recentScaleKey = seasonKey;
@@ -13042,8 +13548,12 @@ function scoreHybridPlayer(p, ranges) {
   p.calculatedBvPActiveWeight = activeBvPBaseWeight * bvpConfidence;
   p.calculatedBvPRedistributedWeight = activeBvPBaseWeight - p.calculatedBvPActiveWeight;
   const bullpen = hybridAvg([hybridScoreMetric(r,ranges,'bullpenHR9'),hybridScoreMetric(r,ranges,'bullpenFIP'),hybridScoreMetric(r,ranges,'bullpenBarrel'),hybridScoreMetric(r,ranges,'bullpenHardHit')]);
-  const park = hybridAvg([hybridScoreMetric(r,ranges,'parkFactor'),hybridScoreMetric(r,ranges,'pullFence',true),hybridScoreMetric(r,ranges,'cf',true),hybridScoreMetric(r,ranges,'weatherScore')]);
+  // Park bucket now uses ONLY the handed park-factor index from PARKFACTORL/PARKFACTORR.
+  // No daily normalization, no LF/CF fence distance, and no weather double-counting.
+  // Example: ParkFactorL/R 93 => park score 93, 105 => park score 105.
+  const park = (r.parkFactor !== null && r.parkFactor !== undefined && !isNaN(Number(r.parkFactor)) && Number(r.parkFactor) > 0) ? Number(r.parkFactor) : 100;
   const weather = hybridAvg([hybridScoreMetric(r,ranges,'weatherScore')]);
+  const attackZone = (r.attackZone !== null && r.attackZone !== undefined && !isNaN(r.attackZone)) ? Math.max(0, Math.min(100, Number(r.attackZone))) : null;
   const paReliability = hybridWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'pa'), weight: 0.45 },
     { value: hybridScoreMetric(r,ranges,'paPg'), weight: 0.35 },
@@ -13057,15 +13567,16 @@ function scoreHybridPlayer(p, ranges) {
   const adjustedRecent = null;
   const adjustedPark = elitePowerCore ? hybridClampLow(park, 38) : park;
   const adjustedBullpen = elitePowerCore ? hybridClampLow(bullpen, 40) : bullpen;
-  p.category = { power, pitcher, pitchLevel: adjustedPitchLevel, battedBall, bvp, bullpen: adjustedBullpen, park: adjustedPark, discipline, weather, pitcherHRDamage, pitcherContactQuality, pitcherBase, hitterPitcherContactMatch, hitterPitcherAirMatch };
+  p.category = { power, pitcher, pitchLevel: adjustedPitchLevel, attackZone, battedBall, bvp, bullpen: adjustedBullpen, park: adjustedPark, discipline, weather, pitcherHRDamage, pitcherContactQuality, pitcherBase, hitterPitcherContactMatch, hitterPitcherAirMatch };
   p.calculatedPAReliability = paReliability;
   const dataConfidence = hybridCoverage(r, [
     { weight: 0.32, keys: ['barrel','avgEV','ev90','hardHit','xHR','xslg','xwoba','lwBarrel','lwEV','lwHardHit','lwXSLG','lwXWOBA'] },
     { weight: 0.24, keys: ['pitcherHR9','pitcherBarrel','pitcherHardHit','pitcherFB','pitcherHRFB','pitcherEV'] },
     { weight: 0.20, keys: ['flyBall','pullAir','pull','hrFb','launchAngle','fbld'] },
-    { weight: 0.14, keys: ['parkFactor','pullFence','weatherScore','teamTotal'] },
-    { weight: 0.06, keys: ['pa','paPg','battingOrder'] },
-    { weight: 0.04, keys: ['pitchLevelEV','bullpenHR9'] }
+    { weight: 0.12, keys: ['parkFactor','pullFence','weatherScore','teamTotal'] },
+    { weight: 0.08, keys: ['attackZone','attackZoneTopEdge','attackZoneTopPitchPct'] },
+    { weight: 0.04, keys: ['pa','paPg','battingOrder'] },
+    { weight: 0.02, keys: ['pitchLevelEV','bullpenHR9'] }
   ]);
   p.calculatedDataConfidence = dataConfidence;
   const categoryWeights = getActiveHybridCategoryWeights();
@@ -13132,7 +13643,7 @@ function scoreHybridPlayer(p, ranges) {
   if (r.pa && r.pa < 50 && !r.lwHR && !elitePowerCore) score *= 0.88;
 
   const baseScoreBeforeSynergy = score;
-  const microSynergy = calculateMicroSynergyBonuses(p, r, { power, pitcher, battedBall, pitchLevel, weather, park });
+  const microSynergy = calculateMicroSynergyBonuses(p, r, { power, pitcher, battedBall, pitchLevel, attackZone, weather, park });
   score += microSynergy.total;
   p.calculatedBaseBBI = baseScoreBeforeSynergy;
   p.calculatedSynergy = microSynergy.total;
@@ -13153,6 +13664,7 @@ function scoreHybridPlayer(p, ranges) {
   p.hrPAReliabilityPA = r.pa;
   p.hrPAStabilizationPoint = r.hrPAStabilizationPoint || STABILIZATION.hrPA;
   p.calculatedPitcherScore = pitcher;
+  p.calculatedAttackZoneScore = attackZone;
   p.calculatedPitcherBaseScore = pitcherBase;
   p.calculatedPitcherContactMatchScore = hitterPitcherContactMatch;
   p.calculatedPitcherAirMatchScore = hitterPitcherAirMatch;
@@ -13229,6 +13741,10 @@ function calculateMicroSynergyBonuses(player, raw, cats) {
     }
     if (score(cats.pitchLevel) >= 68 && score(cats.pitcher) >= 66) {
       add('Pitch Lab Matchup', 0.35, `Pitch Lab ${num(cats.pitchLevel,0)} lines up with Pitcher Vulnerability ${num(cats.pitcher,0)}`);
+    }
+    if (score(cats.attackZone) >= 72 && score(cats.power) >= 64) {
+      const pts = score(cats.attackZone) >= 84 && score(cats.power) >= 76 ? 0.60 : 0.35;
+      add('Attack Zone Matchup', pts, `Attack Zone ${num(cats.attackZone,0)} puts hitter damage into pitcher locations`);
     }
     if (score(cats.power) >= 75 && score(cats.battedBall) >= 70 && score(cats.pitcher) >= 70 && (weatherScore >= 58 || windPoints >= 1.0)) {
       const pts = (score(cats.power) >= 85 && score(cats.battedBall) >= 80 && score(cats.pitcher) >= 80 && weatherScore >= 68) ? 1.10 : 0.70;
@@ -13490,18 +14006,38 @@ function setBBITierFilter(tier) {
 }
 
 function applyFiltersAndRender() {
-const showRemovedEl = document.getElementById('showRemovedCheck');
-const showRemoved = showRemovedEl ? showRemovedEl.checked : false;
+syncTeamLogoDropdown(1);
+syncTeamLogoDropdown(2);
+const f1 = document.getElementById('teamFilter1').value;
+const f2 = document.getElementById('teamFilter2') ? document.getElementById('teamFilter2').value : 'ALL';
+const batsFilter = document.getElementById('batsFilter').value;
+const searchVal = document.getElementById('searchFilter').value.toLowerCase().trim();
+const showRemoved = document.getElementById('showRemovedCheck').checked;
 const overallRankMap = getOverallBBIRankMap(showRemoved);
 let filtered = playerData.filter(p => {
-  if (!showRemoved && p.isRemoved) return false;
-  const overallRank = getOverallBBIRank(p, overallRankMap);
-  p.overallBBIRank = overallRank;
-  p.bbiTier = getBBITierForRank(overallRank);
-  return true;
+if (!showRemoved && p.isRemoved) return false;
+const overallRank = getOverallBBIRank(p, overallRankMap);
+const playerTier = getBBITierForRank(overallRank);
+if (selectedBBITierFilter !== 'ALL' && playerTier !== selectedBBITierFilter) return false;
+if (selectedQuickTeamFilter !== 'ALL' && p.Team !== selectedQuickTeamFilter) return false;
+const selectedTeams = [f1, f2].filter(t => t && t !== 'ALL');
+if (selectedTeams.length && !selectedTeams.includes(p.Team)) return false;
+if (batsFilter !== 'ALL') { let batsVal = String(p['Bats'] || p['bats'] || p['Hand'] || p['Handedness'] || '').toUpperCase().trim(); if (!batsVal.includes(batsFilter)) return false; }
+if (searchVal && !p.Name.toLowerCase().includes(searchVal)) return false;
+p.overallBBIRank = overallRank;
+p.bbiTier = playerTier;
+return true;
 });
+if (typeof initBetFinder === 'function') initBetFinder();
+const betDetailsMap = new Map();
+let betQualified = filtered.filter(p => { const d = (typeof betFinderPassDetails === 'function') ? betFinderPassDetails(p, overallRankMap) : {pass:true,reasons:[]}; betDetailsMap.set(p, d); return d.pass; });
+const betState = (typeof getBetFinderState === 'function') ? getBetFinderState() : {showQualified:false};
+if (betState.showQualified) filtered = betQualified;
 filtered.sort((a, b) => (getOverallBBIRank(a, overallRankMap) || 9999) - (getOverallBBIRank(b, overallRankMap) || 9999));
-renderGameRankingsBoard(filtered, overallRankMap);
+betQualified.sort((a, b) => (getOverallBBIRank(a, overallRankMap) || 9999) - (getOverallBBIRank(b, overallRankMap) || 9999));
+if (typeof renderBetFinderResults === 'function') renderBetFinderResults(filtered, betQualified, betDetailsMap);
+renderBBITierStats(filtered.length);
+renderMainTableBoard(filtered, overallRankMap);
 renderPregameSlateBoard();
 renderTopTargetHero();
 renderTop12Carousel();
@@ -13510,9 +14046,10 @@ renderTop12Carousel();
 renderFanaticsJackpot();
 renderTodaysStorylines();
 renderBestBettingEdges();
-renderEdgePanels();
-renderOddsBoard();
-renderGameCenterTab();
+// Heavy tabs are lazy-rendered when opened, so Home filters stay fast.
+// renderEdgePanels();
+// renderOddsBoard();
+// renderGameCenterTab();
 }
 
 function compactWhyInsight(player) {
@@ -13550,153 +14087,8 @@ function renderGameCenterTab() {
 }
 
 
-
-let gameRankingGroupsCache = {};
-function gameRankEscapeHtml(v) {
-  return String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-}
-function gameRankSafeId(v) { return String(v || 'x').replace(/[^a-zA-Z0-9_-]/g, '_'); }
-function gameRankTableShell(tbodyId) {
-  return `<div class="table-wrapper"><table><thead><tr><th class="rank-col">Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="edge-col">Edge</th><th class="action-col">Action</th></tr></thead><tbody id="${tbodyId}"><tr><td colspan="9" style="padding: 30px; color: var(--text-muted); font-style: italic;">Open game to load hitters...</td></tr></tbody></table></div>`;
-}
-function gameRankStartTimeLabel(gameId) {
-  const w = weatherSettings && weatherSettings[gameId];
-  return (w && w.startTime) ? String(w.startTime).trim() : 'TBD';
-}
-function gameRankSortTime(gameId) {
-  const d = parseFirstPitchDateTime(gameRankStartTimeLabel(gameId));
-  return d ? d.getTime() : Number.MAX_SAFE_INTEGER;
-}
-function gameRankWeatherLabel(gameId) {
-  const w = weatherSettings && weatherSettings[gameId];
-  if (!w) return 'Weather TBD';
-  if (w.isDome) return 'Closed Dome';
-  const temp = w.temp !== undefined && w.temp !== null ? `${w.temp}°F` : '';
-  const wind = w.windSpeed !== undefined && w.windDir ? `${w.windSpeed} MPH ${String(w.windDir).toUpperCase()}` : '';
-  return [temp, wind].filter(Boolean).join(' • ') || 'Weather TBD';
-}
-function gameRankParkLabel(matchup, gameId) {
-  const w = weatherSettings && weatherSettings[gameId];
-  return gameRankEscapeHtml((w && w.stadiumName) || (matchup && (matchup.stadiumName || matchup.park || matchup.trueHomeTeam || matchup.homeTeam)) || 'Park TBD');
-}
-function gameRankPitcherDetails(players, awayTeam, homeTeam) {
-  const awayHitters = players.filter(p => String(p.Team || '').toUpperCase() === String(awayTeam || '').toUpperCase());
-  const homeHitters = players.filter(p => String(p.Team || '').toUpperCase() === String(homeTeam || '').toUpperCase());
-  const awayPitcher = homeHitters[0] ? (homeHitters[0]['Opp Pitcher'] || homeHitters[0]['Opp Pitcher Name'] || '') : '';
-  const homePitcher = awayHitters[0] ? (awayHitters[0]['Opp Pitcher'] || awayHitters[0]['Opp Pitcher Name'] || '') : '';
-  return { awayPitcher: String(awayPitcher || 'Away SP').trim(), homePitcher: String(homePitcher || 'Home SP').trim() };
-}
-function gameRankPitcherLine(players, awayTeam, homeTeam) {
-  const d = gameRankPitcherDetails(players, awayTeam, homeTeam);
-  return `${gameRankEscapeHtml(d.awayPitcher)} vs ${gameRankEscapeHtml(d.homePitcher)}`;
-}
-function gameRankPitcherCard(name, team, side) {
-  const safeName = gameRankEscapeHtml(name || 'Starter');
-  const safeTeam = gameRankEscapeHtml(team || '');
-  const url = getHeadshotUrl(name || '');
-  const face = url ? `<img class="game-pitcher-photo" src="${url}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;game-pitcher-placeholder&quot;>⚾</div>'">` : `<div class="game-pitcher-placeholder">⚾</div>`;
-  const copy = `<div class="game-pitcher-copy"><div class="game-pitcher-label">${side === 'home' ? 'Home SP' : 'Away SP'}</div><div class="game-pitcher-name">${safeName}</div><div class="game-pitcher-team">${safeTeam}</div></div>`;
-  return side === 'home' ? `<div class="game-pitcher-side home">${copy}${face}</div>` : `<div class="game-pitcher-side away">${face}${copy}</div>`;
-}
-function buildGameRankingGroups(players) {
-  const map = new Map();
-  (players || []).forEach(p => {
-    const gid = p.gameId || `team_${p.Team || 'UNK'}`;
-    if (!map.has(gid)) map.set(gid, []);
-    map.get(gid).push(p);
-  });
-  const groups = [];
-  map.forEach((list, gid) => {
-    list.sort((a,b)=>(b.calculatedBBI || 0) - (a.calculatedBBI || 0));
-    const matchup = (gameMatchups || []).find(m => m.id === gid) || {};
-    const awayTeam = String(matchup.awayTeam || matchup.teamA || list[0]?.Team || '').toUpperCase();
-    let homeTeam = String(matchup.trueHomeTeam || matchup.homeTeam || matchup.teamB || '').toUpperCase();
-    if (!homeTeam || homeTeam === awayTeam) {
-      const teams = [...new Set(list.map(p => String(p.Team || '').toUpperCase()).filter(Boolean))];
-      homeTeam = teams.find(t => t !== awayTeam) || homeTeam || teams[1] || teams[0] || '';
-    }
-    const env = environmentScoreForPlayers(list);
-    groups.push({ id: gid, list, matchup, awayTeam, homeTeam, sortTime: gameRankSortTime(gid), env });
-  });
-  groups.sort((a,b) => (a.sortTime - b.sortTime) || String(a.awayTeam).localeCompare(String(b.awayTeam)) || String(a.homeTeam).localeCompare(String(b.homeTeam)));
-  return groups;
-}
-function renderGameRankingsBoard(players, overallRankMap = null) {
-  const board = document.getElementById('gameRankingsBoard');
-  if (!board) return;
-  gameRankingGroupsCache = {};
-  if (!players || !players.length) {
-    board.innerHTML = `<div class="game-rankings-empty">Upload today's workbook to load game-by-game rankings...</div>`;
-    return;
-  }
-  const groups = buildGameRankingGroups(players);
-  let html = `<div class="game-rankings-header"><div class="game-rankings-title">🏟 Today's Games</div><div class="game-rankings-sub">Sorted by first pitch. Open a game to see only that matchup's hitters ranked 1-${groups.length ? Math.max(...groups.map(g=>g.list.length)) : 18}. Full BBI Rankings stays last.</div></div>`;
-  groups.forEach((g, idx) => {
-    const key = `game_${gameRankSafeId(g.id)}_${idx}`;
-    const tbodyId = `${key}_tbody`;
-    gameRankingGroupsCache[key] = { players:g.list, overallRankMap, rankMode:'local', tbodyId };
-    const awayLogo = teamLogos[g.awayTeam] ? `<img src="${teamLogos[g.awayTeam]}" alt="${g.awayTeam}">` : '';
-    const homeLogo = teamLogos[g.homeTeam] ? `<img src="${teamLogos[g.homeTeam]}" alt="${g.homeTeam}">` : '';
-    const envClass = g.env >= 7.0 ? 'gold' : (g.env >= 5.8 ? 'hot' : '');
-    const pitchers = gameRankPitcherDetails(g.list, g.awayTeam, g.homeTeam);
-    html += `<div class="game-card" id="${key}">
-      <button type="button" class="game-card-toggle" onclick="toggleGameRankingsCard('${key}')">
-        <span class="game-card-chevron">⌄</span>
-        <div class="game-card-main">
-          ${gameRankPitcherCard(pitchers.awayPitcher, g.awayTeam, 'away')}
-          <div class="game-matchup-block">
-            <div class="game-matchup-logos">${awayLogo}<span>${gameRankEscapeHtml(g.awayTeam || 'AWAY')}</span><span class="game-at-symbol">@</span><span>${gameRankEscapeHtml(g.homeTeam || 'HOME')}</span>${homeLogo}</div>
-            <div class="game-pitchers"><span class="game-time-label">First Pitch</span> <b>${gameRankEscapeHtml(gameRankStartTimeLabel(g.id))}</b> • ${gameRankPitcherLine(g.list, g.awayTeam, g.homeTeam)}</div>
-            <div class="game-park-line">${gameRankParkLabel(g.matchup, g.id)} • ${gameRankWeatherLabel(g.id)} • ${g.list.length} Hitters • HR Env ${g.env.toFixed(1)}</div>
-          </div>
-          ${gameRankPitcherCard(pitchers.homePitcher, g.homeTeam, 'home')}
-          <div class="game-summary-stack">
-            <div class="game-summary-pill ${envClass}">HR Env: ${g.env.toFixed(1)}</div>
-            <div class="game-summary-pill">${g.list.length} Hitters</div>
-            <div class="game-summary-pill game-action-pill">Open Game</div>
-          </div>
-        </div>
-      </button>
-      <div class="game-card-content">${gameRankTableShell(tbodyId)}</div>
-    </div>`;
-  });
-  const fullKey = 'full_bbi_rankings_card';
-  const fullTbody = 'full_bbi_rankings_tbody';
-  const fullPlayers = [...players].sort((a,b)=>(getOverallBBIRank(a, overallRankMap) || 9999) - (getOverallBBIRank(b, overallRankMap) || 9999));
-  gameRankingGroupsCache[fullKey] = { players:fullPlayers, overallRankMap, rankMode:'overall', tbodyId:fullTbody };
-  html += `<div class="game-card game-full-card" id="${fullKey}">
-    <button type="button" class="game-card-toggle" onclick="toggleGameRankingsCard('${fullKey}')">
-      <span class="game-card-chevron">⌄</span>
-      <div class="game-card-main">
-        <div class="game-time-box"><div class="game-time-label">Board</div><div class="game-time-value">FULL</div></div>
-        <div class="game-matchup-block"><div class="game-matchup-logos"><span>🏆 Full BBI Rankings</span></div><div class="game-pitchers">Complete slate in true overall BBI rank order</div><div class="game-park-line">Use this last when you want the full 1-${fullPlayers.length} board.</div></div>
-        <div class="game-summary-stack"><div class="game-summary-pill gold">${fullPlayers.length} Players</div><div class="game-summary-pill">Overall Ranks</div><div class="game-summary-pill game-action-pill">Open Full Board</div></div>
-      </div>
-    </button>
-    <div class="game-card-content">${gameRankTableShell(fullTbody)}</div>
-  </div>`;
-  board.innerHTML = html;
-}
-function toggleGameRankingsCard(key) {
-  const card = document.getElementById(key);
-  const cfg = gameRankingGroupsCache[key];
-  if (!card || !cfg) return;
-  const willOpen = !card.classList.contains('open');
-  card.classList.toggle('open', willOpen);
-  const actionPill = card.querySelector('.game-action-pill');
-  if (actionPill) {
-    const isFull = key === 'full_bbi_rankings_card';
-    actionPill.textContent = willOpen ? (isFull ? 'Close Full Board' : 'Close Game') : (isFull ? 'Open Full Board' : 'Open Game');
-  }
-  if (willOpen && !card.dataset.rendered) {
-    renderMainTableBoard(cfg.players || [], cfg.overallRankMap || null, cfg.tbodyId, cfg.rankMode || 'overall');
-    card.dataset.rendered = '1';
-  }
-}
-
-function renderMainTableBoard(data, overallRankMap = null, targetTbodyId = 'tableBody', rankMode = 'overall') {
-const tbody = document.getElementById(targetTbodyId);
-if (!tbody) return;
+function renderMainTableBoard(data, overallRankMap = null) {
+const tbody = document.getElementById('tableBody');
 if (data.length === 0) { renderBBITierStats(0); tbody.innerHTML = `<tr><td colspan="11" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`; return; }
 tbody.innerHTML = '';
 const globalSlateSorted = [...playerData].filter(p => !p.isRemoved);
@@ -13773,17 +14165,14 @@ else if (pFactor <= 94) pfBadge = `<span class="pf-badge pf-red">PF ${pFactor}�
 const logoUrl = teamLogos[p.Team] || '';
 const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
 const stadiumPill = renderStadiumParkPill(p);
-let safeName = p.Name.replace(/'/g, "\\'");
-let actionBtn = p.isRemoved ? `<button class="btn-restore" onclick="toggleBenchPlayer('${safeName}', false)">Add</button>` : `<button class="btn-remove" onclick="toggleBenchPlayer('${safeName}', true)">Bench</button>`;
-const lockBtn = `<button class="btn-lock" onclick="lockInPick('${p.Name}', '${p.Team}', event)">💰 LOCK PICK</button>`;
 const bombActive = isBacktestBombed(p) ? ' active' : '';
 const bombBtn = `<button class="btn-bomb${bombActive}" title="Mark HR for backtest" onclick="event.stopPropagation(); toggleBacktestBomb('${escJSString(p.Name)}','${escJSString(p.Team)}')">💣</button>`;
 const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team);
 const batterHand = getBatterHandDisplay(p);
 const orbitClass = idx < 10 ? ' orbit-ready' : '';
 const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
-const displayRank = rankMode === 'local' ? (idx + 1) : (p.overallBBIRank || (overallRankMap ? getOverallBBIRank(p, overallRankMap) : null) || (idx + 1));
-tr.innerHTML = `<td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td><td class="action-cell">${bombBtn} ${actionBtn} ${lockBtn}</td>`;
+const displayRank = p.overallBBIRank || (overallRankMap ? getOverallBBIRank(p, overallRankMap) : null) || (idx + 1);
+tr.innerHTML = `<td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" onclick="openPlayerModalByName(\'${escJSString(p.Name)}\')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td>`;
 tbody.appendChild(tr);
 });
 }
@@ -13875,11 +14264,7 @@ document.getElementById('tab-home').classList.add('active');
 document.querySelector('.nav-tab').classList.add('active');
 setTimeout(() => {
 const rowId = `player-row-${normalizeName(playerName)}`;
-let row = document.getElementById(rowId);
-if (!row && document.getElementById('full_bbi_rankings_card')) {
-  if (!document.getElementById('full_bbi_rankings_card').classList.contains('open')) toggleGameRankingsCard('full_bbi_rankings_card');
-  row = document.getElementById(rowId);
-}
+const row = document.getElementById(rowId);
 if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); row.classList.add('highlighted-row'); setTimeout(() => row.classList.remove('highlighted-row'), 2000); }
 }, 100);
 }
@@ -14216,6 +14601,7 @@ function enrichBacktestSnapshotRow(row) {
     ['Power','Category_Power','Contribution_Power'],
     ['Pitcher','Category_Pitcher','Contribution_Pitcher'],
     ['PitchLab','Category_PitchLab','Contribution_PitchLab'],
+    ['AttackZone','Category_AttackZone','Contribution_AttackZone'],
     ['BattedBall','Category_BattedBall','Contribution_BattedBall'],
     ['BVP','Category_BVP','Contribution_BVP'],
     ['Weather','Category_Weather','Contribution_Weather'],
@@ -14279,6 +14665,7 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     ParkFactorL_or_R_Used: getBacktestHandedParkFactor(p),
     Category_Power: backtestNum(p.category && p.category.power),
     Category_PitchLab: backtestNum(p.category && p.category.pitchLevel),
+    Category_AttackZone: backtestNum(p.category && p.category.attackZone),
     Category_Pitcher: backtestNum(p.category && p.category.pitcher),
     Category_BattedBall: backtestNum(p.category && p.category.battedBall),
     Category_Weather: backtestNum(p.category && p.category.weather),
@@ -14288,6 +14675,7 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Category_Discipline: backtestNum(p.category && p.category.discipline),
     Weight_Power: backtestWeightPctValue(categoryWeightsUsed, 'power'),
     Weight_PitchLab: backtestWeightPctValue(categoryWeightsUsed, 'pitchLevel'),
+    Weight_AttackZone: backtestWeightPctValue(categoryWeightsUsed, 'attackZone'),
     Weight_Pitcher: backtestWeightPctValue(categoryWeightsUsed, 'pitcher'),
     Weight_BattedBall: backtestWeightPctValue(categoryWeightsUsed, 'battedBall'),
     Weight_Weather: backtestWeightPctValue(categoryWeightsUsed, 'weather'),
@@ -14297,6 +14685,7 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Weight_Discipline: backtestWeightPctValue(categoryWeightsUsed, 'discipline'),
     Weight_Power_Pct: backtestWeightPctValue(categoryWeightsUsed, 'power') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'power') * 100,
     Weight_PitchLab_Pct: backtestWeightPctValue(categoryWeightsUsed, 'pitchLevel') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'pitchLevel') * 100,
+    Weight_AttackZone_Pct: backtestWeightPctValue(categoryWeightsUsed, 'attackZone') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'attackZone') * 100,
     Weight_Pitcher_Pct: backtestWeightPctValue(categoryWeightsUsed, 'pitcher') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'pitcher') * 100,
     Weight_BattedBall_Pct: backtestWeightPctValue(categoryWeightsUsed, 'battedBall') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'battedBall') * 100,
     Weight_Weather_Pct: backtestWeightPctValue(categoryWeightsUsed, 'weather') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'weather') * 100,
@@ -14306,6 +14695,7 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Weight_Discipline_Pct: backtestWeightPctValue(categoryWeightsUsed, 'discipline') === '' ? '' : backtestWeightPctValue(categoryWeightsUsed, 'discipline') * 100,
     Contribution_Power: backtestNum(backtestContributionValue(categoryContributions, 'power')),
     Contribution_PitchLab: backtestNum(backtestContributionValue(categoryContributions, 'pitchLevel')),
+    Contribution_AttackZone: backtestNum(backtestContributionValue(categoryContributions, 'attackZone')),
     Contribution_Pitcher: backtestNum(backtestContributionValue(categoryContributions, 'pitcher')),
     Contribution_BattedBall: backtestNum(backtestContributionValue(categoryContributions, 'battedBall')),
     Contribution_Weather: backtestNum(backtestContributionValue(categoryContributions, 'weather')),
@@ -14323,6 +14713,11 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     PitchLab_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.score),
     PitchLab_TopThreat: p.pitchLabProfile && p.pitchLabProfile.topPitch ? p.pitchLabProfile.topPitch : '',
     PitchLab_Summary: p.pitchLabProfile && p.pitchLabProfile.summary ? p.pitchLabProfile.summary : '',
+    AttackZone_Score: backtestNum(p.attackZoneProfile && p.attackZoneProfile.score),
+    AttackZone_TopZone: p.attackZoneProfile && p.attackZoneProfile.topZone ? p.attackZoneProfile.topZone.zone : '',
+    AttackZone_TopZone_Edge: backtestNum(p.attackZoneProfile && p.attackZoneProfile.topZone && p.attackZoneProfile.topZone.edge),
+    AttackZone_TopZone_PitchPct: backtestNum(p.attackZoneProfile && p.attackZoneProfile.topZone && p.attackZoneProfile.topZone.pitchPct),
+    AttackZone_Summary: p.attackZoneProfile && p.attackZoneProfile.summary ? p.attackZoneProfile.summary : '',
     PitchLab_Mix_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.pitchMixScore),
     PitchLab_Zone_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.zoneScore),
     PitchLab_Pitch_Quality_Score: backtestNum(p.pitchLabProfile && p.pitchLabProfile.pitchQualityScore),
@@ -14482,7 +14877,8 @@ function getBacktestWeightCategories() {
     { cat:'power', label:'Hitter Power', key:'Category_Power', min:0.08, max:0.42 },
     { cat:'battedBall', label:'Batted Ball Shape', key:'Category_BattedBall', min:0.05, max:0.32 },
     { cat:'pitcher', label:'Pitcher Vulnerability', key:'Category_Pitcher', min:0.06, max:0.35 },
-    { cat:'pitchLevel', label:'Pitch Lab / Pitch Matchup', key:'Category_PitchLab', min:0.04, max:0.32 },
+    { cat:'pitchLevel', label:'Pitch Lab / Pitch Matchup', key:'Category_PitchLab', min:0.04, max:0.26 },
+    { cat:'attackZone', label:'Attack Zone', key:'Category_AttackZone', min:0.03, max:0.24 },
     { cat:'bvp', label:'BVP', key:'Category_BVP', min:0.00, max:0.18 },
     { cat:'weather', label:'Weather', key:'Category_Weather', min:0.00, max:0.14 },
     { cat:'park', label:'Park Factor', key:'Category_Park', min:0.00, max:0.10 }
@@ -14765,6 +15161,17 @@ const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
     ['Raw_flyBall','Fly Ball %'],
     ['Raw_pull','Pull %']
   ]},
+  { bucket:'Attack Zone', type:'Attack-zone scoring input', keys:[
+    ['Category_AttackZone','Attack Zone category'],
+    ['Raw_attackZone','Attack Zone raw score'],
+    ['Raw_attackZoneTopZone','Attack Zone top zone'],
+    ['Raw_attackZoneTopPitchPct','Top zone pitcher pitch %'],
+    ['Raw_attackZoneTopEdge','Top zone edge'],
+    ['Raw_attackZoneTotalPitchPct','Total PZ pitch %'],
+    ['AttackZone_Score','Attack Zone Score'],
+    ['AttackZone_TopZone_Edge','Attack Zone Top Edge'],
+    ['AttackZone_TopZone_PitchPct','Attack Zone Top Pitch %']
+  ]},
   { bucket:'Pitch Lab / Matchup', type:'Pitch-matchup scoring input', keys:[
     ['PitchLab_Score','Pitch Lab Score'],
     ['Raw_pitchLevelEV','Pitch-Level EV']
@@ -14786,9 +15193,7 @@ const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
   { bucket:'Park', type:'Park scoring input', keys:[
     ['Raw_parkFactor','Park Factor'],
     ['Handed_Park_Factor','Handed Park Factor'],
-    ['ParkFactorL_or_R_Used','Park Factor L/R Used'],
-    ['Raw_pullFence','Pull-Side Fence'],
-    ['Raw_cf','Center Field Distance']
+    ['ParkFactorL_or_R_Used','Park Factor L/R Used']
   ]}
 ];
 
@@ -14896,7 +15301,7 @@ const BACKTEST_CURRENT_RAW_WEIGHT_MAP = {
   Raw_pitchLevelEV:20, PitchLab_Score:80, PitchLab_Mix_Score:25, PitchLab_Zone_Score:25, PitchLab_Pitch_Quality_Score:25, PitchLab_Bat_Tracking_Score:25,
   Raw_bvpXSLG:43, Raw_bvpEV:33, Raw_bvpHR:24,
   Weather_Wind_Points:56, Weather_Temp_Points:44, Weather_Temp:44, Weather_WindSpeed:56,
-  Raw_parkFactor:65, Handed_Park_Factor:65, ParkFactorL_or_R_Used:65, Raw_pullFence:35, Raw_cf:35
+  Raw_parkFactor:100, Handed_Park_Factor:100, ParkFactorL_or_R_Used:100
 };
 function getBacktestCurrentRawWeight(metric) {
   if (!metric || !metric.key) return 0;
@@ -15296,6 +15701,7 @@ function renderBacktestLab() {
   const categoryMetrics = [
     { key:'Category_Power', label:'Power category', format:'score', type:'Category score' },
     { key:'Category_PitchLab', label:'Pitch Lab category', format:'score', type:'Category score' },
+    { key:'Category_AttackZone', label:'Attack Zone category', format:'score', type:'Category score' },
     { key:'Category_Pitcher', label:'Pitcher category', format:'score', type:'Category score' },
     { key:'Category_BattedBall', label:'Batted-ball category', format:'score', type:'Category score' },
     { key:'Category_Weather', label:'Weather category', format:'score', type:'Category score' },
@@ -15497,6 +15903,8 @@ const COMPARE_ROWS = [
   { label:'Pitcher GB %', statsKey:'pitcherGB', high:false },
   { label:'Pitch Matchup', type:'section' },
   { label:'Pitch Lab Grade', statsKey:'pitchLabScore', high:true },
+  { label:'Attack Zone', statsKey:'attackZoneScore', high:true },
+  { label:'Top Attack Zone', statsKey:'attackZoneTop', text:true },
   { label:'Top Pitch Edge', statsKey:'topPitchEdge', high:true },
   { label:'FB Grade', statsKey:'fbGrade', high:true },
   { label:'SL Grade', statsKey:'slGrade', high:true },
@@ -15648,14 +16056,14 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
 <script id="v40-restart-fixes-script">
 (function(){
   const WEIGHTS_40 = [
-    { key:'power', label:'💪 Power', weight:24, color:'#a855f7' },
-    { key:'pitcher', label:'⚾ Pitcher Vuln', weight:24, color:'#fb7185' },
-    { key:'batted', label:'🚀 Batted Ball', weight:17, color:'#ef4444' },
-    { key:'pitchlab', label:'🎯 Pitch Lab', weight:14, color:'#38bdf8' },
-    { key:'form', label:'📈 Recent Form', weight:8, color:'#10b981' },
-    { key:'bvp', label:'🤝 BvP', weight:6, color:'#facc15' },
+    { key:'power', label:'💪 Power', weight:26, color:'#a855f7' },
+    { key:'batted', label:'🚀 Batted Ball', weight:22, color:'#ef4444' },
+    { key:'pitcher', label:'⚾ Pitcher Vuln', weight:14, color:'#fb7185' },
+    { key:'pitchlab', label:'🎯 Pitch Lab', weight:11, color:'#38bdf8' },
+    { key:'attackZone', label:'🎯 Attack Zone', weight:13, color:'#f97316' },
+    { key:'bvp', label:'🤝 BvP', weight:8, color:'#facc15' },
     { key:'weather', label:'🌦 Weather', weight:4, color:'#0ea5e9' },
-    { key:'park', label:'🏟 Park', weight:3, color:'#94a3b8' }
+    { key:'park', label:'🏟 Park', weight:2, color:'#94a3b8' }
   ];
   function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
   function num(v){ try { return typeof cleanNumber === 'function' ? cleanNumber(v) : Number(v || 0); } catch(e){ return Number(v || 0) || 0; } }
@@ -15705,6 +16113,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
       batted: clamp(scoreFrom(barrelRaw, .06, .18)*0.40 + scoreFrom(hhRaw, .32, .55)*0.35 + scoreFrom(avgEV, 86, 94)*0.25),
       pitcher: clamp(scoreFrom(pHR9, .75, 2.0)*0.40 + scoreFrom(pBarrel, .06, .14)*0.22 + scoreFrom(pHH, .34, .50)*0.20 + scoreFrom(pFB, .30, .50)*0.18),
       pitchlab: clamp(pitchLabScore),
+      attackZone: clamp((player && player.calculatedAttackZoneScore !== null && player.calculatedAttackZoneScore !== undefined) ? player.calculatedAttackZoneScore : 50),
       form: clamp(scoreFrom(recentHR,0,4)*0.55 + scoreFrom(recentWOBA,.280,.520)*0.45),
       bvp: clamp(scoreFrom(bvpPA,0,20)*0.30 + scoreFrom(bvpHR,0,3)*0.45 + scoreFrom(bvpEV,86,96)*0.25),
       weather: clamp(weatherScore),
@@ -15717,6 +16126,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
         batted: [`Barrel: ${pct(barrelRaw)}`, `Hard Hit: ${pct(hhRaw)}`, `Fly Ball: ${pct(get(p,['Fly Ball Rate','FB%'],0))}`, `Pull Air: ${pct(get(p,['Pulled Air %','Pull Air %'],0))}`],
         pitcher: [`HR/9: ${val(pHR9,2)}`, `Barrel Allowed: ${pct(pBarrel)}`, `Hard Hit Allowed: ${pct(pHH)}`, `EV Allowed: ${val(pEV,1,' mph')}`, `Fly Ball: ${pct(pFB)}`],
         pitchlab: [`Fastball: ${val(get(p,['FB Grade','Fastball Grade','fbGrade'],0),0)}`, `Breaking: ${val(get(p,['BRK Grade','Breaking Grade','brkGrade'],0),0)}`, `Offspeed: ${val(get(p,['OS Grade','Offspeed Grade','osGrade'],0),0)}`, `Score: ${val(pitchLabScore,0)}`],
+        attackZone: [`Score: ${val(player && player.calculatedAttackZoneScore,0)}`, `Top: ${esc(player && player.attackZoneSummary || '-')}`, `Weighted by PZ pitch %`, `Sheets: BZ1-BZ9 + PZ1-PZ9`],
         form: [`LW HR: ${recentHR || '-'}`, `LW wOBA: ${recentWOBA ? recentWOBA.toFixed(3) : '-'}`, `Recent EV: ${val(get(p,['Last Week EV','LW EV'],0),1,' mph')}`],
         bvp: [`PA: ${bvpPA || '-'}`, `HR: ${bvpHR || '-'}`, `EV: ${val(bvpEV,1,' mph')}`, `xSLG: ${val(get(p,['BvP xSLG','xSLG vs P'],0),3)}`],
         weather: [`Wind: ${w.isDome ? 'Dome' : `${num(w.windSpeed)||0} mph ${String(w.windDir||'neutral')}`}`, `Temp: ${w.isDome ? 'Dome' : `${num(w.temp)||72}°F`}`, `Humidity: ${w.isDome ? 'Dome' : `${num(w.humidity)||0}%`}`],
@@ -15731,7 +16141,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
     const eliteCount = WEIGHTS_40.filter(x => data.scores[x.key] >= 78).length;
     const perfect = WEIGHTS_40.every(x => data.scores[x.key] >= 76);
     const avgMajor = WEIGHTS_40.slice(0,6).reduce((s,x)=>s+data.scores[x.key],0)/6;
-    const styleVars = `--pow-a:${.35 + data.scores.power/155};--bat-a:${.35 + data.scores.batted/155};--pit-a:${.35 + data.scores.pitcher/155};--lab-a:${.35 + data.scores.pitchlab/155};--form-a:${.35 + data.scores.form/155};--bvp-a:${.35 + data.scores.bvp/155};--weather-a:${.35 + data.scores.weather/155};--park-a:${.35 + data.scores.park/155};`;
+    const styleVars = `--pow-a:${.35 + data.scores.power/155};--bat-a:${.35 + data.scores.batted/155};--pit-a:${.35 + data.scores.pitcher/155};--lab-a:${.35 + data.scores.pitchlab/155};--form-a:${.35 + data.scores.form/155};--bvp-a:${.35 + data.scores.bvp/155};--weather-a:${.35 + data.scores.weather/155};--park-a:${.35 + data.scores.park/155};--zone-a:${.35 + data.scores.attackZone/155};`;
     const cards = WEIGHTS_40.map(x => {
       const sc = Math.round(data.scores[x.key] || 0);
       const stats = (data.stats[x.key] || []).map(s=>`<div>${esc(s)}</div>`).join('');
@@ -16508,7 +16918,7 @@ try {
     try { recalculateAllBBIScores(); } catch(err) { console.error('Sandbox recalc failed:', err); }
 
     // Make the change visible everywhere without touching layout or model weights.
-    ['renderFanaticsJackpot','renderAllPitchers','renderHotBatTable','renderH2HFullTable','renderPitchLabTable','renderEdgePanels','renderBestBettingEdges','renderOddsBoard','renderWeatherRankings','renderGameCenterTab','renderBBITierStats','renderStatsTab','renderSynergyBonusesTab','updateHeaderStats','updateSlateTicker'].forEach(safeCall);
+    ['renderFanaticsJackpot','renderAllPitchers','renderHotBatTable','renderH2HFullTable','renderPitchLabTable','renderZoneProfileTab','renderEdgePanels','renderBestBettingEdges','renderOddsBoard','renderWeatherRankings','renderGameCenterTab','renderBBITierStats','renderStatsTab','renderSynergyBonusesTab','updateHeaderStats','updateSlateTicker'].forEach(safeCall);
   };
 
   window.returnToOfficialWeights = function(){
@@ -16521,7 +16931,7 @@ try {
     if (badge) badge.textContent = 'OFFICIAL MODEL';
 
     try { recalculateAllBBIScores(); } catch(err) { console.error('Official recalc failed:', err); }
-    ['renderFanaticsJackpot','renderAllPitchers','renderHotBatTable','renderH2HFullTable','renderPitchLabTable','renderEdgePanels','renderBestBettingEdges','renderOddsBoard','renderWeatherRankings','renderGameCenterTab','renderBBITierStats','renderStatsTab','renderSynergyBonusesTab','updateHeaderStats','updateSlateTicker'].forEach(safeCall);
+    ['renderFanaticsJackpot','renderAllPitchers','renderHotBatTable','renderH2HFullTable','renderPitchLabTable','renderZoneProfileTab','renderEdgePanels','renderBestBettingEdges','renderOddsBoard','renderWeatherRankings','renderGameCenterTab','renderBBITierStats','renderStatsTab','renderSynergyBonusesTab','updateHeaderStats','updateSlateTicker'].forEach(safeCall);
   };
 
   try {
@@ -16531,6 +16941,108 @@ try {
     console.warn('Sandbox apply button bind failed:', err);
   }
 })();
+</script>
+
+
+<script id="bet-finder-script">
+/* =========================
+   BET FINDER FILTER LOGIC
+   Filters display only. Official BBI scoring is untouched.
+   ========================= */
+const BET_FINDER_METRICS = [
+  {key:'bbi', label:'Minimum BBI', def:64},
+  {key:'pitcher', label:'Minimum Pitcher Score', def:52},
+  {key:'pitchlab', label:'Minimum Pitch Level', def:56},
+  {key:'attackZone', label:'Minimum Zone Score', def:58}
+];
+const BET_FINDER_PRESETS = {
+  conservative:{bbi:65,pitcher:50,pitchlab:50,attackZone:55},
+  bomb:{bbi:62,pitcher:58,pitchlab:56,attackZone:58},
+  longshot:{bbi:58,pitcher:50,pitchlab:52,attackZone:54},
+  cody:{bbi:64,pitcher:52,pitchlab:56,attackZone:58}
+};
+window.betFinderActive = window.betFinderActive || false;
+function betFinderNum(v){ const n = cleanNumber(v); return (n===null||n===undefined||isNaN(n)) ? null : Number(n); }
+function betFinderFirstValid(values, fallback=50){
+  for (const v of values) {
+    const n = betFinderNum(v);
+    if (n !== null && n !== undefined && !isNaN(n)) return n;
+  }
+  return fallback;
+}
+function betFinderMetricValue(p,key){
+  if(!p) return 0;
+  if(key==='bbi') return betFinderFirstValid([p.calculatedBBI, p.BBI, p.bbi], 0);
+  if(key==='pitcher') return betFinderFirstValid([p.calculatedPitcherScore, p.category && p.category.pitcher, p.Category_Pitcher, p.PitcherScore], 50);
+  if(key==='pitchlab'){
+    let labProfile = p.pitchLabProfile || null;
+    if(!labProfile && typeof buildPitchLabProfile === 'function') {
+      try { labProfile = buildPitchLabProfile(p); } catch(e) { labProfile = null; }
+    }
+    return betFinderFirstValid([
+      labProfile && labProfile.score,
+      p.category && p.category.pitchLevel,
+      p.category && p.category.pitchlab,
+      p.Category_PitchLab,
+      p.pitchLabScore,
+      p.calculatedPitchLab,
+      p.pitchScore,
+      p['Pitch Lab Score'],
+      p['PitchLab_Score']
+    ], 50);
+  }
+  if(key==='attackZone') return betFinderFirstValid([p.calculatedAttackZoneScore, p.category && p.category.attackZone, p.Category_AttackZone, p.attackZoneScore], 50);
+  return 0;
+}
+function initBetFinder(){
+  const wrap = document.getElementById('betFinderSliders'); if(!wrap || wrap.dataset.ready) return;
+  wrap.dataset.ready = '1';
+  wrap.innerHTML = BET_FINDER_METRICS.map(m => `<div class="bet-slider-card" id="bfCard_${m.key}"><div class="bet-slider-top"><span class="bet-slider-label">${m.label}</span><span class="bet-slider-value" id="bfVal_${m.key}">${m.def}</span></div><input class="bet-slider" type="range" min="0" max="100" step="1" id="bf_${m.key}" value="${m.def}" oninput="betFinderSliderChanged('${m.key}')"></div>`).join('');
+  applyBetFinderPreset('cody', null, false);
+}
+function betFinderSliderChanged(key){ window.betFinderActive = false; updateBetFinderLabels(); renderBetFinderInactiveMessage(); }
+function updateBetFinderLabels(){
+  BET_FINDER_METRICS.forEach(m=>{ const input=document.getElementById('bf_'+m.key), val=document.getElementById('bfVal_'+m.key), card=document.getElementById('bfCard_'+m.key); if(!input||!val) return; val.textContent=input.value; if(card) card.classList.remove('disabled'); });
+}
+function getBetFinderState(){
+  initBetFinder(); const thresholds={}; BET_FINDER_METRICS.forEach(m=>{ const inp=document.getElementById('bf_'+m.key); thresholds[m.key]=inp?Number(inp.value||0):0; });
+  return {thresholds,any:{},showQualified:!!window.betFinderActive};
+}
+function betFinderPassDetails(player, overallRankMap){
+  const st=getBetFinderState(); const reasons=[]; let pass=true;
+  BET_FINDER_METRICS.forEach(m=>{ const got=betFinderMetricValue(player,m.key); const need=st.thresholds[m.key]; const ok=got>=need; if(!ok) pass=false; reasons.push({key:m.key,label:m.label.replace('Minimum ',''),got,need,ok}); });
+  return {pass,reasons};
+}
+function applyBetFinderPreset(name, btn, shouldRender=true){
+  initBetFinder(); const pre=BET_FINDER_PRESETS[name] || BET_FINDER_PRESETS.cody;
+  BET_FINDER_METRICS.forEach(m=>{ const inp=document.getElementById('bf_'+m.key); if(inp) inp.value = pre[m.key] ?? m.def; });
+  document.querySelectorAll('.bet-preset-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active'); else { const ix={conservative:0,bomb:1,longshot:2,cody:3}[name]; const b=document.querySelectorAll('.bet-preset-btn')[ix]; if(b) b.classList.add('active'); }
+  updateBetFinderLabels();
+  window.betFinderActive = shouldRender !== false;
+  if(shouldRender && typeof applyFiltersAndRender==='function') applyFiltersAndRender();
+}
+function applyBetFinderFilters(){ window.betFinderActive = true; if(typeof applyFiltersAndRender==='function') applyFiltersAndRender(); }
+function resetBetFinder(){
+  window.betFinderActive=false;
+  BET_FINDER_METRICS.forEach(m=>{ const inp=document.getElementById('bf_'+m.key); if(inp) inp.value=m.def; });
+  document.querySelectorAll('.bet-preset-btn').forEach(b=>b.classList.remove('active'));
+  updateBetFinderLabels();
+  if(typeof applyFiltersAndRender==='function') applyFiltersAndRender();
+}
+function renderBetFinderInactiveMessage(){
+  const count=document.getElementById('betFinderCount'); if(count) count.innerHTML='<b>0</b> Ready';
+  const box=document.getElementById('betFinderResults'); if(box){ box.classList.add('active'); box.innerHTML='<div class="bet-finder-empty">Adjust the sliders, then hit Apply to shrink the rankings. Reset restores the full rankings.</div>'; }
+}
+function renderBetFinderResults(allFiltered, qualified, detailsMap){
+  if(!window.betFinderActive){ renderBetFinderInactiveMessage(); return; }
+  const count=document.getElementById('betFinderCount'); if(count) count.innerHTML=`<b>${qualified.length}</b> ${qualified.length===1?'Player Matches':'Players Match'}`;
+  const box=document.getElementById('betFinderResults'); if(!box) return; box.classList.add('active');
+  if(!qualified.length){ box.innerHTML='<div class="bet-finder-empty">No players match this build. Lower one of the four sliders and hit Apply again.</div>'; return; }
+  const top=qualified.slice(0,8).map(p=>{ const d=detailsMap.get(p)||{reasons:[]}; const rows=d.reasons.map(r=>`<div class="bet-pass-row"><span>${r.ok?'✅':'❌'} ${r.label}</span><b>${Number(r.got).toFixed(1)} <span style="color:var(--text-muted)">(Needed ${r.need})</span></b></div>`).join(''); return `<div class="bet-match-card" style="${teamVisualStyle(p.Team)}" onclick="scrollToPlayer('${escJSString(p.Name)}')"><div class="bet-match-top">${createHeadshotHtml(p.Name,'sm',p.Team)}<div style="min-width:0"><div class="bet-match-name">${p.Name}</div><div class="bet-match-meta">${p.Team || ''} • vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</div></div><div class="bet-match-score">${(p.calculatedBBI||0).toFixed(1)}</div></div><div class="bet-pass-list">${rows}</div></div>`; }).join('');
+  box.innerHTML=`<div class="bet-finder-sub"><b style="color:#fff">${qualified.length} PLAYERS MATCH YOUR FILTERS</b> — BBI, Pitcher Score, Pitch Level, and Zone Score only.</div><div class="bet-match-list">${top}</div>`;
+}
+document.addEventListener('DOMContentLoaded', initBetFinder);
 </script>
 
 </body>
