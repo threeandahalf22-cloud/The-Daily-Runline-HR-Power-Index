@@ -12603,6 +12603,22 @@ function zoneFirstFilled(current, ...fallbacks) {
   }
   return current;
 }
+function zoneValueIsFilled(v) {
+  return v !== null && v !== undefined && v !== '' && !isNaN(Number(v));
+}
+function zoneMergeDisplayStatsFromPieces(pieces, statKey, preferredStats) {
+  const out = { ...(preferredStats || {}) };
+  const ordered = (pieces || []).slice().sort((a,b) => (Number(b.w) || 0) - (Number(a.w) || 0));
+  const fields = ['hr','avg','slg','xslg','iso','ev','maxev','barrel','barrelPA','hardhit','sweetspot','pull','fb','gb','la','batSpeed','contact','whiff','pitches','pitchPct'];
+  fields.forEach(field => {
+    if (zoneValueIsFilled(out[field])) return;
+    for (const piece of ordered) {
+      const stats = piece && piece.z && piece.z[statKey] ? piece.z[statKey] : {};
+      if (zoneValueIsFilled(stats[field])) { out[field] = stats[field]; return; }
+    }
+  });
+  return out;
+}
 function zoneNameFallbackRow(sheetKey, name) {
   return lookupStat(sheetKey, name) || {};
 }
@@ -12802,7 +12818,8 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
       zone:i, bucket:'WEIGHTED', bucketLabel:'Weighted', bestBucket:bestPiece.bucket, bestBucketLabel:zoneBucketLabel(bestPiece.bucket),
       batterDamage, pitcherVulnerability, pitchFrequencyScore:freqScore, pitchPct,
       edge:Math.max(0,Math.min(100,edge)), weightedEdge:Math.max(0,Math.min(100,edge)),
-      batterStats: bestPiece.z.batterStats || {}, pitcherStats: bestPiece.z.pitcherStats || {},
+      batterStats: zoneMergeDisplayStatsFromPieces(pieces, 'batterStats', bestPiece.z.batterStats || {}),
+      pitcherStats: zoneMergeDisplayStatsFromPieces(pieces, 'pitcherStats', bestPiece.z.pitcherStats || {}),
       bucketPieces: pieces.map(x=>({bucket:x.bucket,label:zoneBucketLabel(x.bucket),mix:x.w,edge:x.z.edge,pitchPct:x.z.pitchPct,batterDamage:x.z.batterDamage,pitcherVulnerability:x.z.pitcherVulnerability}))
     });
   }
@@ -12887,7 +12904,7 @@ function zoneBuildPitcherOnlyProfile(pitcherName, mix) {
       pitcherVulnerability: wavg(z=>z.pitcherVulnerability),
       pitchPct,
       pitchFrequencyScore: attackZoneScaleScore('freq', pitchPct === null ? 1/9 : pitchPct),
-      pitcherStats: bestPiece && bestPiece.z ? (bestPiece.z.pitcherStats || {}) : {},
+      pitcherStats: zoneMergeDisplayStatsFromPieces(pieces, 'pitcherStats', bestPiece && bestPiece.z ? (bestPiece.z.pitcherStats || {}) : {}),
       pitcherPitches: bestPiece && bestPiece.z ? bestPiece.z.pitcherPitches : null,
       pitcherXSLG: bestPiece && bestPiece.z ? bestPiece.z.pitcherXSLG : null,
       pitcherBucketPieces: pieces.map(x=>({bucket:x.bucket,label:zoneBucketLabel(x.bucket),mix:x.w,pitchPct:x.z.pitchPct,pitcherVulnerability:x.z.pitcherVulnerability}))
