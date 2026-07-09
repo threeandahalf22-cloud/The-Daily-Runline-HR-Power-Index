@@ -12718,8 +12718,9 @@ function zonePitchBucketMix(player) {
   return mix;
 }
 function canonicalZoneSheetKey(sheetKey) {
-  const m = String(sheetKey || '').toUpperCase().match(/^([BP]Z)([1-9])(.*)$/);
-  if (!m) return String(sheetKey || '').toUpperCase();
+  const raw = String(sheetKey || '').toUpperCase();
+  const m = raw.match(/^(BPZ|BZ|PZ)([1-9])(.*)$/);
+  if (!m) return raw;
   let suf = String(m[3] || '').toUpperCase();
   if (suf === 'BB' || suf === 'BREAKING' || suf === 'BK') suf = 'BR';
   if (suf === 'OFF' || suf === 'OFFSPEED') suf = 'OS';
@@ -12728,7 +12729,7 @@ function canonicalZoneSheetKey(sheetKey) {
 function zoneSheetHasData(sheetKey, name) {
   const key = canonicalZoneSheetKey(sheetKey);
   const candidates = [key];
-  const m = key.match(/^([BP]Z)([1-9])(.*)$/);
+  const m = key.match(/^(BPZ|BZ|PZ)([1-9])(.*)$/);
   if (m && m[3]) {
     const base = `${m[1]}${m[2]}`;
     if (m[3] === 'BR') candidates.push(base + 'BB', base + 'BREAKING', base + 'BK');
@@ -12740,24 +12741,44 @@ function zoneSheetHasData(sheetKey, name) {
   }
   return null;
 }
+const ATTACK_ZONE_STARTER_WEIGHT = 0.75;
+const ATTACK_ZONE_BULLPEN_WEIGHT = 0.25;
+function zoneBlendStarterBullpenValue(starterValue, bullpenValue) {
+  return hybridWeightedAvg([
+    { value: starterValue, weight: ATTACK_ZONE_STARTER_WEIGHT },
+    { value: bullpenValue, weight: ATTACK_ZONE_BULLPEN_WEIGHT }
+  ]);
+}
+function zoneBlendStarterBullpenPitchPct(starterPct, bullpenPct) {
+  return zoneBlendStarterBullpenValue(starterPct, bullpenPct);
+}
 function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   const hitterName = player && player.Name;
   const pitcherName = String(safeGet(player, 'Opp Pitcher', 'Opp Pitcher Name', 'Pitcher', 'Pitcher Name') || '').trim();
+  const bullpenTeam = getOpponentTeamForPlayer(player);
   const suffix = bucket && bucket !== 'GENERIC' ? bucket : '';
   const bucketName = bucket && bucket !== 'GENERIC' ? zoneBucketLabel(bucket) : 'Generic';
   const zones = [];
   for (let i = 1; i <= 9; i++) {
     const bRow = zoneSheetHasData('BZ' + i + suffix, hitterName) || (!suffix ? null : zoneSheetHasData('BZ' + i, hitterName));
     const pRow = zoneSheetHasData('PZ' + i + suffix, pitcherName) || (!suffix ? null : zoneSheetHasData('PZ' + i, pitcherName));
+    const bpRow = bullpenTeam ? (zoneSheetHasData('BPZ' + i + suffix, bullpenTeam) || (!suffix ? null : zoneSheetHasData('BPZ' + i, bullpenTeam))) : null;
     const hasB = bRow && Object.keys(bRow).length;
     const hasP = pRow && Object.keys(pRow).length;
-    if (!hasB && !hasP) continue;
+    const hasBP = bpRow && Object.keys(bpRow).length;
+    if (!hasB && !hasP && !hasBP) continue;
     const batterStats = zoneEnrichBatterStats(zoneExtractStats(hasB ? bRow : {}), player, hitterName);
     const pitcherStats = zoneEnrichPitcherStats(zoneExtractStats(hasP ? pRow : {}), player, pitcherName);
+    const bullpenStats = zoneEnrichPitcherStats(zoneExtractStats(hasBP ? bpRow : {}), player, bullpenTeam);
     const batterDamage = hasB ? buildAttackZoneDamageScore(bRow, 'batter') : null;
-    const pitcherVulnerability = hasP ? buildAttackZoneDamageScore(pRow, 'pitcher') : null;
-    let pitchPct = hasP ? pitcherStats.pitchPct : null;
-    if (pitchPct === null && hasP) pitchPct = 1 / 9;
+    const starterPitcherVulnerability = hasP ? buildAttackZoneDamageScore(pRow, 'pitcher') : null;
+    const bullpenPitcherVulnerability = hasBP ? buildAttackZoneDamageScore(bpRow, 'pitcher') : null;
+    const pitcherVulnerability = zoneBlendStarterBullpenValue(starterPitcherVulnerability, bullpenPitcherVulnerability);
+    let starterPitchPct = hasP ? pitcherStats.pitchPct : null;
+    let bullpenPitchPct = hasBP ? bullpenStats.pitchPct : null;
+    if (starterPitchPct === null && hasP) starterPitchPct = 1 / 9;
+    if (bullpenPitchPct === null && hasBP) bullpenPitchPct = 1 / 9;
+    let pitchPct = zoneBlendStarterBullpenPitchPct(starterPitchPct, bullpenPitchPct);
     const freqScore = attackZoneScaleScore('freq', pitchPct === null ? 1/9 : pitchPct);
     const edge = hybridWeightedAvg([
       { value: batterDamage, weight: 0.55 },
@@ -12767,6 +12788,9 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
     zones.push({
       zone: i, bucket: bucket || 'GENERIC', bucketLabel: bucketName,
       batterDamage, pitcherVulnerability,
+      starterPitcherVulnerability, bullpenPitcherVulnerability,
+      bullpenTeam: bullpenTeam || null,
+      bullpenPitchPct: bullpenPitchPct === null ? null : Math.max(0, Math.min(1, Number(bullpenPitchPct))),
       pitchFrequencyScore: freqScore,
       pitchPct: pitchPct === null ? null : Math.max(0, Math.min(1, Number(pitchPct))),
       expectedPitchPct: pitchPct === null ? null : Math.max(0, Math.min(1, Number(pitchPct) * (Number(mixWeight) || 0))),
@@ -12776,7 +12800,7 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
       pitcherPitches: pitcherStats.pitches,
       hitterXSLG: batterStats.xslg,
       pitcherXSLG: pitcherStats.xslg,
-      batterStats, pitcherStats
+      batterStats, pitcherStats, bullpenStats
     });
   }
   if (!zones.length) return { score:null, zones:[], topZone:null, bucket: bucket || 'GENERIC', bucketLabel: bucketName, summary:`No ${bucketName} BZ/PZ zone data found.` };
@@ -12843,20 +12867,29 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
    Batter maps and matchup edge still stay hitter-specific.
    ========================= */
 window.zonePitcherOnlyCache = window.zonePitcherOnlyCache || {};
-function zonePitcherCacheKey(pitcherName, mix) {
+function zonePitcherCacheKey(pitcherName, mix, bullpenTeam) {
   const m = mix || {FB:0,BR:0,OS:0};
-  return normalizeName(pitcherName) + '|' + ['FB','BR','OS'].map(k => k + ':' + (Number(m[k]) || 0).toFixed(4)).join('|');
+  return normalizeName(pitcherName) + '|BP:' + String(bullpenTeam || '').trim().toUpperCase() + '|' + ['FB','BR','OS'].map(k => k + ':' + (Number(m[k]) || 0).toFixed(4)).join('|');
 }
-function zoneBuildPitcherOnlyBucketProfile(pitcherName, bucket, mixWeight) {
+function zoneBuildPitcherOnlyBucketProfile(pitcherName, bucket, mixWeight, bullpenTeam) {
   const suffix = bucket && bucket !== 'GENERIC' ? bucket : '';
   const zones = [];
   for (let i = 1; i <= 9; i++) {
     const pRow = zoneSheetHasData('PZ' + i + suffix, pitcherName) || (!suffix ? null : zoneSheetHasData('PZ' + i, pitcherName));
+    const bpRow = bullpenTeam ? (zoneSheetHasData('BPZ' + i + suffix, bullpenTeam) || (!suffix ? null : zoneSheetHasData('BPZ' + i, bullpenTeam))) : null;
     const hasP = pRow && Object.keys(pRow).length;
-    if (!hasP) continue;
-    const pitcherStats = zoneEnrichPitcherStats(zoneExtractStats(pRow), {}, pitcherName);
-    const pitcherVulnerability = buildAttackZoneDamageScore(pRow, 'pitcher');
-    let pitchPct = pitcherStats.pitchPct;
+    const hasBP = bpRow && Object.keys(bpRow).length;
+    if (!hasP && !hasBP) continue;
+    const pitcherStats = zoneEnrichPitcherStats(zoneExtractStats(hasP ? pRow : {}), {}, pitcherName);
+    const bullpenStats = zoneEnrichPitcherStats(zoneExtractStats(hasBP ? bpRow : {}), {}, bullpenTeam);
+    const starterPitcherVulnerability = hasP ? buildAttackZoneDamageScore(pRow, 'pitcher') : null;
+    const bullpenPitcherVulnerability = hasBP ? buildAttackZoneDamageScore(bpRow, 'pitcher') : null;
+    const pitcherVulnerability = zoneBlendStarterBullpenValue(starterPitcherVulnerability, bullpenPitcherVulnerability);
+    let starterPitchPct = hasP ? pitcherStats.pitchPct : null;
+    let bullpenPitchPct = hasBP ? bullpenStats.pitchPct : null;
+    if (starterPitchPct === null && hasP) starterPitchPct = 1 / 9;
+    if (bullpenPitchPct === null && hasBP) bullpenPitchPct = 1 / 9;
+    let pitchPct = zoneBlendStarterBullpenPitchPct(starterPitchPct, bullpenPitchPct);
     if (pitchPct === null || pitchPct === undefined || isNaN(Number(pitchPct))) pitchPct = 1 / 9;
     pitchPct = Math.max(0, Math.min(1, Number(pitchPct)));
     zones.push({
@@ -12864,22 +12897,26 @@ function zoneBuildPitcherOnlyBucketProfile(pitcherName, bucket, mixWeight) {
       bucket: bucket || 'GENERIC',
       bucketLabel: zoneBucketLabel(bucket),
       pitcherVulnerability,
+      starterPitcherVulnerability,
+      bullpenPitcherVulnerability,
+      bullpenTeam: bullpenTeam || null,
+      bullpenPitchPct: bullpenPitchPct === null ? null : Math.max(0, Math.min(1, Number(bullpenPitchPct))),
       pitchFrequencyScore: attackZoneScaleScore('freq', pitchPct),
       pitchPct,
       expectedPitchPct: Math.max(0, Math.min(1, pitchPct * (Number(mixWeight) || 0))),
       pitcherPitches: pitcherStats.pitches,
       pitcherXSLG: pitcherStats.xslg,
-      pitcherStats
+      pitcherStats, bullpenStats
     });
   }
   return { zones };
 }
-function zoneBuildPitcherOnlyProfile(pitcherName, mix) {
+function zoneBuildPitcherOnlyProfile(pitcherName, mix, bullpenTeam) {
   mix = mix || { FB:0, BR:0, OS:0 };
   const bucketProfiles = {
-    FB: zoneBuildPitcherOnlyBucketProfile(pitcherName, 'FB', mix.FB),
-    BR: zoneBuildPitcherOnlyBucketProfile(pitcherName, 'BR', mix.BR),
-    OS: zoneBuildPitcherOnlyBucketProfile(pitcherName, 'OS', mix.OS)
+    FB: zoneBuildPitcherOnlyBucketProfile(pitcherName, 'FB', mix.FB, bullpenTeam),
+    BR: zoneBuildPitcherOnlyBucketProfile(pitcherName, 'BR', mix.BR, bullpenTeam),
+    OS: zoneBuildPitcherOnlyBucketProfile(pitcherName, 'OS', mix.OS, bullpenTeam)
   };
   const zones = [];
   for (let i = 1; i <= 9; i++) {
@@ -12889,7 +12926,7 @@ function zoneBuildPitcherOnlyProfile(pitcherName, mix) {
       return z ? { bucket, z, w:Number(mix[bucket]) || 0 } : null;
     }).filter(Boolean);
     if (!pieces.length) {
-      const generic = zoneBuildPitcherOnlyBucketProfile(pitcherName, 'GENERIC', 1);
+      const generic = zoneBuildPitcherOnlyBucketProfile(pitcherName, 'GENERIC', 1, bullpenTeam);
       const gz = generic.zones.find(x => Number(x.zone) === i);
       if (gz) pieces.push({bucket:'GENERIC', z:gz, w:1});
     }
@@ -12912,9 +12949,9 @@ function zoneBuildPitcherOnlyProfile(pitcherName, mix) {
   }
   return { zones, bucketProfiles };
 }
-function zoneGetPitcherOnlyProfile(pitcherName, mix) {
-  const key = zonePitcherCacheKey(pitcherName, mix);
-  if (!window.zonePitcherOnlyCache[key]) window.zonePitcherOnlyCache[key] = zoneBuildPitcherOnlyProfile(pitcherName, mix);
+function zoneGetPitcherOnlyProfile(pitcherName, mix, bullpenTeam) {
+  const key = zonePitcherCacheKey(pitcherName, mix, bullpenTeam);
+  if (!window.zonePitcherOnlyCache[key]) window.zonePitcherOnlyCache[key] = zoneBuildPitcherOnlyProfile(pitcherName, mix, bullpenTeam);
   return window.zonePitcherOnlyCache[key];
 }
 function zoneRecalcZoneEdgeWithPitcher(z) {
@@ -12947,9 +12984,9 @@ function zoneRecomputeProfileScore(profile, hitterName, pitcherName) {
   if (profile.topZone) profile.summary = zoneBuildSummary(hitterName, pitcherName, profile.topZone);
   return profile;
 }
-function zoneApplyPitcherOnlyCache(profile, pitcherName, mix, hitterName) {
+function zoneApplyPitcherOnlyCache(profile, pitcherName, mix, hitterName, bullpenTeam) {
   if (!profile || !pitcherName) return profile;
-  const cache = zoneGetPitcherOnlyProfile(pitcherName, mix || profile.mix || {FB:0,BR:0,OS:0});
+  const cache = zoneGetPitcherOnlyProfile(pitcherName, mix || profile.mix || {FB:0,BR:0,OS:0}, bullpenTeam);
   function applyToProfile(target, bucket) {
     if (!target || !Array.isArray(target.zones)) return;
     target.zones.forEach(z => {
@@ -12958,9 +12995,14 @@ function zoneApplyPitcherOnlyCache(profile, pitcherName, mix, hitterName) {
         : (cache.zones || []).find(x => Number(x.zone) === Number(z.zone));
       if (!src) return;
       z.pitcherVulnerability = src.pitcherVulnerability;
+      z.starterPitcherVulnerability = src.starterPitcherVulnerability;
+      z.bullpenPitcherVulnerability = src.bullpenPitcherVulnerability;
+      z.bullpenTeam = src.bullpenTeam || bullpenTeam || null;
+      z.bullpenPitchPct = src.bullpenPitchPct;
       z.pitchPct = src.pitchPct;
       z.pitchFrequencyScore = src.pitchFrequencyScore;
       z.pitcherStats = src.pitcherStats || {};
+      z.bullpenStats = src.bullpenStats || {};
       z.pitcherPitches = src.pitcherPitches;
       z.pitcherXSLG = src.pitcherXSLG;
     });
@@ -12987,8 +13029,8 @@ function calculateAttackZoneProfile(player) {
     weighted.mix = mix;
     weighted.bucketProfiles = bucketProfiles;
     weighted.activeView = 'WEIGHTED';
-    weighted = zoneApplyPitcherOnlyCache(weighted, pitcherName, mix, hitterName);
-    weighted.formula = 'Pitch-bucket weighted Zone Score: FB/Breaking/Offspeed zone maps blended by pitcher pitch mix. Pitcher Tendency Map is pitcher-only cached, so every hitter facing the same starter shows the same pitcher zones. Batter damage uses Barrel, HardHit, xSLG, HR, and EV.';
+    weighted = zoneApplyPitcherOnlyCache(weighted, pitcherName, mix, hitterName, getOpponentTeamForPlayer(player));
+    weighted.formula = 'Pitch-bucket weighted Zone Score: FB/Breaking/Offspeed zone maps blended by pitcher pitch mix. Pitcher matchup score now blends starter PZ 75% and opposing team bullpen BPZ 25%. Pitcher Tendency Map remains starter-facing visually; bullpen is included behind the scenes in the Attack Zone score. Batter damage uses Barrel, HardHit, xSLG, HR, and EV.';
     return weighted;
   } catch (err) {
     console.warn('Attack Zone calculation failed for', player && player.Name, err);
