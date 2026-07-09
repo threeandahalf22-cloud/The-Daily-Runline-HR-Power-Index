@@ -8105,6 +8105,53 @@ tbody tr:hover .stats-player-mini .player-headshot {
 @media(max-width:1050px){.bet-finder-grid,.bet-finder-checks{grid-template-columns:repeat(2,minmax(0,1fr))}.bet-finder-head{flex-direction:column}.bet-finder-count{text-align:left}}@media(max-width:620px){.bet-finder-grid,.bet-finder-checks{grid-template-columns:1fr}}
 </style>
 
+
+<style id="bucket-analytics-and-performance-polish">
+/* =========================
+   BUCKET ANALYTICS + PAGE SPEED POLISH
+   Tracking/visual only. No model scoring or feature logic changed.
+   ========================= */
+.bucket-analytics-panel .backtest-kpi-value.small-title { font-size:18px; line-height:1.15; }
+.bucket-analytics-section-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; margin-bottom:20px; }
+.bucket-mini-card { border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:15px; background:rgba(5,11,20,.54); box-shadow:0 10px 24px rgba(0,0,0,.20); }
+.bucket-mini-title { color:#fff; font-size:13px; font-weight:1000; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+.bucket-mini-sub { color:var(--text-muted); font-size:11px; font-weight:800; line-height:1.35; margin-bottom:12px; }
+.bucket-threshold-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; }
+.bucket-threshold-card { border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.035); border-radius:12px; padding:11px; }
+.bucket-threshold-label { color:var(--text-muted); font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:.7px; }
+.bucket-threshold-val { margin-top:5px; color:#fff; font-family:monospace; font-size:19px; font-weight:1000; }
+.bucket-threshold-sub { margin-top:3px; color:var(--stadium-lights); font-size:10px; font-weight:800; }
+.bucket-empty { text-align:center; color:var(--text-muted); padding:34px; font-style:italic; }
+/* speed cleanup: keep the ESPN look, but stop the expensive always-running animation stack */
+body::before, body::after,
+.header-area::before,
+.slate-board::after,
+.top-target-hero::after,
+.community-hero::after,
+.command-center-board::before,
+.command-center-ai-core::before,
+.command-center-ai-core::after,
+.command-feature-card::before,
+.command-logo-core::before,
+.command-logo-core::after,
+.command-core-ring,
+tbody tr.team-heat-row:hover::after,
+.nuclear-row,
+.nuclear-badge,
+.live-dot,
+h2::before { animation: none !important; }
+.panel:hover, .table-wrapper:hover, .upload-box:hover,
+tbody tr:hover, .top12-card:hover, .slate-game-card:hover,
+.best-edge-card:hover, .command-tile:hover, .command-feature-card:hover {
+  transform:none !important;
+}
+.panel, .upload-box, .controls-bar, .table-wrapper, .spotlight-ticker, .jackpot-section, .pitch-lab-card, .diamond-card, .modal-card {
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+* { scroll-behavior:auto !important; }
+</style>
+
 </head>
 <body>
 
@@ -8185,6 +8232,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 <button class="nav-tab" onclick="switchTab('synergy', this)">⚡ Synergy Bonuses</button>
 <button class="nav-tab" onclick="switchTab('backtest', this)">📊 Backtest Lab</button>
 <button class="nav-tab" onclick="switchTab('bbidiagnostics', this)">🎯 BBI / Rank Buckets</button>
+<button class="nav-tab" onclick="switchTab('bucketanalytics', this)">🧱 Bucket Analytics</button>
 </div>
 <div id="tab-home" class="tab-content active">
 <div id="pregameSlateBoard" class="slate-board"></div>
@@ -8606,6 +8654,19 @@ tbody tr:hover .stats-player-mini .player-headshot {
     <div id="bbiRankDiagnosticsContainer"><div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No finalized backtests yet. Finalize a slate from the Home tab to populate BBI and rank buckets.</div></div>
   </div>
 </div>
+<div id="tab-bucketanalytics" class="tab-content">
+  <div class="panel bucket-analytics-panel">
+    <h2>🧱 Bucket Analytics</h2>
+    <p class="backtest-note">Clean-slate component tracking. This tab starts fresh from the new Bucket Analytics storage only and does not read old BBI backtest history. It updates automatically when you click <b>Finalize Today’s Backtest</b>.</p>
+    <div class="backtest-tools">
+      <button class="backtest-tool-btn" onclick="renderBucketAnalytics()">🔄 Refresh Bucket Analytics</button>
+      <button class="backtest-tool-btn" onclick="exportBucketAnalyticsXLSX()">⬇ Export Bucket Analytics</button>
+      <button class="backtest-tool-btn backtest-warning-btn" onclick="resetBucketAnalyticsConfirm()">🧹 Reset Bucket Analytics Only</button>
+    </div>
+    <div id="bucketAnalyticsContainer"><div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No Bucket Analytics rows yet. Tonight’s next finalized slate will become Day 1 for Pitch Lab, Attack Zone, Pitcher, and Confluence tracking.</div></div>
+  </div>
+</div>
+
 <div id="playerModal" class="modal-overlay" onclick="closeModal(event)">
 <div class="modal-card" onclick="event.stopPropagation()">
 <button class="modal-close" onclick="closeModalDirect()">×</button>
@@ -8672,6 +8733,7 @@ if (tabName === 'backtest') {
   setTimeout(() => { try { renderBacktestLab(); } catch (err) { console.error('Backtest Lab render failed:', err); const box = document.getElementById('backtestLabContainer'); if (box) box.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;"><b>Backtest Lab error:</b> ${err && err.message ? err.message : err}</div>`; } }, 0);
 }
 if (tabName === 'bbidiagnostics') renderBBIRankDiagnostics();
+if (tabName === 'bucketanalytics') renderBucketAnalytics();
 if (tabName === 'synergy') renderSynergyBonusesTab();
 }
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyvCnCzZrc2yzchVoFU-45mqg6iMkHRYnE8IkC0CsAZEbfCXH5WfJKM5R0E6d4nu9f2yA/exec';
@@ -14894,6 +14956,8 @@ const BACKTEST_STORE_NAME = 'state';
 const BACKTEST_HISTORY_KEY = 'backtestHistory';
 const BACKTEST_BOMBS_KEY = 'drlBacktestBombsCurrentSlate';
 const BACKTEST_MODEL_VERSION = '37.3_UPDATED_BUCKET_WEIGHTS';
+const BUCKET_ANALYTICS_HISTORY_KEY = 'drl_bucket_analytics_history_v1';
+let bucketAnalyticsHistory = [];
 let backtestHistory = [];
 let currentBacktestBombs = JSON.parse(localStorage.getItem(BACKTEST_BOMBS_KEY) || '{}');
 
@@ -14938,15 +15002,22 @@ async function backtestSetState(key, value) {
 async function loadBacktestHistory() {
   const saved = await backtestGetState(BACKTEST_HISTORY_KEY);
   backtestHistory = Array.isArray(saved) ? saved : [];
+  const bucketSaved = await backtestGetState(BUCKET_ANALYTICS_HISTORY_KEY);
+  bucketAnalyticsHistory = Array.isArray(bucketSaved) ? bucketSaved : [];
   // Do not run the heavy backtest optimizer during page startup/upload flow.
   // It is reference-only research and should render only when its tab is active.
   const activeBacktest = document.querySelector('#tab-backtest.active');
   const activeDiagnostics = document.querySelector('#tab-bbidiagnostics.active');
+  const activeBucketAnalytics = document.querySelector('#tab-bucketanalytics.active');
   if (activeBacktest) renderBacktestLab();
   if (activeDiagnostics && typeof renderBBIRankDiagnostics === 'function') renderBBIRankDiagnostics();
+  if (activeBucketAnalytics && typeof renderBucketAnalytics === 'function') renderBucketAnalytics();
 }
 async function saveBacktestHistory() {
   await backtestSetState(BACKTEST_HISTORY_KEY, backtestHistory);
+}
+async function saveBucketAnalyticsHistory() {
+  await backtestSetState(BUCKET_ANALYTICS_HISTORY_KEY, bucketAnalyticsHistory);
 }
 function backtestBombKey(playerName, team) { return `${normalizeName(playerName)}__${String(team || '').trim().toUpperCase()}`; }
 function saveBacktestBombs() { localStorage.setItem(BACKTEST_BOMBS_KEY, JSON.stringify(currentBacktestBombs)); }
@@ -15188,12 +15259,14 @@ async function finalizeTodayBacktest() {
   const rows = players.map((p, idx) => snapshotBacktestPlayer(p, idx + 1, slateId, finalizedAt));
   backtestHistory.push({ slateId, finalizedAt, modelVersion: BACKTEST_MODEL_VERSION, playerCount: rows.length, hrCount: bombCount, rows });
   await saveBacktestHistory();
+  await appendBucketAnalyticsSlate(rows, slateId, finalizedAt, bombCount);
   currentBacktestBombs = {};
   saveBacktestBombs();
   applyFiltersAndRender();
   renderBacktestLab();
   renderBBIRankDiagnostics();
-  alert(`Backtest finalized. Saved ${rows.length} player snapshots with ${bombCount} HR winners.`);
+  renderBucketAnalytics();
+  alert(`Backtest finalized. Saved ${rows.length} player snapshots with ${bombCount} HR winners. Bucket Analytics also logged this slate as fresh component data.`);
 }
 function getBacktestRows() { return backtestHistory.flatMap(s => (s.rows || []).map(enrichBacktestSnapshotRow)); }
 function mean(arr) { const nums = arr.map(Number).filter(n => isFinite(n)); return nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : null; }
@@ -16194,6 +16267,205 @@ function renderBacktestLab() {
   }
 }
 
+
+function bucketAnalyticsNum(v) {
+  const n = Number(v);
+  return isFinite(n) ? n : null;
+}
+function bucketAnalyticsRows() {
+  return (bucketAnalyticsHistory || []).flatMap(s => (s.rows || []).map(r => ({ ...r, _slateId: s.slateId, _finalizedAt: s.finalizedAt })));
+}
+function bucketAnalyticsSnapshotRow(row) {
+  return {
+    Slate_ID: row.Slate_ID || '',
+    Finalized_At: row.Finalized_At || '',
+    Date: row.Date || '',
+    Player: row.Player || '',
+    Team: row.Team || '',
+    Opposing_Pitcher: row.Opposing_Pitcher || '',
+    Rank: bucketAnalyticsNum(row.Rank),
+    HR_Result: bucketAnalyticsNum(row.HR_Result) === 1 ? 1 : 0,
+    BBI: bucketAnalyticsNum(row.BBI),
+    PitchLab_Score: bucketAnalyticsNum(row.Category_PitchLab),
+    AttackZone_Score: bucketAnalyticsNum(row.Category_AttackZone),
+    Pitcher_Score: bucketAnalyticsNum(row.Category_Pitcher)
+  };
+}
+async function appendBucketAnalyticsSlate(rows, slateId, finalizedAt, bombCount) {
+  try {
+    const cleanRows = (rows || []).map(bucketAnalyticsSnapshotRow).filter(r => r.Player);
+    if (!cleanRows.length) return;
+    if (!Array.isArray(bucketAnalyticsHistory)) bucketAnalyticsHistory = [];
+    bucketAnalyticsHistory = bucketAnalyticsHistory.filter(s => s && s.slateId !== slateId);
+    bucketAnalyticsHistory.push({
+      slateId,
+      finalizedAt,
+      version: 'bucket_analytics_v1_clean_slate',
+      playerCount: cleanRows.length,
+      hrCount: Number(bombCount || 0),
+      rows: cleanRows
+    });
+    await saveBucketAnalyticsHistory();
+  } catch (err) {
+    console.error('Bucket Analytics save failed:', err);
+  }
+}
+function makeBucketRange(label, min, max) {
+  return { label, min, max, players:0, hrs:0, sum:0, count:0 };
+}
+function buildComponentBuckets(rows, key) {
+  const buckets = [
+    makeBucketRange('90-100',90,100), makeBucketRange('80-89',80,89.999999), makeBucketRange('70-79',70,79.999999),
+    makeBucketRange('60-69',60,69.999999), makeBucketRange('50-59',50,59.999999), makeBucketRange('40-49',40,49.999999),
+    makeBucketRange('30-39',30,39.999999), makeBucketRange('<30',-Infinity,29.999999)
+  ];
+  let usable = 0, missing = 0;
+  rows.forEach(r => {
+    const v = bucketAnalyticsNum(r[key]);
+    if (v === null) { missing++; return; }
+    const b = buckets.find(x => v >= x.min && v <= x.max);
+    if (!b) { missing++; return; }
+    usable++;
+    b.players++;
+    b.hrs += bucketAnalyticsNum(r.HR_Result) === 1 ? 1 : 0;
+    b.sum += v;
+    b.count++;
+  });
+  return { buckets, usable, missing };
+}
+function renderComponentBucketTable(bucketData, baselinePct) {
+  return bucketData.buckets.map(b => {
+    const pct = b.players ? (b.hrs / b.players) * 100 : null;
+    const lift = (pct !== null && baselinePct) ? pct / baselinePct : null;
+    const avg = b.count ? b.sum / b.count : null;
+    const cls = lift !== null && lift >= 1.15 ? 'signal-positive' : lift !== null && lift <= 0.85 ? 'signal-negative' : 'signal-neutral';
+    return `<tr><td>${b.label}</td><td>${b.players}</td><td>${b.hrs}</td><td class="${cls}">${fmtBack(pct,2,'%')}</td><td class="${cls}">${lift === null ? '-' : lift.toFixed(2)+'x'}</td><td>${fmtBack(avg,1)}</td></tr>`;
+  }).join('');
+}
+function thresholdSummary(rows, key) {
+  const thresholds = [50,55,60,65,70,75,80,85,90];
+  return thresholds.map(t => {
+    const subset = rows.filter(r => bucketAnalyticsNum(r[key]) !== null && bucketAnalyticsNum(r[key]) >= t);
+    const hrs = subset.filter(r => bucketAnalyticsNum(r.HR_Result) === 1).length;
+    return { label:`${t}+`, players: subset.length, hrs, pct: subset.length ? (hrs / subset.length) * 100 : null };
+  }).filter(x => x.players > 0);
+}
+function renderThresholdCards(rows, key) {
+  const vals = thresholdSummary(rows, key);
+  if (!vals.length) return '<div class="bucket-empty">No score rows yet.</div>';
+  return `<div class="bucket-threshold-grid">${vals.map(x => `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${x.label}</div><div class="bucket-threshold-val">${fmtBack(x.pct,1,'%')}</div><div class="bucket-threshold-sub">${x.hrs}/${x.players} HR</div></div>`).join('')}</div>`;
+}
+function buildConfluenceRows(rows) {
+  const configs = [
+    { label:'Pitch Lab 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 },
+    { label:'Attack Zone 65+', test:r => bucketAnalyticsNum(r.AttackZone_Score) >= 65 },
+    { label:'Pitcher 65+', test:r => bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
+    { label:'Pitch Lab + Zone 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 && bucketAnalyticsNum(r.AttackZone_Score) >= 65 },
+    { label:'Pitch Lab + Pitcher 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 && bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
+    { label:'Zone + Pitcher 65+', test:r => bucketAnalyticsNum(r.AttackZone_Score) >= 65 && bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
+    { label:'All Three 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 && bucketAnalyticsNum(r.AttackZone_Score) >= 65 && bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
+    { label:'All Three 70+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 70 && bucketAnalyticsNum(r.AttackZone_Score) >= 70 && bucketAnalyticsNum(r.Pitcher_Score) >= 70 },
+    { label:'Pitch Lab 75+ + Zone 70+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 75 && bucketAnalyticsNum(r.AttackZone_Score) >= 70 }
+  ];
+  return configs.map(c => {
+    const subset = rows.filter(c.test);
+    const hrs = subset.filter(r => bucketAnalyticsNum(r.HR_Result) === 1).length;
+    return { label:c.label, players: subset.length, hrs, pct: subset.length ? (hrs / subset.length) * 100 : null };
+  });
+}
+function renderConfluenceTable(rows, baselinePct) {
+  return buildConfluenceRows(rows).map(x => {
+    const lift = x.pct !== null && baselinePct ? x.pct / baselinePct : null;
+    const cls = lift !== null && lift >= 1.15 ? 'signal-positive' : lift !== null && lift <= 0.85 ? 'signal-negative' : 'signal-neutral';
+    return `<tr><td>${x.label}</td><td>${x.players}</td><td>${x.hrs}</td><td class="${cls}">${fmtBack(x.pct,2,'%')}</td><td class="${cls}">${lift === null ? '-' : lift.toFixed(2)+'x'}</td></tr>`;
+  }).join('');
+}
+function bestThresholdText(rows, key) {
+  const vals = thresholdSummary(rows, key).filter(x => x.players >= 5);
+  if (!vals.length) return '-';
+  const best = vals.sort((a,b) => (b.pct - a.pct) || (b.players - a.players))[0];
+  return `${best.label} (${fmtBack(best.pct,1,'%')})`;
+}
+function renderBucketAnalytics() {
+  const container = document.getElementById('bucketAnalyticsContainer');
+  if (!container) return;
+  try {
+    const rows = bucketAnalyticsRows();
+    if (!rows.length) {
+      container.innerHTML = `<div class="bucket-empty">No Bucket Analytics data yet. This is intentionally clean-slate. The next Finalize Today’s Backtest will create the first component snapshot.</div>`;
+      return;
+    }
+    const hrs = rows.filter(r => bucketAnalyticsNum(r.HR_Result) === 1).length;
+    const baselinePct = rows.length ? (hrs / rows.length) * 100 : 0;
+    const slates = bucketAnalyticsHistory.length;
+    const latest = bucketAnalyticsHistory[bucketAnalyticsHistory.length - 1];
+    const pitchLabBuckets = buildComponentBuckets(rows, 'PitchLab_Score');
+    const zoneBuckets = buildComponentBuckets(rows, 'AttackZone_Score');
+    const pitcherBuckets = buildComponentBuckets(rows, 'Pitcher_Score');
+    const confluenceRows = buildConfluenceRows(rows).filter(x => x.players > 0).sort((a,b) => (b.pct || 0) - (a.pct || 0));
+    const bestConfluence = confluenceRows[0];
+    container.innerHTML = `
+      <div class="backtest-kpi-grid">
+        <div class="backtest-kpi"><div class="backtest-kpi-label">Bucket slates</div><div class="backtest-kpi-value">${slates}</div><div class="backtest-kpi-sub">Clean-slate storage only</div></div>
+        <div class="backtest-kpi"><div class="backtest-kpi-label">Player snapshots</div><div class="backtest-kpi-value">${rows.length.toLocaleString()}</div><div class="backtest-kpi-sub">Latest: ${latest && latest.finalizedAt ? new Date(latest.finalizedAt).toLocaleString() : '-'}</div></div>
+        <div class="backtest-kpi"><div class="backtest-kpi-label">HR winners</div><div class="backtest-kpi-value">${hrs}</div><div class="backtest-kpi-sub">Baseline ${fmtBack(baselinePct,2,'%')}</div></div>
+        <div class="backtest-kpi"><div class="backtest-kpi-label">Best confluence</div><div class="backtest-kpi-value small-title">${bestConfluence ? bestConfluence.label : '-'}</div><div class="backtest-kpi-sub">${bestConfluence ? `${bestConfluence.hrs}/${bestConfluence.players} HR • ${fmtBack(bestConfluence.pct,1,'%')}` : 'Need more data'}</div></div>
+      </div>
+      <div class="bucket-analytics-section-grid">
+        <div class="bucket-mini-card"><div class="bucket-mini-title">🔥 Pitch Lab Thresholds</div><div class="bucket-mini-sub">Quick cutoff scan using fresh finalized bucket rows only.</div>${renderThresholdCards(rows, 'PitchLab_Score')}</div>
+        <div class="bucket-mini-card"><div class="bucket-mini-title">🎯 Attack Zone Thresholds</div><div class="bucket-mini-sub">Find where zone target scores start turning into HRs.</div>${renderThresholdCards(rows, 'AttackZone_Score')}</div>
+        <div class="bucket-mini-card"><div class="bucket-mini-title">⚾ Pitcher Thresholds</div><div class="bucket-mini-sub">Shows when pitcher vulnerability starts mattering.</div>${renderThresholdCards(rows, 'Pitcher_Score')}</div>
+      </div>
+      <h2>🔥 Pitch Lab Score Buckets</h2>
+      <p class="backtest-note">Pitch Lab / Pitch Matchup score bucketed independently from BBI.</p>
+      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitch Lab Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(pitchLabBuckets, baselinePct)}</tbody></table></div>
+      <h2>🎯 Attack Zone Score Buckets</h2>
+      <p class="backtest-note">Zone target score bucketed independently from BBI.</p>
+      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Zone Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(zoneBuckets, baselinePct)}</tbody></table></div>
+      <h2>⚾ Pitcher Vulnerability Score Buckets</h2>
+      <p class="backtest-note">Pitcher score bucketed independently from BBI.</p>
+      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitcher Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(pitcherBuckets, baselinePct)}</tbody></table></div>
+      <h2>🤝 Confluence Analysis</h2>
+      <p class="backtest-note">This shows what happens when Pitch Lab, Attack Zone, and Pitcher score agree. Lift compares each group to the clean-slate Bucket Analytics baseline.</p>
+      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Criteria</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th></tr></thead><tbody>${renderConfluenceTable(rows, baselinePct)}</tbody></table></div>
+      <h2>✅ Current Best Cutoffs</h2>
+      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Engine</th><th>Best threshold so far</th><th>Usable rows</th><th>Missing rows</th></tr></thead><tbody>
+        <tr><td>Pitch Lab</td><td>${bestThresholdText(rows, 'PitchLab_Score')}</td><td>${pitchLabBuckets.usable}</td><td>${pitchLabBuckets.missing}</td></tr>
+        <tr><td>Attack Zone</td><td>${bestThresholdText(rows, 'AttackZone_Score')}</td><td>${zoneBuckets.usable}</td><td>${zoneBuckets.missing}</td></tr>
+        <tr><td>Pitcher Vulnerability</td><td>${bestThresholdText(rows, 'Pitcher_Score')}</td><td>${pitcherBuckets.usable}</td><td>${pitcherBuckets.missing}</td></tr>
+      </tbody></table></div>
+    `;
+    initSortableSignalTables(container);
+  } catch (err) {
+    console.error('Bucket Analytics render failed:', err);
+    container.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;line-height:1.45;"><b>Bucket Analytics error:</b> ${err && err.message ? err.message : err}<br><span style="color:var(--text-muted);">BBI Backtest data was not touched.</span></div>`;
+  }
+}
+function exportBucketAnalyticsXLSX() {
+  const rows = bucketAnalyticsRows();
+  if (!rows.length) { alert('No Bucket Analytics rows to export yet.'); return; }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Bucket_Analytics');
+  const summary = [{
+    Bucket_Slates: bucketAnalyticsHistory.length,
+    Player_Snapshots: rows.length,
+    HRs: rows.filter(r => bucketAnalyticsNum(r.HR_Result) === 1).length,
+    Overall_HR_Rate: rows.length ? rows.filter(r => bucketAnalyticsNum(r.HR_Result) === 1).length / rows.length : 0,
+    Exported_At: new Date().toISOString(),
+    Storage_Key: BUCKET_ANALYTICS_HISTORY_KEY
+  }];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), 'Bucket_Summary');
+  XLSX.writeFile(wb, `Bucket_Analytics_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+async function resetBucketAnalyticsConfirm() {
+  const ok = confirm('Reset ONLY Bucket Analytics clean-slate history?\n\nThis does not delete BBI Backtest history, bombs, rankings, or any model scoring.');
+  if (!ok) return;
+  bucketAnalyticsHistory = [];
+  await saveBucketAnalyticsHistory();
+  renderBucketAnalytics();
+  alert('Bucket Analytics history reset. BBI Backtest history was not changed.');
+}
+
 async function resetLastBacktestUpload() {
   if (!backtestHistory || !backtestHistory.length) {
     alert('No finalized backtest uploads to reset.');
@@ -16207,10 +16479,15 @@ async function resetLastBacktestUpload() {
   if (!ok) return;
   backtestHistory.pop();
   await saveBacktestHistory();
+  if (last && last.slateId && Array.isArray(bucketAnalyticsHistory)) {
+    bucketAnalyticsHistory = bucketAnalyticsHistory.filter(s => s && s.slateId !== last.slateId);
+    await saveBucketAnalyticsHistory();
+  }
   currentBacktestBombs = {};
   saveBacktestBombs();
   renderBacktestLab();
   renderBBIRankDiagnostics();
+  renderBucketAnalytics();
   if (typeof applyFiltersAndRender === 'function') applyFiltersAndRender();
   alert('Last finalized backtest upload was removed. Current bomb marks were cleared so you can re-mark the HR hitters and finalize again.');
 }
