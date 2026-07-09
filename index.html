@@ -15342,27 +15342,103 @@ function getBacktestWeightConfidence(rows, cats, bestWeights, bestPerformance, c
   if ((rows || []).length >= 500 && hrCount >= 20 && avgDrop >= 0.12) return 'Medium';
   return 'Low';
 }
+const BACKTEST_SUGGESTED_WEIGHT_TOP_RANK = 60;
+function getBacktestSavedRank(row) {
+  const rank = backtestSafeNumber(row && (row.Rank ?? row.rank ?? row.Saved_Rank ?? row.SavedRank));
+  return rank !== null && isFinite(rank) && rank > 0 ? rank : null;
+}
+function getBacktestSuggestedWeightCandidateRows(rows, cats) {
+  const usable = (rows || []).filter(r => cats.some(c => backtestSafeNumber(r[c.key]) !== null));
+  const slateGroups = groupBacktestRowsBySlate(usable);
+  const picked = [];
+  const seen = new Set();
+  slateGroups.forEach(group => {
+    const groupRows = group.map(x => x.row).filter(Boolean);
+    const hasSavedRank = groupRows.some(r => getBacktestSavedRank(r) !== null);
+    const fallbackSorted = hasSavedRank ? [] : groupRows.slice().sort((a,b) => {
+      const ar = getBacktestSavedRank(a), br = getBacktestSavedRank(b);
+      if (ar !== null || br !== null) return (ar ?? 9999) - (br ?? 9999);
+      const ab = backtestSafeNumber(a.BBI) ?? backtestSafeNumber(a.BBI_Score) ?? -Infinity;
+      const bb = backtestSafeNumber(b.BBI) ?? backtestSafeNumber(b.BBI_Score) ?? -Infinity;
+      return bb - ab;
+    });
+    const fallbackRank = new Map(fallbackSorted.map((r, idx) => [r, idx + 1]));
+    groupRows.forEach((r, idx) => {
+      const hr = Number(r.HR_Result) === 1;
+      const rank = getBacktestSavedRank(r) ?? fallbackRank.get(r) ?? null;
+      if (!hr && !(rank !== null && rank <= BACKTEST_SUGGESTED_WEIGHT_TOP_RANK)) return;
+      const key = `${String(r.Slate_ID || r.Date || 'ALL')}|${String(r.Player || r.Name || idx)}|${String(r.Team || '')}|${idx}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      picked.push(r);
+    });
+  });
+  // If history is malformed and slate grouping cannot produce a candidate pool, fall back safely to the old usable rows.
+  return picked.length ? picked : usable;
+}
 function getSuggestedWeights(rows) {
+  /*
+    Category suggested weights are now a roll-up of the Category Signal Board.
+    They do NOT run a separate category optimizer anymore.
+
+    Source of truth for this table:
+      Category score HR Avg vs Miss Avg
+      Avg Separation
+      Signal Strength
+      Sample Confidence
+
+    Same saved backtest history = same suggested weights. This is reference-only and
+    never mutates live BBI scoring.
+  */
   const cats = getBacktestWeightCategories();
   const current = getCurrentBacktestCategoryWeights();
   const keyMap = {};
   cats.forEach(c => keyMap[c.cat] = c.key);
-  const totalCurrent = Object.values(current).reduce((s,v)=>s+v,0) || 1;
-  const usableRows = (rows || []).filter(r => cats.some(c => backtestSafeNumber(r[c.key]) !== null));
+  const allUsableRows = (rows || []).filter(r => cats.some(c => backtestSafeNumber(r[c.key]) !== null));
+  const usableRows = getBacktestSuggestedWeightCandidateRows(rows, cats);
   const hrCount = usableRows.filter(r => Number(r.HR_Result) === 1).length;
   const currentPerformance = evaluateBacktestWeightSet(usableRows, current, cats);
-  let best = { weights:{...current}, performance:currentPerformance };
-  if (usableRows.length >= 40 && hrCount >= 3) {
-    best = optimizeBacktestWeightsDeterministic(usableRows, cats, current, totalCurrent);
-  }
+
+  const confidenceMult = conf => {
+    if (conf === 'Usable') return 1.15;
+    if (conf === 'Building') return 0.95;
+    return 0.60;
+  };
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, Number(n) || 0));
+
+  const signalByCategory = {};
+  const rawSuggested = {};
+  cats.forEach(meta => {
+    const stat = getSignalStats(usableRows, meta.key, { format:'score' });
+    signalByCategory[meta.cat] = stat;
+
+    const cur = Number(current[meta.cat]) || 0;
+    const sep = Number(stat.diff) || 0;
+    const strength = Number(stat.strength) || 0;
+    const conf = confidenceMult(stat.confidence);
+
+    // Direction matters: if HR hitters score higher in this category, it earns weight.
+    // If HR hitters score lower, it loses weight. Strength controls how hard it moves.
+    const signedSignal = clamp((sep / 10) * strength * conf, -0.65, 0.65);
+    rawSuggested[meta.cat] = Math.max(0, cur * (1 + signedSignal));
+  });
+
+  let suggested = backtestNormalizeWeightsWithBounds(rawSuggested, cats, 1);
+  const suggestedTotal = Object.values(suggested).reduce((s,v)=>s+(Number(v)||0),0);
+  if (!suggestedTotal) suggested = {...current};
+
+  const suggestedPerformance = evaluateBacktestWeightSet(usableRows, suggested, cats);
   const improvementPct = (isFinite(currentPerformance.objective) && currentPerformance.objective !== 0)
-    ? ((best.performance.objective - currentPerformance.objective) / Math.abs(currentPerformance.objective)) * 100 : 0;
+    ? ((suggestedPerformance.objective - currentPerformance.objective) / Math.abs(currentPerformance.objective)) * 100 : 0;
   const confidence = usableRows.length < 250 || hrCount < 10 ? 'Low sample'
     : usableRows.length < 1000 || hrCount < 35 ? 'Building'
     : 'Usable';
   const confidenceByCategory = {};
-  cats.forEach(c => confidenceByCategory[c.cat] = getBacktestWeightConfidence(usableRows, cats, best.weights, best.performance, c.cat));
-  return { current, suggested:best.weights, keyMap, categories:cats, currentPerformance, suggestedPerformance:best.performance, improvementPct, confidence, confidenceByCategory, usableRows:usableRows.length, hrCount };
+  cats.forEach(c => {
+    const sig = signalByCategory[c.cat];
+    confidenceByCategory[c.cat] = sig ? sig.confidence : 'Low sample';
+  });
+  return { current, suggested, keyMap, categories:cats, currentPerformance, suggestedPerformance, improvementPct, confidence, confidenceByCategory, usableRows:usableRows.length, allUsableRows:allUsableRows.length, hrCount, candidateRankCutoff:BACKTEST_SUGGESTED_WEIGHT_TOP_RANK, analysisRows:usableRows, signalByCategory, method:'category-signal-board' };
 }
 
 const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
@@ -15980,7 +16056,7 @@ function renderBacktestLab() {
     const cur = (weights.current[cat] || 0) * 100;
     const sug = (weights.suggested[cat] || 0) * 100;
     const delta = sug - cur;
-    const stat = getSignalStats(rows, weights.keyMap[cat], { format:'score' });
+    const stat = getSignalStats(weights.analysisRows || rows, weights.keyMap[cat], { format:'score' });
     const cls = delta > 0.75 ? 'signal-positive' : delta < -0.75 ? 'signal-negative' : 'signal-neutral';
     const sepCls = stat.diff > 0 ? 'signal-positive' : stat.diff < 0 ? 'signal-negative' : 'signal-neutral';
     return `<tr><td>${meta.label}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(stat.hitAvg,2)}</td><td>${fmtBack(stat.missAvg,2)}</td><td class="${sepCls}">${stat.diff >= 0 ? '+' : ''}${fmtBack(stat.diff,2)}</td><td>${fmtBack(stat.strength,2)}</td><td>${weights.confidenceByCategory && weights.confidenceByCategory[cat] ? weights.confidenceByCategory[cat] : stat.confidence}</td></tr>`;
@@ -15989,7 +16065,7 @@ function renderBacktestLab() {
   const sugPerf = weights.suggestedPerformance || {};
   const optimizerSummaryRows = `
     <tr><td>Current Live Weights</td><td>${fmtBack(curPerf.objective,2)}</td><td>${fmtBack(curPerf.top5RatePct,2,'%')}</td><td>${fmtBack(curPerf.top10RatePct,2,'%')}</td><td>${fmtBack(curPerf.top25RatePct,2,'%')}</td><td>${curPerf.top10Lift ? curPerf.top10Lift.toFixed(2)+'x' : '-'}</td><td>${fmtBack(curPerf.avgHrRank,1)}</td><td>${fmtBack(curPerf.avgRankPercentile,1,'%')}</td><td>${fmtBack(curPerf.ndcg,3)}</td></tr>
-    <tr><td>Optimized Suggested Weights</td><td class="signal-positive">${fmtBack(sugPerf.objective,2)}</td><td>${fmtBack(sugPerf.top5RatePct,2,'%')}</td><td>${fmtBack(sugPerf.top10RatePct,2,'%')}</td><td>${fmtBack(sugPerf.top25RatePct,2,'%')}</td><td>${sugPerf.top10Lift ? sugPerf.top10Lift.toFixed(2)+'x' : '-'}</td><td>${fmtBack(sugPerf.avgHrRank,1)}</td><td>${fmtBack(sugPerf.avgRankPercentile,1,'%')}</td><td>${fmtBack(sugPerf.ndcg,3)}</td></tr>`;
+    <tr><td>Category Signal Suggested Weights</td><td class="signal-positive">${fmtBack(sugPerf.objective,2)}</td><td>${fmtBack(sugPerf.top5RatePct,2,'%')}</td><td>${fmtBack(sugPerf.top10RatePct,2,'%')}</td><td>${fmtBack(sugPerf.top25RatePct,2,'%')}</td><td>${sugPerf.top10Lift ? sugPerf.top10Lift.toFixed(2)+'x' : '-'}</td><td>${fmtBack(sugPerf.avgHrRank,1)}</td><td>${fmtBack(sugPerf.avgRankPercentile,1,'%')}</td><td>${fmtBack(sugPerf.ndcg,3)}</td></tr>`;
 
   const categoryRows = renderBacktestSignalRows(categorySignals, 18);
   const rawRows = renderBacktestRawStatWeightRows(rawSignals, 120);
@@ -16005,11 +16081,11 @@ function renderBacktestLab() {
       <div class="backtest-kpi"><div class="backtest-kpi-label">Strongest raw signal</div><div class="backtest-kpi-value" style="font-size:18px;">${strongestRaw ? strongestRaw.label : '-'}</div><div class="backtest-kpi-sub">Strength ${strongestRaw ? fmtBack(strongestRaw.strength,2) : '-'}</div></div>
     </div>
 
-    <h2>🧠 Current vs Suggested Weights</h2>
-    <p class="backtest-note">Suggested weights now use every finalized player snapshot in your saved backtest history and a fully deterministic HR-vs-non-HR ranking objective. The optimizer rewards weight systems that assign higher BBI scores to players who actually hit HRs than to players who did not. Same history = same suggested weights. Reference-only: this never changes live scoring.</p>
+    <h2>🧠 Current vs Category-Signal Suggested Weights</h2>
+    <p class="backtest-note">Suggested weights now roll up directly from the Category Signal Board: HR Avg vs Miss Avg, Avg Separation, Signal Strength, and sample confidence. No separate category optimizer is used. Same history = same suggested weights. Reference-only: this never changes live BBI scoring or zone scoring.</p>
     <div class="backtest-kpi-grid">
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Optimizer sample</div><div class="backtest-kpi-value">${Number(weights.usableRows || 0).toLocaleString()}</div><div class="backtest-kpi-sub">HR rows: ${weights.hrCount} • ${weights.confidence}</div></div>
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Historical improvement</div><div class="backtest-kpi-value">${fmtBack(weights.improvementPct,1,'%')}</div><div class="backtest-kpi-sub">Suggested vs current AUC objective</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Signal sample</div><div class="backtest-kpi-value">${Number(weights.usableRows || 0).toLocaleString()}</div><div class="backtest-kpi-sub">HR + Top ${weights.candidateRankCutoff || 60} candidates • HR rows: ${weights.hrCount} • ${weights.confidence}</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Historical movement</div><div class="backtest-kpi-value">${fmtBack(weights.improvementPct,1,'%')}</div><div class="backtest-kpi-sub">Suggested vs current AUC check</div></div>
       <div class="backtest-kpi"><div class="backtest-kpi-label">Suggested Top 10 Lift</div><div class="backtest-kpi-value">${weights.suggestedPerformance.top10Lift ? weights.suggestedPerformance.top10Lift.toFixed(2)+'x' : '-'}</div><div class="backtest-kpi-sub">vs overall HR baseline</div></div>
       <div class="backtest-kpi"><div class="backtest-kpi-label">Avg HR Rank</div><div class="backtest-kpi-value">${fmtBack(weights.suggestedPerformance.avgHrRank,1)}</div><div class="backtest-kpi-sub">Lower is better</div></div>
     </div>
