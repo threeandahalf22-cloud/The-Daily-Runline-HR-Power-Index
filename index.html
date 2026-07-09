@@ -280,12 +280,6 @@ tr.highlighted-row { background: rgba(0, 255, 157, 0.1); animation: row-highligh
 .attack-profile-value { font-family: monospace; color: #fff; font-weight: 900; text-align:right; }
 .attack-profile-summary { margin-top: 6px; font-size: 10px; color: var(--stadium-lights); font-weight: 800; text-transform: uppercase; letter-spacing:.5px; }
 
-
-
-/* =========================
-   VISUAL UPGRADE PACK ONLY
-   Glass UI + premium headshots + animated stadium background + hover polish
-   ========================= */
 body::before,
 body::after {
 content: '';
@@ -486,14 +480,6 @@ box-shadow: 0 0 18px rgba(250,204,21,.22);
 .community-heat { display:inline-flex; margin-top:6px; padding:4px 7px; border-radius:999px; font-size:9px; font-weight:1000; letter-spacing:.5px; text-transform:uppercase; color:#06111d; background:linear-gradient(135deg, #e10600, #38bdf8); }
 .community-footer-note { position:relative; z-index:1; margin-top:12px; color:var(--text-muted); font-size:10px; font-weight:700; text-align:center; }
 
-
-
-
-
-/* =========================
-   WHO WE HAMMERIN HR CASHED STATE
-   Manual, real-time, saved locally. Visual-only: no scoring changed.
-   ========================= */
 .community-hr-tools {
   position: relative;
   z-index: 1;
@@ -606,11 +592,6 @@ box-shadow: 0 0 18px rgba(250,204,21,.22);
   box-shadow: 0 0 16px rgba(250,204,21,.30);
 }
 
-
-/* =========================
-   ESPN-STYLE VISUAL UPGRADE PACK
-   Visual only: no scoring/weights changed.
-   ========================= */
 .top-target-hero {
   position: relative;
   overflow: hidden;
@@ -669,11 +650,7 @@ tr:hover .player-headshot, .spotlight-card:hover .player-headshot, .jackpot-card
 .community-meter-fill, .community-heat { background: linear-gradient(90deg, var(--team-color, var(--accent)), #38bdf8); }
 @media(max-width: 850px) { .hero-inner { grid-template-columns: 1fr; text-align:center; } .hero-headshot-wrap { margin:0 auto; } .hero-scorebox { text-align:center; } .hero-meta, .hero-why-row { justify-content:center; } }
 
-/* =========================
-   STADIUM ROW BACKGROUNDS
-   Uses the actual HOME team's park for both home and away hitters in the same game.
-   Visual-only: no scoring logic changed.
-   ========================= */
+
 tbody tr.stadium-row {
   --stadium-color: rgba(225,6,0,0.18);
   --stadium-color-2: rgba(56,189,248,0.12);
@@ -728,11 +705,6 @@ tbody tr.stadium-row td {
 .modal-stats-grid { grid-template-columns: 1fr; }
 }
 
-
-/* =========================
-   PREMIUM GAME DAY VISUAL PACK
-   Visual-only: no scoring/weights changed.
-   ========================= */
 .slate-board {
   display:none;
   position:relative;
@@ -797,11 +769,6 @@ tbody tr.team-heat-row:hover::after { opacity:1; animation: row-stadium-lights 1
 @media(max-width:850px){ .why-rank-list{grid-template-columns:1fr;} .slate-games-grid{grid-template-columns:1fr;} .top12-carousel{grid-template-columns:repeat(2, minmax(0, 1fr));} }
 @media(max-width:560px){ .top12-carousel{grid-template-columns:1fr;} }
 
-
-/* =========================
-   JAMES WOOD / JR BURNS LOCK-IN GATE
-   Funny quirk only: no scoring logic changed.
-   ========================= */
 .jr-burns-overlay {
   position: fixed;
   inset: 0;
@@ -835,12 +802,6 @@ tbody tr.team-heat-row:hover::after { opacity:1; animation: row-stadium-lights 1
 .jr-burns-no { background: linear-gradient(135deg, #e10600, #b00000); color: #04080f; box-shadow: 0 10px 24px rgba(225,6,0,.16); }
 .jr-burns-ban { margin-top: 14px; padding: 12px; border-radius: 12px; background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.28); color: #fecaca; font-size: 13px; font-weight: 900; }
 
-
-
-/* =========================
-   DROPDOWN STACKING FIX ONLY
-   Keeps team logo dropdown above rankings table.
-   ========================= */
 .controls-bar { overflow: visible !important; z-index: 10000; }
 .filter-group,
 .team-filter-future-wrap,
@@ -849,12 +810,6 @@ tbody tr.team-heat-row:hover::after { opacity:1; animation: row-stadium-lights 1
 .team-logo-dropdown { z-index: 10003 !important; }
 .table-wrapper { position: relative; z-index: 1; }
 
-
-
-/* =========================
-   ELITE PLAY MICRO-INTERACTIONS
-   Visual only: no scoring/weights changed.
-   ========================= */
 tbody tr.nuclear-row {
   animation: nuclear-row-pulse 2.8s ease-in-out infinite;
   box-shadow: inset 5px 0 0 #e10600, inset 0 0 32px rgba(225,6,0,0.13), 0 0 18px rgba(225,6,0,0.06);
@@ -930,13 +885,6 @@ tbody tr.cody-diamond-row:hover td {
   100% { transform: rotate(360deg) scale(1); opacity: 0; }
 }
 
-
-
-/* =========================
-   WHO WE HAMMERIN NAME VISIBILITY FIX
-   Keeps the section scrollable, but stops player names from being clipped.
-   Visual-only: no scoring changed.
-   ========================= */
 .community-picks-scroll .community-pick-card {
   grid-template-columns: 34px minmax(170px, 1fr) max-content;
   align-items: center;
@@ -1003,13 +951,6 @@ tbody tr.cody-diamond-row:hover td {
   }
 }
 
-
-
-/* =========================
-   FINAL WHO WE HAMMERIN BOYS FIX
-   Scrollable full list + visible names + manual HR gold state/reset.
-   Visual-only: no scoring changed.
-   ========================= */
 .community-hero {
   overflow: visible !important;
 }
@@ -1139,12 +1080,6 @@ tbody tr.cody-diamond-row:hover td {
   }
 }
 
-
-/* =========================
-   v36.2 ESPN/FanGraphs Compact Main Table
-   Keeps every row data point, but groups team + pitcher under player
-   to reduce horizontal scrolling. No scoring changes.
-   ========================= */
 #tab-home .table-wrapper { overflow-x: auto; }
 #tab-home table { table-layout: auto; min-width: 1180px; }
 #tab-home th,
@@ -1286,10 +1221,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="best-betting-edges-style">
-/* =========================
-   BEST BETTING EDGES SIDE PANEL
-   Compact sidebar board. Keeps rankings table clean.
-   ========================= */
+
 .best-edges-list { display:flex; flex-direction:column; gap:10px; }
 .best-edge-card {
   position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.08); border-left:4px solid var(--team-color, var(--accent));
@@ -1335,10 +1267,7 @@ tbody tr.cody-diamond-row:hover td {
 </style>
 <style>
 
-/* =========================
-   WHO WE HAMMERIN CLEAN CARD SPACING FIX
-   Layout only: gives names room, prevents bunching, keeps scroll + HR tools.
-   ========================= */
+
 .community-picks-scroll {
   max-height: 500px !important;
   overflow-y: auto !important;
@@ -1460,10 +1389,7 @@ tbody tr.cody-diamond-row:hover td {
 </style>
 
 <style id="who-hammerin-one-line-final-fix">
-/* =========================
-   WHO WE HAMMERIN — ONE LINE CLEAN NAME FIX
-   Layout only. Scoring/functionality untouched.
-   ========================= */
+
 .community-picks-scroll {
   max-height: 500px !important;
   overflow-y: auto !important;
@@ -1609,10 +1535,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="backtest-lab-style">
-/* =========================
-   BACKTEST / MODEL RESEARCH LAB
-   Tracking only. Does not change scoring weights.
-   ========================= */
+
 .btn-bomb {
   background: rgba(250,204,21,.10); color:#facc15; border:1px solid rgba(250,204,21,.36);
   border-radius: 8px; padding: 6px 9px; font-size: 13px; font-weight: 1000; cursor:pointer;
@@ -1649,10 +1572,7 @@ tbody tr.cody-diamond-row:hover td {
 </style>
 
 <style id="mlbhr-twitter-sidebar-style">
-/* =========================
-   MLBHR X FEED SIDEBAR
-   Visual/add-on only: no scoring or backtest logic changed.
-   ========================= */
+
 .edge-page-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 390px;
@@ -1724,10 +1644,7 @@ tbody tr.cody-diamond-row:hover td {
 </style>
 
 <style id="command-center-header-style">
-/* =========================
-   DAILY RUNLINE COMMAND CENTER HEADER
-   Layout-only upgrade. Countdown/ticker preserved. Scoring untouched.
-   ========================= */
+
 .command-center-board {
   position: relative;
   z-index: 1;
@@ -1870,10 +1787,7 @@ tbody tr.cody-diamond-row:hover td {
 </style>
 
 <style id="visual-additions-36-style">
-/* =========================
-   v36 VISUAL ADDITIONS: Pitch Mix Wheel + Game Center + AI Loading + Compact Why Row
-   Visual/UI only. Scoring untouched.
-   ========================= */
+
 .ai-loading-overlay{position:fixed;inset:0;z-index:2147483600;display:none;align-items:center;justify-content:center;background:rgba(6,12,22,.88);backdrop-filter:blur(10px);}
 .ai-loading-overlay.active{display:flex;}
 .ai-loader-card{width:min(520px,92vw);border:1px solid rgba(225,6,0,.35);border-top:4px solid var(--accent);border-radius:22px;padding:28px;background:radial-gradient(circle at 50% 0%,rgba(225,6,0,.18),transparent 38%),linear-gradient(180deg,#091526,#060c16);box-shadow:0 30px 80px rgba(0,0,0,.72),0 0 42px rgba(225,6,0,.18);overflow:hidden;position:relative;text-align:center;}
@@ -1909,10 +1823,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="stats-tab-style">
-/* =========================
-   BATTER STATS RESEARCH TAB
-   Sortable grouped dashboard. Add-on only: no scoring changes.
-   ========================= */
+
 .stats-tab-shell { display:flex; flex-direction:column; gap:16px; }
 .stats-view-tabs { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 .stats-view-btn { border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.04); color:#cbd5e1; border-radius:999px; padding:10px 13px; font-size:11px; font-weight:1000; text-transform:uppercase; letter-spacing:.7px; cursor:pointer; transition:all .18s ease; }
@@ -1942,13 +1853,8 @@ tbody tr.cody-diamond-row:hover td {
 .stats-qual-note { color:var(--text-muted); font-size:11px; font-weight:800; line-height:1.35; }
 </style>
 
-
-
 <style id="player-compare-style">
-/* =========================
-   PLAYER COMPARE MODAL
-   Homepage add-on only. No scoring changes.
-   ========================= */
+
 .compare-launch-card {
   display:flex; align-items:center; justify-content:space-between; gap:16px;
   margin-bottom:20px; padding:16px 18px; border-radius:16px;
@@ -2002,15 +1908,8 @@ tbody tr.cody-diamond-row:hover td {
 @media(max-width: 560px) { .compare-control-grid { grid-template-columns:1fr; } }
 </style>
 
-
-
 <style id="command-center-big-headshots-fix">
-/* =========================
-   v36.10 COMMAND CENTER BIG HEADSHOTS
-   Enlarges player faces in the Daily Runline AI Command Center tiles
-   while adding enough spacing so the tile layers do not overlap.
-   Visual-only: no scoring/data logic changed.
-   ========================= */
+
 .command-center-grid {
   gap: 12px !important;
 }
@@ -2098,10 +1997,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="edge-full-list-home-sidebar-style">
-/* =========================
-   v37.2 HOME SIDEBAR + EDGE FULL LIST
-   Moves MLBHR feed to home sidebar. Edge tab becomes pure edge ranking.
-   ========================= */
+
 .home-sidebar-stack { display:flex; flex-direction:column; gap:24px; }
 .home-sidebar-stack .mlbhr-feed-panel { position: relative; top:auto; max-height:none; }
 .home-sidebar-stack .mlbhr-feed-body { max-height: 540px; }
@@ -2120,10 +2016,7 @@ tbody tr.cody-diamond-row:hover td {
 .full-edge-player-meta { color:var(--stadium-lights); font-size:10px; font-weight:900; text-transform:uppercase; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .full-edge-rank { font-family:monospace; font-weight:1000; color:#94a3b8; }
 
-/* =========================
-   SYNERGY TAB PLAYER IDENTITY FIX
-   Scoped only to Synergy Bonuses: full names + MLB headshots without overlap.
-   ========================= */
+
 #tab-synergy .full-edge-table { min-width: 1420px; table-layout: auto; }
 #tab-synergy .full-edge-table th:nth-child(2),
 #tab-synergy .full-edge-table td:nth-child(2) { min-width: 350px; width: 350px; }
@@ -2180,10 +2073,7 @@ tbody tr.cody-diamond-row:hover td {
 </style>
 
 <style id="animated-stadium-wind-lab-style">
-/* =========================
-   v37.5 ANIMATED STADIUM WIND LAB
-   Weather-page visual upgrade + hitter-side wind transparency.
-   ========================= */
+
 #weatherRankContainer.weather-lab-grid { grid-template-columns: repeat(auto-fit, minmax(360px, 420px)) !important; justify-content: center !important; align-items: stretch; }
 .weather-tab-centered { width: 100%; max-width: 1440px; margin: 0 auto; }
 #tab-tools .table-wrapper { overflow-x: visible; }
@@ -2227,10 +2117,7 @@ tbody tr.cody-diamond-row:hover td {
 </style>
 
 <style id="stadium-orientation-audit-style">
-/* =========================
-   v37.7 STADIUM WIND ORIENTATION AUDIT
-   Audit-only: exposes stadium lat/lon, CF/LF/RF bearings, live wind-to vector, boost side and confidence.
-   ========================= */
+
 .orientation-audit-panel { margin-top: 24px; }
 .orientation-audit-copy { color: var(--text-muted); font-size: 12px; line-height: 1.45; margin: 0 0 14px; }
 .orientation-audit-tools { display:flex; gap:12px; flex-wrap:wrap; align-items:end; justify-content:space-between; margin-bottom:14px; }
@@ -2259,11 +2146,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="true-wind-direction-animation-style">
-/* =========================
-   v37.8 TRUE WIND DIRECTION ANIMATION
-   Uses exact wind-to bearing relative to each stadium's CF bearing.
-   No scoring weights changed.
-   ========================= */
+
 .weather-lab-field-wrap {
   --wind-zone-x: 50%;
   --wind-zone-y: 12%;
@@ -2347,10 +2230,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="v38-1-api-weather-crosswind-accuracy-style">
-/* =========================
-   v38.1 API WEATHER ACCURACY + TRUE CROSSWIND LANES
-   Uses OpenWeather forecast-hour humidity/wind/temp and makes crosswinds visibly travel side-to-side.
-   ========================= */
+
 .weather-lab-field-wrap.wind-cross {
   background:
     linear-gradient(90deg, rgba(234,179,8,.13), transparent 30%, transparent 70%, rgba(234,179,8,.13)),
@@ -2378,15 +2258,8 @@ tbody tr.cody-diamond-row:hover td {
 .weather-api-status-pill.fallback { border-color:rgba(234,179,8,.28); background:rgba(234,179,8,.08); color:#fde68a; }
 </style>
 
-
-
 <style id="v38-2-true-crosswind-animation-fix">
-/* =========================
-   v38.2 TRUE CROSSWIND ANIMATION FIX
-   Crosswinds now animate as SIDEWAYS lanes only:
-   LF ➜ RF or RF ➜ LF. They no longer look like generic out-to-CF wind.
-   Visual-only: no scoring/weights changed.
-   ========================= */
+
 .weather-lab-field-wrap.wind-cross {
   --cross-y: 35%;
   --cross-start-x: 12%;
@@ -2488,22 +2361,12 @@ tbody tr.cody-diamond-row:hover td {
 </style>
 
 <style id="v38-4-crosswind-lf-rf-corrected-note">
-/* =========================
-   v38.4 CROSSWIND LF/RF CORRECTED
-   Final user-facing convention:
-   crosswind to/near LF = cross-from-lf = LF ➜ RF.
-   crosswind to/near RF = cross-from-rf = RF ➜ LF.
-   CSS lanes stay literal; fieldDirectionFromWind now feeds them the correct origin.
-   ========================= */
+
 </style>
 
 
 <style id="v38-5-hard-flipped-crosswind-override">
-/* =========================
-   v38.5 HARD-FLIPPED CROSSWIND OVERRIDE
-   This intentionally inverts the previous crosswind display.
-   Arrow and animated particles are both flipped.
-   ========================= */
+
 .weather-lab-field-wrap.wind-cross.cross-from-lf {
   --wind-rot: 180deg !important;
   --cross-start-x: 87% !important;
@@ -2524,7 +2387,7 @@ tbody tr.cody-diamond-row:hover td {
   left: 86% !important;
   transform: rotate(0deg) !important;
 }
-/* Flip highlighted origin/destination labels too, so the visual matches the new direction. */
+
 .weather-lab-field-wrap.wind-cross.cross-from-lf .weather-lab-zone.rf,
 .weather-lab-field-wrap.wind-cross.cross-from-rf .weather-lab-zone.lf {
   color:#fde68a !important;
@@ -2541,14 +2404,8 @@ tbody tr.cody-diamond-row:hover td {
 }
 </style>
 
-
-
 <style id="v38-6-true-vector-wind-final">
-/* =========================
-   v38.6 TRUE VECTOR WIND FINAL
-   One source of truth: every arrow and moving wind lane uses windToDeg rotated into the actual stadium CF bearing.
-   Crosswind classes are now only labels/highlights; they no longer flip the vector.
-   ========================= */
+
 .weather-lab-field-wrap.wind-cross.cross-from-lf,
 .weather-lab-field-wrap.wind-cross.cross-from-rf {
   --wind-rot: var(--true-wind-rot) !important;
@@ -2585,7 +2442,7 @@ tbody tr.cody-diamond-row:hover td {
   filter: drop-shadow(0 0 12px rgba(234,179,8,.82)) !important;
   z-index: 9 !important;
 }
-/* Literal class meaning restored for labels: cross-from-lf means LF side origin, cross-from-rf means RF side origin. */
+
 .weather-lab-field-wrap.wind-cross.cross-from-lf .weather-lab-zone.lf,
 .weather-lab-field-wrap.wind-cross.cross-from-rf .weather-lab-zone.rf {
   color:#fde68a !important;
@@ -2602,14 +2459,8 @@ tbody tr.cody-diamond-row:hover td {
 }
 </style>
 
-
-
 <style id="v39-2-command-center-ai-core-style">
-/* =========================
-   v39.2 COMMAND CENTER AI CORE
-   Four-card command layout + center logo reactor + static first-pitch countdown.
-   Uses Daily Runline teal/cyan/green/gold/red palette only.
-   ========================= */
+
 .command-center-ai-core {
   max-width: 1180px !important;
   padding: 18px 18px 16px !important;
@@ -2856,11 +2707,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="v39-3-command-center-clean-countdown-style">
-/* =========================
-   v39.3 COMMAND CENTER CLEANUP
-   Top logo removed, title centered, ticker converted to static first-pitch countdown,
-   and Command Center player headshots enlarged without overlapping.
-   ========================= */
+
 .header-top-row {
   justify-content: center !important;
   gap: 0 !important;
@@ -2986,11 +2833,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="v40-restart-fixes-style">
-/* =========================
-   v40 RESTART FIXES
-   Player card wheel visible, compact pitcher dashboard, HR environment table added.
-   Display-only. No BBI / weights / synergy / rankings / odds / backtest changes.
-   ========================= */
+
 .modal-card {
   max-width: 1180px !important;
   width: min(1180px, 96vw) !important;
@@ -3194,7 +3037,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="v40-final-pitcher-modal-environment-fix">
-/* Final v40 fixes: popup scroll, wheel back under player name, focused pitcher page. */
+
 #playerModal.modal-overlay { align-items: flex-start !important; overflow-y: auto !important; padding: 22px 12px !important; }
 #playerModal .modal-card { max-height: none !important; min-height: auto !important; margin: 0 auto 28px !important; overflow: visible !important; }
 #playerModal .modal-left { align-self: stretch !important; overflow: visible !important; }
@@ -3222,12 +3065,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="v40-4-fixed-left-player-modal-scroll">
-/* =========================
-   v40.4 PLAYER POPUP SCROLL FIX
-   Left player identity panel stays locked: photo + BBI + wheel.
-   Only the right stats side scrolls.
-   Layout only: no scoring/data logic changed.
-   ========================= */
+
 #playerModal.modal-overlay {
   align-items: center !important;
   justify-content: center !important;
@@ -3328,10 +3166,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="bbi-tier-home-style">
-/* =========================
-   BBI TIERS HOME FILTER
-   UI/filter only. Scoring and model weights untouched.
-   ========================= */
+
 .bbi-tier-home-panel {
   position: relative;
   overflow: hidden;
@@ -3395,10 +3230,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="model-sandbox-style">
-/* =========================
-   MODEL WEIGHT SANDBOX
-   Experimental home-screen weight tuner. Official model/backtest stays locked.
-   ========================= */
+
 .model-sandbox-panel {
   margin: 0 0 16px;
   border: 1px solid rgba(255,255,255,.09);
@@ -3452,10 +3284,7 @@ tbody tr.cody-diamond-row:hover td {
 
 
 <style id="drl-espn-red-premium-theme-v414">
-/* =========================
-   DRL ESPN / STATCAST RED PREMIUM SKIN
-   Presentation-only override. Scoring, weights, filters, workbook parsing, and model logic untouched.
-   ========================= */
+
 :root{
   --bg-main:#08090b !important;
   --bg-card:rgba(20,22,25,.94) !important;
@@ -3487,7 +3316,7 @@ body{
 body::before, body::after{ display:none !important; animation:none !important; }
 .container{ max-width:1540px !important; }
 
-/* Top broadcast header */
+
 .header-area{
   margin:0 auto 24px !important;
   padding:18px 30px 28px !important;
@@ -3558,7 +3387,7 @@ h1{
 }
 .date-display{ color:#9ca3af !important; font-size:11px !important; letter-spacing:1.2px !important; }
 
-/* Command center shell */
+
 .command-center-board,
 .command-center-ai-core{
   max-width:1470px !important;
@@ -3738,7 +3567,7 @@ h1{
 .command-ai-ticker #tickerText{ animation:none !important; transform:none !important; color:#e5e7eb !important; }
 .command-ai-ticker .ticker-label{ color:var(--espn-red) !important; border-color:rgba(225,6,0,.28) !important; }
 
-/* Navigation */
+
 .nav-tabs{
   max-width:1470px !important;
   margin:0 auto 24px !important;
@@ -3770,7 +3599,7 @@ h1{
   box-shadow:inset 0 -3px 0 var(--espn-red) !important;
 }
 
-/* Panels, cards, tables */
+
 .panel,.upload-box,.controls-bar,.table-wrapper,.spotlight-ticker,.jackpot-section,.pitch-lab-card,.diamond-card,.modal-card,.top-target-hero,.slate-board,.community-hero,.compare-launch-card,.game-center-card,.backtest-kpi,.signal-table-wrapper,.full-edge-table-wrapper,.stats-table-wrapper,.orientation-audit-wrapper{
   background:linear-gradient(180deg,#151719,#101214) !important;
   border-color:var(--espn-line) !important;
@@ -3800,7 +3629,7 @@ h2::before{ background:var(--espn-red) !important; box-shadow:none !important; a
 .btn-lock{ background:#1a1d22 !important; color:var(--espn-gold) !important; border:1px solid rgba(246,195,67,.45) !important; box-shadow:none !important; }
 .btn-remove,.btn-bomb{ box-shadow:none !important; }
 
-/* Pregame Slate Board */
+
 .slate-board{
   border-left:3px solid var(--espn-red) !important;
   border-radius:12px !important;
@@ -3818,7 +3647,7 @@ h2::before{ background:var(--espn-red) !important; box-shadow:none !important; a
 .slate-game-card:hover{ transform:translateY(-2px) !important; box-shadow:0 10px 20px rgba(0,0,0,.30) !important; border-color:#3d424b !important; }
 .slate-env-pill.hot,.slate-env-pill.nuclear{ background:rgba(225,6,0,.10) !important; color:#ff5b5b !important; border-color:rgba(225,6,0,.32) !important; }
 
-/* Main tables */
+
 th{
   background:#111419 !important;
   color:#a0a5ae !important;
@@ -3845,7 +3674,7 @@ tr:hover .index-score{ transform:none !important; box-shadow:none !important; bo
 tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:hover .player-headshot,.community-pick-card:hover .player-headshot{ animation:none !important; transform:scale(1.04) !important; box-shadow:0 0 0 3px rgba(255,255,255,.04),0 10px 18px rgba(0,0,0,.42) !important; }
 .player-clickable:hover{ color:#fff !important; text-decoration-color:var(--espn-red) !important; }
 
-/* Badges / signals */
+
 .metric-badge,.pf-badge,.batter-hand-pill,.pitch-chip,.weather-bearing-pill,.orientation-audit-pill,.weather-api-status-pill{
   box-shadow:none !important;
   border-radius:5px !important;
@@ -3856,14 +3685,14 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
 .pf-red,.signal-negative,.edge-cell.edge-neg,.best-edge-value.edge-neg,.stats-bad{ color:#ff4b4b !important; }
 .badge-jackpot,.badge-meatball,.signal-neutral,.stats-mid,.modal-stat-val.yellow{ color:var(--espn-gold) !important; }
 
-/* Modals */
+
 .modal-card{ border-top:3px solid var(--espn-red) !important; border-radius:12px !important; }
 .modal-bbi-display{ background:#101214 !important; border-color:#343840 !important; }
 .modal-bbi-value,.modal-section-title{ color:#fff !important; text-shadow:none !important; }
 .modal-section-title{ border-bottom-color:var(--espn-line) !important; }
 .modal-stat-item:hover{ background:#171a1f !important; border-color:#343840 !important; }
 
-/* Community / special cards stay clean */
+
 .community-live-pill,.community-heat,.community-meter-fill,.community-pick-count{ color:#fff !important; background:var(--espn-red) !important; box-shadow:none !important; border-color:rgba(225,6,0,.35) !important; }
 .community-pick-card,.best-edge-card,.storyline-card,.why-rank-box,.top12-card,.compare-player-card,.backtest-kpi{
   background:linear-gradient(180deg,#171a1f,#101214) !important;
@@ -3873,7 +3702,7 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
 .community-pick-card:hover,.best-edge-card:hover,.top12-card:hover{ transform:translateY(-1px) !important; box-shadow:0 10px 20px rgba(0,0,0,.26) !important; border-color:#3a3e45 !important; }
 .community-rank-badge,.top12-rank,.hero-rank-badge{ background:#e6e7e9 !important; color:#0b0d10 !important; box-shadow:none !important; }
 
-/* Weather keeps the field animation, but uses the red broadcast frame */
+
 .weather-lab-card{ background:linear-gradient(180deg,#151719,#101214) !important; border-color:var(--espn-line) !important; box-shadow:none !important; }
 .weather-lab-top{ background:#111419 !important; border-bottom-color:var(--espn-line) !important; }
 .weather-lab-score-val,.weather-lab-matchup{ text-shadow:none !important; }
@@ -3881,7 +3710,7 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
 .weather-lab-field-wrap::before{ box-shadow:none !important; }
 .weather-lab-zone.active-zone{ background:var(--espn-red) !important; color:#fff !important; box-shadow:none !important; }
 
-/* Responsive */
+
 @media(max-width:1050px){
   .header-top-row{ grid-template-columns:1fr !important; gap:12px !important; }
   .header-top-row .main-logo{ justify-self:center !important; border-right:0 !important; padding-right:0 !important; }
@@ -3907,14 +3736,8 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
 })();
 </script>
 
-
-
 <style id="drl-final-espn-red-cleanup-v416">
-/* =========================
-   FINAL ESPN RED CLEANUP
-   Sweeps remaining tab-specific neon glow from BBI tiers, pitcher page, modals, sliders, dropdowns.
-   Visual-only: no scoring/weights/data logic changed.
-   ========================= */
+
 :root{
   --accent:#e10600 !important;
   --accent-glow:rgba(225,6,0,.12) !important;
@@ -3940,7 +3763,7 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
   filter:none !important;
 }
 
-/* Kill old neon glow/animations everywhere without touching model logic */
+
 @keyframes pulse-glow { 0%,100%{ box-shadow:none; } 50%{ box-shadow:none; } }
 @keyframes flicker { 0%,100%{ opacity:1; } 50%{ opacity:1; } }
 @keyframes nuclear-row-pulse { 0%,100%{ filter:none; } 50%{ filter:none; } }
@@ -3952,7 +3775,7 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
   text-shadow:none !important;
 }
 
-/* BBI Tiers tab */
+
 #tab-bbi-tiers,
 #tab-bbi-tiers *{
   scrollbar-color:rgba(225,6,0,.55) rgba(255,255,255,.05) !important;
@@ -3990,7 +3813,7 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
   box-shadow:none !important;
 }
 
-/* Pitchers page */
+
 #tab-pitchers .table-wrapper,
 #tab-pitchers .panel,
 .pitcher-dashboard,.pitcher-dash-card,.pitcher-card,.pitcher-risk-card,.pitcher-risk-box,.pitcher-mini-line,.pitch-lab-card{
@@ -4018,7 +3841,7 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
   box-shadow:none !important;
 }
 
-/* Inputs/sliders/dropdowns/model sandbox */
+
 .slider-control::-webkit-slider-thumb{ background:#e10600 !important; box-shadow:none !important; }
 .model-weight-input,.team-logo-dropdown,.team-filter-trigger{
   border-color:#343840 !important;
@@ -4030,7 +3853,7 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
 .model-sandbox-panel.active .model-sandbox-badge{ border-color:rgba(225,6,0,.35) !important; background:rgba(225,6,0,.10) !important; color:#fff !important; }
 .model-sandbox-official{ background:#e10600 !important; color:#fff !important; }
 
-/* Remaining visual bars and scrollbars */
+
 ::-webkit-scrollbar-thumb{ background:#e10600 !important; box-shadow:none !important; }
 #playerModal #modalStatsContainer::-webkit-scrollbar-thumb,
 .community-picks-scroll::-webkit-scrollbar-thumb,
@@ -4047,18 +3870,12 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
   animation:none !important;
 }
 
-/* Inline old accent cleanup from generated rows/canvas-adjacent labels */
+
 [style*="#e10600"], [style*="225,6,0"]{ text-shadow:none !important; }
 </style>
 
-
-
 <style id="drl-v417-crisp-black-no-glow-everywhere">
-/* =========================
-   v41.7 CRISP BLACK ESPN CLEANUP
-   Purpose: keep the Top-12 clean black look across rankings, sandbox, BBI tiers, pitchers, backtest, stats, modals.
-   Visual-only. No scoring, weights, projections, upload, or backtest logic changed.
-   ========================= */
+
 :root{
   --bg-main:#07080a !important;
   --bg-card:#111316 !important;
@@ -4077,7 +3894,7 @@ tr:hover .player-headshot,.spotlight-card:hover .player-headshot,.jackpot-card:h
   --espn-muted:#8f949c !important;
 }
 
-/* Global de-neon: no colored glow in rankings/sandbox/BBI/pitchers/backtest */
+
 *, *::before, *::after{
   text-shadow:none !important;
 }
@@ -4104,7 +3921,7 @@ body::before, body::after,
   animation:none !important;
 }
 
-/* Core surfaces: flat black, thin borders, soft black shadow only */
+
 .header-area,
 .command-center-board,
 .command-center-ai-core,
@@ -4168,7 +3985,7 @@ body::before, body::after,
   animation:none !important;
 }
 
-/* Rankings table: crisp ESPN table, no colored row glow */
+
 table, th, td{ border-color:#272b31 !important; }
 th{
   background:#0b0d10 !important;
@@ -4203,7 +4020,7 @@ tbody tr.nuclear-row::after{ display:none !important; animation:none !important;
 tbody tr.cody-diamond-row td,
 tbody tr.cody-diamond-row:hover td{ background:transparent !important; }
 
-/* Scores / BBI / rankings numbers: red accent, no glow */
+
 .index-score,
 .full-edge-score,
 .hr-blueprint-score,
@@ -4237,7 +4054,7 @@ tbody tr.cody-diamond-row:hover td{ background:transparent !important; }
 }
 tr:hover .index-score{ transform:none !important; box-shadow:none !important; border-color:#e10600 !important; }
 
-/* Keep red only as hard accent, not glow */
+
 .nav-tab.active,
 .btn-accent,
 .btn-finalize-backtest,
@@ -4315,7 +4132,7 @@ input[type="file"],
   filter:none !important;
 }
 
-/* Headshots/logos: no colored halo */
+
 .player-headshot,
 .player-headshot-lg,
 .modal-headshot,
@@ -4341,7 +4158,7 @@ tr:hover .player-headshot,
   animation:none !important;
 }
 
-/* Sandbox / weight tuner: crisp flat black */
+
 [id*="sandbox" i], [class*="sandbox" i], [class*="weight" i]{
   text-shadow:none !important;
 }
@@ -4366,7 +4183,7 @@ tr:hover .player-headshot,
   box-shadow:none !important;
 }
 
-/* BBI tiers: match Top 12 clean black */
+
 #tab-bbi-tiers .panel,
 #tab-bbi-tiers .table-wrapper,
 #tab-bbi-tiers .bbi-tier-shell,
@@ -4385,7 +4202,7 @@ tr:hover .player-headshot,
   box-shadow:inset 4px 0 0 #e10600 !important;
 }
 
-/* Pitcher page: no green/red glow panels */
+
 #tab-pitchers .panel,
 #tab-pitchers .table-wrapper,
 #tab-pitchers .pitcher-dashboard,
@@ -4407,7 +4224,7 @@ tr:hover .player-headshot,
   box-shadow:inset 4px 0 0 #e10600 !important;
 }
 
-/* Modal/player card: clean, no glow */
+
 .modal-overlay{ background:rgba(0,0,0,.72) !important; }
 .modal-card{
   border-top:3px solid #e10600 !important;
@@ -4419,7 +4236,7 @@ tr:hover .player-headshot,
 .modal-stat-item{ background:#0b0d10 !important; border-color:#202328 !important; }
 .modal-stat-item:hover{ background:#171a1f !important; border-color:#343942 !important; }
 
-/* Top 12 stays crisp, not glowy */
+
 .top12-card,
 .top-target-hero{
   border-top-color:#e10600 !important;
@@ -4432,7 +4249,7 @@ tr:hover .player-headshot,
   border-color:#e10600 !important;
 }
 
-/* Disable remaining glow animations */
+
 @keyframes pulse-glow { 0%,100%{ box-shadow:none; } 50%{ box-shadow:none; } }
 @keyframes flicker { 0%,100%{ opacity:1; } 50%{ opacity:1; } }
 @keyframes nuclear-row-pulse { 0%,100%{ filter:none; } 50%{ filter:none; } }
@@ -4441,7 +4258,7 @@ tr:hover .player-headshot,
 @keyframes command-core-pulse { 0%,100%{ opacity:1; filter:none; } 50%{ opacity:1; filter:none; } }
 @keyframes command-core-spin { 0%{ transform:translate(-50%,-50%) rotate(0deg); } 100%{ transform:translate(-50%,-50%) rotate(0deg); } }
 
-/* Scrollbars: simple red thumb, no glow */
+
 ::-webkit-scrollbar-thumb,
 #playerModal #modalStatsContainer::-webkit-scrollbar-thumb,
 .community-picks-scroll::-webkit-scrollbar-thumb,
@@ -4451,7 +4268,7 @@ tr:hover .player-headshot,
   box-shadow:none !important;
 }
 
-/* MLB logo stays in top-left */
+
 .header-top-row .main-logo img#dashboardLogoSource{
   width:130px !important;
   height:46px !important;
@@ -4460,14 +4277,8 @@ tr:hover .player-headshot,
 }
 </style>
 
-
-
 <style id="v41-8-espn-row-pop-and-bbi-tiers-final">
-/* =========================
-   v41.8 ESPN ROW POP + BBI TIERS CLEANUP
-   Visual-only: no scoring, weights, rankings, backtest, or data logic changed.
-   Keeps crisp black ESPN look. Restores row pop animation without old green glow.
-   ========================= */
+
 :root {
   --accent-glow: rgba(225, 6, 0, 0.14) !important;
   --espn-black: #05070b;
@@ -4478,7 +4289,7 @@ tr:hover .player-headshot,
   --espn-red-mid: rgba(225,6,0,.28);
 }
 
-/* Rankings row hover: pop-out, crisp, no green/neon. */
+
 tbody tr {
   transform: translateZ(0);
   transition:
@@ -4525,7 +4336,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   animation: none !important;
 }
 
-/* Kill leftover green glow in common BBI/player areas while preserving red ESPN accent. */
+
 .index-score,
 .modal-bbi-display,
 .modal-bbi-value,
@@ -4560,7 +4371,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   box-shadow: none !important;
 }
 
-/* BBI Tiers: force same ESPN crisp black/red style. */
+
 .bbi-tier-home-panel {
   border: 1px solid rgba(255,255,255,.10) !important;
   border-left: 6px solid var(--accent) !important;
@@ -4639,13 +4450,13 @@ tbody tr:hover .stats-player-mini .player-headshot {
   color: #fff !important;
 }
 
-/* Keep BBI tier filtered rows consistent with home ranking hover. */
+
 .bbi-tier-home-panel + .table-wrapper tbody tr:hover,
 #tab-home .table-wrapper tbody tr:hover {
   cursor: pointer;
 }
 
-/* Remove old cyan/green feel from BBI pill accents in tier and top cards, keep red/black. */
+
 .bbi-tier-pill,
 .hero-score-tier {
   background: linear-gradient(135deg, var(--accent), #9f0000) !important;
@@ -4660,15 +4471,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-
-
 <style id="v41-9-command-center-trading-cards">
-/* =========================
-   v41.9 COMMAND CENTER TRADING CARDS
-   Visual/layout only. Keeps the same four live categories:
-   Top BBI, Best Longshot, Biggest Edge, Pitcher Target.
-   Built defensively so cards still populate when odds/photos are missing.
-   ========================= */
+
 .command-center-ai-core {
   max-width: 1260px !important;
   padding: 18px !important;
@@ -4924,11 +4728,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 
 
 <style id="v42-command-center-layering-full-page-fix">
-/* =========================
-   v42 COMMAND CENTER FULL-PAGE + LAYERING FIX
-   Layout only: shrinks the cards, enlarges the middle logo, removes stat overlap,
-   and makes the command center use the full available board width.
-   ========================= */
+
 .header-area {
   padding: 16px 6px 18px !important;
 }
@@ -5075,10 +4875,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-
-
 <style id="v42-1-command-center-no-blank-space-fill">
-/* v42.1 COMMAND CENTER NO-BLANK-SPACE FILL */
+
 .command-center-ai-core{padding:14px 16px 14px!important;}
 .command-center-core-layout{grid-template-columns:minmax(0,1fr) 320px minmax(0,1fr)!important;gap:14px!important;}
 .command-side-stack{grid-template-rows:repeat(2,minmax(230px,1fr))!important;gap:14px!important;}
@@ -5115,14 +4913,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 @media(max-width:650px){.command-side-stack{grid-template-columns:1fr!important}.command-card-hero-row{padding-right:0}.command-trading-card .command-tile-value{position:relative!important;top:auto!important;right:auto!important;align-self:flex-start}}
 </style>
 
-
-
 <style id="v42-2-command-center-filled-proportioned-cards">
-/* =========================
-   v42.2 COMMAND CENTER FILLED + PROPORTIONED CARDS
-   Layout only: centered larger player photo, stats to the right, full visible team logo,
-   wider signal meter, and no empty card quadrants. No scoring/data logic changed.
-   ========================= */
+
 .header-area{
   padding: 12px 4px 14px !important;
 }
@@ -5385,14 +5177,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-
-
 <style id="v42-3-command-center-layering-centered-final">
-/* =========================
-   v42.3 COMMAND CENTER LAYERING + CENTERED WATERMARK FIX
-   Fixes overlap/cutoff, centers the team logo watermark, and keeps each card filled.
-   Layout only. No scoring/data logic changed.
-   ========================= */
+
 .command-center-core-layout{
   grid-template-columns: minmax(0,1fr) 320px minmax(0,1fr) !important;
   gap: 14px !important;
@@ -5658,14 +5444,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-
-
 <style id="v42-4-command-center-final-fill-no-overlap">
-/* =========================
-   v42.4 COMMAND CENTER FINAL FILL FIX
-   Hard final layout: exact row math, centered watermark/logo, filled cards, no layer overlap.
-   Layout only. No scoring/data logic changed.
-   ========================= */
+
 .header-area{
   padding:12px 6px 14px!important;
 }
@@ -6066,11 +5846,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 
 
 <style id="v42-5-command-center-no-overlap-final-override">
-/* =========================
-   v42.5 COMMAND CENTER NO-OVERLAP FINAL OVERRIDE
-   Layout only. Keeps the 4 trading cards + center logo, but fixes stacking,
-   reserves real space for the score badge, centers watermarks, and fills cards.
-   ========================= */
+
 .header-area{
   padding: 10px 6px 12px !important;
   margin-bottom: 14px !important;
@@ -6383,14 +6159,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-
-
 <style id="v42-6-command-center-readable-detail-boxes">
-/* =========================
-   v42.6 COMMAND CENTER READABLE BOXES FIX
-   Layout only. Keeps the command center look the same, but gives the stat boxes
-   real width/height so the labels and values are readable instead of crushed.
-   ========================= */
+
 .command-trading-card .command-tile-player{
   grid-template-columns: minmax(200px, 42%) minmax(240px, 1fr) !important;
   column-gap: 14px !important;
@@ -6535,14 +6305,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-
-
 <style id="v42-7-command-center-value-badge-no-overlap">
-/* =========================
-   v42.7 COMMAND CENTER VALUE BADGE NO-OVERLAP FIX
-   Only moves the large value badges (67.2, +5.0%, 2.63, +800) upward
-   so they stop sitting on top of the stat detail boxes. Nothing else moved.
-   ========================= */
+
 .command-trading-card .command-tile-value{
   top: 42px !important;
   right: 18px !important;
@@ -6572,16 +6336,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-
-
-
-
 <style id="v43-2-command-center-face-left-name-under-metrics-right">
-/* =========================
-   v43.2 COMMAND CENTER PLAYER IDENTITY LAYOUT FIX
-   Layout only. Moves face ID to the upper-left, puts full name centered underneath,
-   and keeps metric boxes cleanly to the right with no overlap. Scoring/data untouched.
-   ========================= */
+
 .command-trading-card{
   overflow: hidden !important;
 }
@@ -6793,10 +6549,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </style>
 
 <style id="pitch-lab-10-espn-rebuild-style">
-/* =========================
-   PITCH LAB 10 ESPN DETAIL BOARD
-   Display only: exposes the rebuilt Pitch Lab bucket per player.
-   ========================= */
+
 .pitchlab10-shell { display:flex; flex-direction:column; gap:14px; padding: 14px 16px 22px; }
 .pitchlab10-card { --team-color: var(--accent); --team-glow: rgba(225,6,0,.20); position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.09); border-left:5px solid var(--team-color); border-radius:18px; background:radial-gradient(circle at 90% 0%, var(--team-glow), transparent 32%), linear-gradient(145deg, rgba(5,11,20,.94), rgba(17,31,53,.68)); box-shadow:0 18px 48px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.07); transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
 .pitchlab10-card:hover { transform:translateY(-3px); border-color:var(--team-color); box-shadow:0 24px 62px rgba(0,0,0,.48), 0 0 30px var(--team-glow); }
@@ -6840,11 +6593,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 
 
 <style id="h2h-bvp-team-scroller-style">
-/* =========================
-   H2H BVP TEAM SCROLLER
-   Adds the home-page style team scroller to the BVP page only.
-   Layout/data-display only: no scoring changed.
-   ========================= */
+
 .h2h-team-scroller-wrap {
   padding: 12px 20px 4px;
   border-bottom: 1px solid rgba(255,255,255,.06);
@@ -6899,11 +6648,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 
 
 <style id="drl-mobile-layout-preview-v43-7">
-/* =========================
-   v43.7 MOBILE LAYOUT PREVIEW
-   CSS-only responsive pass. No scoring, sheet mapping, workbook parsing,
-   weights, or data-pull logic changed.
-   ========================= */
+
 @media (max-width: 768px) {
   html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
   body {
@@ -6913,7 +6658,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   }
   .container { max-width: 100% !important; width: 100% !important; }
 
-  /* Header / upload */
+  
   .header-area { padding: 14px 12px !important; border-radius: 14px !important; margin-bottom: 12px !important; }
   .header-top-row { flex-direction: column !important; gap: 10px !important; margin-bottom: 10px !important; }
   .main-logo { width: 64px !important; height: 64px !important; }
@@ -6923,7 +6668,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .upload-box { padding: 14px 12px !important; margin-bottom: 12px !important; border-radius: 14px !important; }
   input[type="file"] { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; font-size: 12px !important; }
 
-  /* Top command center becomes a clean vertical mobile board */
+  
   .command-center-board,
   .command-center-ai-core { padding: 12px !important; border-radius: 16px !important; max-width: 100% !important; }
   .command-center-topline,
@@ -6962,7 +6707,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .command-ai-ticker .ticker-label { font-size: 8px !important; padding-right: 8px !important; }
   .command-ai-ticker #tickerText { font-size: 9px !important; }
 
-  /* Navigation: phone-friendly swipe row */
+  
   .nav-tabs {
     justify-content: flex-start !important;
     flex-wrap: nowrap !important;
@@ -6980,7 +6725,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
     letter-spacing: .65px !important;
   }
 
-  /* Controls */
+  
   .controls-bar { display: grid !important; grid-template-columns: 1fr !important; gap: 12px !important; padding: 14px !important; margin-bottom: 14px !important; border-radius: 14px !important; }
   .filter-group { width: 100% !important; min-width: 0 !important; }
   .search-input,
@@ -6996,7 +6741,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .model-sandbox-title { font-size: 12px !important; }
   .model-sandbox-sub { font-size: 10px !important; }
 
-  /* Dashboard/sidebar blocks */
+  
   .dashboard-grid,
   .edge-page-grid,
   .game-center-grid,
@@ -7008,7 +6753,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .top12-carousel { display: flex !important; overflow-x: auto !important; gap: 10px !important; padding-bottom: 12px !important; }
   .top12-card { min-width: 230px !important; flex: 0 0 230px !important; }
 
-  /* Main rankings: convert desktop table into mobile player cards */
+  
   #tab-home .table-wrapper {
     overflow: visible !important;
     background: transparent !important;
@@ -7114,7 +6859,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .backtest-finalize-wrap { border-radius: 14px !important; padding: 14px !important; margin-top: 6px !important; }
   .btn-finalize-backtest { width: 100% !important; }
 
-  /* Other tabs stay usable with swipe tables instead of crushed columns */
+  
   .table-wrapper:not(#tab-home .table-wrapper),
   .stats-table-wrapper,
   .full-edge-table-wrapper,
@@ -7131,7 +6876,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .compare-table th:first-child,
   .compare-table td:first-child { position: static !important; box-shadow: none !important; }
 
-  /* Modals */
+  
   .modal-overlay { padding: 10px !important; align-items: flex-start !important; overflow-y: auto !important; }
   .modal-card { max-height: none !important; width: 100% !important; border-radius: 16px !important; flex-direction: column !important; }
   .modal-left { width: 100% !important; padding: 24px 18px 16px !important; border-right: 0 !important; border-bottom: 1px solid var(--border) !important; box-sizing: border-box !important; }
@@ -7147,7 +6892,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .modal-player-name { font-size: 21px !important; }
   .modal-bbi-value { font-size: 38px !important; }
 
-  /* Community / side widgets */
+  
   .community-picks-scroll .community-pick-card {
     grid-template-columns: 30px minmax(0,1fr) !important;
     grid-template-areas: 'rank main' 'rank side' !important;
@@ -7178,15 +6923,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-
-
 <style id="v43-8-mobile-command-center-clean-fix">
-/* =========================
-   v43.8 MOBILE COMMAND CENTER CLEAN FIX
-   Mobile-only. Desktop Command Center layout is untouched.
-   Fixes bundled/overlapped Command Center cards on phones by turning
-   each command tile into a clean stacked app card.
-   ========================= */
+
 @media (max-width: 768px) {
   #statsRibbon.command-center-ai-core {
     padding: 12px !important;
@@ -7261,7 +6999,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
     padding: 2px 6px !important;
   }
 
-  /* Put the big score in the normal flow so it cannot cover the player/details. */
+  
   #statsRibbon .command-trading-card .command-tile-value {
     position: relative !important;
     inset: auto !important;
@@ -7440,10 +7178,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 
 
 <style id="v45-5-pregame-game-center-merge-style">
-/* =========================
-   v45.5 PREGAME SLATE + GAME CENTER MERGE
-   Layout/UI only. No scoring, data sources, or weights changed.
-   ========================= */
+
 #pregameSlateBoard .slate-game-center-grid {
   display: grid !important;
   grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
@@ -7552,14 +7287,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-
-
 <style id="pregame-slate-red-values-only">
-/* =========================
-   PREGAME SLATE BOARD VALUE COLOR FIX ONLY
-   Makes the right-side/value numbers red instead of team-colored.
-   Layout, scoring, data sources, and workbook logic untouched.
-   ========================= */
+
 #pregameSlateBoard .slate-game-center-card .game-kpi-val,
 #pregameSlateBoard .slate-game-center-card .game-kpi-val.hot,
 #pregameSlateBoard .slate-game-center-card .game-kpi-val.good,
@@ -7573,10 +7302,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 
 
 <style id="hotbat-drl-mobile-tabs-upgrade">
-/* =========================
-   HOT BAT DRL LEADERBOARD + MOBILE TAB DISCOVERY
-   UI only. No scoring/weights changed.
-   ========================= */
+
 .hotbat-shell { display:flex; flex-direction:column; gap:18px; }
 .hotbat-hero {
   position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.09); border-left:5px solid var(--accent);
@@ -7633,11 +7359,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </style>
 
 <style id="odds-tab-full-board-style">
-/* =========================
-   ODDS TAB — ESPN BETTING BOARD CARDS
-   Card layout only. Main rankings still use best book + best odds.
-   No glow effects: dark ESPN-style panels, subtle red accents.
-   ========================= */
+
 .odds-page-shell { display:flex; flex-direction:column; gap:16px; }
 .odds-page-hero {
   border:1px solid rgba(255,255,255,.09);
@@ -7722,7 +7444,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </style>
 
 <style id="home-rankings-left-sidebar-right-fix">
-/* Home page only: rankings on the left, sidebar stack on the right. Other tabs untouched. */
+
 @media (min-width: 1050px) {
   #tab-home .dashboard-grid {
     grid-template-columns: minmax(0, 1fr) 380px !important;
@@ -7740,7 +7462,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 #tab-home .compare-launch-card { display: none !important; }
 
-/* Pitch Lab only: keep hover cards/rows from covering the filter buttons. */
+
 #tab-pitchlab .pitch-lab-grid,
 #tab-pitchlab #pitchLabSummaryCards {
   position: relative !important;
@@ -7764,7 +7486,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </style>
 
 <style id="home-rankings-bomb-next-to-pf-no-actions">
-/* Home rankings only: bomb moved beside PF; Bench/Lock/Action column removed to prevent horizontal scroll. */
+
 #tab-home th.action-col,
 #tab-home td.action-cell { display: none !important; }
 #tab-home table { min-width: 0 !important; width: 100% !important; }
@@ -7813,10 +7535,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 
 
 <style id="zone-profile-tab-style">
-/* =========================
-   ZONE PROFILE TAB
-   Modern ESPN black/red heat-map scouting page. Add-on only: no scoring changes.
-   ========================= */
+
 .zone-profile-shell { display:flex; flex-direction:column; gap:18px; }
 .zone-hero {
   position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.09); border-left:5px solid var(--accent);
@@ -7867,13 +7586,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 @media(max-width: 760px) { .zone-card-grid { grid-template-columns:1fr; } .zone-card-body { grid-template-columns:1fr; } .zone-card-top { grid-template-columns:48px minmax(0,1fr); } .zone-score-badge { grid-column:1 / -1; } .zone-cell { min-height:58px; } }
 </style>
 
-
-
 <style id="zone-profile-2-full-upgrade-style">
-/* =========================
-   ZONE PROFILE 2.0 FULL UPGRADE
-   ESPN black/red strike-zone cards + hover scouting cards + click modal.
-   ========================= */
+
 .zone-profile-shell { gap:20px !important; }
 .zone-hero { border-left-color: var(--accent) !important; background: radial-gradient(circle at 84% 0%, rgba(225,6,0,.24), transparent 34%), linear-gradient(145deg, rgba(5,5,6,.98), rgba(20,20,23,.92) 52%, rgba(5,5,6,.98)) !important; box-shadow:0 24px 70px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.08) !important; }
 .zone-title { font-size:30px !important; }
@@ -7945,14 +7659,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 @media(max-width: 760px){ .zone-card-body{grid-template-columns:1fr !important;} .zone-modal-body{padding:14px;} .zone-report-stats{grid-template-columns:1fr;} .zone-hover-card{display:none!important;} }
 </style>
 
-
-
 <style id="zone-hover-always-visible-fix">
-/* =========================
-   ZONE PROFILE HOVER POPUP VISIBILITY FIX
-   Keeps the 3x3 zone design the same, but lets every scouting hover card
-   float above the player card instead of being clipped.
-   ========================= */
+
 .zone-card-grid,
 .zone-player-card,
 .zone-card-body,
@@ -7974,7 +7682,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   max-width: min(285px, calc(100vw - 28px)) !important;
   box-sizing: border-box !important;
 }
-/* Top two rows open downward so they do not disappear under the player header. */
+
 .zone-grid .zone-cell:nth-child(-n+6) .zone-hover-card {
   top: calc(100% + 10px) !important;
   bottom: auto !important;
@@ -7983,13 +7691,13 @@ tbody tr:hover .stats-player-mini .player-headshot {
 .zone-grid .zone-cell:nth-child(-n+6):hover .zone-hover-card {
   animation: zoneHoverPopDown .16s ease-out !important;
 }
-/* Bottom row opens upward. */
+
 .zone-grid .zone-cell:nth-child(n+7) .zone-hover-card {
   top: -10px !important;
   bottom: auto !important;
   transform: translate(-50%, -100%) !important;
 }
-/* Keep left/right edge zones inside the screen/card area. */
+
 .zone-grid .zone-cell:nth-child(3n+1) .zone-hover-card {
   left: 0 !important;
   right: auto !important;
@@ -8024,10 +7732,8 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
-
-
 <style id="zone-pitch-bucket-upgrade-style">
-/* Pitch-bucket Zone Profile upgrade: Weighted / Fastball / Breaking / Offspeed. */
+
 .zone-view-toggle { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 .zone-view-btn { border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.04); color:#cbd5e1; border-radius:999px; padding:8px 11px; font-size:10px; font-weight:1000; text-transform:uppercase; letter-spacing:.65px; cursor:pointer; transition:all .18s ease; }
 .zone-view-btn:hover { transform:translateY(-1px); border-color:var(--accent); color:#fff; background:rgba(225,6,0,.08); }
@@ -8043,10 +7749,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </style>
 
 <style id="drl-performance-upload-style">
-/* =========================
-   FAST LOAD + PREMIUM UPLOAD BAR
-   Visual only. Scoring/data logic untouched.
-   ========================= */
+
 .drl-upload-box {
   display: grid !important;
   grid-template-columns: 54px minmax(0, 1fr) auto !important;
@@ -8095,10 +7798,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 </style>
 
 <style id="bet-finder-style">
-/* =========================
-   BET FINDER / SCOUTING BUILDER
-   UI filter only. Does not change scoring, weights, odds, weather, or backtest logic.
-   ========================= */
+
 .bet-finder-panel{position:relative;overflow:visible;border:1px solid rgba(225,6,0,.28);border-left:5px solid var(--accent);border-radius:18px;padding:18px;margin:0 0 20px;background:radial-gradient(circle at 92% 0%,rgba(225,6,0,.16),transparent 34%),linear-gradient(145deg,rgba(5,11,20,.94),rgba(17,31,53,.70));box-shadow:0 18px 50px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.07)}
 .bet-finder-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}.bet-finder-title{color:#fff;font-size:18px;font-weight:1000;text-transform:uppercase;letter-spacing:1.2px}.bet-finder-sub{color:var(--text-muted);font-size:12px;font-weight:800;margin-top:4px}.bet-finder-count{text-align:right;color:#fff;font-size:12px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px}.bet-finder-count b{display:block;color:var(--accent);font-family:monospace;font-size:30px;line-height:1}.bet-finder-presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}.bet-preset-btn{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);color:#cbd5e1;border-radius:999px;padding:9px 12px;font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px;cursor:pointer}.bet-preset-btn:hover,.bet-preset-btn.active{border-color:var(--accent);background:rgba(225,6,0,.10);color:#fff;transform:translateY(-1px)}
 .bet-finder-grid{display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));gap:13px}.bet-slider-card{border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:11px;background:rgba(5,11,20,.58)}.bet-slider-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.bet-slider-label{color:#fff;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px}.bet-slider-value{color:var(--accent);font-family:monospace;font-weight:1000}.bet-slider-card.disabled .bet-slider-value{color:var(--text-muted)}.bet-slider-card.disabled{opacity:.62}.bet-slider{width:100%;accent-color:#e10600}.bet-any-toggle{margin-top:7px;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}.bet-any-toggle input{width:auto}.bet-finder-checks{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:8px;margin-top:14px}.bet-check{display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;background:rgba(255,255,255,.035);color:#e2e8f0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.55px}.bet-check input{width:auto}.bet-finder-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.bet-action{border:0;border-radius:12px;padding:12px 15px;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;cursor:pointer}.bet-action.apply{background:linear-gradient(135deg,var(--accent),#b00000);color:#04080f}.bet-action.reset{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.10)}.bet-finder-results{margin-top:14px;display:none}.bet-finder-results.active{display:block}.bet-match-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:10px}.bet-match-card{border:1px solid rgba(255,255,255,.08);border-left:4px solid var(--team-color,var(--accent));border-radius:14px;padding:12px;background:rgba(5,11,20,.62);cursor:pointer}.bet-match-card:hover{border-color:var(--team-color,var(--accent));transform:translateY(-2px)}.bet-match-top{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;align-items:center}.bet-match-card .player-headshot{width:40px!important;height:40px!important;margin:0!important}.bet-match-name{color:#fff;font-size:13px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bet-match-meta{color:var(--stadium-lights);font-size:10px;font-weight:900;text-transform:uppercase;margin-top:2px}.bet-match-score{color:var(--accent);font-family:monospace;font-size:22px;font-weight:1000}.bet-pass-list{margin-top:10px;display:grid;gap:5px}.bet-pass-row{display:flex;justify-content:space-between;gap:8px;color:#cbd5e1;font-size:10px;font-weight:900}.bet-pass-row span:first-child{color:#10b981}.bet-finder-empty{color:var(--text-muted);font-style:italic;text-align:center;padding:18px;border:1px dashed rgba(255,255,255,.10);border-radius:12px;margin-top:10px}
@@ -8107,10 +7807,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 
 
 <style id="bucket-analytics-and-performance-polish">
-/* =========================
-   BUCKET ANALYTICS + PAGE SPEED POLISH
-   Tracking/visual only. No model scoring or feature logic changed.
-   ========================= */
+
 .bucket-analytics-panel .backtest-kpi-value.small-title { font-size:18px; line-height:1.15; }
 .bucket-analytics-section-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; margin-bottom:20px; }
 .bucket-mini-card { border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:15px; background:rgba(5,11,20,.54); box-shadow:0 10px 24px rgba(0,0,0,.20); }
@@ -8122,7 +7819,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 .bucket-threshold-val { margin-top:5px; color:#fff; font-family:monospace; font-size:19px; font-weight:1000; }
 .bucket-threshold-sub { margin-top:3px; color:var(--stadium-lights); font-size:10px; font-weight:800; }
 .bucket-empty { text-align:center; color:var(--text-muted); padding:34px; font-style:italic; }
-/* speed cleanup: keep the ESPN look, but stop the expensive always-running animation stack */
+
 body::before, body::after,
 .header-area::before,
 .slate-board::after,
@@ -8403,8 +8100,6 @@ tbody tr:hover, .top12-card:hover, .slate-game-card:hover,
   </div>
 </div>
 
-
-
 <div id="tab-zoneprofile" class="tab-content">
   <div class="zone-profile-shell">
     <div class="zone-hero">
@@ -8538,7 +8233,7 @@ tbody tr:hover, .top12-card:hover, .slate-game-card:hover,
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
 <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🧪 Pitch Lab - Batter vs Arsenal</h2>
-<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">HR-only pitch matchup: pitcher usage, Stuff+, PitchBag HR damage allowed, batter EV, FB%, pulled-air, barrel/hard-hit, OnlyHomers HR history, ZoneB/ZoneP context, and bat-speed/blast quality. No AVG/contact-for-average stats are used in Pitch Lab scoring.</p>
+<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">HR-only pitch matchup: every pitch is weighted by the pitcher’s actual usage. Inside each pitch: Barrel, Hard Hit, xSLG, EV, Max EV, Pull, Launch Angle, and HR only. No AVG, wOBA, whiff, or contact-for-average stats.</p>
 </div>
 <div class="pitch-lab-grid" id="pitchLabSummaryCards">
 <div class="pitch-lab-card"><div class="pitch-lab-title">Arsenal Exploit Leader</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>
@@ -10848,55 +10543,110 @@ function getPitchBagRow(pitcherName, pt) {
   for (const a of aliases) if (byPitcher[a]) return byPitcher[a];
   return null;
 }
+function pitchLabValueScore(value, min, max, fallback=50) {
+  const n = cleanNumberOrNull(value);
+  if (n === null || n === undefined || isNaN(n)) return fallback;
+  return scoreFromRange(n, min, max);
+}
+function pitchLabRateScore(value, min, max, fallback=50) {
+  const n = cleanNumberOrNull(value);
+  if (n === null || n === undefined || isNaN(n)) return fallback;
+  return scoreFromRange(n, min, max);
+}
+function pitchLabReadNumber(row, keys) {
+  if (!row) return null;
+  for (const k of keys) {
+    const v = safeGet(row, k);
+    const n = cleanNumberOrNull(v);
+    if (n !== null && n !== undefined && !isNaN(n)) return n;
+  }
+  return null;
+}
+function pitchLabReadRate(row, keys) {
+  const n = pitchLabReadNumber(row, keys);
+  if (n === null || n === undefined || isNaN(n)) return null;
+  return hybridRate(n);
+}
+function pitchLabHRRate(hr, denom) {
+  const h = cleanNumberOrNull(hr);
+  const d = cleanNumberOrNull(denom);
+  if (h === null || d === null || !d || d <= 0) return null;
+  return h / d;
+}
+function pitchLabScoreWeighted(parts, fallback=50) {
+  let num = 0, den = 0;
+  (parts || []).forEach(part => {
+    if (!part) return;
+    const value = cleanNumberOrNull(part.value);
+    const weight = cleanNumberOrNull(part.weight);
+    if (value === null || value === undefined || isNaN(value) || !weight || weight <= 0) return;
+    num += Math.max(0, Math.min(100, value)) * weight;
+    den += weight;
+  });
+  return den > 0 ? (num / den) : fallback;
+}
 function pitcherPitchDamageScore(pitcherName, pt) {
   const row = getPitchBagRow(pitcherName, pt);
   if (!row) return { score: 50, grade: 'C', note: 'No PitchBag HR damage data', row: null };
 
-  const slg = firstNumber(safeGet(row,'slg','SLG'));
-  const xslg = firstNumber(safeGet(row,'est_slg','xSLG','expected_slg'));
-  const hard = firstNumber(safeGet(row,'hard_hit_percent','Hard Hit %','HardHit%','hard_hit_rate','HH%'));
-  const barrel = firstNumber(safeGet(row,'barrel_percent','Barrel %','Barrel%','barrel_rate','Barrel Rate'));
-  const hr = firstNumber(safeGet(row,'home_runs','home_run','HR','hr','HR Allowed','Home Runs'));
-  const pa = firstNumber(safeGet(row,'pa','PA','batters_faced','BF','events','pitches'));
-  const hrRate = (hr !== null && pa && pa > 0) ? hr / pa : null;
+  const xslg = pitchLabReadNumber(row, ['est_slg','xSLG','expected_slg','xSLG Allowed','xSLGA','xslug']);
+  const ev = pitchLabReadNumber(row, ['avg_hit_speed','Avg EV','Average EV','EV','Exit Velocity','EV Allowed','Average EV Allowed']);
+  const maxEV = pitchLabReadNumber(row, ['max_hit_speed','Max EV','maxEV','MaxEV','Max EV Allowed','max_exit_velocity']);
+  const hard = pitchLabReadNumber(row, ['hard_hit_percent','Hard Hit %','HardHit%','hard_hit_rate','HH%','Hard Hit Allowed','Hard Hit % Allowed']);
+  const barrel = pitchLabReadNumber(row, ['barrel_percent','Barrel %','Barrel%','barrel_rate','Barrel Rate','Barrel Allowed','Barrel % Allowed']);
+  const pull = pitchLabReadRate(row, ['pull_percent','Pull %','Pull%','Pull Allowed','Pull % Allowed']);
+  const la = pitchLabReadNumber(row, ['launch_angle','LA','Launch Angle','Avg LA','Launch Angle Allowed']);
+  const hr = pitchLabReadNumber(row, ['home_runs','home_run','HR','hr','HR Allowed','Home Runs']);
+  const pa = pitchLabReadNumber(row, ['pa','PA','batters_faced','BF','events','pitches','Pitches']);
+  const hrRate = pitchLabHRRate(hr, pa);
 
-  // HR-only pitcher pitch damage. No K%, whiff%, AVG, or contact-for-average stats.
-  const powerDamage = safeScoreAvg([
-    scoreFromRange(slg, .300, .760),
-    scoreFromRange(xslg, .300, .760)
-  ]);
-  const impactContact = safeScoreAvg([
-    scoreFromRange(hard, 30, 60),
-    scoreFromRange(barrel, 5, 20),
-    scoreFromRange(hrRate, .005, .055)
-  ]);
-  const damage = Math.max(0, Math.min(100,
-    (powerDamage * 0.48) +
-    (scoreFromRange(hard, 30, 60) * 0.22) +
-    (scoreFromRange(barrel, 5, 20) * 0.20) +
-    (scoreFromRange(hrRate, .005, .055) * 0.10)
-  ));
+  // HR-only pitcher pitch weakness. Higher allowed damage = better for the hitter.
+  const score = pitchLabScoreWeighted([
+    { value: pitchLabValueScore(barrel, 5, 22), weight: 0.28 },
+    { value: pitchLabValueScore(hard, 30, 62), weight: 0.18 },
+    { value: pitchLabValueScore(xslg, .300, .780), weight: 0.18 },
+    { value: pitchLabValueScore(ev, 84, 94), weight: 0.12 },
+    { value: pitchLabValueScore(maxEV, 102, 116), weight: 0.08 },
+    { value: pitchLabValueScore(pull, .34, .52), weight: 0.07 },
+    { value: pitchLabValueScore(la, 8, 22), weight: 0.04 },
+    { value: pitchLabValueScore(hrRate, .005, .060), weight: 0.05 }
+  ], 50);
+
   return {
-    score: damage,
-    grade: gradeFromScore(damage),
-    row, slg, xslg, hard, barrel, hr, pa, hrRate,
-    note: `P HR dmg ${damage.toFixed(0)} // SLG ${slg ?? '-'} / xSLG ${xslg ?? '-'} / Barrel ${barrel ?? '-'}% / HR ${hr ?? '-'}`
+    score: Math.max(0, Math.min(100, score)),
+    grade: gradeFromScore(score),
+    row, xslg, ev, maxEV, hard, barrel, pull, la, hr, pa, hrRate,
+    note: `P HR weakness ${score.toFixed(0)} // xSLG ${xslg ?? '-'} / Barrel ${barrel ?? '-'}% / HH ${hard ?? '-'}% / EV ${ev ?? '-'} / HR ${hr ?? '-'}`
   };
 }
 function getPitchEVScore(playerName, pt) {
   const row = pitchEVMap[normalizeName(playerName)] || null;
-  if (!row) return { value: null, score: 50, note: 'No PitchEV' };
+  if (!row) return { value: null, maxValue: null, score: 50, maxScore: 50, note: 'No PitchEV' };
   const aliases = pitchCodeAliases(pt.key, pt.group);
   let value = null;
+  let maxValue = null;
   for (const a of aliases) {
-    value = firstNumber(safeGet(row, 'v'+a, a+' EV', a+'EV', 'EV '+a, 'Exit Velo '+a));
-    if (value !== null) break;
+    value = firstNumber(safeGet(row, 'v'+a, a+' EV', a+'EV', 'EV '+a, 'Exit Velo '+a, 'Avg EV '+a, a+' Avg EV'));
+    maxValue = firstNumber(safeGet(row, 'max'+a, a+' Max EV', a+'MaxEV', 'Max EV '+a, 'Max '+a, 'maxEV '+a, a+' max_exit_velocity'));
+    if (value !== null || maxValue !== null) break;
   }
-  if (value === null && pt.group === 'FB') value = firstNumber(safeGet(row,'vFA','vFF','vSI','vFC'));
-  if (value === null && pt.group === 'SL') value = firstNumber(safeGet(row,'vSL'));
-  if (value === null && pt.group === 'CU') value = firstNumber(safeGet(row,'vCU','vKC'));
-  if (value === null && pt.group === 'CH') value = firstNumber(safeGet(row,'vCH','vFS','vFO'));
-  return { value, score: scoreFromRange(value, 82, 98), note: value === null ? 'No PitchEV' : `${Number(value).toFixed(1)} EV` };
+  if (value === null && pt.group === 'FB') value = firstNumber(safeGet(row,'vFA','vFF','vSI','vFC','FB EV','Fastball EV'));
+  if (value === null && pt.group === 'SL') value = firstNumber(safeGet(row,'vSL','SL EV','Slider EV'));
+  if (value === null && pt.group === 'CU') value = firstNumber(safeGet(row,'vCU','vKC','CU EV','Curve EV'));
+  if (value === null && pt.group === 'CH') value = firstNumber(safeGet(row,'vCH','vFS','vFO','CH EV','Change EV'));
+  if (maxValue === null && pt.group === 'FB') maxValue = firstNumber(safeGet(row,'maxFA','maxFF','maxSI','maxFC','FB Max EV','Fastball Max EV'));
+  if (maxValue === null && pt.group === 'SL') maxValue = firstNumber(safeGet(row,'maxSL','SL Max EV','Slider Max EV'));
+  if (maxValue === null && pt.group === 'CU') maxValue = firstNumber(safeGet(row,'maxCU','maxKC','CU Max EV','Curve Max EV'));
+  if (maxValue === null && pt.group === 'CH') maxValue = firstNumber(safeGet(row,'maxCH','maxFS','maxFO','CH Max EV','Change Max EV'));
+  const score = scoreFromRange(value, 82, 98);
+  const maxScore = scoreFromRange(maxValue, 101, 116);
+  return {
+    value,
+    maxValue,
+    score,
+    maxScore,
+    note: value === null && maxValue === null ? 'No PitchEV' : `${value === null ? '--' : Number(value).toFixed(1)} EV / ${maxValue === null ? '--' : Number(maxValue).toFixed(1)} Max`
+  };
 }
 function getPitchWinScore(playerName, pt) {
   const row = pitchWinMap[normalizeName(playerName)] || null;
@@ -11042,54 +10792,54 @@ function getBatterPitchShapeRow(playerName, group, pitcherHand) {
 function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
   const pt = pitchType || { key: group, group };
   const row = getBatterPitchShapeRow(playerName, group, pitcherHand);
-  let shape = { score: 50, grade: 'C', bbe: 0, air: 0, fb: 0, pull: 0, pullAir: null, barrel: null, hard: null, note: 'No pitch-shape HR data' };
+  const ev = getPitchEVScore(playerName, pt);
+  let shape = {
+    score: 50, grade: 'C', bbe: 0,
+    barrel: null, hard: null, xslg: null, ev: ev.value, maxEV: ev.maxValue,
+    pull: null, la: null, hr: null, hrRate: null,
+    note: 'No pitch-shape HR data'
+  };
 
   if (Object.keys(row).length) {
-    const bbe = cleanNumber(safeGet(row, 'BBE'));
-    const air = hybridRate(cleanNumber(safeGet(row, 'AIR %', 'Air %', 'Air%')));
-    const fb = hybridRate(cleanNumber(safeGet(row, 'FB %', 'Fly Ball %', 'FB%')));
-    const pull = hybridRate(cleanNumber(safeGet(row, 'Pull %', 'Pull%')));
-    const pullAirRaw = safeGet(row, 'Pulled Air %', 'Pull Air %', 'PullAir%', 'PulledAir%', 'Pull+Air%', 'Pulled Air');
-    const pullAir = pullAirRaw !== undefined && pullAirRaw !== null && String(pullAirRaw).trim() !== '' ? hybridRate(cleanNumber(pullAirRaw)) : (air && pull ? air * pull : null);
-    const barrel = firstNumber(safeGet(row, 'Barrel %', 'Barrel%', 'barrel_percent', 'Barrel Rate'));
-    const hard = firstNumber(safeGet(row, 'Hard Hit %', 'HardHit%', 'hard_hit_percent', 'HH%'));
-    const hr = firstNumber(safeGet(row, 'HR', 'Home Runs', 'home_runs'));
-    const hrRate = (hr !== null && bbe && bbe > 0) ? hr / bbe : null;
-    const sample = Math.min(1, bbe / 35);
+    const bbe = pitchLabReadNumber(row, ['BBE','batted_ball_events','PA','AB','Pitches']);
+    const barrel = pitchLabReadNumber(row, ['Barrel %', 'Barrel%', 'barrel_percent', 'Barrel Rate']);
+    const hard = pitchLabReadNumber(row, ['Hard Hit %', 'HardHit%', 'hard_hit_percent', 'HH%']);
+    const xslg = pitchLabReadNumber(row, ['xSLG','est_slg','expected_slg','xslug','Expected SLG']);
+    const pull = pitchLabReadRate(row, ['Pull %','Pull%','pull_percent','Pulled %']);
+    const la = pitchLabReadNumber(row, ['Launch Angle','LA','launch_angle','Avg LA']);
+    const hr = pitchLabReadNumber(row, ['HR', 'Home Runs', 'home_runs']);
+    const hrRate = pitchLabHRRate(hr, bbe);
+    const sample = Math.min(1, (bbe || 0) / 35);
 
-    // HR-only batted-ball shape: air, fly balls, pulled air, barrels, hard hit, and HR history by pitch.
-    const launchShapeScore = safeScoreAvg([
-      scoreFromRange(air, .42, .76),
-      scoreFromRange(fb, .24, .52),
-      scoreFromRange(pullAir, .16, .38)
-    ]);
-    const impactScore = safeScoreAvg([
-      scoreFromRange(barrel, 6, 22),
-      scoreFromRange(hard, 34, 62),
-      scoreFromRange(hrRate, .005, .065)
-    ]);
-    const sampleScore = 50 + ((sample * 100) - 50) * 0.35;
-    const score = Math.max(0, Math.min(100,
-      (launchShapeScore * 0.45) +
-      (impactScore * 0.45) +
-      (sampleScore * 0.10)
-    ));
-    shape = { score, grade: gradeFromScore(score), bbe, air, fb, pull, pullAir, barrel, hard, hr, hrRate, note: `${pctFmt(air)} air / ${pctFmt(fb)} FB / ${pctFmt(pullAir)} pulled-air / Barrel ${barrel ?? '--'}% / HH ${hard ?? '--'}%` };
+    // HR-only hitter pitch damage. No AVG, wOBA, contact-for-average, whiff, or run-value stats.
+    const rawDamage = pitchLabScoreWeighted([
+      { value: pitchLabValueScore(barrel, 6, 24), weight: 0.26 },
+      { value: pitchLabValueScore(hard, 34, 64), weight: 0.16 },
+      { value: pitchLabValueScore(xslg, .320, .820), weight: 0.18 },
+      { value: ev.score, weight: 0.14 },
+      { value: ev.maxScore, weight: 0.08 },
+      { value: pitchLabValueScore(pull, .34, .56), weight: 0.08 },
+      { value: pitchLabValueScore(la, 8, 24), weight: 0.04 },
+      { value: pitchLabValueScore(hrRate, .005, .070), weight: 0.06 }
+    ], 50);
+    const score = 50 + ((rawDamage - 50) * (0.72 + (sample * 0.28)));
+    shape = {
+      score: Math.max(0, Math.min(100, score)), grade: gradeFromScore(score), bbe,
+      barrel, hard, xslg, ev: ev.value, maxEV: ev.maxValue, pull, la, hr, hrRate,
+      note: `Barrel ${barrel ?? '--'}% / HH ${hard ?? '--'}% / xSLG ${xslg ?? '--'} / EV ${ev.value ?? '--'} / Max ${ev.maxValue ?? '--'} / Pull ${pull !== null ? pctFmt(pull) : '--'} / LA ${la ?? '--'} / HR ${hr ?? '--'}`
+    };
+  } else {
+    const fallbackDamage = pitchLabScoreWeighted([
+      { value: ev.score, weight: 0.65 },
+      { value: ev.maxScore, weight: 0.35 }
+    ], 50);
+    shape.score = fallbackDamage;
+    shape.grade = gradeFromScore(fallbackDamage);
+    shape.note = ev.note;
   }
 
-  const ev = getPitchEVScore(playerName, pt);
-  const tracking = batTrackingPitchGrade(playerName, group, pitcherHand);
-
-  // Pitch Lab is now HR-only: EV, launch/pulled-air shape, barrel/hard-hit damage, and bat-speed/blast confirmation.
-  // Removed AVG/contact-for-average/run-value style scoring from the Pitch Lab bucket.
-  const blendedScore = Math.max(0, Math.min(100,
-    (ev.score * 0.30) +
-    (shape.score * 0.55) +
-    (tracking.score * 0.15)
-  ));
-  return { ...shape, score: blendedScore, grade: gradeFromScore(blendedScore), shape, ev, tracking, note: `${ev.note} | ${shape.note} | ${tracking.note}` };
+  return { ...shape, grade: gradeFromScore(shape.score), shape, ev, note: `${shape.note}` };
 }
-
 
 function zoneRateValue(row, keys) {
   if (!row) return null;
@@ -11170,43 +10920,43 @@ function buildPitchLabProfile(player) {
   const pitchRow = pitchTypeMap[normalizeName(pitcherName)] || {};
   const stuffRow = stuffMap[normalizeName(pitcherName)] || {};
 
-  // Keep Zone Profile intact and also use its existing score as a small Pitch Lab context piece.
-  const zone = buildZoneMatchupProfile(player.Name, pitcherName);
   let rows = [];
-
   PITCH_LAB_TYPES.forEach(pt => {
     const usage = getPitchUsage(pitchRow, pt.usageKeys);
     if (!usage || usage < 0.01) return;
     const stuff = getPitchStuff(stuffRow, pt.stuffKeys);
     const bat = batterPitchGrade(player.Name, pt.group, pitcherHand, pt);
     const pitcherDamage = pitcherPitchDamageScore(pitcherName, pt);
-    const onlyHomers = pitchHrAffinityScore(player.Name, pitcherName, pt);
     const stuffWeakness = Math.max(0, Math.min(100, 100 + (100 - stuff))); // lower Stuff+ helps hitter HR odds
-    const usageExposure = Math.max(0, Math.min(100, usage * 200));
 
-    // Per-pitch HR matchup only: hitter HR damage vs pitch + pitcher HR damage allowed + pitch exposure.
-    const edge = Math.max(0, Math.min(100,
-      (bat.score * 0.46) +
-      (pitcherDamage.score * 0.26) +
-      (onlyHomers.score * 0.14) +
-      (usageExposure * 0.09) +
-      (stuffWeakness * 0.05)
-    ));
-    rows.push({ ...pt, usage, stuff, stuffWeakness, bat, pitcherDamage, onlyHomers, edge, usageExposure });
+    // Per-pitch HR matchup only: hitter HR damage against this pitch + pitcher HR weakness on this pitch.
+    // Usage is NOT a standalone stat now; it is the multiplier/weight that decides how much this pitch matters.
+    const edge = pitchLabScoreWeighted([
+      { value: bat.score, weight: 0.66 },
+      { value: pitcherDamage.score, weight: 0.29 },
+      { value: stuffWeakness, weight: 0.05 }
+    ], 50);
+    rows.push({ ...pt, usage, stuff, stuffWeakness, bat, pitcherDamage, edge, usageExposure: Math.max(0, Math.min(100, usage * 200)) });
   });
 
   if (!rows.length) {
     ['FB','SL','CH','CU'].forEach(group => {
       const pt = { key:group, label:group, group, usageKeys:[], stuffKeys:[] };
       const bat = batterPitchGrade(player.Name, group, pitcherHand, pt);
-      const onlyHomers = pitchHrAffinityScore(player.Name, pitcherName, pt);
-      rows.push({ key:group, label:group, group, usage:0, stuff:100, stuffWeakness:50, usageExposure:50, bat, pitcherDamage:{score:50, grade:'C', note:'No PitchBag HR damage'}, onlyHomers, edge:(bat.score*.75)+(onlyHomers.score*.25) });
+      const pitcherDamage = pitcherPitchDamageScore(pitcherName, pt);
+      rows.push({ key:group, label:group, group, usage:0, stuff:100, stuffWeakness:50, usageExposure:0, bat, pitcherDamage, edge: pitchLabScoreWeighted([{ value: bat.score, weight:.70 }, { value: pitcherDamage.score, weight:.30 }], 50) });
     });
   }
 
   rows.sort((a,b) => ((b.usage || 0.06) * b.edge) - ((a.usage || 0.06) * a.edge));
-  const useTotal = rows.reduce((s,r)=>s+r.usage,0);
-  const weighted = (fn, fallback=50) => useTotal > 0 ? rows.reduce((s,r)=>s+((fn(r) || fallback)*r.usage),0)/useTotal : hybridAvg(rows.map(r=>fn(r) || fallback));
+  const useTotal = rows.reduce((s,r)=>s+(Number(r.usage)||0),0);
+  const weighted = (fn, fallback=50) => {
+    const vals = rows.map(r => ({ value: fn(r), usage: Number(r.usage) || 0 })).filter(x => x.value !== null && x.value !== undefined && !isNaN(Number(x.value)));
+    if (!vals.length) return fallback;
+    const denom = vals.reduce((s,x)=>s+x.usage,0);
+    if (denom > 0) return vals.reduce((s,x)=>s+(Number(x.value)*x.usage),0) / denom;
+    return vals.reduce((s,x)=>s+Number(x.value),0) / vals.length;
+  };
   const weightedPresent = (fn) => {
     const vals = rows.map(r => ({ value: fn(r), usage: Number(r.usage) || 0 })).filter(x => x.value !== null && x.value !== undefined && !isNaN(Number(x.value)));
     if (!vals.length) return null;
@@ -11215,31 +10965,24 @@ function buildPitchLabProfile(player) {
     return vals.reduce((s,x)=>s+Number(x.value),0) / vals.length;
   };
 
+  // Final Pitch Lab score is a true pitcher-usage weighted pitch matchup.
+  // Example: FB edge × 52% + SL edge × 28% + CH edge × 20%.
   const pitchMixScore = weighted(r=>r.edge, 50);
   const batterShapeScore = weighted(r=>r.bat && r.bat.score, 50);
   const pitcherDamageScore = weighted(r=>r.pitcherDamage && r.pitcherDamage.score, 50);
-  const usageExposureScore = weighted(r=>r.usageExposure, 50);
   const pitchQualityScore = weighted(r=>r.stuffWeakness, 50);
-  const onlyHomersScore = weighted(r=>r.onlyHomers && r.onlyHomers.score, 50);
-  const batTrackingWeighted = weighted(r=>r.bat && r.bat.tracking ? r.bat.tracking.score : 50, 50);
+  const usageExposureScore = useTotal > 0 ? Math.max(0, Math.min(100, useTotal * 100)) : 0;
   const pitchEVScore = weighted(r=>r.bat && r.bat.ev ? r.bat.ev.score : 50, 50);
+  const pitchMaxEVScore = weighted(r=>r.bat && r.bat.ev ? r.bat.ev.maxScore : 50, 50);
   const pitchEVValue = weightedPresent(r=>r.bat && r.bat.ev ? r.bat.ev.value : null);
-  const fbRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.fb : null);
-  const pullAirRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.pullAir : null);
+  const maxEVValue = weightedPresent(r=>r.bat && r.bat.ev ? r.bat.ev.maxValue : null);
+  const xslgWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.xslg : null);
+  const pullRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.pull : null);
+  const launchAngleWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.la : null);
   const barrelRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.barrel : null);
   const hardHitRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.hard : null);
 
-  // Final Pitch Lab bucket is HR-only. No AVG, K%, whiff%, ordinary contact, or singles/run-value scoring.
-  const finalScore = Math.max(0, Math.min(100,
-    ((batterShapeScore || 50) * 0.40) +
-    ((pitcherDamageScore || 50) * 0.24) +
-    ((onlyHomersScore || 50) * 0.12) +
-    ((usageExposureScore || 50) * 0.08) +
-    ((zone.score || 50) * 0.08) +
-    ((pitchEVScore || 50) * 0.05) +
-    ((batTrackingWeighted || 50) * 0.03)
-  ));
-
+  const finalScore = Math.max(0, Math.min(100, pitchMixScore || 50));
   const top = rows[0] || null;
   return {
     player, pitcherName, pitcherHand, rows,
@@ -11249,21 +10992,27 @@ function buildPitchLabProfile(player) {
     pitcherDamageScore: Math.max(0, Math.min(100, pitcherDamageScore || 50)),
     pitchQualityScore: Math.max(0, Math.min(100, pitchQualityScore || 50)),
     usageExposureScore: Math.max(0, Math.min(100, usageExposureScore || 50)),
-    batTrackingScore: Math.max(0, Math.min(100, batTrackingWeighted || 50)),
-    onlyHomersScore: Math.max(0, Math.min(100, onlyHomersScore || 50)),
+    batTrackingScore: 50,
+    onlyHomersScore: 50,
     pitchEVScore: Math.max(0, Math.min(100, pitchEVScore || 50)),
-    pitchEVValue: pitchEVValue,
-    fbRate: fbRateWeighted,
-    pullAirRate: pullAirRateWeighted,
+    pitchMaxEVScore: Math.max(0, Math.min(100, pitchMaxEVScore || 50)),
+    pitchEVValue,
+    maxEVValue,
+    xslg: xslgWeighted,
+    pullRate: pullRateWeighted,
+    launchAngle: launchAngleWeighted,
     barrelRate: barrelRateWeighted,
     hardHitRate: hardHitRateWeighted,
-    zoneScore: Math.max(0, Math.min(100, zone.score || 50)),
-    zone,
+    fbRate: null,
+    pullAirRate: null,
+    zoneScore: 50,
+    zone: null,
     grade: gradeFromScore(finalScore), top,
-    summary: `HR-only Pitch Lab: hitter pitch damage, pitcher HR damage allowed, pitch usage, OnlyHomers, EV, and Zone context.`,
-    note: `HR Bat ${scoreBarPct(batterShapeScore || 50)} / P-HR Dmg ${scoreBarPct(pitcherDamageScore || 50)} / EV ${pitchEVValue !== null && pitchEVValue !== undefined && !isNaN(pitchEVValue) ? Number(pitchEVValue).toFixed(1) : '--'} / FB ${fbRateWeighted !== null && fbRateWeighted !== undefined && !isNaN(fbRateWeighted) ? pctFmt(fbRateWeighted) : '--'} / Pulled Air ${pullAirRateWeighted !== null && pullAirRateWeighted !== undefined && !isNaN(pullAirRateWeighted) ? pctFmt(pullAirRateWeighted) : '--'}`
+    summary: `Usage-weighted HR-only Pitch Lab: each pitch edge is multiplied by the pitcher's actual usage. Metrics: Barrel, Hard Hit, xSLG, EV, Max EV, Pull, Launch Angle, HR.`,
+    note: `Usage-weighted ${scoreBarPct(finalScore)} // Barrel ${barrelRateWeighted !== null ? Number(barrelRateWeighted).toFixed(1)+'%' : '--'} / HH ${hardHitRateWeighted !== null ? Number(hardHitRateWeighted).toFixed(1)+'%' : '--'} / xSLG ${xslgWeighted !== null ? Number(xslgWeighted).toFixed(3) : '--'} / EV ${pitchEVValue !== null && pitchEVValue !== undefined && !isNaN(pitchEVValue) ? Number(pitchEVValue).toFixed(1) : '--'} / Max ${maxEVValue !== null && maxEVValue !== undefined && !isNaN(maxEVValue) ? Number(maxEVValue).toFixed(1) : '--'} / Pull ${pullRateWeighted !== null ? pctFmt(pullRateWeighted) : '--'} / LA ${launchAngleWeighted !== null ? Number(launchAngleWeighted).toFixed(1) : '--'}`
   };
 }
+
 
 function synergyItems(player) {
   const c = player.category || {};
@@ -11650,12 +11399,12 @@ function renderPitchLab10Card(profile, idx) {
   const logo = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
   const rows = (profile.rows || []).slice(0,4);
   const componentBars = [
-    pitchLab10Bar('Batter HR Damage', profile.batterShapeScore, '40%'),
-    pitchLab10Bar('Pitcher HR Damage', profile.pitcherDamageScore, '24%'),
-    pitchLab10Bar('Zone Context', profile.zoneScore, '8%'),
-    pitchLab10Bar('Stuff Weakness', profile.pitchQualityScore, '5%'),
-    pitchLab10Bar('Pitch EV', profile.pitchEVScore, '5%'),
-    pitchLab10Bar('Bat Speed/Blast', profile.batTrackingScore, '3%')
+    pitchLab10Bar('Usage-Weighted Pitch Edge', profile.pitchMixScore, '100%'),
+    pitchLab10Bar('Batter HR Damage', profile.batterShapeScore, '66% of pitch edge'),
+    pitchLab10Bar('Pitcher HR Weakness', profile.pitcherDamageScore, '29% of pitch edge'),
+    pitchLab10Bar('Stuff Weakness', profile.pitchQualityScore, '5% of pitch edge'),
+    pitchLab10Bar('Pitch EV', profile.pitchEVScore, 'EV input'),
+    pitchLab10Bar('Max EV', profile.pitchMaxEVScore || 50, 'Max EV input')
   ].join('');
   const pitchCards = rows.map(r => {
     const color = pitchLab10Color(r.key || r.group || r.label);
@@ -11672,8 +11421,8 @@ function renderPitchLab10Card(profile, idx) {
       <div class="pitchlab10-mini-grid">
         ${pitchLab10Mini('Usage', usage)}
         ${pitchLab10Mini('EV', evVal)}
-        ${pitchLab10Mini('FB%', fbVal)}
-        ${pitchLab10Mini('Pulled Air', pullVal)}
+        ${pitchLab10Mini('Pull%', pullVal)}
+        ${pitchLab10Mini('xSLG', r.bat && r.bat.shape && r.bat.shape.xslg !== null && r.bat.shape.xslg !== undefined ? Number(r.bat.shape.xslg).toFixed(3) : '-')}
         ${pitchLab10Mini('Barrel%', barrelVal)}
         ${pitchLab10Mini('OH HR', ohVal)}
       </div>
@@ -11758,7 +11507,7 @@ function renderPitchLabTable() {
       <div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab Leader</div><div class="pitch-lab-score">${leader.score.toFixed(0)}</div><div class="pitch-lab-sub">${leader.player.Name} vs ${leader.pitcherName || 'Starter'}</div></div>
       <div class="pitch-lab-card"><div class="pitch-lab-title">Best Batter HR Damage</div><div class="pitch-lab-score">${bestBat ? bestBat.batterShapeScore.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestBat ? bestBat.player.Name + ' // EV, FB%, pulled-air, barrel, hard-hit' : 'No data'}</div></div>
       <div class="pitch-lab-card"><div class="pitch-lab-title">Most HR-Attackable Arsenal</div><div class="pitch-lab-score">${bestP ? bestP.pitcherDamageScore.toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestP ? bestP.pitcherName + ' HR damage allowed profile' : 'No data'}</div></div>
-      <div class="pitch-lab-card"><div class="pitch-lab-title">Highest Pitch EV</div><div class="pitch-lab-score">${bestEV && bestEV.pitchEVValue ? Number(bestEV.pitchEVValue).toFixed(1) : '--'}</div><div class="pitch-lab-sub">${bestEV ? bestEV.player.Name + ' // avg EV vs pitch mix' : 'Waiting for EV data'}</div></div>` : `<div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>`;
+      <div class="pitch-lab-card"><div class="pitch-lab-title">Highest Pitch EV</div><div class="pitch-lab-score">${bestEV && bestEV.pitchEVValue ? Number(bestEV.pitchEVValue).toFixed(1) : '--'}</div><div class="pitch-lab-sub">${bestEV ? bestEV.player.Name + ' // usage-weighted EV vs mix' : 'Waiting for EV data'}</div></div>` : `<div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>`;
   }
   if (!data.length) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No pitch lab profiles matching the current filters...</td></tr>`; return; }
   tbody.innerHTML = `<tr><td colspan="8" style="padding:0; border-bottom:0;"><div class="pitchlab10-shell">${data.map((profile, idx) => renderPitchLab10Card(profile, idx)).join('')}</div></td></tr>`;
@@ -12581,16 +12330,16 @@ function parseUsageValue(raw) { let v = cleanNumber(raw); if (!v) return 0; if (
 
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const HYBRID_CATEGORY_WEIGHTS = {
-  // v46 Attack Zone scoring refresh. Must always total exactly 100%.
-  // Power 26, Batted Ball 22, Pitcher 14, Pitch Lab 11, Attack Zone 13, BvP 8, Weather 4, Park 2.
+  // v51.24 main bucket weights. Must always total exactly 100%.
+  // Power 27, Batted Ball 23, Pitcher 15, Attack Zone 17, Pitch Lab 5, BvP 5, Weather 6, Park 2.
   // Attack Zone uses BZ1-BZ9 and PZ1-PZ9 Savant zone sheets when present; missing zone data is safely skipped.
-  power: 0.26,
-  battedBall: 0.22,
-  pitcher: 0.14,
-  pitchLevel: 0.11,
-  attackZone: 0.13,
-  bvp: 0.08,
-  weather: 0.04,
+  power: 0.27,
+  battedBall: 0.23,
+  pitcher: 0.15,
+  pitchLevel: 0.05,
+  attackZone: 0.17,
+  bvp: 0.05,
+  weather: 0.06,
   park: 0.02
 };
 const MODEL_SANDBOX_WEIGHT_META = [
@@ -12814,6 +12563,7 @@ function attackZoneScaleScore(kind, value) {
   if (kind === 'ev') return hybridScaleScoreFromPoints(v, [[84,0],[86,12],[88,28],[90,48],[92,68],[94,84],[96,95],[98,100]]);
   if (kind === 'fb') return hybridScaleScoreFromPoints(v, [[0.120,0],[0.180,15],[0.240,32],[0.300,50],[0.360,66],[0.430,82],[0.500,94],[0.580,100]]);
   if (kind === 'maxev') return hybridScaleScoreFromPoints(v, [[98,0],[101,14],[104,32],[107,52],[110,72],[113,88],[116,97],[119,100]]);
+  if (kind === 'batSpeed') return hybridScaleScoreFromPoints(v, [[66,0],[68,12],[70,28],[72,48],[74,68],[76,84],[78,95],[80,100]]);
   if (kind === 'hr') return hybridScaleScoreFromPoints(v, [[0,0],[1,45],[2,70],[3,86],[5,100]]);
   if (kind === 'avg') return hybridScaleScoreFromPoints(v, [[0.120,0],[0.180,18],[0.220,36],[0.260,55],[0.300,72],[0.340,88],[0.380,100]]);
   if (kind === 'freq') return hybridScaleScoreFromPoints(v, [[0.000,0],[0.035,18],[0.070,34],[0.110,50],[0.150,66],[0.200,82],[0.280,94],[0.360,100]]);
@@ -12839,6 +12589,7 @@ function zoneExtractStats(row) {
     fb: zoneFirstRate(row, ['fb_percent','FB %','fly_ball_percent','flyball_percent','fb_pct','fly_ball_pct','FB%']),
     gb: zoneFirstRate(row, ['gb_percent','GB %','ground_ball_percent','groundball_percent']),
     la: zoneFirstNumber(row, ['launch_angle','Launch Angle','LA','avg_la','avg_launch_angle','launch_angle_avg']),
+    batSpeed: zoneFirstNumber(row, ['bat_speed','Bat Speed','bat speed','avg_bat_speed','Avg Bat Speed','swing_speed','Swing Speed','Bat Speed Faced','bat_speed_faced']),
     contact: zoneFirstRate(row, ['contact_percent','Contact %','contact_pct']),
     whiff: zoneFirstRate(row, ['whiff_percent','Whiff %','whiff_pct']),
     pitches: zoneFirstNumber(row, ['pitches','Pitches','pitch_count','pitch_count_zone']),
@@ -12885,18 +12636,35 @@ function zoneEnrichPitcherStats(stats, player, pitcherName) {
   return stats;
 }
 
-function buildAttackZoneDamageScore(row) {
+function buildAttackZoneDamageScore(row, side) {
   if (!row || !Object.keys(row).length) return null;
   const s = zoneExtractStats(row);
-  // HR-only zone damage blend. No AVG/OBP/contact-for-average stats.
-  // Barrel + HardHit lead, xSLG confirms damage, HR gives results credit, EV supplies ceiling.
+  const isPitcher = String(side || '').toLowerCase().includes('pitch');
+  // HR-only Attack Zone blend. xSLG intentionally removed.
+  // Batter: Barrels/PA 30, Barrels/BBE 25, ISO 18, HardHit 10, HR 5, LA 7, Bat Speed 5.
+  // Pitcher: Barrels/PA allowed 32, Barrels/BBE allowed 26, ISO allowed 15, HardHit allowed 10, HR allowed 5, LA allowed 7, Bat Speed faced 5.
+  const launchAngleScore = (s.la === null || s.la === undefined || isNaN(Number(s.la)))
+    ? null
+    : hybridScaleScoreFromPoints(Number(s.la), [[0,0],[5,18],[10,42],[14,65],[18,85],[22,100],[28,72],[34,35],[42,8]]);
+  if (isPitcher) {
+    return hybridWeightedAvg([
+      { value: attackZoneScaleScore('barrelPA', s.barrelPA), weight: 0.32 },
+      { value: attackZoneScaleScore('barrel', s.barrel), weight: 0.26 },
+      { value: attackZoneScaleScore('iso', s.iso), weight: 0.15 },
+      { value: attackZoneScaleScore('hardhit', s.hardhit), weight: 0.10 },
+      { value: attackZoneScaleScore('hr', s.hr), weight: 0.05 },
+      { value: launchAngleScore, weight: 0.07 },
+      { value: attackZoneScaleScore('batSpeed', s.batSpeed), weight: 0.05 }
+    ]);
+  }
   return hybridWeightedAvg([
-    { value: attackZoneScaleScore('barrel', s.barrel), weight: 0.28 },
-    { value: attackZoneScaleScore('hardhit', s.hardhit), weight: 0.22 },
-    { value: attackZoneScaleScore('xslg', s.xslg), weight: 0.20 },
-    { value: attackZoneScaleScore('hr', s.hr), weight: 0.15 },
-    { value: attackZoneScaleScore('ev', s.ev), weight: 0.10 },
-    { value: attackZoneScaleScore('fb', s.fb), weight: 0.05 }
+    { value: attackZoneScaleScore('barrelPA', s.barrelPA), weight: 0.30 },
+    { value: attackZoneScaleScore('barrel', s.barrel), weight: 0.25 },
+    { value: attackZoneScaleScore('iso', s.iso), weight: 0.18 },
+    { value: attackZoneScaleScore('hardhit', s.hardhit), weight: 0.10 },
+    { value: attackZoneScaleScore('hr', s.hr), weight: 0.05 },
+    { value: launchAngleScore, weight: 0.07 },
+    { value: attackZoneScaleScore('batSpeed', s.batSpeed), weight: 0.05 }
   ]);
 }
 function zoneBucketLabel(bucket) {
@@ -12970,8 +12738,8 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
     if (!hasB && !hasP) continue;
     const batterStats = zoneEnrichBatterStats(zoneExtractStats(hasB ? bRow : {}), player, hitterName);
     const pitcherStats = zoneEnrichPitcherStats(zoneExtractStats(hasP ? pRow : {}), player, pitcherName);
-    const batterDamage = hasB ? buildAttackZoneDamageScore(bRow) : null;
-    const pitcherVulnerability = hasP ? buildAttackZoneDamageScore(pRow) : null;
+    const batterDamage = hasB ? buildAttackZoneDamageScore(bRow, 'batter') : null;
+    const pitcherVulnerability = hasP ? buildAttackZoneDamageScore(pRow, 'pitcher') : null;
     let pitchPct = hasP ? pitcherStats.pitchPct : null;
     if (pitchPct === null && hasP) pitchPct = 1 / 9;
     const freqScore = attackZoneScaleScore('freq', pitchPct === null ? 1/9 : pitchPct);
@@ -13052,8 +12820,6 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   return { score, zones, topZone, bucket:'WEIGHTED', bucketLabel:'Weighted', summary, weightedAvgEdge };
 }
 
-
-
 /* =========================
    PITCHER ZONE CACHE FIX
    Guarantees the Pitcher Tendency Map is pitcher-only and identical for every hitter facing the same starter.
@@ -13072,7 +12838,7 @@ function zoneBuildPitcherOnlyBucketProfile(pitcherName, bucket, mixWeight) {
     const hasP = pRow && Object.keys(pRow).length;
     if (!hasP) continue;
     const pitcherStats = zoneEnrichPitcherStats(zoneExtractStats(pRow), {}, pitcherName);
-    const pitcherVulnerability = buildAttackZoneDamageScore(pRow);
+    const pitcherVulnerability = buildAttackZoneDamageScore(pRow, 'pitcher');
     let pitchPct = pitcherStats.pitchPct;
     if (pitchPct === null || pitchPct === undefined || isNaN(Number(pitchPct))) pitchPct = 1 / 9;
     pitchPct = Math.max(0, Math.min(1, Number(pitchPct)));
@@ -14955,7 +14721,7 @@ const BACKTEST_DB_NAME = 'DailyRunlineBacktestDB';
 const BACKTEST_STORE_NAME = 'state';
 const BACKTEST_HISTORY_KEY = 'backtestHistory';
 const BACKTEST_BOMBS_KEY = 'drlBacktestBombsCurrentSlate';
-const BACKTEST_MODEL_VERSION = '37.3_UPDATED_BUCKET_WEIGHTS';
+const BACKTEST_MODEL_VERSION = '51.24_MAIN_BUCKETS_PERF_CLEAN';
 const BUCKET_ANALYTICS_HISTORY_KEY = 'drl_bucket_analytics_history_v1';
 let bucketAnalyticsHistory = [];
 let backtestHistory = [];
@@ -15598,8 +15364,6 @@ function getSuggestedWeights(rows) {
   cats.forEach(c => confidenceByCategory[c.cat] = getBacktestWeightConfidence(usableRows, cats, best.weights, best.performance, c.cat));
   return { current, suggested:best.weights, keyMap, categories:cats, currentPerformance, suggestedPerformance:best.performance, improvementPct, confidence, confidenceByCategory, usableRows:usableRows.length, hrCount };
 }
-
-
 
 const BACKTEST_WEIGHTED_RAW_METRIC_GROUPS = [
   // Backtest Raw Stat Board: scoring-input only.
@@ -16746,13 +16510,13 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
 <script id="v40-restart-fixes-script">
 (function(){
   const WEIGHTS_40 = [
-    { key:'power', label:'💪 Power', weight:26, color:'#a855f7' },
-    { key:'batted', label:'🚀 Batted Ball', weight:22, color:'#ef4444' },
-    { key:'pitcher', label:'⚾ Pitcher Vuln', weight:14, color:'#fb7185' },
-    { key:'pitchlab', label:'🎯 Pitch Lab', weight:11, color:'#38bdf8' },
-    { key:'attackZone', label:'🎯 Attack Zone', weight:13, color:'#f97316' },
-    { key:'bvp', label:'🤝 BvP', weight:8, color:'#facc15' },
-    { key:'weather', label:'🌦 Weather', weight:4, color:'#0ea5e9' },
+    { key:'power', label:'💪 Power', weight:27, color:'#a855f7' },
+    { key:'batted', label:'🚀 Batted Ball', weight:23, color:'#ef4444' },
+    { key:'pitcher', label:'⚾ Pitcher Vuln', weight:15, color:'#fb7185' },
+    { key:'pitchlab', label:'🎯 Pitch Lab', weight:5, color:'#38bdf8' },
+    { key:'attackZone', label:'🎯 Attack Zone', weight:17, color:'#f97316' },
+    { key:'bvp', label:'🤝 BvP', weight:5, color:'#facc15' },
+    { key:'weather', label:'🌦 Weather', weight:6, color:'#0ea5e9' },
     { key:'park', label:'🏟 Park', weight:2, color:'#94a3b8' }
   ];
   function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -17088,8 +16852,6 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
 })();
 </script>
 
-
-
 <script id="v40-2-pitcher-env-populate-final">
 (function(){
   function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -17338,7 +17100,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
 
 
 <style id="v40-3-pitchers-final-cleanup">
-/* v40.3 Pitcher cleanup: today-only cards, no source labels, no pitch mix/lab, tighter responsive sizing */
+
 .pitcher-source-note, .pitcher-card-v40 small { display:none !important; }
 .pitcher-dashboard-grid { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important; gap: 16px !important; }
 .pitcher-card-v40 { padding: 14px !important; border-radius: 18px !important; }
@@ -17735,6 +17497,51 @@ function renderBetFinderResults(allFiltered, qualified, detailsMap){
 document.addEventListener('DOMContentLoaded', initBetFinder);
 </script>
 
-<!-- v46.1 zone pitch bucket click/stat fix -->
+<style id="v51-24-performance-lite-style">
+
+body.performance-lite::before,
+body.performance-lite::after,
+body.performance-lite .header-area::before,
+body.performance-lite .command-center-board::before,
+body.performance-lite .command-center-ai-core::before,
+body.performance-lite .command-center-ai-core::after,
+body.performance-lite .community-hero::after,
+body.performance-lite .top-target-hero::after,
+body.performance-lite .slate-board::after,
+body.performance-lite .top12-card::after { display: none !important; }
+body.performance-lite *,
+body.performance-lite *::before,
+body.performance-lite *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; scroll-behavior: auto !important; }
+body.performance-lite .panel:hover,
+body.performance-lite .table-wrapper:hover,
+body.performance-lite .upload-box:hover,
+body.performance-lite tbody tr:hover { transform: none !important; }
+</style>
+<script id="v51-24-performance-lite-js">
+(function(){
+  function debounce(fn, wait){ let t=null; return function(){ clearTimeout(t); t=setTimeout(fn, wait); }; }
+  function updatePerformanceMode(){
+    try {
+      const table = document.getElementById('tableBody');
+      const rows = table ? table.querySelectorAll('tr').length : 0;
+      document.body.classList.toggle('performance-lite', rows >= 180);
+    } catch(e) {}
+  }
+  const debouncedUpdate = debounce(updatePerformanceMode, 120);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', updatePerformanceMode);
+  else updatePerformanceMode();
+  try {
+    const startObserver = function(){
+      const table = document.getElementById('tableBody');
+      if (!table) return;
+      new MutationObserver(debouncedUpdate).observe(table, { childList:true, subtree:false });
+      updatePerformanceMode();
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startObserver);
+    else startObserver();
+  } catch(e) {}
+})();
+</script>
+
 </body>
 </html>
