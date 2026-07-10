@@ -9642,7 +9642,7 @@ return `<img class="${sizeClass}" src="${url}" alt="${playerName}"${style} onerr
 
 /* ========================= LIVE SHARED SLATE (SUPABASE) ========================= */
 const DRL_SUPABASE_URL = 'https://fgditxwtppcmzgezgvun.supabase.co';
-const DRL_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_COrEVU2pb2Wa784ql7q1_w_iawkJoC8';
+const DRL_SUPABASE_PUBLISHABLE_KEY = 'PASTE_YOUR_PUBLISHABLE_KEY_HERE';
 const DRL_SLATE_BUCKET = 'daily-slates';
 const DRL_LATEST_SLATE_PATH = 'latest-slate.json';
 const DRL_BUILD_VERSION = '51.44-live';
@@ -9667,12 +9667,30 @@ function buildLiveSlatePackage(){
   const now=new Date();
   return {
     schemaVersion:1,
-    buildVersion:DRL_BUILD_VERSION,
+    buildVersion:'51.45-live-circular-fix',
     publishedAt:now.toISOString(),
     slateDate:now.toISOString().slice(0,10),
     publisher:'cmitchell303@gmail.com',
     cacheData:getLiveSlateCacheData()
   };
+}
+
+function stringifyLiveSlateSafely(value){
+  const ancestors=[];
+  return JSON.stringify(value,function(key,current){
+    if(typeof current==='function' || current instanceof Element || current instanceof Window || current instanceof Document) return undefined;
+    if(!current || typeof current!=='object') return current;
+
+    while(ancestors.length && ancestors[ancestors.length-1]!==this) ancestors.pop();
+    if(ancestors.includes(current)){
+      // Runtime convenience links such as pitchLabProfile.player point back to
+      // the containing player record. They are regenerated after loading and
+      // must not be included in the shared JSON package.
+      return undefined;
+    }
+    ancestors.push(current);
+    return current;
+  });
 }
 function validateLiveSlatePackage(pkg){
   if(!pkg || pkg.schemaVersion!==1 || !pkg.cacheData || !Array.isArray(pkg.cacheData.playerData)) throw new Error('Published slate file is invalid.');
@@ -9752,7 +9770,7 @@ async function publishLiveSlate(){
     setLivePublishStatus('Preparing the processed slate…');
     saveCachedData();
     const pkg=buildLiveSlatePackage();
-    const json=JSON.stringify(pkg);
+    const json=stringifyLiveSlateSafely(pkg);
     const sizeMB=new Blob([json]).size/1024/1024;
     if(sizeMB>45) throw new Error(`Published slate is ${sizeMB.toFixed(1)} MB, which is too large for the current bucket limit.`);
     const latestBlob=new Blob([json],{type:'application/json'});
