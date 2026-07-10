@@ -15083,6 +15083,10 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Category_PitchLab: backtestNum(p.category && p.category.pitchLevel),
     Category_AttackZone: backtestNum(p.category && p.category.attackZone),
     Category_Pitcher: backtestNum(p.category && p.category.pitcher),
+    Pitcher_Tab_Score: backtestNum(typeof window.getPitcherDashboardAnalyticsScore === 'function' ? window.getPitcherDashboardAnalyticsScore(
+      safeGet(p, 'Opp Pitcher', 'Opposing Pitcher', 'Opp Pitcher Name', 'Pitcher Facing') || '',
+      handObj.label
+    ) : p.calculatedPitcherScore),
     Category_BattedBall: backtestNum(p.category && p.category.battedBall),
     Category_Weather: backtestNum(p.category && p.category.weather),
     Category_Park: backtestNum(p.category && p.category.park),
@@ -16289,12 +16293,17 @@ function bucketAnalyticsSnapshotRow(row) {
     Player: row.Player || '',
     Team: row.Team || '',
     Opposing_Pitcher: row.Opposing_Pitcher || '',
+    Batter_Hand: row.Batter_Hand || '',
     Rank: bucketAnalyticsNum(row.Rank),
     HR_Result: bucketAnalyticsNum(row.HR_Result) === 1 ? 1 : 0,
     BBI: bucketAnalyticsNum(row.BBI),
     PitchLab_Score: bucketAnalyticsNum(row.Category_PitchLab),
     AttackZone_Score: bucketAnalyticsNum(row.Category_AttackZone),
-    Pitcher_Score: bucketAnalyticsNum(row.Category_Pitcher)
+    // Bucket Analytics must use the same handedness-specific HR Damage score shown on the Pitchers tab.
+    // Category_Pitcher is retained only as a legacy fallback for older finalized rows.
+    Pitcher_Score: bucketAnalyticsNum(row.Pitcher_Tab_Score) !== null
+      ? bucketAnalyticsNum(row.Pitcher_Tab_Score)
+      : bucketAnalyticsNum(row.Category_Pitcher)
   };
 }
 async function appendBucketAnalyticsSlate(rows, slateId, finalizedAt, bombCount) {
@@ -16361,7 +16370,26 @@ function renderThresholdCards(rows, key) {
   if (!vals.length) return '<div class="bucket-empty">No score rows yet.</div>';
   return `<div class="bucket-threshold-grid">${vals.map(x => `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${x.label}</div><div class="bucket-threshold-val">${fmtBack(x.pct,1,'%')}</div><div class="bucket-threshold-sub">${x.hrs}/${x.players} HR</div></div>`).join('')}</div>`;
 }
+function renderComponentBandCards(rows, key, emptyLabel) {
+  const bucketData = buildComponentBuckets(rows, key);
+  const totalPlayers = bucketData.buckets.reduce((sum, bucket) => sum + bucket.players, 0);
+  const totalHR = bucketData.buckets.reduce((sum, bucket) => sum + bucket.hrs, 0);
+  const baselinePct = totalPlayers ? (totalHR / totalPlayers) * 100 : 0;
+  const bands = bucketData.buckets.filter(bucket => bucket.players > 0);
+  if (!bands.length) return `<div class="bucket-empty">No ${emptyLabel || 'score'} rows yet.</div>`;
+  return `<div class="bucket-threshold-grid">${bands.map(bucket => {
+    const pct = bucket.players ? (bucket.hrs / bucket.players) * 100 : null;
+    const lift = pct !== null && baselinePct ? pct / baselinePct : null;
+    return `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${bucket.label}</div><div class="bucket-threshold-val">${fmtBack(pct,1,'%')}</div><div class="bucket-threshold-sub">${bucket.hrs}/${bucket.players} HR${lift === null ? '' : ` • ${lift.toFixed(2)}x`}</div></div>`;
+  }).join('')}</div>`;
+}
 function renderPitchLabBandCards(rows) {
+  return renderComponentBandCards(rows, 'PitchLab_Score', 'Pitch Lab score');
+}
+function renderPitcherBandCards(rows) {
+  return renderComponentBandCards(rows, 'Pitcher_Score', 'Pitchers-tab score');
+}
+function renderPitchLabBandCardsLegacyUnused(rows) {
   const bucketData = buildComponentBuckets(rows, 'PitchLab_Score');
   const totalPlayers = bucketData.buckets.reduce((sum, bucket) => sum + bucket.players, 0);
   const totalHR = bucketData.buckets.reduce((sum, bucket) => sum + bucket.hrs, 0);
@@ -16433,7 +16461,7 @@ function renderBucketAnalytics() {
       <div class="bucket-analytics-section-grid">
         <div class="bucket-mini-card"><div class="bucket-mini-title">🔥 Pitch Lab Thresholds</div><div class="bucket-mini-sub">Quick cutoff scan using fresh finalized bucket rows only.</div>${renderPitchLabBandCards(rows)}</div>
         <div class="bucket-mini-card"><div class="bucket-mini-title">🎯 Attack Zone Thresholds</div><div class="bucket-mini-sub">Find where zone target scores start turning into HRs.</div>${renderThresholdCards(rows, 'AttackZone_Score')}</div>
-        <div class="bucket-mini-card"><div class="bucket-mini-title">⚾ Pitcher Thresholds</div><div class="bucket-mini-sub">Shows when pitcher vulnerability starts mattering.</div>${renderThresholdCards(rows, 'Pitcher_Score')}</div>
+        <div class="bucket-mini-card"><div class="bucket-mini-title">⚾ Pitcher Thresholds</div><div class="bucket-mini-sub">Uses the handedness-specific HR Damage score shown on the Pitchers tab.</div>${renderPitcherBandCards(rows)}</div>
       </div>
       <h2>🔥 Pitch Lab Score Buckets</h2>
       <p class="backtest-note">Pitch Lab / Pitch Matchup score bucketed independently from BBI.</p>
@@ -16442,7 +16470,7 @@ function renderBucketAnalytics() {
       <p class="backtest-note">Zone target score bucketed independently from BBI.</p>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Zone Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(zoneBuckets, baselinePct)}</tbody></table></div>
       <h2>⚾ Pitcher Vulnerability Score Buckets</h2>
-      <p class="backtest-note">Pitcher score bucketed independently from BBI.</p>
+      <p class="backtest-note">Pitchers-tab HR Damage score bucketed independently from BBI, using the hitter-side split.</p>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitcher Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(pitcherBuckets, baselinePct)}</tbody></table></div>
       <h2>🤝 Confluence Analysis</h2>
       <p class="backtest-note">This shows what happens when Pitch Lab, Attack Zone, and Pitcher score agree. Lift compares each group to the clean-slate Bucket Analytics baseline.</p>
@@ -16939,6 +16967,28 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
     const rRisk = clamp(scoreFrom(rHR9,.70,2.10)*.45 + scoreFrom(rHRFB,.08,.24)*.30 + scoreFrom(rFB,.28,.50)*.25);
     return { ip, lHR9, rHR9, lHRFB, rHRFB, lFB, rFB, barrel, hardHit, evAllowed, ev90, maxEV, contactDamage, lRisk, rRisk };
   }
+  window.getPitcherDashboardAnalyticsScore = function(name, batterHand) {
+    const pitcherName = String(name || '').trim();
+    if (!pitcherName) return null;
+    const st = collectPitcherStats(pitcherName);
+    if (!st) return null;
+    const leftRisk = Number(st.lRisk);
+    const rightRisk = Number(st.rRisk);
+    const l = Number.isFinite(leftRisk) ? leftRisk : null;
+    const r = Number.isFinite(rightRisk) ? rightRisk : null;
+    const hand = String(batterHand || '').trim().toUpperCase();
+    if (hand.startsWith('L')) return l !== null ? l : r;
+    if (hand.startsWith('R')) return r !== null ? r : l;
+    if (hand.startsWith('S')) {
+      if (l === null) return r;
+      if (r === null) return l;
+      return Math.max(l, r);
+    }
+    if (l === null) return r;
+    if (r === null) return l;
+    return Math.max(l, r);
+  };
+
   function badgeList(stats) {
     const out = [];
     if (num(stats.barrel) >= .10 || num(stats.barrel) >= 10) out.push('💣 Barrel Prone');
