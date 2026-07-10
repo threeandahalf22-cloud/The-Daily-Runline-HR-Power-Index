@@ -7994,6 +7994,91 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 }
 </style>
 
+
+<style id="drl-mobile-layout-final-fix">
+/* Mobile-only layout hardening. Desktop and zone hover behavior are untouched. */
+@media (max-width: 760px) {
+  html, body { width:100%; max-width:100%; overflow-x:hidden !important; }
+  body { padding:10px !important; align-items:stretch !important; }
+  .container { width:100% !important; max-width:100% !important; min-width:0 !important; }
+  *, *::before, *::after { box-sizing:border-box; }
+
+  .header-area { width:100% !important; padding:16px 12px !important; margin-bottom:14px !important; border-radius:12px !important; }
+  .header-title-section, .header-content-wrapper, .header-top-row { min-width:0 !important; width:100% !important; }
+  h1 { font-size:22px !important; line-height:1.08 !important; overflow-wrap:anywhere; }
+  .subtitle { font-size:10px !important; letter-spacing:1.2px !important; }
+
+  .nav-tabs { width:100% !important; display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:7px !important; margin-bottom:14px !important; }
+  .nav-tab { width:100% !important; min-width:0 !important; padding:10px 6px !important; font-size:10px !important; letter-spacing:.45px !important; white-space:normal !important; line-height:1.15 !important; }
+
+  .tab-content, .panel, .controls-bar, .table-wrapper, .dashboard-grid,
+  .edge-page-grid, .home-sidebar-stack, .stats-tab-shell, .zone-profile-shell,
+  .zone-hero, .zone-tools, .zone-card-grid, .zone-player-card, .zone-card-top,
+  .zone-card-body, .zone-map-panel, .zone-grid, .zone-card-footer {
+    width:100% !important; max-width:100% !important; min-width:0 !important;
+  }
+
+  .panel, .controls-bar { padding:14px !important; border-radius:12px !important; }
+  .controls-bar { gap:10px !important; }
+  .filter-group, .search-input, .select-input-sm, .team-filter-future-wrap,
+  .team-filter-future, .team-filter-trigger { width:100% !important; max-width:100% !important; min-width:0 !important; }
+  .team-logo-dropdown { min-width:0 !important; width:100% !important; left:0 !important; right:auto !important; }
+
+  /* Zone Profile mobile alignment */
+  #tab-zone-profile, #tab-zone { overflow:visible !important; }
+  .zone-hero { padding:15px 13px !important; border-radius:14px !important; overflow:hidden !important; }
+  .zone-hero-inner { display:block !important; width:100% !important; }
+  .zone-title { font-size:22px !important; line-height:1.1 !important; overflow-wrap:anywhere; }
+  .zone-sub { font-size:11px !important; }
+  .zone-legend { justify-content:flex-start !important; margin-top:12px !important; }
+  .zone-tools, .zone-tools-left { display:grid !important; grid-template-columns:1fr !important; align-items:stretch !important; }
+  .zone-summary-pill { width:100% !important; }
+  .zone-card-grid { display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:12px !important; }
+  .zone-player-card { border-radius:14px !important; overflow:visible !important; }
+  .zone-card-top { grid-template-columns:52px minmax(0,1fr) !important; gap:10px !important; padding:12px !important; }
+  .zone-card-top .player-headshot { width:50px !important; height:50px !important; }
+  .zone-player-name, .zone-player-meta { min-width:0 !important; max-width:100% !important; }
+  .zone-player-name { font-size:14px !important; }
+  .zone-score-badge { grid-column:1 / -1 !important; width:100% !important; min-width:0 !important; }
+  .zone-card-body { display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:10px !important; padding:12px !important; }
+  .zone-map-panel { padding:9px !important; overflow:visible !important; }
+  .zone-map-title { min-width:0 !important; font-size:10px !important; flex-wrap:wrap !important; }
+  .zone-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:5px !important; padding:5px !important; border-radius:12px !important; }
+  .zone-cell { min-width:0 !important; min-height:70px !important; padding:6px !important; border-radius:9px !important; }
+  .zone-cell-main { font-size:16px !important; }
+  .zone-cell-num { font-size:9px !important; }
+  .zone-cell-sub { font-size:7px !important; letter-spacing:.15px !important; overflow-wrap:anywhere; }
+  .zone-card-footer { grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:5px !important; padding:0 12px 12px !important; }
+  .zone-mini-stat { padding:7px 4px !important; }
+  .zone-mini-label { font-size:7px !important; letter-spacing:.2px !important; }
+  .zone-mini-value { font-size:11px !important; }
+  .zone-pitch-mix-strip { grid-template-columns:1fr !important; padding:0 12px 10px !important; }
+  .zone-scout-summary { padding:0 12px 12px !important; }
+
+  /* Keep all wide data tables usable instead of clipping the page. */
+  .table-wrapper, .stats-table-wrapper, .signal-table-wrapper, .full-edge-table-wrapper,
+  .orientation-audit-wrapper, .compare-table-wrap { overflow-x:auto !important; -webkit-overflow-scrolling:touch; }
+  table { max-width:none; }
+
+  .command-center-core-layout, .command-side-stack, .command-center-grid,
+  .game-center-grid, .slate-games-grid, .top12-carousel, .backtest-kpi-grid,
+  .compare-control-grid, .compare-card-grid, .weather-lab-grid {
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  .command-logo-core { min-width:0 !important; }
+  .modal-overlay, .zone-modal-overlay { padding:8px !important; }
+  .modal-card, .zone-modal-card, .compare-modal-card { width:100% !important; max-width:100% !important; }
+}
+
+@media (max-width: 420px) {
+  body { padding:7px !important; }
+  .nav-tabs { grid-template-columns:1fr 1fr !important; }
+  .zone-cell { min-height:64px !important; padding:5px !important; }
+  .zone-cell-main { font-size:14px !important; }
+  .zone-card-footer { grid-template-columns:1fr !important; }
+}
+</style>
+
 </head>
 <body>
 
