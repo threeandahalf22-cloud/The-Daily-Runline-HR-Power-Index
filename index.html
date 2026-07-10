@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line HR Power Index - HR Only Pitch Lab + Zone Profile</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
 --bg-main: #060c16;
@@ -1216,6 +1217,21 @@ tbody tr.cody-diamond-row:hover td {
   #tab-home th.weather-col, #tab-home .weather-cell { width: 205px; }
   .espn-badge-row, #tab-home .why-row-sentence { max-width: 500px; }
 }
+
+
+
+/* LIVE SLATE PUBLISHER */
+.live-publish-panel{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) auto;gap:10px;align-items:center;width:100%;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.live-publish-input{background:#050b14;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:9px;padding:11px 12px;font-size:12px;min-width:0}
+.live-publish-btn{border:1px solid rgba(225,6,0,.48);background:linear-gradient(135deg,#e10600,#a90000);color:#fff;border-radius:9px;padding:11px 15px;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.65px;cursor:pointer;white-space:nowrap}
+.live-publish-btn.secondary{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.13);color:#dbeafe}
+.live-publish-btn:disabled{opacity:.5;cursor:not-allowed}
+.live-publish-status{grid-column:1/-1;text-align:left;font-size:10px;font-weight:800;color:#94a3b8;min-height:14px}
+.live-slate-badge{display:inline-flex;align-items:center;gap:7px;margin-left:10px;padding:5px 9px;border-radius:999px;border:1px solid rgba(34,197,94,.28);background:rgba(34,197,94,.08);color:#86efac;font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:.6px}
+.live-slate-badge.offline{border-color:rgba(148,163,184,.25);background:rgba(148,163,184,.07);color:#94a3b8}
+.live-update-toast{display:none;position:fixed;right:18px;bottom:18px;z-index:2147483600;background:#080d15;border:1px solid rgba(225,6,0,.5);border-radius:12px;padding:13px 15px;box-shadow:0 18px 44px rgba(0,0,0,.5);color:#fff;font-size:12px;font-weight:900}
+.live-update-toast.show{display:flex;align-items:center;gap:12px}
+@media(max-width:760px){.live-publish-panel{grid-template-columns:1fr}.live-publish-status{grid-column:1}.live-publish-btn{width:100%}}
 
 </style>
 
@@ -8079,7 +8095,16 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
     <span>⬆</span> Choose Workbook
   </label>
   <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
+  <div class="live-publish-panel" id="livePublishPanel">
+    <input class="live-publish-input" id="liveAdminEmail" type="email" value="cmitchell303@gmail.com" autocomplete="email" aria-label="Admin email">
+    <input class="live-publish-input" id="liveAdminPassword" type="password" placeholder="Supabase admin password" autocomplete="current-password" aria-label="Admin password">
+    <button class="live-publish-btn secondary" id="liveLoginBtn" type="button" onclick="liveSlateSignIn()">Admin Login</button>
+    <button class="live-publish-btn" id="livePublishBtn" type="button" onclick="publishLiveSlate()" disabled>🔴 Publish Live Slate</button>
+    <button class="live-publish-btn secondary" id="liveLogoutBtn" type="button" onclick="liveSlateSignOut()" style="display:none">Log Out</button>
+    <div class="live-publish-status" id="livePublishStatus">Shared slate connection is not configured yet.</div>
+  </div>
 </div>
+<div class="live-update-toast" id="liveUpdateToast"><span>🔴 New slate available</span><button class="live-publish-btn" type="button" onclick="reloadLatestLiveSlate()">Refresh</button></div>
 
 <div class="dashboard-grid">
 <div class="home-sidebar-stack">
@@ -9614,12 +9639,161 @@ const sizeClass = size === 'lg' ? 'player-headshot-lg' : 'player-headshot';
 const style = team ? ` style="${teamVisualStyle(team)}"` : '';
 return `<img class="${sizeClass}" src="${url}" alt="${playerName}"${style} onerror="this.style.display='none'">`;
 }
-window.addEventListener('DOMContentLoaded', () => {
-loadCachedData();
+
+/* ========================= LIVE SHARED SLATE (SUPABASE) ========================= */
+const DRL_SUPABASE_URL = 'https://fgditxwtppcmzgezgvun.supabase.co';
+const DRL_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_COrEVU2pb2Wa784ql7q1_w_iawkJoC8';
+const DRL_SLATE_BUCKET = 'daily-slates';
+const DRL_LATEST_SLATE_PATH = 'latest-slate.json';
+const DRL_BUILD_VERSION = '51.44-live';
+let drlSupabase = null;
+let drlLoadedPublishedAt = '';
+let drlLivePollTimer = null;
+
+function liveSlateConfigured(){
+  return DRL_SUPABASE_PUBLISHABLE_KEY && !DRL_SUPABASE_PUBLISHABLE_KEY.includes('PASTE_YOUR');
+}
+function setLivePublishStatus(message, tone='muted'){
+  const el=document.getElementById('livePublishStatus');
+  if(!el) return;
+  el.textContent=message;
+  el.style.color=tone==='good'?'#86efac':tone==='bad'?'#fca5a5':tone==='warn'?'#fde68a':'#94a3b8';
+}
+function getLiveSlateCacheData(){
+  return { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, pitchEVMap, pitchWinMap, pitchBagMap, onlyHomersData, onlyHomersProfiles, batterPitchMaps, zoneBMap, zonePMap, batTrackingMaps, pitcherTeamMap };
+}
+function buildLiveSlatePackage(){
+  if(!Array.isArray(playerData) || !playerData.length) throw new Error('Upload today\'s workbook before publishing.');
+  const now=new Date();
+  return {
+    schemaVersion:1,
+    buildVersion:DRL_BUILD_VERSION,
+    publishedAt:now.toISOString(),
+    slateDate:now.toISOString().slice(0,10),
+    publisher:'cmitchell303@gmail.com',
+    cacheData:getLiveSlateCacheData()
+  };
+}
+function validateLiveSlatePackage(pkg){
+  if(!pkg || pkg.schemaVersion!==1 || !pkg.cacheData || !Array.isArray(pkg.cacheData.playerData)) throw new Error('Published slate file is invalid.');
+  return pkg;
+}
+function applyLiveSlatePackage(pkg){
+  validateLiveSlatePackage(pkg);
+  localStorage.setItem('bbiDashboardCache',JSON.stringify(pkg.cacheData));
+  drlLoadedPublishedAt=pkg.publishedAt||'';
+  loadCachedData();
+  const when=pkg.publishedAt?new Date(pkg.publishedAt).toLocaleString():'Unknown time';
+  setLivePublishStatus(`Live slate loaded • ${when} • ${pkg.buildVersion||'current build'}`,'good');
+  const title=document.getElementById('uploadFileName');
+  if(title) title.innerHTML=`Today’s published slate <span class="live-slate-badge">LIVE • ${when}</span>`;
+}
+function publicLiveSlateUrl(path=DRL_LATEST_SLATE_PATH){
+  return `${DRL_SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(DRL_SLATE_BUCKET)}/${path.split('/').map(encodeURIComponent).join('/')}`;
+}
+async function fetchLatestLiveSlate({apply=true,silent=false}={}){
+  try{
+    const response=await fetch(`${publicLiveSlateUrl()}?v=${Date.now()}`,{cache:'no-store'});
+    if(!response.ok){ if(response.status===404) return false; throw new Error(`Live slate download failed (${response.status}).`); }
+    const pkg=validateLiveSlatePackage(await response.json());
+    if(apply) applyLiveSlatePackage(pkg);
+    return pkg;
+  }catch(err){
+    if(!silent) setLivePublishStatus(err.message||'Could not load shared slate.','warn');
+    return false;
+  }
+}
+async function initializeLiveSlate(){
+  if(liveSlateConfigured() && window.supabase){
+    drlSupabase=window.supabase.createClient(DRL_SUPABASE_URL,DRL_SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+    const {data}=await drlSupabase.auth.getSession();
+    updateLiveAdminUI(data&&data.session?data.session:null);
+  } else {
+    setLivePublishStatus('Paste the Supabase publishable key into the HTML to enable login and publishing.','warn');
+  }
+  const loaded=await fetchLatestLiveSlate({apply:true,silent:true});
+  if(!loaded){ loadCachedData(); if(!playerData.length) setLivePublishStatus(liveSlateConfigured()?'No live slate has been published yet.':'No live slate loaded; local upload still works.','muted'); }
+  if(liveSlateConfigured()) drlLivePollTimer=setInterval(checkForNewLiveSlate,60000);
+}
+function updateLiveAdminUI(session){
+  const signed=!!session;
+  const pub=document.getElementById('livePublishBtn'), login=document.getElementById('liveLoginBtn'), logout=document.getElementById('liveLogoutBtn');
+  if(pub) pub.disabled=!signed;
+  if(login) login.style.display=signed?'none':'';
+  if(logout) logout.style.display=signed?'':'none';
+  if(signed) setLivePublishStatus(`Admin signed in as ${session.user.email}. Upload a workbook, review it, then publish.`,'good');
+}
+async function liveSlateSignIn(){
+  if(!drlSupabase){ setLivePublishStatus('Supabase publishable key is not configured.','bad'); return; }
+  const email=(document.getElementById('liveAdminEmail')?.value||'').trim();
+  const password=document.getElementById('liveAdminPassword')?.value||'';
+  const btn=document.getElementById('liveLoginBtn');
+  try{
+    if(btn) btn.disabled=true;
+    setLivePublishStatus('Signing in…');
+    const {data,error}=await drlSupabase.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    updateLiveAdminUI(data.session);
+    const pw=document.getElementById('liveAdminPassword'); if(pw) pw.value='';
+  }catch(err){ setLivePublishStatus(`Login failed: ${err.message}`,'bad'); }
+  finally{ if(btn) btn.disabled=false; }
+}
+async function liveSlateSignOut(){
+  if(!drlSupabase) return;
+  await drlSupabase.auth.signOut();
+  updateLiveAdminUI(null);
+  setLivePublishStatus('Admin logged out. Public viewing remains active.');
+}
+async function publishLiveSlate(){
+  if(!drlSupabase){ setLivePublishStatus('Supabase is not configured.','bad'); return; }
+  const btn=document.getElementById('livePublishBtn');
+  try{
+    if(btn) btn.disabled=true;
+    setLivePublishStatus('Preparing the processed slate…');
+    saveCachedData();
+    const pkg=buildLiveSlatePackage();
+    const json=JSON.stringify(pkg);
+    const sizeMB=new Blob([json]).size/1024/1024;
+    if(sizeMB>45) throw new Error(`Published slate is ${sizeMB.toFixed(1)} MB, which is too large for the current bucket limit.`);
+    const latestBlob=new Blob([json],{type:'application/json'});
+    setLivePublishStatus(`Publishing ${sizeMB.toFixed(2)} MB live slate…`);
+    const {error}=await drlSupabase.storage.from(DRL_SLATE_BUCKET).upload(DRL_LATEST_SLATE_PATH,latestBlob,{contentType:'application/json',cacheControl:'60',upsert:true});
+    if(error) throw error;
+    const archivePath=`archive/${pkg.slateDate}-${pkg.publishedAt.replace(/[:.]/g,'-')}.json`;
+    const archiveBlob=new Blob([json],{type:'application/json'});
+    const archiveResult=await drlSupabase.storage.from(DRL_SLATE_BUCKET).upload(archivePath,archiveBlob,{contentType:'application/json',cacheControl:'3600',upsert:false});
+    if(archiveResult.error) console.warn('Archive copy was not saved:',archiveResult.error);
+    drlLoadedPublishedAt=pkg.publishedAt;
+    setLivePublishStatus(`✓ Live • ${new Date(pkg.publishedAt).toLocaleString()} • ${sizeMB.toFixed(2)} MB`,'good');
+    const title=document.getElementById('uploadFileName');
+    if(title) title.innerHTML=`Today’s published slate <span class="live-slate-badge">LIVE</span>`;
+  }catch(err){
+    console.error('Live slate publish failed:',err);
+    setLivePublishStatus(`Publish failed: ${err.message}`,'bad');
+  }finally{
+    const {data}=drlSupabase?await drlSupabase.auth.getSession():{data:{session:null}};
+    if(btn) btn.disabled=!(data&&data.session);
+  }
+}
+async function checkForNewLiveSlate(){
+  if(document.hidden) return;
+  const pkg=await fetchLatestLiveSlate({apply:false,silent:true});
+  if(pkg && pkg.publishedAt && drlLoadedPublishedAt && pkg.publishedAt!==drlLoadedPublishedAt){
+    document.getElementById('liveUpdateToast')?.classList.add('show');
+  }
+}
+async function reloadLatestLiveSlate(){
+  document.getElementById('liveUpdateToast')?.classList.remove('show');
+  await fetchLatestLiveSlate({apply:true,silent:false});
+}
+/* ======================= END LIVE SHARED SLATE ======================= */
+
+window.addEventListener('DOMContentLoaded', async () => {
 updateDateDisplay();
 setInterval(updateCountdown, 1000);
 setInterval(() => { if (gameMatchups && gameMatchups.length) refreshOpenWeatherAndRerender(); }, 10 * 60 * 1000);
 document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalDirect(); });
+await initializeLiveSlate();
 });
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
 function normalizeName(s) {
