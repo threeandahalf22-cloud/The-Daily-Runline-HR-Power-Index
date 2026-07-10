@@ -9641,11 +9641,12 @@ return `<img class="${sizeClass}" src="${url}" alt="${playerName}"${style} onerr
 }
 
 /* ========================= LIVE SHARED SLATE (SUPABASE) ========================= */
-const DRL_SUPABASE_URL = 'https://fgditxwtppcmzgezgvun.supabase.co';
-const DRL_SUPABASE_PUBLISHABLE_KEY = 'PASTE_YOUR_PUBLISHABLE_KEY_HERE';
+const DRL_SUPABASE_URL = "https://fgditxwtppcmzgezgvun.supabase.co";
+
+const DRL_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_COrEVU2pb2Wa784ql7q1_w_iawkJoC8";
 const DRL_SLATE_BUCKET = 'daily-slates';
 const DRL_LATEST_SLATE_PATH = 'latest-slate.json';
-const DRL_BUILD_VERSION = '51.44-live';
+const DRL_BUILD_VERSION = '51.47-live';
 let drlSupabase = null;
 let drlLoadedPublishedAt = '';
 let drlLivePollTimer = null;
@@ -9667,7 +9668,7 @@ function buildLiveSlatePackage(){
   const now=new Date();
   return {
     schemaVersion:1,
-    buildVersion:'51.45-live-circular-fix',
+    buildVersion:'51.47-live-public-load-fix',
     publishedAt:now.toISOString(),
     slateDate:now.toISOString().slice(0,10),
     publisher:'cmitchell303@gmail.com',
@@ -9698,9 +9699,68 @@ function validateLiveSlatePackage(pkg){
 }
 function applyLiveSlatePackage(pkg){
   validateLiveSlatePackage(pkg);
-  localStorage.setItem('bbiDashboardCache',JSON.stringify(pkg.cacheData));
+  const cacheData=pkg.cacheData||{};
+
+  // Restore directly into memory. The full model can exceed localStorage's
+  // small per-origin quota, especially in a fresh Incognito session.
+  playerData = cacheData.playerData || [];
+  vsPitcherData = cacheData.vsPitcherData || {};
+  plDataMap = cacheData.plDataMap || {};
+  lastWeekMap = cacheData.lastWeekMap || {};
+  bullpenData = cacheData.bullpenData || {};
+  gameMatchups = cacheData.gameMatchups || [];
+  weatherSettings = cacheData.weatherSettings || {};
+  teamToGameIdMap = cacheData.teamToGameIdMap || {};
+  teamHomeParkMap = cacheData.teamHomeParkMap || {};
+  parkFactorMap = cacheData.parkFactorMap || {};
+  parkFactorLMap = cacheData.parkFactorLMap || {};
+  parkFactorRMap = cacheData.parkFactorRMap || {};
+  selectedQuickTeamFilter = cacheData.selectedQuickTeamFilter || 'ALL';
+  codysDiamondsData = cacheData.codysDiamondsData || [];
+  longshotData = cacheData.longshotData || [];
+  hrDueData = cacheData.hrDueData || [];
+  playerIdMap = cacheData.playerIdMap || {};
+  pitchTypeMap = cacheData.pitchTypeMap || {};
+  stuffMap = cacheData.stuffMap || {};
+  pitchEVMap = cacheData.pitchEVMap || {};
+  pitchWinMap = cacheData.pitchWinMap || {};
+  pitchBagMap = cacheData.pitchBagMap || {};
+  onlyHomersData = cacheData.onlyHomersData || [];
+  onlyHomersProfiles = cacheData.onlyHomersProfiles || buildOnlyHomersProfiles(onlyHomersData || []);
+  batterPitchMaps = cacheData.batterPitchMaps || { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} };
+  zoneBMap = cacheData.zoneBMap || {};
+  zonePMap = cacheData.zonePMap || {};
+  batTrackingMaps = cacheData.batTrackingMaps || { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
+  pitcherTeamMap = cacheData.pitcherTeamMap || buildPitcherTeamMapFromPlayers(playerData);
+
+  if(playerData.length){
+    const uniqueTeams=getTeamsPlayingToday();
+    renderTodayTeamsFilter(uniqueTeams);
+    ['parlayTeam1','parlayTeam2','parlayTeam3','teamFilter1','teamFilter2'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      el.innerHTML=el.id.startsWith('parlay')?'<option value="">-- Leg Select --</option>':'<option value="ALL">All Teams</option>';
+      uniqueTeams.forEach(t=>{ if(t!=='OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
+    });
+    rebuildTeamLogoDropdown();
+    const graphics=document.getElementById('graphicsPanel');
+    if(graphics) graphics.style.display='block';
+
+    recalculateAllBBIScores();
+    renderFanaticsJackpot();
+    renderAllPitchers();
+    renderHotBatTable();
+    renderH2HFullTable();
+    renderPitchLabTable();
+    renderEdgePanels();
+    renderBestBettingEdges();
+    renderOddsBoard();
+    renderWeatherRankings();
+    updateHeaderStats();
+    updateSlateTicker();
+  }
+
   drlLoadedPublishedAt=pkg.publishedAt||'';
-  loadCachedData();
   const when=pkg.publishedAt?new Date(pkg.publishedAt).toLocaleString():'Unknown time';
   setLivePublishStatus(`Live slate loaded • ${when} • ${pkg.buildVersion||'current build'}`,'good');
   const title=document.getElementById('uploadFileName');
@@ -9768,7 +9828,9 @@ async function publishLiveSlate(){
   try{
     if(btn) btn.disabled=true;
     setLivePublishStatus('Preparing the processed slate…');
-    saveCachedData();
+    // Do not call saveCachedData() here: the runtime model contains circular
+    // convenience references (for example pitchLabProfile.player). The safe
+    // serializer below removes only those back-references for publishing.
     const pkg=buildLiveSlatePackage();
     const json=stringifyLiveSlateSafely(pkg);
     const sizeMB=new Blob([json]).size/1024/1024;
