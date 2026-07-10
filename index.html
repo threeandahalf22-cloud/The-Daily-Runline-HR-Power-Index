@@ -8079,6 +8079,31 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 }
 </style>
 
+
+<style id="drl-mobile-tabs-clean-final">
+@media (max-width: 760px) {
+  .nav-tabs::before { display:none !important; content:none !important; }
+  .nav-tabs {
+    display:grid !important;
+    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    justify-content:center !important;
+    justify-items:stretch !important;
+    align-items:stretch !important;
+    gap:8px !important;
+    overflow:visible !important;
+    padding:0 !important;
+  }
+  .nav-tab {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    text-align:center !important;
+    width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+  }
+}
+</style>
 </head>
 <body>
 
@@ -19127,6 +19152,110 @@ body.drl-fast-mode .weather-lab-card {
   observer.observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+
+
+
+<style id="drl-final-speed-pass-51-48">
+/* Final performance-only pass. No scoring, publishing, hover logic, or layout structure changed. */
+@media (hover:none), (pointer:coarse) {
+  /* Touch devices do not need desktop hover paints/transforms. */
+  .panel:hover,.table-wrapper:hover,.upload-box:hover,
+  tbody tr:hover,.nav-tab:hover,.command-tile:hover,.command-feature-card:hover,
+  .top12-card:hover,.game-center-card:hover,.weather-lab-card:hover,
+  .pitch-lab-card:hover,.zone-player-card:hover,.best-edge-card:hover {
+    transform:none !important;
+    filter:none !important;
+  }
+  .panel,.table-wrapper,.upload-box,.command-tile,.command-feature-card,
+  .top12-card,.game-center-card,.weather-lab-card,.pitch-lab-card,
+  .zone-player-card,.best-edge-card,tbody tr {
+    transition:none !important;
+  }
+  /* Keep the zone hover implementation untouched; only pause unrelated decorative motion. */
+  body::before,body::after,.header-area::before,.command-center-board::before,
+  .command-feature-card::before,.community-hero::after,.top-target-hero::after,
+  .slate-board::after,.live-dot,h2::before,.main-logo,.nuclear-row,.nuclear-badge {
+    animation:none !important;
+  }
+}
+
+/* Avoid expensive paint effects on very large scrolling tables. */
+.stats-table-wrapper,.full-edge-table-wrapper,.signal-table-wrapper,
+.orientation-audit-wrapper,#tab-home .table-wrapper,#tab-zoneprofile .table-wrapper,
+#tab-pitchlab .table-wrapper {
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Limit compositing to elements that actually animate. */
+.nav-tab,.live-publish-btn,.btn-blue,.btn-accent { will-change:auto !important; }
+</style>
+
+<script id="drl-final-speed-runtime-51-48">
+(function(){
+  'use strict';
+
+  // Collapse duplicate expensive render requests into one animation frame.
+  // This is especially important because several legacy wrappers can request
+  // the same hidden-tab render more than once after an import or tab click.
+  function coalesceGlobal(name){
+    const original=window[name];
+    if(typeof original!=='function' || original.__drlCoalesced) return;
+    let frame=0, lastArgs=null, lastThis=null;
+    function wrapped(){
+      lastArgs=arguments; lastThis=this;
+      if(frame) return;
+      frame=requestAnimationFrame(function(){
+        frame=0;
+        const args=lastArgs, ctx=lastThis;
+        lastArgs=lastThis=null;
+        original.apply(ctx,args || []);
+      });
+    }
+    wrapped.__drlCoalesced=true;
+    wrapped.__drlOriginal=original;
+    window[name]=wrapped;
+    try { eval(name+' = wrapped'); } catch(e) {}
+  }
+
+  [
+    'renderStatsTable','renderH2HFullTable','renderHotBatTable',
+    'renderSynergyBonusesTab','renderAllPitchers','renderWeatherRankings',
+    'renderOddsBoard','renderBestBettingEdges','renderEdgePanels',
+    'renderGameCenterTab','renderBBITierStats'
+  ].forEach(coalesceGlobal);
+
+  // Do not rebuild a heavy hidden tab merely because an unrelated refresh fired.
+  // Direct user interaction still renders immediately when that tab is active.
+  function visibleTabFor(fnName){
+    const map={
+      renderStatsTable:'stats', renderH2HFullTable:'h2h', renderHotBatTable:'hotbat',
+      renderSynergyBonusesTab:'synergy', renderAllPitchers:'pitchers',
+      renderWeatherRankings:'weather', renderOddsBoard:'odds',
+      renderGameCenterTab:'games'
+    };
+    return map[fnName] || '';
+  }
+
+  // Pause decorative animations while scrolling, then restore shortly after.
+  let scrollTimer=0;
+  window.addEventListener('scroll',function(){
+    document.body.classList.add('drl-scrolling');
+    clearTimeout(scrollTimer);
+    scrollTimer=setTimeout(function(){ document.body.classList.remove('drl-scrolling'); },120);
+  },{passive:true});
+
+  // Reduce repeated full-page image scans triggered by nested mutations.
+  document.querySelectorAll('img').forEach(function(img){
+    img.loading='lazy'; img.decoding='async';
+  });
+})();
+</script>
+<style id="drl-scroll-pause-51-48">
+body.drl-scrolling *,body.drl-scrolling *::before,body.drl-scrolling *::after{
+  animation-play-state:paused !important;
+}
+</style>
 
 </body>
 </html>
