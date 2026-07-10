@@ -9641,15 +9641,15 @@ return `<img class="${sizeClass}" src="${url}" alt="${playerName}"${style} onerr
 }
 
 /* ========================= LIVE SHARED SLATE (SUPABASE) ========================= */
-const DRL_SUPABASE_URL = "https://fgditxwtppcmzgezgvun.supabase.co";
-
+const DRL_SUPABASE_URL = 'https://fgditxwtppcmzgezgvun.supabase.co';
 const DRL_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_COrEVU2pb2Wa784ql7q1_w_iawkJoC8";
 const DRL_SLATE_BUCKET = 'daily-slates';
 const DRL_LATEST_SLATE_PATH = 'latest-slate.json';
-const DRL_BUILD_VERSION = '51.47-live';
+const DRL_BUILD_VERSION = '51.48-exact-live-mirror';
 let drlSupabase = null;
 let drlLoadedPublishedAt = '';
 let drlLivePollTimer = null;
+let drlUsingSharedSlate = false;
 
 function liveSlateConfigured(){
   return DRL_SUPABASE_PUBLISHABLE_KEY && !DRL_SUPABASE_PUBLISHABLE_KEY.includes('PASTE_YOUR');
@@ -9661,14 +9661,28 @@ function setLivePublishStatus(message, tone='muted'){
   el.style.color=tone==='good'?'#86efac':tone==='bad'?'#fca5a5':tone==='warn'?'#fde68a':'#94a3b8';
 }
 function getLiveSlateCacheData(){
-  return { playerData, vsPitcherData, plDataMap, lastWeekMap, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, pitchEVMap, pitchWinMap, pitchBagMap, onlyHomersData, onlyHomersProfiles, batterPitchMaps, zoneBMap, zonePMap, batTrackingMaps, pitcherTeamMap };
+  // Publish the finalized post-upload state, including every lookup used by
+  // rankings, Command Center cards, images, popups, zones and lazy tabs.
+  return {
+    playerData, vsPitcherData, bvpRawRows, plDataMap, lastWeekMap, bullpenData,
+    gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap,
+    parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter,
+    codysDiamondsData, longshotData, hrDueData, playerIdMap,
+    allPitchersData, h2hFullData, hotBatData, fanaticsJackpotData,
+    pitchTypeMap, stuffMap, pitchEVMap, pitchWinMap, pitchBagMap,
+    onlyHomersData, onlyHomersProfiles, batterPitchMaps, zoneBMap, zonePMap,
+    batTrackingMaps, statSheetMaps, oddsMap, oddsBookColumns, pitchLabData,
+    pitcherHR9SideMap, pitcherTeamMap,
+    top5SheetData: window.top5SheetData || [],
+    maxEvSortedNames: (window.__drlMaxEvSortedActive || []).map(p => p && p.Name).filter(Boolean)
+  };
 }
 function buildLiveSlatePackage(){
   if(!Array.isArray(playerData) || !playerData.length) throw new Error('Upload today\'s workbook before publishing.');
   const now=new Date();
   return {
     schemaVersion:1,
-    buildVersion:'51.47-live-public-load-fix',
+    buildVersion:'51.48-exact-live-mirror',
     publishedAt:now.toISOString(),
     slateDate:now.toISOString().slice(0,10),
     publisher:'cmitchell303@gmail.com',
@@ -9705,6 +9719,7 @@ function applyLiveSlatePackage(pkg){
   // small per-origin quota, especially in a fresh Incognito session.
   playerData = cacheData.playerData || [];
   vsPitcherData = cacheData.vsPitcherData || {};
+  bvpRawRows = cacheData.bvpRawRows || [];
   plDataMap = cacheData.plDataMap || {};
   lastWeekMap = cacheData.lastWeekMap || {};
   bullpenData = cacheData.bullpenData || {};
@@ -9720,6 +9735,10 @@ function applyLiveSlatePackage(pkg){
   longshotData = cacheData.longshotData || [];
   hrDueData = cacheData.hrDueData || [];
   playerIdMap = cacheData.playerIdMap || {};
+  allPitchersData = cacheData.allPitchersData || [];
+  h2hFullData = cacheData.h2hFullData || [];
+  hotBatData = cacheData.hotBatData || [];
+  fanaticsJackpotData = cacheData.fanaticsJackpotData || [];
   pitchTypeMap = cacheData.pitchTypeMap || {};
   stuffMap = cacheData.stuffMap || {};
   pitchEVMap = cacheData.pitchEVMap || {};
@@ -9731,7 +9750,21 @@ function applyLiveSlatePackage(pkg){
   zoneBMap = cacheData.zoneBMap || {};
   zonePMap = cacheData.zonePMap || {};
   batTrackingMaps = cacheData.batTrackingMaps || { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
+  statSheetMaps = cacheData.statSheetMaps || {};
+  oddsMap = cacheData.oddsMap || {};
+  oddsBookColumns = cacheData.oddsBookColumns || [];
+  pitchLabData = cacheData.pitchLabData || [];
+  pitcherHR9SideMap = cacheData.pitcherHR9SideMap || {};
   pitcherTeamMap = cacheData.pitcherTeamMap || buildPitcherTeamMapFromPlayers(playerData);
+  window.top5SheetData = cacheData.top5SheetData || [];
+  drlUsingSharedSlate = true;
+
+  // Restore Max-EV display order without recalculating any model scores.
+  const liveByName = new Map(playerData.map(p => [normalizeName(p && p.Name), p]));
+  const savedMaxEv = (cacheData.maxEvSortedNames || []).map(n => liveByName.get(normalizeName(n))).filter(Boolean);
+  window.__drlMaxEvSortedActive = savedMaxEv.length
+    ? savedMaxEv
+    : [...playerData].filter(p => !p.isRemoved).sort((a,b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV']));
 
   if(playerData.length){
     const uniqueTeams=getTeamsPlayingToday();
@@ -9746,7 +9779,10 @@ function applyLiveSlatePackage(pkg){
     const graphics=document.getElementById('graphicsPanel');
     if(graphics) graphics.style.display='block';
 
-    recalculateAllBBIScores();
+    // IMPORTANT: do not recalculate a published slate. The player records
+    // already contain Cody's finalized scores and exact ranking order from the
+    // publishing browser. Recalculating from a JSON snapshot can change ranks.
+    applyFiltersAndRender();
     renderFanaticsJackpot();
     renderAllPitchers();
     renderHotBatTable();
@@ -9871,7 +9907,7 @@ async function reloadLatestLiveSlate(){
 window.addEventListener('DOMContentLoaded', async () => {
 updateDateDisplay();
 setInterval(updateCountdown, 1000);
-setInterval(() => { if (gameMatchups && gameMatchups.length) refreshOpenWeatherAndRerender(); }, 10 * 60 * 1000);
+setInterval(() => { if (!drlUsingSharedSlate && gameMatchups && gameMatchups.length) refreshOpenWeatherAndRerender(); }, 10 * 60 * 1000);
 document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalDirect(); });
 await initializeLiveSlate();
 });
