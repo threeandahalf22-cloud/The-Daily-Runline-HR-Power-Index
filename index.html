@@ -8566,24 +8566,29 @@ document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'
 const activeTabEl = document.getElementById('tab-' + tabName);
 if (activeTabEl) activeTabEl.classList.add('active');
 if (btn) btn.classList.add('active');
-if (tabName === 'stats') renderStatsTable();
-if (tabName === 'odds') renderOddsBoard();
-if (tabName === 'pitchers') renderAllPitchers();
-if (tabName === 'environment' && window.renderHREnvironmentTable40) window.renderHREnvironmentTable40();
-if (tabName === 'hotbat') renderHotBatTable();
-if (tabName === 'h2h') renderH2HFullTable();
-if (tabName === 'pitchlab') renderPitchLabTable();
-if (tabName === 'zoneprofile') renderZoneProfileTab();
-if (tabName === 'edge') renderEdgePanels();
-if (tabName === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
-if (tabName === 'backtest') {
-  const c = document.getElementById('backtestLabContainer');
-  if (c) c.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">Loading Backtest Lab...</div>`;
-  setTimeout(() => { try { renderBacktestLab(); } catch (err) { console.error('Backtest Lab render failed:', err); const box = document.getElementById('backtestLabContainer'); if (box) box.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;"><b>Backtest Lab error:</b> ${err && err.message ? err.message : err}</div>`; } }, 0);
-}
-if (tabName === 'bbidiagnostics') renderBBIRankDiagnostics();
-if (tabName === 'bucketanalytics') renderBucketAnalytics();
-if (tabName === 'synergy') renderSynergyBonusesTab();
+
+// Paint the selected tab immediately, then do its expensive build on the next frame.
+const run = () => {
+  if (tabName === 'stats') renderStatsTable();
+  if (tabName === 'odds') renderOddsBoard();
+  if (tabName === 'pitchers') renderAllPitchers();
+  if (tabName === 'environment' && window.renderHREnvironmentTable40) window.renderHREnvironmentTable40();
+  if (tabName === 'hotbat') renderHotBatTable();
+  if (tabName === 'h2h') renderH2HFullTable();
+  if (tabName === 'pitchlab') renderPitchLabTable();
+  if (tabName === 'zoneprofile') renderZoneProfileTab();
+  if (tabName === 'edge') renderEdgePanels();
+  if (tabName === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
+  if (tabName === 'backtest') {
+    const c = document.getElementById('backtestLabContainer');
+    if (c) c.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">Loading Backtest Lab...</div>`;
+    setTimeout(() => { try { renderBacktestLab(); } catch (err) { console.error('Backtest Lab render failed:', err); const box = document.getElementById('backtestLabContainer'); if (box) box.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;"><b>Backtest Lab error:</b> ${err && err.message ? err.message : err}</div>`; } }, 0);
+  }
+  if (tabName === 'bbidiagnostics') renderBBIRankDiagnostics();
+  if (tabName === 'bucketanalytics') renderBucketAnalytics();
+  if (tabName === 'synergy') renderSynergyBonusesTab();
+};
+requestAnimationFrame(() => setTimeout(run, 0));
 }
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyvCnCzZrc2yzchVoFU-45mqg6iMkHRYnE8IkC0CsAZEbfCXH5WfJKM5R0E6d4nu9f2yA/exec';
 let communityPicks = {};
@@ -9516,19 +9521,22 @@ async function refreshOpenWeatherForSlate() {
   await Promise.allSettled(requests);
 }
 function refreshAfterLiveWeatherUpdate() {
+  // Performance: recalculate once, then refresh only the visible page.
+  // Hidden tabs are rendered when the user opens them.
   recalculateAllBBIScores();
-  renderFanaticsJackpot();
-  renderAllPitchers();
-  renderHotBatTable();
-  renderH2HFullTable();
-  renderPitchLabTable();
-  renderEdgePanels();
-  renderBestBettingEdges();
-  renderWeatherRankings();
-  renderStadiumOrientationAudit();
+  const active = document.querySelector('.tab-content.active');
+  const tab = active && active.id ? active.id.replace(/^tab-/, '') : 'home';
+  if (tab === 'home') applyFiltersAndRender();
+  else if (tab === 'pitchers') renderAllPitchers();
+  else if (tab === 'hotbat') renderHotBatTable();
+  else if (tab === 'h2h') renderH2HFullTable();
+  else if (tab === 'pitchlab') renderPitchLabTable();
+  else if (tab === 'edge') renderEdgePanels();
+  else if (tab === 'odds') renderOddsBoard();
+  else if (tab === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
+  else if (tab === 'environment' && window.renderHREnvironmentTable40) window.renderHREnvironmentTable40();
   updateHeaderStats();
   updateSlateTicker();
-  renderGameCenterTab();
   saveCachedData();
 }
 function refreshOpenWeatherAndRerender() {
@@ -9999,16 +10007,9 @@ uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}"
 rebuildTeamLogoDropdown();
 document.getElementById('graphicsPanel').style.display = 'block';
 recalculateAllBBIScores();
-renderFanaticsJackpot();
-renderAllPitchers();
-renderHotBatTable();
-renderH2HFullTable();
-renderPitchLabTable();
-renderEdgePanels();
-renderBestBettingEdges();
-renderEdgePanels();
-renderOddsBoard();
-renderWeatherRankings();
+// Performance: only build the visible Home dashboard during cache restore.
+// Every other tab remains fully available and renders on first open.
+applyFiltersAndRender();
 updateHeaderStats();
 updateSlateTicker();
 }
@@ -18790,6 +18791,71 @@ body.performance-lite tbody tr:hover { transform: none !important; }
   window.addEventListener('scroll', removeFloating, true);
   window.addEventListener('resize', removeFloating, {passive:true});
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') removeFloating(); });
+})();
+</script>
+
+
+<style id="drl-performance-patch-51-48">
+/* Keep layout/appearance, but skip layout and paint work for off-screen sections. */
+.tab-content:not(.active) { display:none !important; }
+.tab-content.active .panel,
+.tab-content.active .table-wrapper,
+.tab-content.active .game-center-card,
+.tab-content.active .weather-lab-card,
+.tab-content.active .zone-player-card,
+.tab-content.active .full-edge-table-wrapper {
+  content-visibility:auto;
+  contain-intrinsic-size: 1px 700px;
+}
+img { content-visibility:auto; }
+body.drl-page-hidden *, body.drl-page-hidden *::before, body.drl-page-hidden *::after {
+  animation-play-state: paused !important;
+}
+@media (max-width: 850px) {
+  /* Mobile GPUs struggle with many simultaneous full-page blur layers. */
+  .panel, .upload-box, .controls-bar, .table-wrapper, .spotlight-ticker,
+  .jackpot-section, .pitch-lab-card, .diamond-card, .modal-card {
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+  tbody tr { transition:none !important; }
+}
+</style>
+<script id="drl-performance-runtime-51-48">
+(function(){
+  'use strict';
+  document.addEventListener('visibilitychange', function(){
+    document.body.classList.toggle('drl-page-hidden', document.hidden);
+  }, {passive:true});
+
+  // Decode images asynchronously and avoid loading images far outside the viewport.
+  function tuneImages(root){
+    (root || document).querySelectorAll('img').forEach(function(img){
+      if (!img.hasAttribute('decoding')) img.decoding = 'async';
+      if (!img.hasAttribute('loading')) img.loading = 'lazy';
+    });
+  }
+  tuneImages(document);
+  const imageObserver = new MutationObserver(function(mutations){
+    mutations.forEach(function(m){
+      m.addedNodes.forEach(function(n){ if(n.nodeType===1) tuneImages(n); });
+    });
+  });
+  imageObserver.observe(document.body, {childList:true, subtree:true});
+
+  // Debounce free-text filters so typing does not rebuild hundreds of rows per keystroke.
+  function debounceInput(id, fnName, delay){
+    const el=document.getElementById(id); if(!el) return;
+    let timer=0;
+    el.oninput=null;
+    el.addEventListener('input', function(){
+      clearTimeout(timer);
+      timer=setTimeout(function(){ if(typeof window[fnName]==='function') window[fnName](); }, delay||160);
+    }, {passive:true});
+  }
+  debounceInput('statsSearch','renderStatsTable',180);
+  debounceInput('searchFilter','applyFiltersAndRender',160);
+  debounceInput('h2hSearch','renderH2HFullTable',180);
 })();
 </script>
 
