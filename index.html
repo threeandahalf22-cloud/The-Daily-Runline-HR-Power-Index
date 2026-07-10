@@ -7914,6 +7914,70 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 @media(max-width:430px){ #tab-home .team-logo-dropdown { grid-template-columns:1fr!important; } }
 </style>
 
+
+<style id="v51-37-safe-speed-fix">
+@media (max-width: 850px) {
+  #tab-pitchlab *, #tab-bucketanalytics * { animation: none !important; transition: none !important; }
+  #tab-pitchlab .panel, #tab-pitchlab .table-wrapper, #tab-pitchlab .pitch-lab-card,
+  #tab-bucketanalytics .panel, #tab-bucketanalytics .table-wrapper, #tab-bucketanalytics .bucket-mini-card {
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important;
+  }
+  #tab-pitchlab .pitch-lab-card, #tab-bucketanalytics .bucket-threshold-card {
+    content-visibility: auto; contain-intrinsic-size: 160px;
+  }
+}
+#tab-pitchlab .pitch-lab-card { contain: layout paint style; }
+</style>
+
+
+<style id="zone-performance-mobile-logo-fix">
+/* Zone board performance: skip layout/paint for cards outside the viewport. */
+#tab-zoneprofile .zone-player-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 620px 520px;
+  contain: layout paint style;
+}
+#tab-zoneprofile .zone-grid,
+#tab-zoneprofile .zone-map-panel { contain: layout paint; }
+#tab-zoneprofile .panel,
+#tab-zoneprofile .table-wrapper,
+#tab-zoneprofile .zone-player-card {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+#zoneProfileGrid.zone-rendering { pointer-events: none; }
+@media (max-width: 650px) {
+  body { padding-left: 10px !important; padding-right: 10px !important; overflow-x: hidden; }
+  .header-area { padding-left: 8px !important; padding-right: 8px !important; }
+  .command-logo-core { overflow: visible !important; padding: 14px !important; box-sizing: border-box !important; }
+  .command-core-logo-wrap {
+    width: min(132px, 42vw) !important;
+    height: min(132px, 42vw) !important;
+    max-width: calc(100vw - 70px) !important;
+    max-height: calc(100vw - 70px) !important;
+    overflow: hidden !important;
+    flex: 0 0 auto !important;
+  }
+  .command-core-logo-wrap img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    transform: none !important;
+  }
+  .command-logo-core::before,
+  .command-logo-core::after,
+  .command-core-ring { max-width: calc(100vw - 38px) !important; max-height: calc(100vw - 38px) !important; }
+  #tab-zoneprofile .zone-player-card { contain-intrinsic-size: 720px 520px; }
+}
+@media (prefers-reduced-motion: reduce), (max-width: 650px) {
+  #tab-zoneprofile *,
+  .command-logo-core::before,
+  .command-logo-core::after,
+  .command-core-ring { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
+}
+</style>
+
 </head>
 <body>
 
@@ -16281,29 +16345,171 @@ function bucketAnalyticsNum(v) {
   const n = Number(v);
   return isFinite(n) ? n : null;
 }
-function migrateSavedBucketAnalyticsPitcherScores() {
-  if (!Array.isArray(bucketAnalyticsHistory) || typeof window.getPitcherDashboardAnalyticsScore !== 'function') return false;
+function bucketAnalyticsRowMatchKey(row) {
+  const player = normalizeName(String((row && (row.Player || row.Name)) || ''));
+  const team = String((row && row.Team) || '').trim().toUpperCase();
+  return `${player}__${team}`;
+}
+function migrateSavedBucketAnalyticsComponentScores() {
+  if (!Array.isArray(bucketAnalyticsHistory)) return false;
   let changed = false;
-  bucketAnalyticsHistory.forEach(slate => {
+
+  const normalizeSlateDate = value => {
+    const text = String(value || '').trim();
+    if (!text) return '';
+    const d = new Date(text);
+    return isNaN(d.getTime()) ? text : d.toISOString().slice(0, 10);
+  };
+  const sourcePlayerKey = row => bucketAnalyticsRowMatchKey(row);
+  const sourcePitcherKey = row => normalizeName(String((row && row.Opposing_Pitcher) || ''));
+
+  // Index every frozen finalized row several ways. Older Bucket Analytics saves did not
+  // always preserve the exact same slate id, so exact-slate matching alone is not enough.
+  const sourceBySlate = new Map();
+  const sourceByDatePlayer = new Map();
+  const sourceByPlayer = new Map();
+  (Array.isArray(backtestHistory) ? backtestHistory : []).forEach(slate => {
+    const slateMap = new Map();
     (slate && Array.isArray(slate.rows) ? slate.rows : []).forEach(row => {
-      const pitcherName = String(row.Opposing_Pitcher || '').trim();
-      if (!pitcherName) return;
-      const exactPitchersTabScore = bucketAnalyticsNum(window.getPitcherDashboardAnalyticsScore(pitcherName));
-      if (exactPitchersTabScore === null) return;
-      const previous = bucketAnalyticsNum(row.Pitcher_Score);
-      if (previous === null || Math.abs(previous - exactPitchersTabScore) > 0.0001) {
-        row.Pitcher_Score = exactPitchersTabScore;
-        row.Pitcher_Tab_Score = exactPitchersTabScore;
+      const playerKey = sourcePlayerKey(row);
+      if (playerKey) slateMap.set(playerKey, row);
+      const dateKey = normalizeSlateDate(row.Finalized_At || row.Date || (slate && slate.finalizedAt));
+      if (playerKey && dateKey) sourceByDatePlayer.set(`${dateKey}__${playerKey}`, row);
+      if (playerKey) sourceByPlayer.set(playerKey, row);
+    });
+    if (slate && slate.slateId) sourceBySlate.set(String(slate.slateId), slateMap);
+  });
+
+  // Current uploaded slate lookup. This lets old saved rows be rebuilt from the actual
+  // live Pitch Lab/Pitchers-tab objects after the workbook has loaded.
+  const livePlayerByKey = new Map();
+  const livePlayerByName = new Map();
+  (Array.isArray(playerData) ? playerData : []).forEach(player => {
+    const key = bucketAnalyticsRowMatchKey({ Player: player.Name, Team: player.Team });
+    const nameKey = normalizeName(String(player.Name || ''));
+    if (key) livePlayerByKey.set(key, player);
+    if (nameKey) livePlayerByName.set(nameKey, player);
+  });
+
+  bucketAnalyticsHistory.forEach(slate => {
+    const exactSlateMap = sourceBySlate.get(String((slate && slate.slateId) || '')) || null;
+    const slateDate = normalizeSlateDate((slate && slate.finalizedAt) || '');
+    (slate && Array.isArray(slate.rows) ? slate.rows : []).forEach(row => {
+      const playerKey = sourcePlayerKey(row);
+      const source =
+        (exactSlateMap && exactSlateMap.get(playerKey)) ||
+        sourceByDatePlayer.get(`${normalizeSlateDate(row.Finalized_At || row.Date || slateDate)}__${playerKey}`) ||
+        sourceByPlayer.get(playerKey) ||
+        null;
+      const livePlayer = livePlayerByKey.get(playerKey) || livePlayerByName.get(normalizeName(String(row.Player || row.Name || ''))) || null;
+
+      // Preserve/fill the opponent pitcher name first because it is required to rebuild
+      // the exact Pitchers-tab HR Damage card score.
+      const pitcherName = String(
+        row.Opposing_Pitcher ||
+        (source && source.Opposing_Pitcher) ||
+        (livePlayer && safeGet(livePlayer, 'Opp Pitcher', 'Opposing Pitcher', 'Opp Pitcher Name', 'Pitcher Facing')) ||
+        ''
+      ).trim();
+      if (pitcherName && row.Opposing_Pitcher !== pitcherName) {
+        row.Opposing_Pitcher = pitcherName;
         changed = true;
+      }
+
+      // Rebuild Pitch Lab from the full page score. Never prefer Category_PitchLab here.
+      let exactPitchLabScore = livePlayer ? bucketAnalyticsNum(livePlayer.pitchLabProfile && livePlayer.pitchLabProfile.score) : null;
+      if (exactPitchLabScore === null) exactPitchLabScore = bucketAnalyticsNum(source && source.PitchLab_Score);
+      if (exactPitchLabScore !== null) {
+        const previous = bucketAnalyticsNum(row.PitchLab_Score);
+        if (previous === null || Math.abs(previous - exactPitchLabScore) > 0.0001) {
+          row.PitchLab_Score = exactPitchLabScore;
+          changed = true;
+        }
+      }
+
+      // STRICT PITCHER REBUILD:
+      // Always calculate from the same PitcherL/R + PitcherBBL/BBR formula used by the
+      // large HR Damage number on the Pitchers tab. Do not trust an old saved 40-59 value.
+      let exactPitcherScore = null;
+      if (pitcherName && typeof window.getPitcherDashboardAnalyticsScore === 'function') {
+        exactPitcherScore = bucketAnalyticsNum(window.getPitcherDashboardAnalyticsScore(pitcherName));
+      }
+      if (exactPitcherScore === null) exactPitcherScore = bucketAnalyticsNum(source && source.Pitcher_Tab_Score);
+      if (exactPitcherScore !== null) {
+        const previous = bucketAnalyticsNum(row.Pitcher_Score);
+        if (previous === null || Math.abs(previous - exactPitcherScore) > 0.0001) {
+          row.Pitcher_Score = exactPitcherScore;
+          row.Pitcher_Tab_Score = exactPitcherScore;
+          changed = true;
+        }
       }
     });
   });
-  if (changed) saveBucketAnalyticsHistory().catch(err => console.warn('Pitcher analytics history migration save failed', err));
+
+  if (changed) saveBucketAnalyticsHistory().catch(err => console.warn('Bucket Analytics history migration save failed', err));
   return changed;
 }
+let bucketAnalyticsResolvedCache = null;
+let bucketAnalyticsResolvedCacheKey = '';
+function clearBucketAnalyticsResolvedCache() {
+  bucketAnalyticsResolvedCache = null;
+  bucketAnalyticsResolvedCacheKey = '';
+}
+function resolveBucketAnalyticsLivePitcherScore(row) {
+  const rowPlayer = normalizeName(String((row && (row.Player || row.Name)) || ''));
+  const rowTeam = String((row && row.Team) || '').trim().toUpperCase();
+  let livePlayer = null;
+  if (rowPlayer && Array.isArray(playerData)) {
+    livePlayer = playerData.find(p => {
+      const sameName = normalizeName(String((p && p.Name) || '')) === rowPlayer;
+      if (!sameName) return false;
+      const pTeam = String((p && p.Team) || '').trim().toUpperCase();
+      return !rowTeam || !pTeam || pTeam === rowTeam;
+    }) || playerData.find(p => normalizeName(String((p && p.Name) || '')) === rowPlayer) || null;
+  }
+  const pitcherName = String(
+    (livePlayer && safeGet(livePlayer, 'Opp Pitcher', 'Opposing Pitcher', 'Opp Pitcher Name', 'Pitcher Facing')) ||
+    (row && row.Opposing_Pitcher) || ''
+  ).trim();
+  if (!pitcherName || typeof window.getPitcherDashboardAnalyticsScore !== 'function') return null;
+  return bucketAnalyticsNum(window.getPitcherDashboardAnalyticsScore(pitcherName));
+}
+function resolveBucketAnalyticsLivePitchLabScore(row) {
+  const rowPlayer = normalizeName(String((row && (row.Player || row.Name)) || ''));
+  if (!rowPlayer || !Array.isArray(playerData)) return null;
+  const rowTeam = String((row && row.Team) || '').trim().toUpperCase();
+  const livePlayer = playerData.find(p => {
+    const sameName = normalizeName(String((p && p.Name) || '')) === rowPlayer;
+    if (!sameName) return false;
+    const pTeam = String((p && p.Team) || '').trim().toUpperCase();
+    return !rowTeam || !pTeam || pTeam === rowTeam;
+  }) || playerData.find(p => normalizeName(String((p && p.Name) || '')) === rowPlayer) || null;
+  if (!livePlayer) return null;
+  let profile = livePlayer.pitchLabProfile || null;
+  if (!profile && typeof buildPitchLabProfile === 'function') {
+    try { profile = buildPitchLabProfile(livePlayer); } catch (e) { profile = null; }
+  }
+  return bucketAnalyticsNum(profile && profile.score);
+}
 function bucketAnalyticsRows() {
-  migrateSavedBucketAnalyticsPitcherScores();
-  return (bucketAnalyticsHistory || []).flatMap(s => (s.rows || []).map(r => ({ ...r, _slateId: s.slateId, _finalizedAt: s.finalizedAt })));
+  const historyCount = (bucketAnalyticsHistory || []).reduce((sum, slate) => sum + ((slate && slate.rows && slate.rows.length) || 0), 0);
+  const liveCount = Array.isArray(playerData) ? playerData.length : 0;
+  const cacheKey = `${historyCount}|${liveCount}|${(bucketAnalyticsHistory || []).length}`;
+  if (bucketAnalyticsResolvedCache && bucketAnalyticsResolvedCacheKey === cacheKey) return bucketAnalyticsResolvedCache;
+  const rows = (bucketAnalyticsHistory || []).flatMap(slate => (slate.rows || []).map(sourceRow => {
+    const row = { ...sourceRow, _slateId: slate.slateId, _finalizedAt: slate.finalizedAt };
+    const livePitcherScore = resolveBucketAnalyticsLivePitcherScore(row);
+    if (livePitcherScore !== null) {
+      row.Pitcher_Score = livePitcherScore;
+      row.Pitcher_Tab_Score = livePitcherScore;
+    }
+    const livePitchLabScore = resolveBucketAnalyticsLivePitchLabScore(row);
+    if (livePitchLabScore !== null) row.PitchLab_Score = livePitchLabScore;
+    return row;
+  }));
+  bucketAnalyticsResolvedCache = rows;
+  bucketAnalyticsResolvedCacheKey = cacheKey;
+  return rows;
 }
 function bucketAnalyticsSnapshotRow(row) {
   return {
@@ -16317,7 +16523,10 @@ function bucketAnalyticsSnapshotRow(row) {
     Rank: bucketAnalyticsNum(row.Rank),
     HR_Result: bucketAnalyticsNum(row.HR_Result) === 1 ? 1 : 0,
     BBI: bucketAnalyticsNum(row.BBI),
-    PitchLab_Score: bucketAnalyticsNum(row.Category_PitchLab),
+    // Use the full Pitch Lab page score, not the compressed Category_PitchLab bucket value.
+    PitchLab_Score: bucketAnalyticsNum(row.PitchLab_Score) !== null
+      ? bucketAnalyticsNum(row.PitchLab_Score)
+      : bucketAnalyticsNum(row.Category_PitchLab),
     AttackZone_Score: bucketAnalyticsNum(row.Category_AttackZone),
     // Bucket Analytics must use the same handedness-specific HR Damage score shown on the Pitchers tab.
     // Category_Pitcher is retained only as a legacy fallback for older finalized rows.
@@ -16335,12 +16544,13 @@ async function appendBucketAnalyticsSlate(rows, slateId, finalizedAt, bombCount)
     bucketAnalyticsHistory.push({
       slateId,
       finalizedAt,
-      version: 'bucket_analytics_v1_clean_slate',
+      version: 'bucket_analytics_v1_clean_slate_real_data_ref_fix',
       playerCount: cleanRows.length,
       hrCount: Number(bombCount || 0),
       rows: cleanRows
     });
     await saveBucketAnalyticsHistory();
+    clearBucketAnalyticsResolvedCache();
   } catch (err) {
     console.error('Bucket Analytics save failed:', err);
   }
@@ -16952,7 +17162,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
 
   function pitcherRowFromSheet(sheetKey, name) {
     const norm = (typeof normalizeName === 'function') ? normalizeName(name) : String(name||'').toLowerCase().trim();
-    return (window.statSheetMaps && statSheetMaps[sheetKey] && statSheetMaps[sheetKey][norm]) ? statSheetMaps[sheetKey][norm] : {};
+    return (statSheetMaps && statSheetMaps[sheetKey] && statSheetMaps[sheetKey][norm]) ? statSheetMaps[sheetKey][norm] : {};
   }
   function numFromRow(row, keys, fallback=0) {
     const v = get(row || {}, keys, '');
@@ -16990,6 +17200,10 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
   window.getPitcherDashboardAnalyticsScore = function(name) {
     const pitcherName = String(name || '').trim();
     if (!pitcherName) return null;
+    const norm = (typeof normalizeName === 'function') ? normalizeName(pitcherName) : pitcherName.toLowerCase();
+    const hasLoadedPitcherData = ['PITCHER','PITCHERL','PITCHERR','PITCHERBB','PITCHERBBL','PITCHERBBR']
+      .some(key => statSheetMaps && statSheetMaps[key] && statSheetMaps[key][norm]);
+    if (!hasLoadedPitcherData) return null;
     const st = collectPitcherStats(pitcherName);
     if (!st) return null;
     const leftRisk = Number(st.lRisk);
@@ -17858,6 +18072,206 @@ body.performance-lite tbody tr:hover { transform: none !important; }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startObserver);
     else startObserver();
   } catch(e) {}
+})();
+</script>
+
+
+<script id="bucket-analytics-strict-rebuild-hook">
+(function(){
+  function rebuildBucketAnalyticsFromLoadedData(){
+    try {
+      if (typeof clearBucketAnalyticsResolvedCache === 'function') clearBucketAnalyticsResolvedCache();
+      const tab = document.getElementById('tab-bucketanalytics');
+      if (tab && tab.classList.contains('active') && typeof renderBucketAnalytics === 'function') {
+        renderBucketAnalytics();
+      }
+    } catch (err) {
+      console.warn('Bucket Analytics strict history rebuild failed', err);
+    }
+  }
+  window.rebuildBucketAnalyticsFromLoadedData = rebuildBucketAnalyticsFromLoadedData;
+  document.addEventListener('change', function(event){
+    if (event && event.target && event.target.type === 'file') {
+      setTimeout(rebuildBucketAnalyticsFromLoadedData, 1400);
+    }
+  }, true);
+  window.addEventListener('load', function(){ setTimeout(rebuildBucketAnalyticsFromLoadedData, 500); });
+})();
+</script>
+
+<script id="zone-performance-fix-script">
+(function(){
+  'use strict';
+  const profileCache = new WeakMap();
+  let zoneRenderToken = 0;
+  let zoneRenderTimer = 0;
+  let filterSignature = '';
+  let rankCacheSource = null;
+  let rankCacheSignature = '';
+  let rankCacheMap = Object.create(null);
+
+  function getProfile(player) {
+    if (!player || typeof player !== 'object') return null;
+    if (player.attackZoneProfile && Array.isArray(player.attackZoneProfile.zones)) {
+      profileCache.set(player, player.attackZoneProfile);
+      return player.attackZoneProfile;
+    }
+    if (profileCache.has(player)) return profileCache.get(player);
+    const profile = calculateAttackZoneProfile(player);
+    profileCache.set(player, profile);
+    player.attackZoneProfile = profile;
+    player.calculatedAttackZoneScore = profile && profile.score != null ? profile.score : null;
+    player.attackZoneSummary = profile && profile.summary ? profile.summary : '';
+    return profile;
+  }
+
+  function getRankMap(list) {
+    const sig = (list || []).map(p => `${normalizeName(p && p.Name)}:${cleanNumber(p && p.calculatedBBI)}`).join('|');
+    if (rankCacheSource === list && rankCacheSignature === sig) return rankCacheMap;
+    const ranked = [...(list || [])].sort((a,b)=>cleanNumber(b.calculatedBBI)-cleanNumber(a.calculatedBBI));
+    const map = Object.create(null);
+    ranked.forEach((p,i)=>{ map[normalizeName(p.Name)] = i + 1; });
+    rankCacheSource = list;
+    rankCacheSignature = sig;
+    rankCacheMap = map;
+    return map;
+  }
+
+  function populateFiltersOnce(base) {
+    const teams = [...new Set((base || []).map(p => String(p.Team||'').trim()).filter(Boolean))].sort();
+    const pitchers = [...new Set((base || []).map(p => String(safeGet(p,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    const sig = teams.join('\u0001') + '\u0002' + pitchers.join('\u0001');
+    if (sig === filterSignature) return;
+    filterSignature = sig;
+    const teamSel = document.getElementById('zoneTeamFilter');
+    const pitcherSel = document.getElementById('zonePitcherFilter');
+    if (teamSel) {
+      const cur = teamSel.value || 'ALL';
+      teamSel.innerHTML = '<option value="ALL">All Teams</option>' + teams.map(x=>`<option value="${zoneProfileEscape(x)}">${zoneProfileEscape(x)}</option>`).join('');
+      teamSel.value = teams.includes(cur) ? cur : 'ALL';
+    }
+    if (pitcherSel) {
+      const cur = pitcherSel.value || 'ALL';
+      pitcherSel.innerHTML = '<option value="ALL">All Pitchers</option>' + pitchers.map(x=>`<option value="${zoneProfileEscape(x)}">${zoneProfileEscape(x)}</option>`).join('');
+      pitcherSel.value = pitchers.includes(cur) ? cur : 'ALL';
+    }
+  }
+
+  function cardHtml(item, idx, rankMap, view) {
+    const p = item.player, profile = item.profile;
+    const displayProfile = zoneProfileDisplayProfile(profile, view);
+    const zones = zoneProfileOrderedZones(displayProfile);
+    const top = displayProfile && displayProfile.topZone ? displayProfile.topZone : null;
+    const pitcher = String(safeGet(p,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || 'Opp Starter').trim();
+    const hand = String(safeGet(p,'Bats','Bat Side','Hand') || '-').toUpperCase().slice(0,1);
+    const rank = rankMap[normalizeName(p.Name)] || '-';
+    const zoneScore = displayProfile && displayProfile.score != null ? Math.round(displayProfile.score) : '--';
+    const topText = top ? `Z${top.zone}` : '--';
+    const topEdge = top ? Math.round(Number(top.edge)||0) : '--';
+    const topUse = top ? zoneProfileFmtPct(top.pitchPct) : '--';
+    const summary = displayProfile && displayProfile.summary ? displayProfile.summary : 'No BZ/PZ zone data found.';
+    const topZoneNum = top ? top.zone : null;
+    return `<div class="zone-player-card" style="${teamVisualStyle(p.Team || '')}">
+      <div class="zone-card-top">
+        ${createHeadshotHtml(p.Name,'sm',p.Team)}
+        <div style="min-width:0;"><div class="zone-player-name" title="${zoneProfileEscape(p.Name)}">${zoneProfileEscape(p.Name)}</div><div class="zone-player-meta">#${rank} // ${zoneProfileEscape(p.Team || '-')} // ${hand} // vs ${zoneProfileEscape(pitcher)}</div></div>
+        <div class="zone-score-badge"><div class="zone-score-label">${zoneProfileEscape(zoneBucketLabel(view))} Score</div><div class="zone-score-value">${zoneScore}</div></div>
+      </div>
+      ${zonePitchMixHtml(profile && profile.mix, view)}
+      <div class="zone-card-body">
+        <div class="zone-map-panel"><div class="zone-map-title">${zoneProfileEscape(zoneBucketLabel(view))} Attack Map <span>Edge</span></div>${renderZoneMap(zones, 'edge', idx, topZoneNum)}</div>
+        <div class="zone-map-panel"><div class="zone-map-title">Pitcher Tendency Map <span>Usage</span></div>${renderZoneMap(zones, 'pitcher', idx, topZoneNum)}</div>
+      </div>
+      <div class="zone-card-footer">
+        <div class="zone-mini-stat"><div class="zone-mini-label">Best Zone</div><div class="zone-mini-value hot">${topText}</div></div>
+        <div class="zone-mini-stat"><div class="zone-mini-label">Top Edge</div><div class="zone-mini-value gold">${topEdge}</div></div>
+        <div class="zone-mini-stat"><div class="zone-mini-label">Pitcher Use</div><div class="zone-mini-value blue">${topUse}</div></div>
+      </div>
+      <div class="zone-scout-summary">${zoneProfileEscape(summary)}</div>
+    </div>`;
+  }
+
+  window.scheduleZoneProfileRender = function(delay) {
+    clearTimeout(zoneRenderTimer);
+    zoneRenderTimer = setTimeout(() => {
+      if (window.requestAnimationFrame) requestAnimationFrame(() => window.renderZoneProfileTab());
+      else window.renderZoneProfileTab();
+    }, Math.max(0, Number(delay) || 0));
+  };
+
+  window.setZoneProfileView = function(view) {
+    const v = String(view || 'WEIGHTED').toUpperCase();
+    window.zoneProfileView = ['WEIGHTED','FB','BR','OS'].includes(v) ? v : 'WEIGHTED';
+    document.querySelectorAll('.zone-view-btn').forEach(btn => btn.classList.toggle('active', String(btn.dataset.zoneView || '').toUpperCase() === window.zoneProfileView));
+    window.scheduleZoneProfileRender(0);
+  };
+
+  window.renderZoneProfileTab = function() {
+    const grid = document.getElementById('zoneProfileGrid');
+    if (!grid) return;
+    const token = ++zoneRenderToken;
+    const all = playerData || [];
+    const base = all.filter(p => !p.isRemoved);
+    populateFiltersOnce(base);
+    const search = (document.getElementById('zoneSearch')?.value || '').toLowerCase().trim();
+    const team = document.getElementById('zoneTeamFilter')?.value || 'ALL';
+    const pitcherFilter = document.getElementById('zonePitcherFilter')?.value || 'ALL';
+    const sort = document.getElementById('zoneSortFilter')?.value || 'RANK';
+    const view = String(window.zoneProfileView || 'WEIGHTED').toUpperCase();
+    const rankMap = getRankMap(all);
+
+    let players = base;
+    if (search) players = players.filter(p => String(p.Name||'').toLowerCase().includes(search));
+    if (team !== 'ALL') players = players.filter(p => String(p.Team||'') === team);
+    if (pitcherFilter !== 'ALL') players = players.filter(p => String(safeGet(p,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '').trim() === pitcherFilter);
+
+    let data = players.map(p => ({ player:p, profile:getProfile(p) }));
+    data.sort((a,b) => {
+      const ap = zoneProfileDisplayProfile(a.profile, view), bp = zoneProfileDisplayProfile(b.profile, view);
+      const at = ap && ap.topZone ? ap.topZone : {}, bt = bp && bp.topZone ? bp.topZone : {};
+      if (sort === 'ZONE') return (Number(bp && bp.score) || -1) - (Number(ap && ap.score) || -1);
+      if (sort === 'TOPEDGE') return (Number(bt.edge) || -1) - (Number(at.edge) || -1);
+      if (sort === 'USAGE') return (Number(bt.pitchPct) || -1) - (Number(at.pitchPct) || -1);
+      if (sort === 'ALPHA') return String(a.player.Name||'').localeCompare(String(b.player.Name||''));
+      return (rankMap[normalizeName(a.player.Name)] || 9999) - (rankMap[normalizeName(b.player.Name)] || 9999);
+    });
+    window.zoneProfileModalData = data;
+    document.querySelectorAll('.zone-view-btn').forEach(btn => btn.classList.toggle('active', String(btn.dataset.zoneView || '').toUpperCase() === view));
+    const pill = document.getElementById('zoneSummaryPill');
+    if (pill) {
+      const withData = data.reduce((n,x)=>n + (x.profile && x.profile.zones && x.profile.zones.length ? 1 : 0), 0);
+      pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(view)}</b> &nbsp; Formula: <b>Pitch Mix Weighted</b>`;
+    }
+    if (!data.length) { grid.classList.remove('zone-rendering'); grid.innerHTML = '<div class="zone-empty">No players match the current Zone Profile filters.</div>'; return; }
+
+    grid.classList.add('zone-rendering');
+    grid.innerHTML = '';
+    const chunkSize = window.matchMedia && window.matchMedia('(max-width: 650px)').matches ? 12 : 30;
+    let pos = 0;
+    function appendChunk(deadline) {
+      if (token !== zoneRenderToken) return;
+      const end = Math.min(pos + chunkSize, data.length);
+      let html = '';
+      for (; pos < end; pos++) html += cardHtml(data[pos], pos, rankMap, view);
+      grid.insertAdjacentHTML('beforeend', html);
+      if (pos < data.length) {
+        if ('requestIdleCallback' in window) requestIdleCallback(appendChunk, {timeout: 80});
+        else setTimeout(appendChunk, 0);
+      } else {
+        grid.classList.remove('zone-rendering');
+      }
+    }
+    appendChunk();
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const search = document.getElementById('zoneSearch');
+    const team = document.getElementById('zoneTeamFilter');
+    const pitcher = document.getElementById('zonePitcherFilter');
+    const sort = document.getElementById('zoneSortFilter');
+    if (search) { search.removeAttribute('oninput'); search.addEventListener('input', ()=>window.scheduleZoneProfileRender(120), {passive:true}); }
+    [team,pitcher,sort].forEach(el => { if (el) { el.removeAttribute('onchange'); el.addEventListener('change', ()=>window.scheduleZoneProfileRender(0), {passive:true}); } });
+  });
 })();
 </script>
 
