@@ -18275,5 +18275,262 @@ body.performance-lite tbody tr:hover { transform: none !important; }
 })();
 </script>
 
+
+<style id="playerCommandCenterStyles">
+#playerModal.modal-overlay{padding:12px!important;align-items:center!important;overflow:hidden!important;background:rgba(0,0,0,.86)!important}
+#playerModal .modal-card{width:min(97vw,1680px)!important;max-width:none!important;height:94vh!important;max-height:94vh!important;display:grid!important;grid-template-columns:300px minmax(0,1fr)!important;overflow:hidden!important;border-radius:18px!important;border:1px solid rgba(225,6,0,.55)!important;border-top:4px solid #e10600!important;background:#090d12!important}
+#playerModal .modal-left{width:auto!important;min-width:0!important;height:100%!important;padding:28px 22px!important;overflow-y:auto!important;background:linear-gradient(180deg,#080b0f,#0d1117)!important;border-right:1px solid rgba(255,255,255,.10)!important;position:relative!important}
+#playerModal .modal-right{padding:0!important;overflow-y:auto!important;display:block!important;background:#101419!important}
+#playerModal .modal-close{position:fixed!important;top:22px!important;right:24px!important;z-index:2147483646!important;width:38px!important;height:38px!important;background:#1a1f26!important;border-color:rgba(255,255,255,.16)!important;color:#fff!important}
+#playerModal .modal-headshot{width:128px!important;height:128px!important}
+#playerModal .modal-player-name{font-size:25px!important;margin-top:4px!important}
+#playerModal .modal-bbi-display{margin-top:8px!important;background:rgba(225,6,0,.10)!important;border-color:rgba(225,6,0,.45)!important}
+#playerModal .modal-bbi-value{color:#fff!important;text-shadow:none!important}
+#playerModal #modalWheelHome{margin-top:14px}
+.player-command-center{min-height:100%;padding:24px 26px 40px}
+.pcc-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:4px 48px 18px 0;border-bottom:1px solid rgba(255,255,255,.10);margin-bottom:18px}
+.pcc-kicker{font-size:11px;font-weight:1000;letter-spacing:1.6px;text-transform:uppercase;color:#e10600}
+.pcc-title{font-size:25px;font-weight:1000;color:#fff;margin-top:4px}.pcc-sub{font-size:12px;color:#94a3b8;margin-top:5px;font-weight:700}
+.pcc-score-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.pcc-score-chip{min-width:100px;padding:10px 12px;border-radius:12px;background:#090d12;border:1px solid rgba(255,255,255,.09);text-align:center}.pcc-score-chip span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#7f8b9d;font-weight:900}.pcc-score-chip b{display:block;font-family:monospace;font-size:23px;color:#fff;margin-top:3px}.pcc-score-chip.hot b{color:#e10600}
+.pcc-primary-grid{display:grid;grid-template-columns:minmax(440px,1.05fr) minmax(500px,1.35fr);gap:18px;align-items:start}
+.pcc-panel{background:#0b0f14;border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:17px;box-shadow:0 12px 30px rgba(0,0,0,.22)}
+.pcc-panel-title{display:flex;justify-content:space-between;gap:12px;align-items:center;padding-bottom:11px;margin-bottom:13px;border-bottom:1px solid rgba(255,255,255,.09);font-size:13px;font-weight:1000;text-transform:uppercase;letter-spacing:1px;color:#fff}.pcc-panel-title small{font-size:10px;color:#718096;text-transform:none;letter-spacing:0}
+.pcc-zone-toggle{display:flex;gap:6px;flex-wrap:wrap}.pcc-zone-btn{border:1px solid rgba(255,255,255,.10);background:#111720;color:#9ca3af;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:900;cursor:pointer}.pcc-zone-btn.active{background:#e10600;color:#fff;border-color:#e10600}
+.pcc-zone-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:520px;margin:0 auto}.pcc-zone-cell{aspect-ratio:1/1;min-height:105px;border-radius:12px;border:1px solid rgba(255,255,255,.12);padding:10px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}.pcc-zone-cell.best{outline:2px solid #facc15;box-shadow:0 0 20px rgba(250,204,21,.20)}.pcc-zone-num{font-size:10px;font-weight:1000;color:rgba(255,255,255,.70)}.pcc-zone-main{font-family:monospace;font-size:31px;font-weight:1000;color:#fff;text-align:center}.pcc-zone-label{font-size:9px;color:#d1d5db;text-align:center;text-transform:uppercase;font-weight:900}.pcc-zone-edge{font-size:9px;color:#facc15;text-align:center;margin-top:3px}.pcc-empty{padding:32px;text-align:center;color:#6b7280;font-style:italic}
+.pcc-pitch-table{width:100%;border-collapse:separate;border-spacing:0 7px}.pcc-pitch-table th{padding:0 9px 5px;background:transparent;border:0;text-align:left;font-size:9px;color:#667085}.pcc-pitch-table td{padding:10px 9px;background:#10151c;border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);font-size:11px}.pcc-pitch-table td:first-child{border-left:1px solid rgba(255,255,255,.07);border-radius:9px 0 0 9px}.pcc-pitch-table td:last-child{border-right:1px solid rgba(255,255,255,.07);border-radius:0 9px 9px 0}.pcc-pitch-name{font-weight:1000;color:#fff}.pcc-edge{font-family:monospace;font-size:18px;font-weight:1000;color:#e10600}.pcc-mini-bar{height:6px;border-radius:999px;background:#222936;overflow:hidden;margin-top:4px}.pcc-mini-bar i{display:block;height:100%;background:#e10600;border-radius:999px}
+.pcc-damage-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.pcc-damage-card{background:#10151c;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}.pcc-damage-card span{display:block;font-size:9px;text-transform:uppercase;color:#748094;font-weight:900}.pcc-damage-card b{display:block;font-family:monospace;font-size:21px;color:#fff;margin-top:5px}.pcc-damage-card.danger b{color:#ef4444}.pcc-split-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.pcc-split{background:#10151c;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}.pcc-split h4{margin:0 0 8px;font-size:10px;text-transform:uppercase;color:#d1d5db}.pcc-split-line{display:flex;justify-content:space-between;padding:5px 0;font-size:11px;color:#8893a4;border-bottom:1px solid rgba(255,255,255,.05)}.pcc-split-line:last-child{border-bottom:0}.pcc-split-line b{color:#fff;font-family:monospace}
+.pcc-full-breakdown{margin-top:18px}.pcc-full-breakdown>.pcc-panel{padding:18px}.pcc-full-breakdown .modal-section-title{margin-top:8px}.pcc-full-breakdown .modal-stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1180px){#playerModal .modal-card{grid-template-columns:245px minmax(0,1fr)!important}.pcc-primary-grid{grid-template-columns:1fr}.pcc-zone-grid{max-width:600px}.pcc-damage-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){#playerModal.modal-overlay{padding:0!important;align-items:stretch!important}#playerModal .modal-card{width:100vw!important;height:100vh!important;max-height:none!important;border-radius:0!important;display:block!important;overflow-y:auto!important}#playerModal .modal-left{height:auto!important;border-right:0!important;border-bottom:1px solid rgba(255,255,255,.1)!important;padding:18px!important}#playerModal .modal-headshot{width:88px!important;height:88px!important}#playerModal #modalWheelHome{display:none!important}#playerModal .modal-right{overflow:visible!important}.player-command-center{padding:18px 12px 34px}.pcc-hero{grid-template-columns:1fr;padding-right:40px}.pcc-score-row{justify-content:flex-start}.pcc-primary-grid{grid-template-columns:1fr}.pcc-zone-cell{min-height:82px;padding:7px}.pcc-zone-main{font-size:24px}.pcc-damage-grid{grid-template-columns:1fr 1fr}.pcc-split-wrap{grid-template-columns:1fr}.pcc-full-breakdown .modal-stats-grid{grid-template-columns:1fr 1fr}}
+</style>
+<script id="playerCommandCenterScript">
+(function(){
+  const legacyOpen = window.openPlayerModal;
+  const escPcc = v => String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const nPcc = v => { const n=Number(v); return Number.isFinite(n)?n:null; };
+  const pctPcc = v => { const n=nPcc(v); if(n===null)return '--'; return `${(Math.abs(n)<=1?n*100:n).toFixed(1)}%`; };
+  const valPcc = (row, keys) => { try { return safeGet(row||{}, ...keys); } catch(e){ for(const k of keys){ if(row && row[k]!==undefined && row[k]!==null && row[k]!== '') return row[k]; } return null; } };
+  function pccScore(player, keys, fallback='--', digits=0){
+    for(const k of keys){ const n=nPcc(player && player[k]); if(n!==null) return n.toFixed(digits); }
+    return fallback;
+  }
+  function pccZoneHeat(v){ const n=Math.max(0,Math.min(100,Number(v)||0)); if(n>=70)return 'linear-gradient(135deg,#e10600,#6d0000)'; if(n>=55)return 'linear-gradient(135deg,#9c160f,#2a2020)'; if(n>=42)return 'linear-gradient(135deg,#343942,#15191f)'; return 'linear-gradient(135deg,#1e4f9a,#101c35)'; }
+  function renderPccZone(player, view){
+    let profile=null;
+    try { profile=calculateAttackZoneProfile(player); } catch(e){}
+    let shown=profile;
+    const v=String(view||'WEIGHTED').toUpperCase();
+    if(profile && v!=='WEIGHTED') shown=profile.bucketProfiles && profile.bucketProfiles[v] ? profile.bucketProfiles[v] : null;
+    const zones=shown && Array.isArray(shown.zones) ? shown.zones : [];
+    if(!zones.length) return '<div class="pcc-empty">No batter zone profile data loaded for this player.</div>';
+    const byZone={}; zones.forEach(z=>byZone[z.zone]=z);
+    const ordered=[1,2,3,4,5,6,7,8,9].map(i=>byZone[i]||{zone:i,missing:true});
+    let top=null; ordered.forEach(z=>{ if(!z.missing && (!top || Number(z.batterDamage)>Number(top.batterDamage))) top=z; });
+    return `<div class="pcc-zone-grid">${ordered.map(z=>{
+      if(z.missing) return `<div class="pcc-zone-cell" style="background:#141920"><div class="pcc-zone-num">Z${z.zone}</div><div class="pcc-zone-main">--</div><div class="pcc-zone-label">No Data</div></div>`;
+      const batter=Number(z.batterDamage)||0, edge=Number(z.edge)||0;
+      return `<div class="pcc-zone-cell ${top&&Number(top.zone)===Number(z.zone)?'best':''}" style="background:${pccZoneHeat(batter)}"><div class="pcc-zone-num">Z${z.zone}</div><div class="pcc-zone-main">${Math.round(batter)}</div><div><div class="pcc-zone-label">Batter HR Damage</div><div class="pcc-zone-edge">Matchup Edge ${Math.round(edge)} · Use ${pctPcc(z.pitchPct)}</div></div></div>`;
+    }).join('')}</div>`;
+  }
+  function renderPccPitchLab(player){
+    let p=null; try { p=buildPitchLabProfile(player); } catch(e){}
+    if(!p || !Array.isArray(p.rows) || !p.rows.length) return '<div class="pcc-empty">No Pitch Lab arsenal data loaded.</div>';
+    return `<table class="pcc-pitch-table"><thead><tr><th>Pitch</th><th>Usage</th><th>Hitter Damage</th><th>Pitcher Weakness</th><th>Stuff Weakness</th><th>Edge</th></tr></thead><tbody>${p.rows.slice(0,8).map(r=>`<tr><td><div class="pcc-pitch-name">${escPcc(r.label||r.key)}</div></td><td>${pctPcc(r.usage)}<div class="pcc-mini-bar"><i style="width:${Math.max(0,Math.min(100,(Number(r.usage)||0)*100))}%"></i></div></td><td>${Math.round(Number(r.bat&&r.bat.score)||0)}</td><td>${Math.round(Number(r.pitcherDamage&&r.pitcherDamage.score)||0)}</td><td>${Math.round(Number(r.stuffWeakness)||0)}</td><td class="pcc-edge">${Math.round(Number(r.edge)||0)}</td></tr>`).join('')}</tbody></table>`;
+  }
+  function pitcherRowsPcc(name){
+    const getRow = key => { try { return lookupStat(key,name)||{}; } catch(e){ const norm=typeof normalizeName==='function'?normalizeName(name):String(name).toLowerCase(); return window.statSheetMaps&&statSheetMaps[key]&&statSheetMaps[key][norm]||{}; } };
+    return {overall:getRow('PITCHER'),left:getRow('PITCHERL'),right:getRow('PITCHERR'),bb:getRow('PITCHERBB'),bbl:getRow('PITCHERBBL'),bbr:getRow('PITCHERBBR')};
+  }
+  function firstPcc(rows, keys){ for(const row of rows){ const v=valPcc(row,keys); if(v!==null&&v!==undefined&&v!=='') return v; } return null; }
+  function renderPccPitcher(player){
+    const name=String(valPcc(player,['Opp Pitcher','Opp Pitcher Name','Pitcher'])||'Starter');
+    const r=pitcherRowsPcc(name);
+    let damage=null; try { damage=window.getPitcherDashboardAnalyticsScore?window.getPitcherDashboardAnalyticsScore(name):null; } catch(e){}
+    const barrel=firstPcc([r.bb,r.overall],['Barrel %','Barrel%','Barrel Allowed','Barrel % Allowed']);
+    const hard=firstPcc([r.bb,r.overall],['Hard Hit %','HardHit%','Hard Hit Allowed','Hard Hit % Allowed']);
+    const ev=firstPcc([r.bb,r.overall],['Avg EV','Average EV','EV Allowed','EV']);
+    const ev90=firstPcc([r.bb,r.overall],['EV90','90th EV','EV 90']);
+    const maxev=firstPcc([r.bb,r.overall],['Max EV','Maximum EV']);
+    const lhr9=firstPcc([r.left,r.overall],['HR/9','HR9','HR/9 vs LHB','HR/9 vs L']);
+    const rhr9=firstPcc([r.right,r.overall],['HR/9','HR9','HR/9 vs RHB','HR/9 vs R']);
+    const lhrfb=firstPcc([r.bbl,r.left],['HR/FB%','HR/FB %','HR/FB']);
+    const rhrfb=firstPcc([r.bbr,r.right],['HR/FB%','HR/FB %','HR/FB']);
+    const lfb=firstPcc([r.bbl,r.left],['FB%','FB %','Fly Ball %']);
+    const rfb=firstPcc([r.bbr,r.right],['FB%','FB %','Fly Ball %']);
+    const card=(label,value,cls='')=>`<div class="pcc-damage-card ${cls}"><span>${label}</span><b>${value}</b></div>`;
+    return `<div class="pcc-damage-grid">${card('HR Damage',damage!==null&&Number.isFinite(Number(damage))?Number(damage).toFixed(0):'--','danger')}${card('Barrel Allowed',pctPcc(barrel))}${card('Hard Hit Allowed',pctPcc(hard))}${card('Average EV',nPcc(ev)!==null?Number(ev).toFixed(1):'--')}${card('EV90',nPcc(ev90)!==null?Number(ev90).toFixed(1):'--')}${card('Max EV',nPcc(maxev)!==null?Number(maxev).toFixed(1):'--')}${card('Pitcher',escPcc(name))}${card('Hitter Side',escPcc(String(valPcc(player,['Bats','Hand'])||'R').toUpperCase()))}</div><div class="pcc-split-wrap"><div class="pcc-split"><h4>vs Left-Handed Batters</h4><div class="pcc-split-line"><span>HR/9</span><b>${nPcc(lhr9)!==null?Number(lhr9).toFixed(2):'--'}</b></div><div class="pcc-split-line"><span>HR/FB</span><b>${pctPcc(lhrfb)}</b></div><div class="pcc-split-line"><span>Fly Ball %</span><b>${pctPcc(lfb)}</b></div></div><div class="pcc-split"><h4>vs Right-Handed Batters</h4><div class="pcc-split-line"><span>HR/9</span><b>${nPcc(rhr9)!==null?Number(rhr9).toFixed(2):'--'}</b></div><div class="pcc-split-line"><span>HR/FB</span><b>${pctPcc(rhrfb)}</b></div><div class="pcc-split-line"><span>Fly Ball %</span><b>${pctPcc(rfb)}</b></div></div></div>`;
+  }
+  function buildPcc(player, legacyHtml){
+    const pitcher=String(valPcc(player,['Opp Pitcher','Opp Pitcher Name'])||'Starter');
+    const rank=(window.playerData||[]).filter(p=>!p.isRemoved).slice().sort((a,b)=>(Number(b.calculatedBBI)||0)-(Number(a.calculatedBBI)||0)).findIndex(p=>normalizeName(p.Name)===normalizeName(player.Name))+1;
+    let pitchLab=null, zone=null, damage=null;
+    try { pitchLab=buildPitchLabProfile(player); } catch(e){}
+    try { zone=calculateAttackZoneProfile(player); } catch(e){}
+    try { damage=window.getPitcherDashboardAnalyticsScore?window.getPitcherDashboardAnalyticsScore(pitcher):null; } catch(e){}
+    return `<div class="player-command-center"><div class="pcc-hero"><div><div class="pcc-kicker">Player HR Command Center</div><div class="pcc-title">${escPcc(player.Name)}</div><div class="pcc-sub">${escPcc(player.Team||'-')} · vs ${escPcc(pitcher)} · Full homepage scouting report</div></div><div class="pcc-score-row"><div class="pcc-score-chip hot"><span>BBI</span><b>${Number(player.calculatedBBI||0).toFixed(1)}</b></div><div class="pcc-score-chip"><span>Rank</span><b>${rank>0?'#'+rank:'--'}</b></div><div class="pcc-score-chip"><span>Attack Zone</span><b>${zone&&nPcc(zone.score)!==null?Number(zone.score).toFixed(0):pccScore(player,['calculatedAttackZone','attackZoneScore'],'--',0)}</b></div><div class="pcc-score-chip"><span>Pitch Lab</span><b>${pitchLab&&nPcc(pitchLab.score)!==null?Number(pitchLab.score).toFixed(0):'--'}</b></div><div class="pcc-score-chip"><span>Pitcher Damage</span><b>${damage!==null&&Number.isFinite(Number(damage))?Number(damage).toFixed(0):'--'}</b></div></div></div><div class="pcc-primary-grid"><div class="pcc-panel"><div class="pcc-panel-title"><span>🎯 Batter Zone Profile</span><div class="pcc-zone-toggle"><button class="pcc-zone-btn active" data-pcc-zone="WEIGHTED">Weighted</button><button class="pcc-zone-btn" data-pcc-zone="FB">Fastball</button><button class="pcc-zone-btn" data-pcc-zone="BR">Breaking</button><button class="pcc-zone-btn" data-pcc-zone="OS">Offspeed</button></div></div><div id="pccZoneMount">${renderPccZone(player,'WEIGHTED')}</div></div><div class="pcc-panel"><div class="pcc-panel-title"><span>🧪 Pitch Lab · Batter vs Arsenal</span><small>Pitcher usage weighted</small></div>${renderPccPitchLab(player)}</div><div class="pcc-panel" style="grid-column:1/-1"><div class="pcc-panel-title"><span>🎯 Pitcher HR Damage</span><small>Contact quality + handedness splits</small></div>${renderPccPitcher(player)}</div></div><div class="pcc-full-breakdown"><div class="pcc-panel"><div class="pcc-panel-title"><span>📋 Full Player Breakdown</span><small>Existing popup data retained</small></div>${legacyHtml}</div></div></div>`;
+  }
+  function enhancedOpen(player){
+    if(typeof legacyOpen==='function') legacyOpen(player);
+    setTimeout(()=>{
+      try{
+        const box=document.getElementById('modalStatsContainer');
+        if(!box||!player)return;
+        const legacyHtml=box.innerHTML;
+        box.innerHTML=buildPcc(player,legacyHtml);
+        box.querySelectorAll('[data-pcc-zone]').forEach(btn=>btn.addEventListener('click',()=>{
+          box.querySelectorAll('[data-pcc-zone]').forEach(x=>x.classList.toggle('active',x===btn));
+          const mount=document.getElementById('pccZoneMount'); if(mount) mount.innerHTML=renderPccZone(player,btn.dataset.pccZone);
+        }));
+      }catch(e){ console.warn('Player command center render failed safely',e); }
+    },0);
+  }
+  openPlayerModal=enhancedOpen;
+  window.openPlayerModal=enhancedOpen;
+})();
+</script>
+
+
+
+<style id="zone-hover-body-portal-fix">
+/* Body-level zone tooltip: no inherited zone-cell positioning rules. */
+.zone-cell:hover > .zone-hover-card { display:none !important; }
+.zone-hover-floating-card {
+  display:block;
+  position:fixed;
+  width:305px;
+  max-width:calc(100vw - 24px);
+  max-height:calc(100vh - 24px);
+  overflow-y:auto;
+  box-sizing:border-box;
+  z-index:2147483646;
+  pointer-events:none;
+  transform:none;
+  color:#fff;
+  text-align:left;
+  padding:12px;
+  border:1px solid rgba(225,6,0,.48);
+  border-top:3px solid var(--accent, #e10600);
+  border-radius:15px;
+  background:linear-gradient(160deg, rgba(8,8,10,.995), rgba(25,25,28,.995));
+  box-shadow:0 22px 50px rgba(0,0,0,.72), 0 0 28px rgba(225,6,0,.20);
+  isolation:isolate;
+  animation:zoneFloatingPop .12s ease-out;
+}
+.zone-hover-floating-card .zone-hover-title {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:9px;
+}
+.zone-hover-floating-card .zone-hover-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:6px;
+}
+.zone-hover-floating-card .zone-hover-stat {
+  min-width:0;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  border-radius:9px;
+  padding:7px;
+}
+.zone-hover-floating-card .zone-hover-label,
+.zone-hover-floating-card .zone-hover-value {
+  overflow-wrap:anywhere;
+}
+.zone-hover-floating-card::-webkit-scrollbar { width:6px; }
+.zone-hover-floating-card::-webkit-scrollbar-track { background:rgba(255,255,255,.04); }
+.zone-hover-floating-card::-webkit-scrollbar-thumb { background:rgba(225,6,0,.55); border-radius:999px; }
+@keyframes zoneFloatingPop {
+  from { opacity:0; transform:translateY(4px) scale(.98); }
+  to { opacity:1; transform:translateY(0) scale(1); }
+}
+@media (max-width:760px) {
+  .zone-hover-floating-card { display:none !important; }
+}
+</style>
+<script id="zone-hover-body-portal-script">
+(function(){
+  let floating = null;
+  let activeCell = null;
+  let lastX = Math.round(window.innerWidth / 2);
+  let lastY = Math.round(window.innerHeight / 2);
+
+  function removeFloating(){
+    if (floating && floating.parentNode) floating.parentNode.removeChild(floating);
+    floating = null;
+    activeCell = null;
+  }
+
+  function rememberPointer(e){
+    if (Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
+      lastX = e.clientX;
+      lastY = e.clientY;
+    }
+  }
+
+  function placeFloating(card, x, y){
+    const margin = 12;
+    const gap = 16;
+    const vw = document.documentElement.clientWidth || window.innerWidth;
+    const vh = document.documentElement.clientHeight || window.innerHeight;
+
+    card.style.visibility = 'hidden';
+    card.style.left = '-9999px';
+    card.style.top = '-9999px';
+    document.body.appendChild(card);
+
+    const rect = card.getBoundingClientRect();
+    let left = x + gap;
+    let top = y + gap;
+
+    if (left + rect.width > vw - margin) left = x - rect.width - gap;
+    if (top + rect.height > vh - margin) top = y - rect.height - gap;
+
+    left = Math.max(margin, Math.min(left, vw - rect.width - margin));
+    top = Math.max(margin, Math.min(top, vh - rect.height - margin));
+
+    card.style.left = Math.round(left) + 'px';
+    card.style.top = Math.round(top) + 'px';
+    card.style.visibility = 'visible';
+  }
+
+  /* Passive listener only remembers coordinates; it performs no layout work. */
+  document.addEventListener('pointermove', rememberPointer, {passive:true, capture:true});
+
+  document.addEventListener('pointerover', function(e){
+    if (e.pointerType === 'touch') return;
+    rememberPointer(e);
+
+    const cell = e.target.closest && e.target.closest('.zone-cell');
+    if (!cell || cell.classList.contains('missing') || cell === activeCell) return;
+
+    const source = cell.querySelector(':scope > .zone-hover-card');
+    if (!source) return;
+
+    removeFloating();
+    activeCell = cell;
+
+    /* Fresh element prevents old .zone-hover-card left/top/transform rules from leaking in. */
+    floating = document.createElement('div');
+    floating.className = 'zone-hover-floating-card';
+    floating.innerHTML = source.innerHTML;
+    placeFloating(floating, lastX, lastY);
+  }, true);
+
+  document.addEventListener('pointerout', function(e){
+    const cell = e.target.closest && e.target.closest('.zone-cell');
+    if (!cell || cell !== activeCell) return;
+    if (e.relatedTarget && cell.contains(e.relatedTarget)) return;
+    removeFloating();
+  }, true);
+
+  window.addEventListener('scroll', removeFloating, true);
+  window.addEventListener('resize', removeFloating, {passive:true});
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') removeFloating(); });
+})();
+</script>
+
 </body>
 </html>
