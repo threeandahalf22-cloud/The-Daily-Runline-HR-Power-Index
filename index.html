@@ -8084,27 +8084,7 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 <div class="spotlight-title"><span style="display:inline-block; width:8px; height:8px; background:var(--stadium-lights); border-radius:50%;"></span>Top 12 Homerun Targets</div>
 <div id="spotlightCardsGrid" class="spotlight-cards-grid"></div>
 </div>
-<div class="upload-box drl-upload-box">
-  <div class="drl-upload-orb">⚾</div>
-  <div class="drl-upload-copy">
-    <div class="drl-upload-kicker">Daily Runline Data Upload</div>
-    <div class="drl-upload-title" id="uploadFileName">Drop in today’s HR model</div>
-    <div class="drl-upload-sub">BBI scores calculate first. Heavy tabs now build only when opened.</div>
-  </div>
-  <label class="drl-upload-btn" for="excelFile">
-    <span>⬆</span> Choose Workbook
-  </label>
-  <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
-  <div class="live-publish-panel" id="livePublishPanel">
-    <input class="live-publish-input" id="liveAdminEmail" type="email" value="cmitchell303@gmail.com" autocomplete="email" aria-label="Admin email">
-    <input class="live-publish-input" id="liveAdminPassword" type="password" placeholder="Supabase admin password" autocomplete="current-password" aria-label="Admin password">
-    <button class="live-publish-btn secondary" id="liveLoginBtn" type="button" onclick="liveSlateSignIn()">Admin Login</button>
-    <button class="live-publish-btn" id="livePublishBtn" type="button" onclick="publishLiveSlate()" disabled>🔴 Publish Live Slate</button>
-    <button class="live-publish-btn secondary" id="liveLogoutBtn" type="button" onclick="liveSlateSignOut()" style="display:none">Log Out</button>
-    <div class="live-publish-status" id="livePublishStatus">Shared slate connection is not configured yet.</div>
-  </div>
-</div>
-<div class="live-update-toast" id="liveUpdateToast"><span>🔴 New slate available</span><button class="live-publish-btn" type="button" onclick="reloadLatestLiveSlate()">Refresh</button></div>
+
 
 <div class="dashboard-grid">
 <div class="home-sidebar-stack">
@@ -8514,6 +8494,30 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
     </div>
     <div id="bucketAnalyticsContainer"><div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No Bucket Analytics rows yet. Tonight’s next finalized slate will become Day 1 for Pitch Lab, Attack Zone, Pitcher, and Confluence tracking.</div></div>
   </div>
+</div>
+
+<div id="drlBottomUploadArea" style="width:100%;max-width:1440px;margin:56px auto 24px;clear:both;">
+<div class="upload-box drl-upload-box">
+  <div class="drl-upload-orb">⚾</div>
+  <div class="drl-upload-copy">
+    <div class="drl-upload-kicker">Daily Runline Data Upload</div>
+    <div class="drl-upload-title" id="uploadFileName">Drop in today’s HR model</div>
+    <div class="drl-upload-sub">BBI scores calculate first. Heavy tabs now build only when opened.</div>
+  </div>
+  <label class="drl-upload-btn" for="excelFile">
+    <span>⬆</span> Choose Workbook
+  </label>
+  <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
+  <div class="live-publish-panel" id="livePublishPanel">
+    <input class="live-publish-input" id="liveAdminEmail" type="text" inputmode="email" placeholder="Admin email" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" aria-label="Admin email">
+    <input class="live-publish-input" id="liveAdminPassword" type="password" placeholder="Supabase admin password" autocomplete="current-password" aria-label="Admin password">
+    <button class="live-publish-btn secondary" id="liveLoginBtn" type="button" onclick="liveSlateSignIn()">Admin Login</button>
+    <button class="live-publish-btn" id="livePublishBtn" type="button" onclick="publishLiveSlate()" disabled>🔴 Publish Live Slate</button>
+    <button class="live-publish-btn secondary" id="liveLogoutBtn" type="button" onclick="liveSlateSignOut()" style="display:none">Log Out</button>
+    <div class="live-publish-status" id="livePublishStatus">Shared slate connection is not configured yet.</div>
+  </div>
+</div>
+<div class="live-update-toast" id="liveUpdateToast"><span>🔴 New slate available</span><button class="live-publish-btn" type="button" onclick="reloadLatestLiveSlate()">Refresh</button></div>
 </div>
 
 <div id="playerModal" class="modal-overlay" onclick="closeModal(event)">
@@ -10202,6 +10206,17 @@ if (nameClean === 'VSCH') { const rows = sheetToJsonSmart(workbook, sheetName, [
 if (nameClean === 'VSCV') { const rows = sheetToJsonSmart(workbook, sheetName, ['Player']); vsCVRRaw = rows; vsCVLRaw = rows; }
 if (nameClean === 'VSSL') { const rows = sheetToJsonSmart(workbook, sheetName, ['Player']); vsSLRRaw = rows; vsSLLRaw = rows; }
 if (nameClean === 'VSCU') { const rows = sheetToJsonSmart(workbook, sheetName, ['Player']); vsCURRaw = rows; vsCULRaw = rows; }
+// Additional Pitch Lab sheet aliases used by newer workbook exports.
+if (nameClean === 'PITCHFB' || nameClean === 'PITCHFBR' || nameClean === 'VSFB-R') vsFBRRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name']);
+if (nameClean === 'PITCHFBL' || nameClean === 'VSFB-L') vsFBLRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name']);
+if (nameClean === 'PITCHOS' || nameClean === 'PITCHOSR' || nameClean === 'VSOSR') vsCHRRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name']);
+if (nameClean === 'PITCHOSL' || nameClean === 'VSOSL') vsCHLRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name']);
+if (nameClean === 'PITCHBR' || nameClean === 'PITCHBB' || nameClean === 'PITCHBRR' || nameClean === 'VSBRR') {
+  const rows = sheetToJsonSmart(workbook, sheetName, ['Player','Name']); vsSLRRaw = rows; vsCVRRaw = rows; vsCURRaw = rows;
+}
+if (nameClean === 'PITCHBRL' || nameClean === 'VSBRL') {
+  const rows = sheetToJsonSmart(workbook, sheetName, ['Player','Name']); vsSLLRaw = rows; vsCVLRaw = rows; vsCULRaw = rows;
+}
 if (nameClean === 'ZONEB') zoneBMap = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name']));
 if (nameClean === 'ZONEP') zonePMap = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Pitcher','Player','Name']));
 if (['FBL','FBR','BBL','BBR','OSL','OSR'].includes(nameClean)) batTrackingSheetNames[nameClean] = sheetName;
@@ -10947,10 +10962,33 @@ function pitchLabRateScore(value, min, max, fallback=50) {
 }
 function pitchLabReadNumber(row, keys) {
   if (!row) return null;
-  for (const k of keys) {
+  const requested = (keys || []).map(k => String(k || ''));
+  const normalized = v => String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const wantsRate = requested.some(k => /%|percent|rate|barrel|hard.?hit|pull/i.test(k));
+
+  // Exact/alias lookup first.
+  for (const k of requested) {
     const v = safeGet(row, k);
     const n = cleanNumberOrNull(v);
-    if (n !== null && n !== undefined && !isNaN(n)) return n;
+    if (n !== null && n !== undefined && !isNaN(n)) {
+      return wantsRate && Math.abs(n) <= 1 ? n * 100 : n;
+    }
+  }
+
+  // Workbook exports frequently rename headers (Brls/BBE, Brl%, Barrel Rate %, etc.).
+  // Match normalized headers without changing any score weights or data sources.
+  const rowKeys = Object.keys(row || {});
+  const aliases = requested.map(normalized).filter(Boolean);
+  for (const rk of rowKeys) {
+    const nrk = normalized(rk);
+    let match = aliases.includes(nrk) || aliases.some(a => a.length >= 4 && (nrk.includes(a) || a.includes(nrk)));
+    if (!match && requested.some(k => /barrel/i.test(k))) match = /barrel|brls|brl/.test(nrk) && !/count|number|total/.test(nrk);
+    if (!match && requested.some(k => /hard.?hit/i.test(k))) match = /hardhit|hhpercent|hitrate/.test(nrk);
+    if (!match) continue;
+    const n = cleanNumberOrNull(row[rk]);
+    if (n !== null && n !== undefined && !isNaN(n)) {
+      return wantsRate && Math.abs(n) <= 1 ? n * 100 : n;
+    }
   }
   return null;
 }
@@ -11181,6 +11219,21 @@ function getBatterPitchShapeRow(playerName, group, pitcherHand) {
   const handedMap = bucket[hand] || bucket;
   return handedMap[normalizeName(playerName)] || {};
 }
+function getPitchLabOverallFallback(playerName) {
+  const key = normalizeName(playerName);
+  const player = (playerData || []).find(p => normalizeName(p && p.Name) === key) || {};
+  const barrelRow = lookupStat('BARRELL', playerName) || {};
+  const isoRow = lookupStat('ISO', playerName) || {};
+  const ssRow = lookupStat('SS', playerName) || {};
+  const bbe = firstNumber(safeGet(player,'BBE','Batted Ball Events','PA','AB'), safeGet(barrelRow,'BBE','Batted Ball Events','PA','AB'));
+  const barrel = firstNumber(safeGet(player,'Barrel %','Barrel%','Brl%'), safeGet(barrelRow,'Barrel %','Barrel%','Brls/BBE %','Brl%'));
+  const hard = firstNumber(safeGet(player,'Hard Hit %','HardHit%','HH%'), safeGet(barrelRow,'Hard Hit %','HardHit%','HH%'));
+  const xslg = firstNumber(safeGet(player,'xSLG','Expected SLG'), safeGet(isoRow,'xSLG','Expected SLG'));
+  const pull = pitchLabReadRate(player, ['Pull %','Pull%','Pulled %']) ?? pitchLabReadRate(ssRow, ['Pull %','Pull%','Pulled %']);
+  const la = firstNumber(safeGet(player,'Launch Angle','LA','Avg LA'), safeGet(ssRow,'Launch Angle','LA','Avg LA'));
+  const hr = firstNumber(safeGet(player,'HR','Home Runs','Homeruns'), safeGet(isoRow,'HR','Home Runs','Homeruns'), safeGet(barrelRow,'HR','Home Runs','Homeruns'));
+  return { bbe, barrel, hard, xslg, pull, la, hr };
+}
 function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
   const pt = pitchType || { key: group, group };
   const row = getBatterPitchShapeRow(playerName, group, pitcherHand);
@@ -11193,13 +11246,13 @@ function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
   };
 
   if (Object.keys(row).length) {
-    const bbe = pitchLabReadNumber(row, ['BBE','batted_ball_events','PA','AB','Pitches']);
-    const barrel = pitchLabReadNumber(row, ['Barrel %', 'Barrel%', 'barrel_percent', 'Barrel Rate']);
-    const hard = pitchLabReadNumber(row, ['Hard Hit %', 'HardHit%', 'hard_hit_percent', 'HH%']);
-    const xslg = pitchLabReadNumber(row, ['xSLG','est_slg','expected_slg','xslug','Expected SLG']);
-    const pull = pitchLabReadRate(row, ['Pull %','Pull%','pull_percent','Pulled %']);
-    const la = pitchLabReadNumber(row, ['Launch Angle','LA','launch_angle','Avg LA']);
-    const hr = pitchLabReadNumber(row, ['HR', 'Home Runs', 'home_runs']);
+    const bbe = pitchLabReadNumber(row, ['BBE','Batted Ball Events','batted_ball_events','BIP','Balls In Play','PA','AB','Pitches','Total Pitches']);
+    const barrel = pitchLabReadNumber(row, ['Barrel %','Barrel%','Barrels %','Brl%','Brls/BBE %','Barrels/BBE','Barrel Rate','barrel_percent']);
+    const hard = pitchLabReadNumber(row, ['Hard Hit %','HardHit%','Hard Hit%','Hard-Hit %','HH%','hard_hit_percent']);
+    const xslg = pitchLabReadNumber(row, ['xSLG','xSLG vs Pitch','xSLG/BBE','Expected SLG','est_slg','expected_slg','xslug']);
+    const pull = pitchLabReadRate(row, ['Pull %','Pull%','Pulled %','Pulled Air %','Pulled-Air %','pull_percent']);
+    const la = pitchLabReadNumber(row, ['Launch Angle','Launch Angle °','LA','Avg LA','launch_angle']);
+    const hr = pitchLabReadNumber(row, ['HR','Home Runs','Homeruns','HR vs Pitch','home_runs']);
     const hrRate = pitchLabHRRate(hr, bbe);
     const sample = Math.min(1, (bbe || 0) / 35);
 
@@ -11221,13 +11274,34 @@ function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
       note: `Barrel ${barrel ?? '--'}% / HH ${hard ?? '--'}% / xSLG ${xslg ?? '--'} / EV ${ev.value ?? '--'} / Max ${ev.maxValue ?? '--'} / Pull ${pull !== null ? pctFmt(pull) : '--'} / LA ${la ?? '--'} / HR ${hr ?? '--'}`
     };
   } else {
+    const fallback = getPitchLabOverallFallback(playerName);
+    const hrRate = pitchLabHRRate(fallback.hr, fallback.bbe);
     const fallbackDamage = pitchLabScoreWeighted([
-      { value: ev.score, weight: 0.65 },
-      { value: ev.maxScore, weight: 0.35 }
+      { value: pitchLabValueScore(fallback.barrel, 6, 24), weight: 0.24 },
+      { value: pitchLabValueScore(fallback.hard, 34, 64), weight: 0.14 },
+      { value: pitchLabValueScore(fallback.xslg, .320, .820), weight: 0.17 },
+      { value: ev.score, weight: 0.20 },
+      { value: ev.maxScore, weight: 0.10 },
+      { value: pitchLabValueScore(fallback.pull, .34, .56), weight: 0.08 },
+      { value: pitchLabValueScore(fallback.la, 8, 24), weight: 0.03 },
+      { value: pitchLabValueScore(hrRate, .005, .070), weight: 0.04 }
     ], 50);
-    shape.score = fallbackDamage;
-    shape.grade = gradeFromScore(fallbackDamage);
-    shape.note = ev.note;
+    shape = {
+      ...shape,
+      score: fallbackDamage,
+      grade: gradeFromScore(fallbackDamage),
+      bbe: fallback.bbe || 0,
+      barrel: fallback.barrel,
+      hard: fallback.hard,
+      xslg: fallback.xslg,
+      ev: ev.value,
+      maxEV: ev.maxValue,
+      pull: fallback.pull,
+      la: fallback.la,
+      hr: fallback.hr,
+      hrRate,
+      note: `Season fallback // Barrel ${fallback.barrel ?? '--'}% / HH ${fallback.hard ?? '--'}% / xSLG ${fallback.xslg ?? '--'} / EV ${ev.value ?? '--'} / Pull ${fallback.pull !== null && fallback.pull !== undefined ? pctFmt(fallback.pull) : '--'} / LA ${fallback.la ?? '--'} / HR ${fallback.hr ?? '--'}`
+    };
   }
 
   return { ...shape, grade: gradeFromScore(shape.score), shape, ev, note: `${shape.note}` };
@@ -11328,7 +11402,8 @@ function buildPitchLabProfile(player) {
       { value: pitcherDamage.score, weight: 0.29 },
       { value: stuffWeakness, weight: 0.05 }
     ], 50);
-    rows.push({ ...pt, usage, stuff, stuffWeakness, bat, pitcherDamage, edge, usageExposure: Math.max(0, Math.min(100, usage * 200)) });
+    const onlyHomers = pitchHrAffinityScore(player.Name, pitcherName, pt);
+    rows.push({ ...pt, usage, stuff, stuffWeakness, bat, pitcherDamage, onlyHomers, edge, usageExposure: Math.max(0, Math.min(100, usage * 200)) });
   });
 
   if (!rows.length) {
@@ -11336,7 +11411,8 @@ function buildPitchLabProfile(player) {
       const pt = { key:group, label:group, group, usageKeys:[], stuffKeys:[] };
       const bat = batterPitchGrade(player.Name, group, pitcherHand, pt);
       const pitcherDamage = pitcherPitchDamageScore(pitcherName, pt);
-      rows.push({ key:group, label:group, group, usage:0, stuff:100, stuffWeakness:50, usageExposure:0, bat, pitcherDamage, edge: pitchLabScoreWeighted([{ value: bat.score, weight:.70 }, { value: pitcherDamage.score, weight:.30 }], 50) });
+      const onlyHomers = pitchHrAffinityScore(player.Name, pitcherName, pt);
+      rows.push({ key:group, label:group, group, usage:0, stuff:100, stuffWeakness:50, usageExposure:0, bat, pitcherDamage, onlyHomers, edge: pitchLabScoreWeighted([{ value: bat.score, weight:.70 }, { value: pitcherDamage.score, weight:.30 }], 50) });
     });
   }
 
@@ -11802,9 +11878,9 @@ function renderPitchLab10Card(profile, idx) {
     const color = pitchLab10Color(r.key || r.group || r.label);
     const evVal = pitchLab10StatEV(r);
     const fbVal = pitchLab10StatRate(r.bat && r.bat.shape ? r.bat.shape.fb : r.bat ? r.bat.fb : null);
-    const pullVal = pitchLab10StatRate(r.bat && r.bat.shape ? r.bat.shape.pullAir : r.bat ? r.bat.pullAir : null);
+    const pullVal = pitchLab10StatRate(r.bat && r.bat.shape ? r.bat.shape.pull : r.bat ? r.bat.pull : null);
     const barrelVal = (r.bat && r.bat.shape && r.bat.shape.barrel !== null && r.bat.shape.barrel !== undefined && !isNaN(Number(r.bat.shape.barrel))) ? Number(r.bat.shape.barrel).toFixed(1) + '%' : '--';
-    const ohVal = r.onlyHomers && isFinite(r.onlyHomers.score) ? r.onlyHomers.score.toFixed(0) : '--';
+    const ohVal = r.onlyHomers ? ((Number(r.onlyHomers.batterCount)||0) + '/' + (Number(r.onlyHomers.pitcherCount)||0)) : '--';
     const stuff = isFinite(r.stuff) ? Number(r.stuff).toFixed(0) : '--';
     const edge = isFinite(r.edge) ? r.edge.toFixed(0) : '--';
     const usage = pctFmt(r.usage || 0);
@@ -18856,6 +18932,114 @@ body.drl-page-hidden *, body.drl-page-hidden *::before, body.drl-page-hidden *::
   debounceInput('statsSearch','renderStatsTable',180);
   debounceInput('searchFilter','applyFiltersAndRender',160);
   debounceInput('h2hSearch','renderH2HFullTable',180);
+})();
+</script>
+
+
+<style id="drl-aggressive-safe-performance-51-48">
+/* Performance-only overrides: preserve structure, scoring, publishing and controls. */
+body.drl-fast-mode::before,
+body.drl-fast-mode::after,
+body.drl-fast-mode .header-area::before,
+body.drl-fast-mode .command-center-board::before,
+body.drl-fast-mode .command-feature-card::before,
+body.drl-fast-mode .community-hero::after,
+body.drl-fast-mode .top-target-hero::after,
+body.drl-fast-mode .slate-board::after {
+  animation:none !important;
+}
+body.drl-fast-mode .panel,
+body.drl-fast-mode .upload-box,
+body.drl-fast-mode .controls-bar,
+body.drl-fast-mode .table-wrapper,
+body.drl-fast-mode .spotlight-ticker,
+body.drl-fast-mode .jackpot-section,
+body.drl-fast-mode .pitch-lab-card,
+body.drl-fast-mode .diamond-card,
+body.drl-fast-mode .modal-card,
+body.drl-fast-mode .team-logo-dropdown,
+body.drl-fast-mode .modal-overlay,
+body.drl-fast-mode .ai-loading-overlay {
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+body.drl-fast-mode *,
+body.drl-fast-mode *::before,
+body.drl-fast-mode *::after {
+  transition-duration:.08s !important;
+}
+body.drl-fast-mode tbody tr,
+body.drl-fast-mode .nuclear-row,
+body.drl-fast-mode .nuclear-badge,
+body.drl-fast-mode h2::before,
+body.drl-fast-mode .main-logo,
+body.drl-fast-mode .live-dot {
+  animation:none !important;
+}
+body.drl-fast-mode .tab-content.active > *,
+body.drl-fast-mode .pitch-lab-player-card,
+body.drl-fast-mode .zone-player-card,
+body.drl-fast-mode .game-center-card,
+body.drl-fast-mode .weather-lab-card {
+  contain:layout paint style;
+}
+</style>
+<script id="drl-pitchlab-cache-and-speed-51-48">
+(function(){
+  'use strict';
+  document.body.classList.add('drl-fast-mode');
+
+  // Pitch Lab profiles are expensive and were being rebuilt repeatedly by rankings,
+  // Stats, Pitch Lab, modal cards and filters. Cache by player object and matchup.
+  if (typeof buildPitchLabProfile === 'function' && !buildPitchLabProfile.__drlCached) {
+    const originalBuildPitchLabProfile = buildPitchLabProfile;
+    let cache = new WeakMap();
+    const cachedBuild = function(player){
+      if (!player || (typeof player !== 'object' && typeof player !== 'function')) {
+        return originalBuildPitchLabProfile(player);
+      }
+      const pitcher = String(player['Opp Pitcher'] || player['Opp Pitcher Name'] || '');
+      const hand = String(player['Opp Pitcher Throws'] || player['Opp Throws'] || player['Pitcher Throws'] || '');
+      const cacheKey = pitcher + '|' + hand;
+      const hit = cache.get(player);
+      if (hit && hit.key === cacheKey) return hit.value;
+      const value = originalBuildPitchLabProfile(player);
+      cache.set(player, {key:cacheKey, value:value});
+      return value;
+    };
+    cachedBuild.__drlCached = true;
+    cachedBuild.clearCache = function(){ cache = new WeakMap(); };
+    buildPitchLabProfile = cachedBuild;
+    window.buildPitchLabProfile = cachedBuild;
+  }
+
+  // Yield one frame before very large tab renders so the click/navigation paints first.
+  if (typeof renderPitchLabTable === 'function' && !renderPitchLabTable.__drlScheduled) {
+    const originalRenderPitchLabTable = renderPitchLabTable;
+    let raf = 0;
+    const scheduled = function(){
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(function(){ raf = 0; originalRenderPitchLabTable(); });
+    };
+    scheduled.__drlScheduled = true;
+    renderPitchLabTable = scheduled;
+    window.renderPitchLabTable = scheduled;
+  }
+
+  // Stop image observer work after initial application; newly-rendered images are tuned
+  // in small batches instead of repeatedly scanning full subtrees.
+  const tune = function(root){
+    if (!root || root.nodeType !== 1) return;
+    if (root.tagName === 'IMG') { root.loading='lazy'; root.decoding='async'; }
+    const imgs = root.querySelectorAll ? root.querySelectorAll('img') : [];
+    for (let i=0;i<imgs.length;i++){ imgs[i].loading='lazy'; imgs[i].decoding='async'; }
+  };
+  const observer = new MutationObserver(function(mutations){
+    requestAnimationFrame(function(){
+      for (const m of mutations) for (const n of m.addedNodes) tune(n);
+    });
+  });
+  observer.observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 
