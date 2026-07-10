@@ -9644,12 +9644,17 @@ return `<img class="${sizeClass}" src="${url}" alt="${playerName}"${style} onerr
 const DRL_SUPABASE_URL = 'https://fgditxwtppcmzgezgvun.supabase.co';
 const DRL_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_COrEVU2pb2Wa784ql7q1_w_iawkJoC8";
 const DRL_SLATE_BUCKET = 'daily-slates';
-const DRL_LATEST_SLATE_PATH = 'latest-slate.json';
-const DRL_BUILD_VERSION = '51.48-exact-live-mirror';
+const DRL_LATEST_WORKBOOK_PATH = 'latest-workbook.xlsx';
+const DRL_LATEST_META_PATH = 'latest-workbook-meta.json';
+const DRL_WORKBOOK_CHUNK_BYTES = 4 * 1024 * 1024; // 4 MB per Supabase object
+const DRL_BUILD_VERSION = '51.48-workbook-live-mirror';
 let drlSupabase = null;
 let drlLoadedPublishedAt = '';
 let drlLivePollTimer = null;
 let drlUsingSharedSlate = false;
+let drlOriginalWorkbookFile = null;
+let drlLoadingSharedWorkbook = false;
+let drlPendingSharedMeta = null;
 
 function liveSlateConfigured(){
   return DRL_SUPABASE_PUBLISHABLE_KEY && !DRL_SUPABASE_PUBLISHABLE_KEY.includes('PASTE_YOUR');
@@ -9660,160 +9665,92 @@ function setLivePublishStatus(message, tone='muted'){
   el.textContent=message;
   el.style.color=tone==='good'?'#86efac':tone==='bad'?'#fca5a5':tone==='warn'?'#fde68a':'#94a3b8';
 }
-function getLiveSlateCacheData(){
-  // Publish the finalized post-upload state, including every lookup used by
-  // rankings, Command Center cards, images, popups, zones and lazy tabs.
-  return {
-    playerData, vsPitcherData, bvpRawRows, plDataMap, lastWeekMap, bullpenData,
-    gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap,
-    parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter,
-    codysDiamondsData, longshotData, hrDueData, playerIdMap,
-    allPitchersData, h2hFullData, hotBatData, fanaticsJackpotData,
-    pitchTypeMap, stuffMap, pitchEVMap, pitchWinMap, pitchBagMap,
-    onlyHomersData, onlyHomersProfiles, batterPitchMaps, zoneBMap, zonePMap,
-    batTrackingMaps, statSheetMaps, oddsMap, oddsBookColumns, pitchLabData,
-    pitcherHR9SideMap, pitcherTeamMap,
-    top5SheetData: window.top5SheetData || [],
-    maxEvSortedNames: (window.__drlMaxEvSortedActive || []).map(p => p && p.Name).filter(Boolean)
-  };
+function publicLiveSlateUrl(path){
+  return `${DRL_SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(DRL_SLATE_BUCKET)}/${path.split('/').map(encodeURIComponent).join('/')}`;
 }
-function buildLiveSlatePackage(){
-  if(!Array.isArray(playerData) || !playerData.length) throw new Error('Upload today\'s workbook before publishing.');
+function workbookContentType(file){
+  const name=String(file?.name||'').toLowerCase();
+  if(name.endsWith('.csv')) return 'text/csv';
+  if(name.endsWith('.xls')) return 'application/vnd.ms-excel';
+  return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+}
+function workbookExtension(file){
+  const match=String(file?.name||'').toLowerCase().match(/\.(xlsx|xls|csv)$/);
+  return match ? match[1] : 'xlsx';
+}
+function buildWorkbookMeta(file, chunkPaths=[]){
   const now=new Date();
   return {
-    schemaVersion:1,
-    buildVersion:'51.48-exact-live-mirror',
+    schemaVersion:3,
+    publishMode:'chunked-original-workbook',
+    buildVersion:DRL_BUILD_VERSION,
     publishedAt:now.toISOString(),
     slateDate:now.toISOString().slice(0,10),
-    publisher:'cmitchell303@gmail.com',
-    cacheData:getLiveSlateCacheData()
+    originalName:file.name || 'HR Model.xlsx',
+    extension:workbookExtension(file),
+    contentType:workbookContentType(file),
+    size:file.size || 0,
+    chunkSize:DRL_WORKBOOK_CHUNK_BYTES,
+    chunkCount:chunkPaths.length,
+    chunks:chunkPaths,
+    publisher:'cmitchell303@gmail.com'
   };
 }
-
-function stringifyLiveSlateSafely(value){
-  const ancestors=[];
-  return JSON.stringify(value,function(key,current){
-    if(typeof current==='function' || current instanceof Element || current instanceof Window || current instanceof Document) return undefined;
-    if(!current || typeof current!=='object') return current;
-
-    while(ancestors.length && ancestors[ancestors.length-1]!==this) ancestors.pop();
-    if(ancestors.includes(current)){
-      // Runtime convenience links such as pitchLabProfile.player point back to
-      // the containing player record. They are regenerated after loading and
-      // must not be included in the shared JSON package.
-      return undefined;
-    }
-    ancestors.push(current);
-    return current;
-  });
-}
-function validateLiveSlatePackage(pkg){
-  if(!pkg || pkg.schemaVersion!==1 || !pkg.cacheData || !Array.isArray(pkg.cacheData.playerData)) throw new Error('Published slate file is invalid.');
-  return pkg;
-}
-function applyLiveSlatePackage(pkg){
-  validateLiveSlatePackage(pkg);
-  const cacheData=pkg.cacheData||{};
-
-  // Restore directly into memory. The full model can exceed localStorage's
-  // small per-origin quota, especially in a fresh Incognito session.
-  playerData = cacheData.playerData || [];
-  vsPitcherData = cacheData.vsPitcherData || {};
-  bvpRawRows = cacheData.bvpRawRows || [];
-  plDataMap = cacheData.plDataMap || {};
-  lastWeekMap = cacheData.lastWeekMap || {};
-  bullpenData = cacheData.bullpenData || {};
-  gameMatchups = cacheData.gameMatchups || [];
-  weatherSettings = cacheData.weatherSettings || {};
-  teamToGameIdMap = cacheData.teamToGameIdMap || {};
-  teamHomeParkMap = cacheData.teamHomeParkMap || {};
-  parkFactorMap = cacheData.parkFactorMap || {};
-  parkFactorLMap = cacheData.parkFactorLMap || {};
-  parkFactorRMap = cacheData.parkFactorRMap || {};
-  selectedQuickTeamFilter = cacheData.selectedQuickTeamFilter || 'ALL';
-  codysDiamondsData = cacheData.codysDiamondsData || [];
-  longshotData = cacheData.longshotData || [];
-  hrDueData = cacheData.hrDueData || [];
-  playerIdMap = cacheData.playerIdMap || {};
-  allPitchersData = cacheData.allPitchersData || [];
-  h2hFullData = cacheData.h2hFullData || [];
-  hotBatData = cacheData.hotBatData || [];
-  fanaticsJackpotData = cacheData.fanaticsJackpotData || [];
-  pitchTypeMap = cacheData.pitchTypeMap || {};
-  stuffMap = cacheData.stuffMap || {};
-  pitchEVMap = cacheData.pitchEVMap || {};
-  pitchWinMap = cacheData.pitchWinMap || {};
-  pitchBagMap = cacheData.pitchBagMap || {};
-  onlyHomersData = cacheData.onlyHomersData || [];
-  onlyHomersProfiles = cacheData.onlyHomersProfiles || buildOnlyHomersProfiles(onlyHomersData || []);
-  batterPitchMaps = cacheData.batterPitchMaps || { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} };
-  zoneBMap = cacheData.zoneBMap || {};
-  zonePMap = cacheData.zonePMap || {};
-  batTrackingMaps = cacheData.batTrackingMaps || { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
-  statSheetMaps = cacheData.statSheetMaps || {};
-  oddsMap = cacheData.oddsMap || {};
-  oddsBookColumns = cacheData.oddsBookColumns || [];
-  pitchLabData = cacheData.pitchLabData || [];
-  pitcherHR9SideMap = cacheData.pitcherHR9SideMap || {};
-  pitcherTeamMap = cacheData.pitcherTeamMap || buildPitcherTeamMapFromPlayers(playerData);
-  window.top5SheetData = cacheData.top5SheetData || [];
-  drlUsingSharedSlate = true;
-
-  // Restore Max-EV display order without recalculating any model scores.
-  const liveByName = new Map(playerData.map(p => [normalizeName(p && p.Name), p]));
-  const savedMaxEv = (cacheData.maxEvSortedNames || []).map(n => liveByName.get(normalizeName(n))).filter(Boolean);
-  window.__drlMaxEvSortedActive = savedMaxEv.length
-    ? savedMaxEv
-    : [...playerData].filter(p => !p.isRemoved).sort((a,b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV']));
-
-  if(playerData.length){
-    const uniqueTeams=getTeamsPlayingToday();
-    renderTodayTeamsFilter(uniqueTeams);
-    ['parlayTeam1','parlayTeam2','parlayTeam3','teamFilter1','teamFilter2'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(!el) return;
-      el.innerHTML=el.id.startsWith('parlay')?'<option value="">-- Leg Select --</option>':'<option value="ALL">All Teams</option>';
-      uniqueTeams.forEach(t=>{ if(t!=='OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
-    });
-    rebuildTeamLogoDropdown();
-    const graphics=document.getElementById('graphicsPanel');
-    if(graphics) graphics.style.display='block';
-
-    // IMPORTANT: do not recalculate a published slate. The player records
-    // already contain Cody's finalized scores and exact ranking order from the
-    // publishing browser. Recalculating from a JSON snapshot can change ranks.
-    applyFiltersAndRender();
-    renderFanaticsJackpot();
-    renderAllPitchers();
-    renderHotBatTable();
-    renderH2HFullTable();
-    renderPitchLabTable();
-    renderEdgePanels();
-    renderBestBettingEdges();
-    renderOddsBoard();
-    renderWeatherRankings();
-    updateHeaderStats();
-    updateSlateTicker();
+async function fetchLatestWorkbookMeta({silent=false}={}){
+  try{
+    const response=await fetch(`${publicLiveSlateUrl(DRL_LATEST_META_PATH)}?v=${Date.now()}`,{cache:'no-store'});
+    if(!response.ok){ if(response.status===404) return false; throw new Error(`Live slate metadata download failed (${response.status}).`); }
+    const meta=await response.json();
+    if(!meta || ![2,3].includes(meta.schemaVersion) || !meta.publishedAt) throw new Error('Published workbook metadata is invalid.');
+    return meta;
+  }catch(err){
+    if(!silent) setLivePublishStatus(err.message||'Could not read the published slate.','warn');
+    return false;
   }
-
-  drlLoadedPublishedAt=pkg.publishedAt||'';
-  const when=pkg.publishedAt?new Date(pkg.publishedAt).toLocaleString():'Unknown time';
-  setLivePublishStatus(`Live slate loaded • ${when} • ${pkg.buildVersion||'current build'}`,'good');
-  const title=document.getElementById('uploadFileName');
-  if(title) title.innerHTML=`Today’s published slate <span class="live-slate-badge">LIVE • ${when}</span>`;
 }
-function publicLiveSlateUrl(path=DRL_LATEST_SLATE_PATH){
-  return `${DRL_SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(DRL_SLATE_BUCKET)}/${path.split('/').map(encodeURIComponent).join('/')}`;
+async function downloadChunkedWorkbook(meta){
+  if(!Array.isArray(meta.chunks) || !meta.chunks.length) throw new Error('Published workbook chunk list is missing.');
+  const parts=[];
+  let received=0;
+  for(let i=0;i<meta.chunks.length;i++){
+    setLivePublishStatus(`Downloading today’s workbook… ${i+1}/${meta.chunks.length}`);
+    const response=await fetch(`${publicLiveSlateUrl(meta.chunks[i])}?v=${encodeURIComponent(meta.publishedAt)}`,{cache:'no-store'});
+    if(!response.ok) throw new Error(`Workbook chunk ${i+1} download failed (${response.status}).`);
+    const part=await response.blob();
+    if(!part.size) throw new Error(`Workbook chunk ${i+1} is empty.`);
+    parts.push(part);
+    received += part.size;
+  }
+  if(meta.size && received!==meta.size) throw new Error(`Workbook download was incomplete (${received} of ${meta.size} bytes).`);
+  return new Blob(parts,{type:meta.contentType||'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 }
 async function fetchLatestLiveSlate({apply=true,silent=false}={}){
   try{
-    const response=await fetch(`${publicLiveSlateUrl()}?v=${Date.now()}`,{cache:'no-store'});
-    if(!response.ok){ if(response.status===404) return false; throw new Error(`Live slate download failed (${response.status}).`); }
-    const pkg=validateLiveSlatePackage(await response.json());
-    if(apply) applyLiveSlatePackage(pkg);
-    return pkg;
+    const meta=await fetchLatestWorkbookMeta({silent});
+    if(!meta) return false;
+    if(!apply) return meta;
+
+    let blob;
+    if(meta.schemaVersion===3){
+      blob=await downloadChunkedWorkbook(meta);
+    }else{
+      setLivePublishStatus('Downloading today’s published workbook…');
+      const response=await fetch(`${publicLiveSlateUrl(DRL_LATEST_WORKBOOK_PATH)}?v=${encodeURIComponent(meta.publishedAt)}`,{cache:'no-store'});
+      if(!response.ok) throw new Error(`Live workbook download failed (${response.status}).`);
+      blob=await response.blob();
+    }
+    if(!blob.size) throw new Error('The published workbook is empty.');
+
+    const fileName=meta.originalName || `Daily-Runline-Live.${meta.extension||'xlsx'}`;
+    const file=new File([blob],fileName,{type:meta.contentType||blob.type||workbookContentType({name:fileName}),lastModified:Date.now()});
+    drlLoadingSharedWorkbook=true;
+    drlPendingSharedMeta=meta;
+    handleFile({target:{files:[file],value:''}});
+    return meta;
   }catch(err){
-    if(!silent) setLivePublishStatus(err.message||'Could not load shared slate.','warn');
+    drlLoadingSharedWorkbook=false;
+    drlPendingSharedMeta=null;
+    if(!silent) setLivePublishStatus(err.message||'Could not load the shared workbook.','warn');
     return false;
   }
 }
@@ -9826,7 +9763,10 @@ async function initializeLiveSlate(){
     setLivePublishStatus('Paste the Supabase publishable key into the HTML to enable login and publishing.','warn');
   }
   const loaded=await fetchLatestLiveSlate({apply:true,silent:true});
-  if(!loaded){ loadCachedData(); if(!playerData.length) setLivePublishStatus(liveSlateConfigured()?'No live slate has been published yet.':'No live slate loaded; local upload still works.','muted'); }
+  if(!loaded){
+    loadCachedData();
+    if(!playerData.length) setLivePublishStatus(liveSlateConfigured()?'No live workbook has been published yet.':'No live slate loaded; local upload still works.','muted');
+  }
   if(liveSlateConfigured()) drlLivePollTimer=setInterval(checkForNewLiveSlate,60000);
 }
 function updateLiveAdminUI(session){
@@ -9835,7 +9775,7 @@ function updateLiveAdminUI(session){
   if(pub) pub.disabled=!signed;
   if(login) login.style.display=signed?'none':'';
   if(logout) logout.style.display=signed?'':'none';
-  if(signed) setLivePublishStatus(`Admin signed in as ${session.user.email}. Upload a workbook, review it, then publish.`,'good');
+  if(signed) setLivePublishStatus(`Admin signed in as ${session.user.email}. Upload today’s workbook, review it, then publish.`,'good');
 }
 async function liveSlateSignIn(){
   if(!drlSupabase){ setLivePublishStatus('Supabase publishable key is not configured.','bad'); return; }
@@ -9863,28 +9803,41 @@ async function publishLiveSlate(){
   const btn=document.getElementById('livePublishBtn');
   try{
     if(btn) btn.disabled=true;
-    setLivePublishStatus('Preparing the processed slate…');
-    // Do not call saveCachedData() here: the runtime model contains circular
-    // convenience references (for example pitchLabProfile.player). The safe
-    // serializer below removes only those back-references for publishing.
-    const pkg=buildLiveSlatePackage();
-    const json=stringifyLiveSlateSafely(pkg);
-    const sizeMB=new Blob([json]).size/1024/1024;
-    if(sizeMB>45) throw new Error(`Published slate is ${sizeMB.toFixed(1)} MB, which is too large for the current bucket limit.`);
-    const latestBlob=new Blob([json],{type:'application/json'});
-    setLivePublishStatus(`Publishing ${sizeMB.toFixed(2)} MB live slate…`);
-    const {error}=await drlSupabase.storage.from(DRL_SLATE_BUCKET).upload(DRL_LATEST_SLATE_PATH,latestBlob,{contentType:'application/json',cacheControl:'60',upsert:true});
-    if(error) throw error;
-    const archivePath=`archive/${pkg.slateDate}-${pkg.publishedAt.replace(/[:.]/g,'-')}.json`;
-    const archiveBlob=new Blob([json],{type:'application/json'});
-    const archiveResult=await drlSupabase.storage.from(DRL_SLATE_BUCKET).upload(archivePath,archiveBlob,{contentType:'application/json',cacheControl:'3600',upsert:false});
-    if(archiveResult.error) console.warn('Archive copy was not saved:',archiveResult.error);
-    drlLoadedPublishedAt=pkg.publishedAt;
-    setLivePublishStatus(`✓ Live • ${new Date(pkg.publishedAt).toLocaleString()} • ${sizeMB.toFixed(2)} MB`,'good');
+    if(!drlOriginalWorkbookFile) throw new Error('Upload today’s Excel workbook before publishing.');
+    if(!Array.isArray(playerData) || !playerData.length) throw new Error('Wait for the workbook to finish loading before publishing.');
+
+    const file=drlOriginalWorkbookFile;
+    const sizeMB=file.size/1024/1024;
+    const publishId=`workbooks/${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
+    const chunkCount=Math.ceil(file.size/DRL_WORKBOOK_CHUNK_BYTES);
+    const chunkPaths=[];
+
+    for(let i=0;i<chunkCount;i++){
+      const begin=i*DRL_WORKBOOK_CHUNK_BYTES;
+      const finish=Math.min(file.size,begin+DRL_WORKBOOK_CHUNK_BYTES);
+      const chunk=file.slice(begin,finish,'application/octet-stream');
+      const path=`${publishId}/chunk-${String(i+1).padStart(4,'0')}.bin`;
+      setLivePublishStatus(`Uploading workbook chunk ${i+1}/${chunkCount} (${sizeMB.toFixed(2)} MB total)…`);
+      const result=await drlSupabase.storage.from(DRL_SLATE_BUCKET).upload(path,chunk,{contentType:'application/octet-stream',cacheControl:'31536000',upsert:false});
+      if(result.error) throw result.error;
+      chunkPaths.push(path);
+    }
+
+    const meta=buildWorkbookMeta(file,chunkPaths);
+    const metaBlob=new Blob([JSON.stringify(meta)],{type:'application/json'});
+    const metaResult=await drlSupabase.storage.from(DRL_SLATE_BUCKET).upload(
+      DRL_LATEST_META_PATH,
+      metaBlob,
+      {contentType:'application/json',cacheControl:'30',upsert:true}
+    );
+    if(metaResult.error) throw metaResult.error;
+
+    drlLoadedPublishedAt=meta.publishedAt;
+    setLivePublishStatus(`✓ Live workbook published in ${chunkCount} parts • ${new Date(meta.publishedAt).toLocaleString()} • ${sizeMB.toFixed(2)} MB`,'good');
     const title=document.getElementById('uploadFileName');
-    if(title) title.innerHTML=`Today’s published slate <span class="live-slate-badge">LIVE</span>`;
+    if(title) title.innerHTML=`${file.name} <span class="live-slate-badge">LIVE</span>`;
   }catch(err){
-    console.error('Live slate publish failed:',err);
+    console.error('Live workbook publish failed:',err);
     setLivePublishStatus(`Publish failed: ${err.message}`,'bad');
   }finally{
     const {data}=drlSupabase?await drlSupabase.auth.getSession():{data:{session:null}};
@@ -9893,8 +9846,8 @@ async function publishLiveSlate(){
 }
 async function checkForNewLiveSlate(){
   if(document.hidden) return;
-  const pkg=await fetchLatestLiveSlate({apply:false,silent:true});
-  if(pkg && pkg.publishedAt && drlLoadedPublishedAt && pkg.publishedAt!==drlLoadedPublishedAt){
+  const meta=await fetchLatestLiveSlate({apply:false,silent:true});
+  if(meta && meta.publishedAt && drlLoadedPublishedAt && meta.publishedAt!==drlLoadedPublishedAt){
     document.getElementById('liveUpdateToast')?.classList.add('show');
   }
 }
@@ -10176,6 +10129,11 @@ function handleFile(e) {
 const files = e.target.files;
 if(!files || files.length === 0) return;
 const f = files[0];
+if (!drlLoadingSharedWorkbook) {
+  drlOriginalWorkbookFile = f;
+  drlUsingSharedSlate = false;
+  drlPendingSharedMeta = null;
+}
 const reader = new FileReader();
 reader.onload = function(e) {
 const data = new Uint8Array(e.target.result);
@@ -10340,6 +10298,17 @@ document.getElementById('graphicsPanel').style.display = 'block';
   const fileNameEl = document.getElementById('uploadFileName');
   if (fileNameEl) fileNameEl.textContent = f && f.name ? f.name : 'Workbook loaded';
 
+  if (drlLoadingSharedWorkbook && drlPendingSharedMeta) {
+    const meta = drlPendingSharedMeta;
+    drlUsingSharedSlate = true;
+    drlLoadedPublishedAt = meta.publishedAt || '';
+    const when = meta.publishedAt ? new Date(meta.publishedAt).toLocaleString() : 'Unknown time';
+    if (fileNameEl) fileNameEl.innerHTML = `Today’s published workbook <span class="live-slate-badge">LIVE • ${when}</span>`;
+    setLivePublishStatus(`Live workbook loaded • ${when} • ${meta.originalName || f.name}`,'good');
+    drlLoadingSharedWorkbook = false;
+    drlPendingSharedMeta = null;
+  }
+
   // FAST LOAD PATH v2:
   // 1) Calculate/store all BBI scores immediately using spreadsheet weather.
   // 2) Render Home right away so upload never waits on OpenWeather/network.
@@ -10356,6 +10325,8 @@ document.getElementById('graphicsPanel').style.display = 'block';
 }
 };
 reader.onerror = function(err) {
+  drlLoadingSharedWorkbook = false;
+  drlPendingSharedMeta = null;
   console.error('Workbook file read failed:', err);
   alert('Could not read that workbook file. Please make sure it is a normal .xlsx/.xls/.csv file and try again.');
   try { e.target.value = ''; } catch (_) {}
