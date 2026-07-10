@@ -18275,5 +18275,140 @@ body.performance-lite tbody tr:hover { transform: none !important; }
 })();
 </script>
 
+
+<!-- Zone Profile cursor hover fix: only the body portal is shown; it follows the live cursor -->
+<style id="zone-hover-cursor-actual-fix">
+#tab-zoneprofile .zone-player-card,
+#tab-zoneprofile .zone-grid,
+#tab-zoneprofile .zone-map-panel { overflow: visible !important; }
+
+/* Permanently suppress every original tooltip inside a zone cell. */
+#tab-zoneprofile .zone-cell > .zone-hover-card {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* The only visible tooltip is the cloned body-level portal. */
+body > .zone-hover-card.zone-hover-portal {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: fixed !important;
+  left: 0;
+  top: 0;
+  right: auto !important;
+  bottom: auto !important;
+  width: min(305px, calc(100vw - 20px)) !important;
+  max-width: calc(100vw - 20px) !important;
+  margin: 0 !important;
+  transform: none !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+  box-sizing: border-box !important;
+}
+</style>
+<script id="zone-hover-cursor-actual-script">
+(function(){
+  let activeCell = null;
+  let portal = null;
+  let mouseX = null;
+  let mouseY = null;
+  let raf = 0;
+
+  function removePortal(){
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+    if (portal) portal.remove();
+    portal = null;
+    activeCell = null;
+  }
+
+  function placeNow(){
+    raf = 0;
+    if (!portal || !activeCell || !document.body.contains(activeCell)) {
+      removePortal();
+      return;
+    }
+
+    const rect = portal.getBoundingClientRect();
+    const gap = 18;
+    const edge = 10;
+    const x = Number.isFinite(mouseX) ? mouseX : activeCell.getBoundingClientRect().left;
+    const y = Number.isFinite(mouseY) ? mouseY : activeCell.getBoundingClientRect().top;
+
+    let left = x + gap;
+    let top = y + gap;
+
+    if (left + rect.width + edge > window.innerWidth) left = x - rect.width - gap;
+    if (top + rect.height + edge > window.innerHeight) top = y - rect.height - gap;
+
+    left = Math.max(edge, Math.min(left, window.innerWidth - rect.width - edge));
+    top = Math.max(edge, Math.min(top, window.innerHeight - rect.height - edge));
+
+    portal.style.left = Math.round(left) + 'px';
+    portal.style.top = Math.round(top) + 'px';
+  }
+
+  function queuePlace(x, y){
+    if (Number.isFinite(x)) mouseX = x;
+    if (Number.isFinite(y)) mouseY = y;
+    if (!raf) raf = requestAnimationFrame(placeNow);
+  }
+
+  function showForCell(cell, e){
+    if (!cell || cell.classList.contains('missing')) return;
+    const source = cell.querySelector(':scope > .zone-hover-card');
+    if (!source) return;
+
+    /* Position once when the zone is first entered. Do not follow the cursor. */
+    if (activeCell !== cell || !portal) {
+      if (e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      }
+      removePortal();
+      activeCell = cell;
+      portal = source.cloneNode(true);
+      portal.classList.add('zone-hover-portal');
+      portal.removeAttribute('style');
+      document.body.appendChild(portal);
+      queuePlace(mouseX, mouseY);
+    }
+  }
+
+  function zoneCellFromEvent(e){
+    return e.target && e.target.closest ? e.target.closest('#tab-zoneprofile .zone-cell') : null;
+  }
+
+  /* Deliberately no mousemove/pointermove tracking: the popup stays where it first appears. */
+
+  document.addEventListener('mouseover', function(e){
+    const cell = zoneCellFromEvent(e);
+    if (cell) showForCell(cell, e);
+  }, true);
+
+  document.addEventListener('mouseout', function(e){
+    const cell = zoneCellFromEvent(e);
+    if (!cell || cell !== activeCell) return;
+    if (e.relatedTarget && cell.contains(e.relatedTarget)) return;
+    removePortal();
+  }, true);
+
+  /* Clicking a zone also uses the exact click coordinates before the modal opens. */
+  document.addEventListener('mousedown', function(e){
+    const cell = zoneCellFromEvent(e);
+    if (!cell) return;
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    showForCell(cell, e);
+  }, true);
+
+  window.addEventListener('scroll', function(){ if (portal) removePortal(); }, {capture:true, passive:true});
+  window.addEventListener('resize', function(){ if (portal) queuePlace(mouseX, mouseY); }, {passive:true});
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) removePortal(); });
+})();
+</script>
+
 </body>
 </html>
