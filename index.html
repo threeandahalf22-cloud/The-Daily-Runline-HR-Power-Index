@@ -15084,8 +15084,7 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Category_AttackZone: backtestNum(p.category && p.category.attackZone),
     Category_Pitcher: backtestNum(p.category && p.category.pitcher),
     Pitcher_Tab_Score: backtestNum(typeof window.getPitcherDashboardAnalyticsScore === 'function' ? window.getPitcherDashboardAnalyticsScore(
-      safeGet(p, 'Opp Pitcher', 'Opposing Pitcher', 'Opp Pitcher Name', 'Pitcher Facing') || '',
-      handObj.label
+      safeGet(p, 'Opp Pitcher', 'Opposing Pitcher', 'Opp Pitcher Name', 'Pitcher Facing') || ''
     ) : p.calculatedPitcherScore),
     Category_BattedBall: backtestNum(p.category && p.category.battedBall),
     Category_Weather: backtestNum(p.category && p.category.weather),
@@ -16282,7 +16281,28 @@ function bucketAnalyticsNum(v) {
   const n = Number(v);
   return isFinite(n) ? n : null;
 }
+function migrateSavedBucketAnalyticsPitcherScores() {
+  if (!Array.isArray(bucketAnalyticsHistory) || typeof window.getPitcherDashboardAnalyticsScore !== 'function') return false;
+  let changed = false;
+  bucketAnalyticsHistory.forEach(slate => {
+    (slate && Array.isArray(slate.rows) ? slate.rows : []).forEach(row => {
+      const pitcherName = String(row.Opposing_Pitcher || '').trim();
+      if (!pitcherName) return;
+      const exactPitchersTabScore = bucketAnalyticsNum(window.getPitcherDashboardAnalyticsScore(pitcherName));
+      if (exactPitchersTabScore === null) return;
+      const previous = bucketAnalyticsNum(row.Pitcher_Score);
+      if (previous === null || Math.abs(previous - exactPitchersTabScore) > 0.0001) {
+        row.Pitcher_Score = exactPitchersTabScore;
+        row.Pitcher_Tab_Score = exactPitchersTabScore;
+        changed = true;
+      }
+    });
+  });
+  if (changed) saveBucketAnalyticsHistory().catch(err => console.warn('Pitcher analytics history migration save failed', err));
+  return changed;
+}
 function bucketAnalyticsRows() {
+  migrateSavedBucketAnalyticsPitcherScores();
   return (bucketAnalyticsHistory || []).flatMap(s => (s.rows || []).map(r => ({ ...r, _slateId: s.slateId, _finalizedAt: s.finalizedAt })));
 }
 function bucketAnalyticsSnapshotRow(row) {
@@ -16461,7 +16481,7 @@ function renderBucketAnalytics() {
       <div class="bucket-analytics-section-grid">
         <div class="bucket-mini-card"><div class="bucket-mini-title">🔥 Pitch Lab Thresholds</div><div class="bucket-mini-sub">Quick cutoff scan using fresh finalized bucket rows only.</div>${renderPitchLabBandCards(rows)}</div>
         <div class="bucket-mini-card"><div class="bucket-mini-title">🎯 Attack Zone Thresholds</div><div class="bucket-mini-sub">Find where zone target scores start turning into HRs.</div>${renderThresholdCards(rows, 'AttackZone_Score')}</div>
-        <div class="bucket-mini-card"><div class="bucket-mini-title">⚾ Pitcher Thresholds</div><div class="bucket-mini-sub">Uses the handedness-specific HR Damage score shown on the Pitchers tab.</div>${renderPitcherBandCards(rows)}</div>
+        <div class="bucket-mini-card"><div class="bucket-mini-title">⚾ Pitcher Thresholds</div><div class="bucket-mini-sub">Uses the exact large HR Damage score shown on each Pitchers tab card.</div>${renderPitcherBandCards(rows)}</div>
       </div>
       <h2>🔥 Pitch Lab Score Buckets</h2>
       <p class="backtest-note">Pitch Lab / Pitch Matchup score bucketed independently from BBI.</p>
@@ -16470,7 +16490,7 @@ function renderBucketAnalytics() {
       <p class="backtest-note">Zone target score bucketed independently from BBI.</p>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Zone Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(zoneBuckets, baselinePct)}</tbody></table></div>
       <h2>⚾ Pitcher Vulnerability Score Buckets</h2>
-      <p class="backtest-note">Pitchers-tab HR Damage score bucketed independently from BBI, using the hitter-side split.</p>
+      <p class="backtest-note">Pitchers-tab HR Damage score bucketed independently from BBI, using the exact card score (higher of LHB/RHB risk).</p>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitcher Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(pitcherBuckets, baselinePct)}</tbody></table></div>
       <h2>🤝 Confluence Analysis</h2>
       <p class="backtest-note">This shows what happens when Pitch Lab, Attack Zone, and Pitcher score agree. Lift compares each group to the clean-slate Bucket Analytics baseline.</p>
@@ -16967,7 +16987,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
     const rRisk = clamp(scoreFrom(rHR9,.70,2.10)*.45 + scoreFrom(rHRFB,.08,.24)*.30 + scoreFrom(rFB,.28,.50)*.25);
     return { ip, lHR9, rHR9, lHRFB, rHRFB, lFB, rFB, barrel, hardHit, evAllowed, ev90, maxEV, contactDamage, lRisk, rRisk };
   }
-  window.getPitcherDashboardAnalyticsScore = function(name, batterHand) {
+  window.getPitcherDashboardAnalyticsScore = function(name) {
     const pitcherName = String(name || '').trim();
     if (!pitcherName) return null;
     const st = collectPitcherStats(pitcherName);
@@ -16976,14 +16996,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
     const rightRisk = Number(st.rRisk);
     const l = Number.isFinite(leftRisk) ? leftRisk : null;
     const r = Number.isFinite(rightRisk) ? rightRisk : null;
-    const hand = String(batterHand || '').trim().toUpperCase();
-    if (hand.startsWith('L')) return l !== null ? l : r;
-    if (hand.startsWith('R')) return r !== null ? r : l;
-    if (hand.startsWith('S')) {
-      if (l === null) return r;
-      if (r === null) return l;
-      return Math.max(l, r);
-    }
+    // Match the large HR Damage number displayed on the Pitchers tab card exactly.
     if (l === null) return r;
     if (r === null) return l;
     return Math.max(l, r);
