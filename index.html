@@ -8477,7 +8477,7 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
 <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🧪 Pitch Lab - Batter vs Arsenal</h2>
-<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">HR-only pitch matchup: every pitch is weighted by the pitcher’s actual usage. Inside each pitch: Barrel, Hard Hit, xSLG, EV, Max EV, Pull, Launch Angle, and HR only. No AVG, wOBA, whiff, or contact-for-average stats.</p>
+<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">HR-only pitch matchup: every pitch is weighted by the pitcher’s actual usage. Inside each pitch: Barrel %, Launch Angle / Sweet Spot fit, and Pull %. Redundant EV, xSLG, Hard Hit, Max EV, and HR-rate inputs are excluded from scoring.</p>
 </div>
 <div class="pitch-lab-grid" id="pitchLabSummaryCards">
 <div class="pitch-lab-card"><div class="pitch-lab-title">Arsenal Exploit Leader</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>
@@ -11368,14 +11368,10 @@ function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
 
     // HR-only hitter pitch damage. No AVG, wOBA, contact-for-average, whiff, or run-value stats.
     const rawDamage = pitchLabScoreWeighted([
-      { value: pitchLabValueScore(barrel, 6, 24), weight: 0.26 },
-      { value: pitchLabValueScore(hard, 34, 64), weight: 0.16 },
-      { value: pitchLabValueScore(xslg, .320, .820), weight: 0.18 },
-      { value: ev.score, weight: 0.14 },
-      { value: ev.maxScore, weight: 0.08 },
-      { value: pitchLabValueScore(pull, .34, .56), weight: 0.08 },
-      { value: pitchLabValueScore(la, 8, 24), weight: 0.04 },
-      { value: pitchLabValueScore(hrRate, .005, .070), weight: 0.06 }
+      // HR-maximized per-pitch damage: barrel authority, ideal launch window, and pull direction.
+      { value: pitchLabValueScore(barrel, 6, 24), weight: 0.40 },
+      { value: pitchLabValueScore(la, 8, 24), weight: 0.30 },
+      { value: pitchLabValueScore(pull, .34, .56), weight: 0.30 }
     ], 50);
     const score = 50 + ((rawDamage - 50) * (0.72 + (sample * 0.28)));
     shape = {
@@ -11387,14 +11383,9 @@ function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
     const fallback = getPitchLabOverallFallback(playerName);
     const hrRate = pitchLabHRRate(fallback.hr, fallback.bbe);
     const fallbackDamage = pitchLabScoreWeighted([
-      { value: pitchLabValueScore(fallback.barrel, 6, 24), weight: 0.24 },
-      { value: pitchLabValueScore(fallback.hard, 34, 64), weight: 0.14 },
-      { value: pitchLabValueScore(fallback.xslg, .320, .820), weight: 0.17 },
-      { value: ev.score, weight: 0.20 },
-      { value: ev.maxScore, weight: 0.10 },
-      { value: pitchLabValueScore(fallback.pull, .34, .56), weight: 0.08 },
-      { value: pitchLabValueScore(fallback.la, 8, 24), weight: 0.03 },
-      { value: pitchLabValueScore(hrRate, .005, .070), weight: 0.04 }
+      { value: pitchLabValueScore(fallback.barrel, 6, 24), weight: 0.40 },
+      { value: pitchLabValueScore(fallback.la, 8, 24), weight: 0.30 },
+      { value: pitchLabValueScore(fallback.pull, .34, .56), weight: 0.30 }
     ], 50);
     shape = {
       ...shape,
@@ -14378,52 +14369,27 @@ function hybridBuildPitcherMatchup(pitcherBase, contactMatch, airMatch, pitchLev
 function scoreHybridPlayer(p, ranges) {
   const r = p.hybridRaw;
   const power = hybridDiminishingWeightedAvg([
-    // v45 Hitter Power: redundant Barrels/PA and stabilized HR/PA removed.
-    // Selected season power traits are blended with last-week equivalents after both are scaled.
-    { value: hybridScoreMetricBlended(r,ranges,'barrel','lwBarrel'), weight: 0.24 },
-    { value: hybridScoreMetricBlended(r,ranges,'hardHit','lwHardHit'), weight: 0.24 },
-    { value: hybridScoreMetricBlended(r,ranges,'avgEV','lwEV'), weight: 0.15 },
-    { value: hybridScoreMetricBlended(r,ranges,'ev90','lwEV90'), weight: 0.16 },
-    { value: hybridScoreMetric(r,ranges,'xHR'), weight: 0.10 },
-    { value: hybridScoreMetricBlended(r,ranges,'xslg','lwXSLG'), weight: 0.04 },
-    { value: hybridScoreMetricBlended(r,ranges,'xwoba','lwXWOBA'), weight: 0.01 },
-    { value: hybridScoreMetric(r,ranges,'mph95'), weight: 0.04 },
-    { value: hybridScoreMetric(r,ranges,'sweetSpot'), weight: 0.02 }
+    // HR-maximized Hitter Power: five distinct signals only; weights total 100%.
+    { value: hybridScoreMetricBlended(r,ranges,'barrel','lwBarrel'), weight: 0.35 },
+    { value: hybridScoreMetricBlended(r,ranges,'ev90','lwEV90'), weight: 0.25 },
+    { value: hybridScoreMetricBlended(r,ranges,'hardHit','lwHardHit'), weight: 0.15 },
+    { value: hybridScoreMetric(r,ranges,'xHR'), weight: 0.15 },
+    { value: hybridScoreMetric(r,ranges,'sweetSpot'), weight: 0.10 }
   ]);
-  const pitcherHR9Score = hybridScoreMetric(r,ranges,'pitcherHR9');
-  const pitcherHRDamage = hybridWeightedAvg([
-    // Version 37.3: Smaller pitcher bucket overall, but HR damage matters more inside it.
-    { value: pitcherHR9Score, weight: 0.38 },
-    { value: hybridScoreMetric(r,ranges,'pitcherHRFB'), weight: 0.18 },
-    { value: hybridScoreMetric(r,ranges,'pitcherFB'), weight: 0.12 },
-    { value: hybridScoreMetric(r,ranges,'pitcherPull'), weight: 0.10 },
-    { value: hybridScoreMetric(r,ranges,'pitcherSweet'), weight: 0.10 },
-    { value: hybridScoreMetric(r,ranges,'pitcherGB',true), weight: 0.07 },
-    { value: hybridScoreMetric(r,ranges,'pitcherFBLD'), weight: 0.05 }
-  ]);
-  const pitcherContactQuality = hybridWeightedAvg([
-    { value: hybridScoreMetric(r,ranges,'pitcherBarrel'), weight: 0.24 },
-    { value: hybridScoreMetric(r,ranges,'pitcherHardHit'), weight: 0.18 },
-    { value: hybridScoreMetric(r,ranges,'pitcherEV'), weight: 0.16 },
-    { value: hybridScoreMetric(r,ranges,'pitcherEV90'), weight: 0.12 },
-    { value: hybridScoreMetric(r,ranges,'pitcherEV50'), weight: 0.12 },
-    { value: hybridScoreMetric(r,ranges,'pitcher95'), weight: 0.10 },
-    { value: hybridScoreMetric(r,ranges,'pitcherMaxEV'), weight: 0.08 }
-  ]);
-  const pitcherQualityPenalty = hybridWeightedAvg([
-    { value: hybridScoreMetric(r,ranges,'pitcherXERA'), weight: 0.55 },
-    { value: hybridScoreMetric(r,ranges,'pitcherStuff', true), weight: 0.45 }
+  // Unified Pitcher Vulnerability layer. This is the complete 14% pitcher bucket.
+  // Missing-stat handling remains normalized by hybridWeightedAvg().
+  const pitcher = hybridWeightedAvg([
+    { value: hybridScoreMetric(r,ranges,'pitcherSweet'), weight: 0.30 },
+    { value: hybridScoreMetric(r,ranges,'pitcherBarrel'), weight: 0.25 },
+    { value: hybridScoreMetric(r,ranges,'pitcher95'), weight: 0.25 },
+    { value: hybridScoreMetric(r,ranges,'pitcherHR9'), weight: 0.20 }
   ]);
   const pitchLabScore = p.pitchLabProfile ? cleanNumber(p.pitchLabProfile.score) : null;
   const pitchLevel = hybridWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'pitchLevelEV'), weight: 0.20 },
     { value: (pitchLabScore && pitchLabScore > 0) ? pitchLabScore : null, weight: 0.80 }
   ]);
-  const pitcherBase = hybridWeightedAvg([
-    { value: pitcherHRDamage, weight: 0.50 },
-    { value: pitcherContactQuality, weight: 0.38 },
-    { value: pitcherQualityPenalty, weight: 0.12 }
-  ]);
+  const pitcherBase = pitcher;
   const hitterPitcherContactMatch = hybridWeightedAvg([
     { value: hybridMatchPair(hybridScoreMetric(r,ranges,'barrel'), hybridScoreMetric(r,ranges,'pitcherBarrel')), weight: 0.28 },
     { value: hybridMatchPair(hybridScoreMetric(r,ranges,'hardHit'), hybridScoreMetric(r,ranges,'pitcherHardHit')), weight: 0.22 },
@@ -14448,16 +14414,17 @@ function scoreHybridPlayer(p, ranges) {
     { value: hybridMatchPair(hybridScoreMetric(r,ranges,'hrFb'), hybridScoreMetric(r,ranges,'pitcherHRFB')), weight: 0.25 },
     { value: hybridMatchPair(hybridScoreMetric(r,ranges,'flyBall'), hybridScoreMetric(r,ranges,'pitcherFB')), weight: 0.15 }
   ]);
-  const pitcher = hybridBuildPitcherMatchup(pitcherBase, hitterPitcherContactMatch, hitterPitcherAirMatch, pitchLevel);
+  // Pitcher Vulnerability no longer includes hitter-contact matching, air-shape matching,
+  // pitch quality, xERA, Stuff+, or any other legacy pitcher-layer metric.
+  // Those calculations may remain available for displays, but they do not affect BBI scoring.
   const recent = null;
   const battedBall = hybridDiminishingWeightedAvg([
-    // v45 Batted Ball: Average Distance removed. HR/FB added from handedness-specific RHPBB/LHPBB.
-    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.33 },
+    // Final HR-focused Batted Ball Profile: four distinct signals; weights total exactly 100%.
+    // Pulled Air % and FB+LD % are intentionally excluded from this calculation.
+    { value: hybridScoreMetric(r,ranges,'hrFb'), weight: 0.40 },
     { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.launchAngle)), weight: 0.25 },
-    { value: hybridScoreMetric(r,ranges,'hrFb'), weight: 0.20 },
-    { value: hybridScoreMetric(r,ranges,'fbld'), weight: 0.10 },
-    { value: hybridScoreMetric(r,ranges,'flyBall'), weight: 0.08 },
-    { value: hybridScoreMetric(r,ranges,'pull'), weight: 0.04 }
+    { value: hybridScoreMetric(r,ranges,'flyBall'), weight: 0.20 },
+    { value: hybridScoreMetric(r,ranges,'pull'), weight: 0.15 }
   ]);
   let bvp = null;
   // Adaptive BvP: the stat only uses as much of the 9% BvP bucket as the PA sample earns.
@@ -14500,12 +14467,12 @@ function scoreHybridPlayer(p, ranges) {
   const adjustedRecent = null;
   const adjustedPark = elitePowerCore ? hybridClampLow(park, 38) : park;
   const adjustedBullpen = elitePowerCore ? hybridClampLow(bullpen, 40) : bullpen;
-  p.category = { power, pitcher, pitchLevel: adjustedPitchLevel, attackZone, battedBall, bvp, bullpen: adjustedBullpen, park: adjustedPark, discipline, weather, pitcherHRDamage, pitcherContactQuality, pitcherBase, hitterPitcherContactMatch, hitterPitcherAirMatch };
+  p.category = { power, pitcher, pitchLevel: adjustedPitchLevel, attackZone, battedBall, bvp, bullpen: adjustedBullpen, park: adjustedPark, discipline, weather, pitcherBase };
   p.calculatedPAReliability = paReliability;
   const dataConfidence = hybridCoverage(r, [
     { weight: 0.32, keys: ['barrel','avgEV','ev90','hardHit','xHR','xslg','xwoba','lwBarrel','lwEV','lwHardHit','lwXSLG','lwXWOBA'] },
     { weight: 0.24, keys: ['pitcherHR9','pitcherBarrel','pitcherHardHit','pitcherFB','pitcherHRFB','pitcherEV'] },
-    { weight: 0.20, keys: ['flyBall','pullAir','pull','hrFb','launchAngle','fbld'] },
+    { weight: 0.20, keys: ['hrFb','launchAngle','flyBall','pull'] },
     { weight: 0.12, keys: ['parkFactor','pullFence','weatherScore','teamTotal'] },
     { weight: 0.08, keys: ['attackZone','attackZoneTopEdge','attackZoneTopPitchPct'] },
     { weight: 0.04, keys: ['pa','paPg','battingOrder'] },
@@ -14560,18 +14527,7 @@ function scoreHybridPlayer(p, ranges) {
   score *= sideWeatherMultiplier;
   p.envMultiplier = sideWeatherMultiplier;
 
-  // Balanced HR/9 damage boost: HR/9 matters, but it is gated so one bad pitcher
-  // does not push an entire lineup to the top. The hitter needs power/shape/support.
-  const hr9PowerGate = (power !== null && power >= 58) || (r.barrel !== null && r.barrel >= 0.09) || (r.iso !== null && r.iso >= 0.185) || (r.maxEV !== null && r.maxEV >= 110);
-  const hr9ShapeGate = (battedBall !== null && battedBall >= 56) || ((r.flyBall !== null && r.flyBall >= 0.38) && ((r.pullAir !== null && r.pullAir >= 0.18) || (r.pull !== null && r.pull >= 0.40))) || (r.hrFb !== null && r.hrFb >= 0.15);
-  const hr9ContextGate = (pitchLevel !== null && pitchLevel >= 56) || (park !== null && park >= 58) || (weather !== null && weather >= 58);
-  const hr9SupportCount = [hr9PowerGate, hr9ShapeGate, hr9ContextGate].filter(Boolean).length;
-  let hr9DamageBoost = 0;
-  if (r.pitcherHR9 >= 2.40) hr9DamageBoost = hr9SupportCount >= 2 ? 2.25 : (hr9SupportCount === 1 ? 0.75 : 0);
-  else if (r.pitcherHR9 >= 2.00) hr9DamageBoost = hr9SupportCount >= 2 ? 1.50 : (hr9SupportCount === 1 ? 0.50 : 0);
-  else if (r.pitcherHR9 >= 1.50) hr9DamageBoost = hr9SupportCount >= 2 ? 0.85 : 0;
-  else if (r.pitcherHR9 >= 1.25) hr9DamageBoost = hr9SupportCount >= 3 ? 0.40 : 0;
-  score += Math.min(2.25, hr9DamageBoost * scalePitcherHR9);
+  // Separate HR/9 bonus removed; HR/9 is already weighted at 20% inside the unified Pitcher Vulnerability bucket.
 
   if (r.pa && r.pa < 50 && !r.lwHR && !elitePowerCore) score *= 0.88;
 
@@ -18834,7 +18790,7 @@ body.performance-lite tbody tr:hover { transform: none !important; }
     try { pitchLab=buildPitchLabProfile(player); } catch(e){}
     try { zone=calculateAttackZoneProfile(player); } catch(e){}
     try { damage=window.getPitcherDashboardAnalyticsScore?window.getPitcherDashboardAnalyticsScore(pitcher):null; } catch(e){}
-    return `<div class="player-command-center"><div class="pcc-hero"><div><div class="pcc-kicker">Player HR Command Center</div><div class="pcc-title">${escPcc(player.Name)}</div><div class="pcc-sub">${escPcc(player.Team||'-')} · vs ${escPcc(pitcher)} · Full homepage scouting report</div></div><div class="pcc-score-row"><div class="pcc-score-chip hot"><span>BBI</span><b>${Number(player.calculatedBBI||0).toFixed(1)}</b></div><div class="pcc-score-chip"><span>Rank</span><b>${rank>0?'#'+rank:'--'}</b></div><div class="pcc-score-chip"><span>Attack Zone</span><b>${zone&&nPcc(zone.score)!==null?Number(zone.score).toFixed(0):pccScore(player,['calculatedAttackZone','attackZoneScore'],'--',0)}</b></div><div class="pcc-score-chip"><span>Pitch Lab</span><b>${pitchLab&&nPcc(pitchLab.score)!==null?Number(pitchLab.score).toFixed(0):'--'}</b></div><div class="pcc-score-chip"><span>Pitcher Damage</span><b>${damage!==null&&Number.isFinite(Number(damage))?Number(damage).toFixed(0):'--'}</b></div></div></div><div class="pcc-primary-grid"><div class="pcc-panel"><div class="pcc-panel-title"><span>🎯 Batter Zone Profile</span><div class="pcc-zone-toggle"><button class="pcc-zone-btn active" data-pcc-zone="WEIGHTED">Weighted</button><button class="pcc-zone-btn" data-pcc-zone="FB">Fastball</button><button class="pcc-zone-btn" data-pcc-zone="BR">Breaking</button><button class="pcc-zone-btn" data-pcc-zone="OS">Offspeed</button></div></div><div id="pccZoneMount">${renderPccZone(player,'WEIGHTED')}</div></div><div class="pcc-panel"><div class="pcc-panel-title"><span>🧪 Pitch Lab · Batter vs Arsenal</span><small>Pitcher usage weighted</small></div>${renderPccPitchLab(player)}</div><div class="pcc-panel" style="grid-column:1/-1"><div class="pcc-panel-title"><span>🎯 Pitcher HR Damage</span><small>Contact quality + handedness splits</small></div>${renderPccPitcher(player)}</div></div><div class="pcc-full-breakdown"><div class="pcc-panel"><div class="pcc-panel-title"><span>📋 Full Player Breakdown</span><small>Existing popup data retained</small></div>${legacyHtml}</div></div></div>`;
+    return `<div class="player-command-center"><div class="pcc-hero"><div><div class="pcc-kicker">Player HR Command Center</div><div class="pcc-title">${escPcc(player.Name)}</div><div class="pcc-sub">${escPcc(player.Team||'-')} · vs ${escPcc(pitcher)} · Full homepage scouting report</div></div><div class="pcc-score-row"><div class="pcc-score-chip hot"><span>BBI</span><b>${Number(player.calculatedBBI||0).toFixed(1)}</b></div><div class="pcc-score-chip"><span>Rank</span><b>${rank>0?'#'+rank:'--'}</b></div><div class="pcc-score-chip"><span>Attack Zone</span><b>${zone&&nPcc(zone.score)!==null?Number(zone.score).toFixed(0):pccScore(player,['calculatedAttackZone','attackZoneScore'],'--',0)}</b></div><div class="pcc-score-chip"><span>Pitch Lab</span><b>${pitchLab&&nPcc(pitchLab.score)!==null?Number(pitchLab.score).toFixed(0):'--'}</b></div><div class="pcc-score-chip"><span>Pitcher Damage</span><b>${damage!==null&&Number.isFinite(Number(damage))?Number(damage).toFixed(0):'--'}</b></div></div></div><div class="pcc-primary-grid"><div class="pcc-panel"><div class="pcc-panel-title"><span>🎯 Batter Zone Profile</span><div class="pcc-zone-toggle"><button class="pcc-zone-btn active" data-pcc-zone="WEIGHTED">Weighted</button><button class="pcc-zone-btn" data-pcc-zone="FB">Fastball</button><button class="pcc-zone-btn" data-pcc-zone="BR">Breaking</button><button class="pcc-zone-btn" data-pcc-zone="OS">Offspeed</button></div></div><div id="pccZoneMount">${renderPccZone(player,'WEIGHTED')}</div></div><div class="pcc-panel"><div class="pcc-panel-title"><span>🧪 Pitch Lab · Batter vs Arsenal</span><small>Pitcher usage weighted</small></div>${renderPccPitchLab(player)}</div><div class="pcc-panel" style="grid-column:1/-1"><div class="pcc-panel-title"><span>🎯 Pitcher HR Damage</span><small>Unified 4-stat vulnerability profile</small></div>${renderPccPitcher(player)}</div></div><div class="pcc-full-breakdown"><div class="pcc-panel"><div class="pcc-panel-title"><span>📋 Full Player Breakdown</span><small>Existing popup data retained</small></div>${legacyHtml}</div></div></div>`;
   }
   function enhancedOpen(player){
     if(typeof legacyOpen==='function') legacyOpen(player);
