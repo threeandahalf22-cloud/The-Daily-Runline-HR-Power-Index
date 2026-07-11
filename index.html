@@ -10464,92 +10464,32 @@ const now = new Date();
 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 document.getElementById('currentDateDisplay').innerText = now.toLocaleDateString('en-US', options);
 }
-function normalizeGameTimeValue(value) {
-  if (value === undefined || value === null || value === '') return '';
-
-  // SheetJS may return Excel times as a Date object.
-  if (value instanceof Date && !isNaN(value.getTime())) {
-    return `${String(value.getHours()).padStart(2, '0')}:${String(value.getMinutes()).padStart(2, '0')}`;
-  }
-
-  // Excel stores a time as the fractional part of a day. This also handles
-  // full Excel date/time serials by using only their fractional component.
-  if (typeof value === 'number' && isFinite(value)) {
-    let fraction = ((value % 1) + 1) % 1;
-    let totalMinutes = Math.round(fraction * 24 * 60) % (24 * 60);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-  }
-
-  const raw = String(value).trim();
-  if (!raw) return '';
-
-  // Numeric Excel serials can also arrive as strings.
-  if (/^\d+(?:\.\d+)?$/.test(raw)) {
-    const numeric = Number(raw);
-    if (isFinite(numeric)) return normalizeGameTimeValue(numeric);
-  }
-
-  return raw;
-}
-
-function parseGameTimeForToday(value) {
-  const raw = normalizeGameTimeValue(value);
-  if (!raw) return null;
-
-  // Accept 6:40 PM, 6:40PM, 18:40, 18:40:00, and values containing EDT/EST/ET.
-  const match = raw.match(/(?:^|\s)(\d{1,2})(?::(\d{1,2}))?(?::\d{1,2})?\s*(AM|PM)?(?:\s*(?:E[DS]T|ET))?(?:$|\s)/i)
-    || raw.match(/^(\d{1,2})(?::(\d{1,2}))?(?::\d{1,2})?\s*(AM|PM)?/i);
-  if (!match) return null;
-
-  let hours = Number(match[1]);
-  const minutes = Number(match[2] || 0);
-  const ampm = String(match[3] || '').toUpperCase();
-  if (!Number.isFinite(hours) || !Number.isFinite(minutes) || minutes < 0 || minutes > 59) return null;
-  if (ampm) {
-    if (hours < 1 || hours > 12) return null;
-    if (ampm === 'PM' && hours !== 12) hours += 12;
-    if (ampm === 'AM' && hours === 12) hours = 0;
-  } else if (hours < 0 || hours > 23) {
-    return null;
-  }
-
-  const gameDate = new Date();
-  gameDate.setHours(hours, minutes, 0, 0);
-  return isNaN(gameDate.getTime()) ? null : gameDate;
-}
-
 function updateCountdown() {
-  const tickerEl = document.getElementById('tickerText');
-  if (!tickerEl) return;
-  if (gameMatchups.length === 0) {
-    tickerEl.innerText = 'Waiting for game times...';
-    return;
-  }
-
-  let earliestTime = null;
-  gameMatchups.forEach(m => {
-    const w = weatherSettings[m.id];
-    const gameDate = w ? parseGameTimeForToday(w.startTime) : null;
-    if (gameDate && (!earliestTime || gameDate < earliestTime)) earliestTime = gameDate;
-  });
-
-  if (!earliestTime) {
-    tickerEl.innerText = `${gameMatchups.length} Games Today | No start times found`;
-    return;
-  }
-
-  const diff = earliestTime.getTime() - Date.now();
-  if (diff <= 0) {
-    tickerEl.innerHTML = 'FIRST PITCH IS LIVE! 🟢';
-    return;
-  }
-
-  const hours = Math.floor(diff / 3600000);
-  const mins = Math.floor((diff % 3600000) / 60000);
-  const secs = Math.floor((diff % 60000) / 1000);
-  tickerEl.innerHTML = `FIRST PITCH IN: <span>${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}</span>`;
+if(gameMatchups.length === 0) return;
+let earliestTime = null;
+gameMatchups.forEach(m => {
+const w = weatherSettings[m.id];
+if(w && w.startTime) {
+let [timeStr, ampm] = w.startTime.split(' ');
+let [hours, minutes] = timeStr.split(':').map(Number);
+if(ampm && ampm.toLowerCase() === 'pm' && hours !== 12) hours += 12;
+if(ampm && ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
+const gameDate = new Date();
+gameDate.setHours(hours, minutes, 0, 0);
+if(!earliestTime || gameDate < earliestTime) earliestTime = gameDate;
+}
+});
+const tickerEl = document.getElementById('tickerText');
+if(!earliestTime) { tickerEl.innerText = `${gameMatchups.length} Games Today | No start times found`; return; }
+const now = new Date();
+const diff = earliestTime - now;
+if(diff <= 0) { tickerEl.innerHTML = `FIRST PITCH IS LIVE! 🟢`; }
+else {
+const hours = Math.floor(diff / (1000 * 60 * 60));
+const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+const secs = Math.floor((diff % (1000 * 60)) / 1000);
+tickerEl.innerHTML = `FIRST PITCH IN: <span>${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}</span>`;
+}
 }
 
 
@@ -12940,7 +12880,7 @@ let temp = Number(row.Temp || row.Temperature || row.temp || 72) || 72;
 let windSpeed = Number(row.Wind || row.WindSpeed || row.Speed || row.wind || row['Wind MPH'] || row['wind mph']) || 0;
 let windDir = String(row.Direction || row.Dir || row.winddir || 'neutral').toLowerCase().trim();
 let humidity = Number(row.Humidity || row.humidity || 0);
-let startTime = normalizeGameTimeValue(safeGet(row, 'gametime', 'GameTime', 'Game Time', 'GAME TIME', 'FirstPitch', 'First Pitch', 'StartTime', 'Start Time', 'time', 'Time'));
+let startTime = String(row.GameTime || row.FirstPitch || row.StartTime || row.time || '').trim();
 const matchup = gameMatchups.find(m => m.id === matchingGameId);
 const trueHome = String((matchup && (matchup.trueHomeTeam || matchup.homeTeam || matchup.teamB)) || teamHomeParkMap[teamKey] || teamKey || '').trim().toUpperCase();
 weatherSettings[matchingGameId] = enrichWeatherWithFieldVector({ temp, windSpeed, windDir, isDome, humidity, startTime, weatherSource:'Spreadsheet' }, trueHome); // HA controls the true home/park team
@@ -14479,12 +14419,10 @@ function scoreHybridPlayer(p, ranges) {
   // Those calculations may remain available for displays, but they do not affect BBI scoring.
   const recent = null;
   const battedBall = hybridDiminishingWeightedAvg([
-    // Final HR-focused Batted Ball Profile: four distinct signals; weights total exactly 100%.
-    // Pulled Air % and FB+LD % are intentionally excluded from this calculation.
-    { value: hybridScoreMetric(r,ranges,'hrFb'), weight: 0.40 },
-    { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.launchAngle)), weight: 0.25 },
-    { value: hybridScoreMetric(r,ranges,'flyBall'), weight: 0.20 },
-    { value: hybridScoreMetric(r,ranges,'pull'), weight: 0.15 }
+    // HR-maximized Batted Ball Shape: three non-overlapping launch-direction signals; weights total 100%.
+    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.45 },
+    { value: hybridNeutralScore(hybridSweetSpotLaunchAngle(r.launchAngle)), weight: 0.30 },
+    { value: hybridScoreMetric(r,ranges,'hrFb'), weight: 0.25 }
   ]);
   let bvp = null;
   // Adaptive BvP: the stat only uses as much of the 9% BvP bucket as the PA sample earns.
@@ -14532,7 +14470,7 @@ function scoreHybridPlayer(p, ranges) {
   const dataConfidence = hybridCoverage(r, [
     { weight: 0.32, keys: ['barrel','avgEV','ev90','hardHit','xHR','xslg','xwoba','lwBarrel','lwEV','lwHardHit','lwXSLG','lwXWOBA'] },
     { weight: 0.24, keys: ['pitcherHR9','pitcherBarrel','pitcherHardHit','pitcherFB','pitcherHRFB','pitcherEV'] },
-    { weight: 0.20, keys: ['hrFb','launchAngle','flyBall','pull'] },
+    { weight: 0.20, keys: ['flyBall','pullAir','pull','hrFb','launchAngle','fbld'] },
     { weight: 0.12, keys: ['parkFactor','pullFence','weatherScore','teamTotal'] },
     { weight: 0.08, keys: ['attackZone','attackZoneTopEdge','attackZoneTopPitchPct'] },
     { weight: 0.04, keys: ['pa','paPg','battingOrder'] },
@@ -17070,18 +17008,30 @@ function renderComponentBucketTable(bucketData, baselinePct) {
     return `<tr><td>${b.label}</td><td>${b.players}</td><td>${b.hrs}</td><td class="${cls}">${fmtBack(pct,2,'%')}</td><td class="${cls}">${lift === null ? '-' : lift.toFixed(2)+'x'}</td><td>${fmtBack(avg,1)}</td></tr>`;
   }).join('');
 }
+const BUCKET_ANALYTICS_THRESHOLDS = [50,55,60,65,70,75];
 function thresholdSummary(rows, key) {
-  const thresholds = [50,55,60,65,70,75,80,85,90];
-  return thresholds.map(t => {
-    const subset = rows.filter(r => bucketAnalyticsNum(r[key]) !== null && bucketAnalyticsNum(r[key]) >= t);
-    const hrs = subset.filter(r => bucketAnalyticsNum(r.HR_Result) === 1).length;
-    return { label:`${t}+`, players: subset.length, hrs, pct: subset.length ? (hrs / subset.length) * 100 : null };
-  }).filter(x => x.players > 0);
+  const counters = BUCKET_ANALYTICS_THRESHOLDS.map(t => ({ label:`${t}+`, threshold:t, players:0, hrs:0, pct:null }));
+  (rows || []).forEach(r => {
+    const value = bucketAnalyticsNum(r[key]);
+    if (value === null) return;
+    const isHr = bucketAnalyticsNum(r.HR_Result) === 1;
+    counters.forEach(c => {
+      if (value >= c.threshold) {
+        c.players++;
+        if (isHr) c.hrs++;
+      }
+    });
+  });
+  counters.forEach(c => { c.pct = c.players ? (c.hrs / c.players) * 100 : null; });
+  return counters;
 }
-function renderThresholdCards(rows, key) {
+function renderThresholdCards(rows, key, baselinePct) {
   const vals = thresholdSummary(rows, key);
-  if (!vals.length) return '<div class="bucket-empty">No score rows yet.</div>';
-  return `<div class="bucket-threshold-grid">${vals.map(x => `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${x.label}</div><div class="bucket-threshold-val">${fmtBack(x.pct,1,'%')}</div><div class="bucket-threshold-sub">${x.hrs}/${x.players} HR</div></div>`).join('')}</div>`;
+  if (!vals.some(x => x.players > 0)) return '<div class="bucket-empty">No score rows yet.</div>';
+  return `<div class="bucket-threshold-grid">${vals.map(x => {
+    const lift = x.pct !== null && baselinePct ? x.pct / baselinePct : null;
+    return `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${x.label}</div><div class="bucket-threshold-val">${fmtBack(x.pct,1,'%')}</div><div class="bucket-threshold-sub">${x.hrs}/${x.players} HR${lift === null ? '' : ` • ${lift.toFixed(2)}x`}</div></div>`;
+  }).join('')}</div>`;
 }
 function renderComponentBandCards(rows, key, emptyLabel) {
   const bucketData = buildComponentBuckets(rows, key);
@@ -17115,30 +17065,43 @@ function renderPitchLabBandCardsLegacyUnused(rows) {
     return `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${bucket.label}</div><div class="bucket-threshold-val">${fmtBack(pct,1,'%')}</div><div class="bucket-threshold-sub">${bucket.hrs}/${bucket.players} HR${lift === null ? '' : ` • ${lift.toFixed(2)}x`}</div></div>`;
   }).join('')}</div>`;
 }
-function buildConfluenceRows(rows) {
-  const configs = [
-    { label:'Pitch Lab 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 },
-    { label:'Attack Zone 65+', test:r => bucketAnalyticsNum(r.AttackZone_Score) >= 65 },
-    { label:'Pitcher 65+', test:r => bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
-    { label:'Pitch Lab + Zone 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 && bucketAnalyticsNum(r.AttackZone_Score) >= 65 },
-    { label:'Pitch Lab + Pitcher 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 && bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
-    { label:'Zone + Pitcher 65+', test:r => bucketAnalyticsNum(r.AttackZone_Score) >= 65 && bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
-    { label:'All Three 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 && bucketAnalyticsNum(r.AttackZone_Score) >= 65 && bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
-    { label:'All Three 70+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 70 && bucketAnalyticsNum(r.AttackZone_Score) >= 70 && bucketAnalyticsNum(r.Pitcher_Score) >= 70 },
-    { label:'Pitch Lab 75+ + Zone 70+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 75 && bucketAnalyticsNum(r.AttackZone_Score) >= 70 }
+function buildConfluenceGroups(rows) {
+  const groupDefs = [
+    { id:'allThree', title:'All Three', keys:['PitchLab_Score','AttackZone_Score','Pitcher_Score'] },
+    { id:'pitchLabZone', title:'Pitch Lab + Attack Zone', keys:['PitchLab_Score','AttackZone_Score'] },
+    { id:'zonePitcher', title:'Attack Zone + Pitcher', keys:['AttackZone_Score','Pitcher_Score'] },
+    { id:'pitchLabPitcher', title:'Pitch Lab + Pitcher', keys:['PitchLab_Score','Pitcher_Score'] }
   ];
-  return configs.map(c => {
-    const subset = rows.filter(c.test);
-    const hrs = subset.filter(r => bucketAnalyticsNum(r.HR_Result) === 1).length;
-    return { label:c.label, players: subset.length, hrs, pct: subset.length ? (hrs / subset.length) * 100 : null };
+  const groups = groupDefs.map(g => ({ ...g, thresholds:BUCKET_ANALYTICS_THRESHOLDS.map(t => ({ threshold:t, label:`${t}+`, players:0, hrs:0, pct:null })) }));
+  (rows || []).forEach(r => {
+    const isHr = bucketAnalyticsNum(r.HR_Result) === 1;
+    groups.forEach(group => {
+      const values = group.keys.map(key => bucketAnalyticsNum(r[key]));
+      if (values.some(v => v === null)) return;
+      group.thresholds.forEach(c => {
+        if (values.every(v => v >= c.threshold)) {
+          c.players++;
+          if (isHr) c.hrs++;
+        }
+      });
+    });
   });
+  groups.forEach(group => group.thresholds.forEach(c => { c.pct = c.players ? (c.hrs / c.players) * 100 : null; }));
+  return groups;
 }
-function renderConfluenceTable(rows, baselinePct) {
-  return buildConfluenceRows(rows).map(x => {
-    const lift = x.pct !== null && baselinePct ? x.pct / baselinePct : null;
-    const cls = lift !== null && lift >= 1.15 ? 'signal-positive' : lift !== null && lift <= 0.85 ? 'signal-negative' : 'signal-neutral';
-    return `<tr><td>${x.label}</td><td>${x.players}</td><td>${x.hrs}</td><td class="${cls}">${fmtBack(x.pct,2,'%')}</td><td class="${cls}">${lift === null ? '-' : lift.toFixed(2)+'x'}</td></tr>`;
-  }).join('');
+function buildConfluenceRows(rows) {
+  return buildConfluenceGroups(rows).flatMap(group => group.thresholds.map(x => ({ ...x, label:`${group.title} ${x.label}`, group:group.id })));
+}
+function renderConfluenceCards(rows, baselinePct) {
+  return buildConfluenceGroups(rows).map(group => `
+    <div class="bucket-mini-card">
+      <div class="bucket-mini-title">${group.title}</div>
+      <div class="bucket-mini-sub">Every listed score must meet the same cutoff.</div>
+      <div class="bucket-threshold-grid">${group.thresholds.map(x => {
+        const lift = x.pct !== null && baselinePct ? x.pct / baselinePct : null;
+        return `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${x.label}</div><div class="bucket-threshold-val">${fmtBack(x.pct,1,'%')}</div><div class="bucket-threshold-sub">${x.hrs}/${x.players} HR${lift === null ? '' : ` • ${lift.toFixed(2)}x`}</div></div>`;
+      }).join('')}</div>
+    </div>`).join('');
 }
 function bestThresholdText(rows, key) {
   const vals = thresholdSummary(rows, key).filter(x => x.players >= 5);
@@ -17172,9 +17135,9 @@ function renderBucketAnalytics() {
         <div class="backtest-kpi"><div class="backtest-kpi-label">Best confluence</div><div class="backtest-kpi-value small-title">${bestConfluence ? bestConfluence.label : '-'}</div><div class="backtest-kpi-sub">${bestConfluence ? `${bestConfluence.hrs}/${bestConfluence.players} HR • ${fmtBack(bestConfluence.pct,1,'%')}` : 'Need more data'}</div></div>
       </div>
       <div class="bucket-analytics-section-grid">
-        <div class="bucket-mini-card"><div class="bucket-mini-title">🔥 Pitch Lab Thresholds</div><div class="bucket-mini-sub">Quick cutoff scan using fresh finalized bucket rows only.</div>${renderPitchLabBandCards(rows)}</div>
-        <div class="bucket-mini-card"><div class="bucket-mini-title">🎯 Attack Zone Thresholds</div><div class="bucket-mini-sub">Find where zone target scores start turning into HRs.</div>${renderThresholdCards(rows, 'AttackZone_Score')}</div>
-        <div class="bucket-mini-card"><div class="bucket-mini-title">⚾ Pitcher Thresholds</div><div class="bucket-mini-sub">Uses the exact large HR Damage score shown on each Pitchers tab card.</div>${renderPitcherBandCards(rows)}</div>
+        <div class="bucket-mini-card"><div class="bucket-mini-title">🔥 Pitch Lab Thresholds</div><div class="bucket-mini-sub">50 through 75 cutoffs using all finalized Bucket Analytics rows.</div>${renderThresholdCards(rows, 'PitchLab_Score', baselinePct)}</div>
+        <div class="bucket-mini-card"><div class="bucket-mini-title">🎯 Attack Zone Thresholds</div><div class="bucket-mini-sub">50 through 75 cutoffs using all finalized Bucket Analytics rows.</div>${renderThresholdCards(rows, 'AttackZone_Score', baselinePct)}</div>
+        <div class="bucket-mini-card"><div class="bucket-mini-title">⚾ Pitcher Thresholds</div><div class="bucket-mini-sub">50 through 75 cutoffs using the saved Pitcher Vulnerability score.</div>${renderThresholdCards(rows, 'Pitcher_Score', baselinePct)}</div>
       </div>
       <h2>🔥 Pitch Lab Score Buckets</h2>
       <p class="backtest-note">Pitch Lab / Pitch Matchup score bucketed independently from BBI.</p>
@@ -17186,8 +17149,8 @@ function renderBucketAnalytics() {
       <p class="backtest-note">Pitchers-tab HR Damage score bucketed independently from BBI, using the exact card score (higher of LHB/RHB risk).</p>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitcher Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(pitcherBuckets, baselinePct)}</tbody></table></div>
       <h2>🤝 Confluence Analysis</h2>
-      <p class="backtest-note">This shows what happens when Pitch Lab, Attack Zone, and Pitcher score agree. Lift compares each group to the clean-slate Bucket Analytics baseline.</p>
-      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Criteria</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th></tr></thead><tbody>${renderConfluenceTable(rows, baselinePct)}</tbody></table></div>
+      <p class="backtest-note">All Three and each two-score pairing are shown at 50, 55, 60, 65, 70, and 75. Lift compares each group with the combined Bucket Analytics baseline from every finalized slate.</p>
+      <div class="bucket-analytics-section-grid">${renderConfluenceCards(rows, baselinePct)}</div>
       <h2>✅ Current Best Cutoffs</h2>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Engine</th><th>Best threshold so far</th><th>Usable rows</th><th>Missing rows</th></tr></thead><tbody>
         <tr><td>Pitch Lab</td><td>${bestThresholdText(rows, 'PitchLab_Score')}</td><td>${pitchLabBuckets.usable}</td><td>${pitchLabBuckets.missing}</td></tr>
@@ -19291,48 +19254,6 @@ body.drl-scrolling *,body.drl-scrolling *::before,body.drl-scrolling *::after{
   animation-play-state:paused !important;
 }
 </style>
-
-
-
-<style id="drl-rankings-mouse-wheel-fix">
-/* Keep horizontal rankings scrolling, but never trap normal vertical page scrolling. */
-#tab-home .table-wrapper {
-  overflow-x: auto !important;
-  overflow-y: visible !important;
-  overscroll-behavior-x: contain;
-  overscroll-behavior-y: auto !important;
-  touch-action: pan-x pan-y;
-}
-#tab-home .table-wrapper table,
-#tab-home .table-wrapper tbody,
-#tab-home .table-wrapper tr,
-#tab-home .table-wrapper td {
-  touch-action: pan-x pan-y;
-}
-</style>
-<script id="drl-rankings-mouse-wheel-fix-script">
-(function () {
-  if (window.__drlRankingsWheelFixInstalled) return;
-  window.__drlRankingsWheelFixInstalled = true;
-
-  document.addEventListener('wheel', function (event) {
-    const rankings = event.target && event.target.closest
-      ? event.target.closest('#tab-home .table-wrapper')
-      : null;
-    if (!rankings) return;
-    if (document.body.classList.contains('modal-open')) return;
-
-    const vertical = Math.abs(event.deltaY);
-    const horizontal = Math.abs(event.deltaX);
-    if (vertical <= horizontal || vertical === 0) return;
-
-    // The rankings box only needs its own horizontal overflow. Send vertical
-    // wheel movement to the page so the cursor can stay over the rankings.
-    event.preventDefault();
-    window.scrollBy({ top: event.deltaY, left: 0, behavior: 'auto' });
-  }, { passive: false, capture: true });
-})();
-</script>
 
 </body>
 </html>
