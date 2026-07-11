@@ -19234,245 +19234,45 @@ body.drl-scrolling *,body.drl-scrolling *::before,body.drl-scrolling *::after{
 
 
 
-<style id="v51-48-performance-clean-final-style">
-/* Rendering containment: same visuals, less off-screen layout/paint work. */
-.tab-content:not(.active) { content-visibility: hidden; contain: layout style paint; }
-#tableBody > tr, .stats-table tbody > tr, .full-edge-table tbody > tr,
-.signal-table tbody > tr, .orientation-audit-table tbody > tr {
-  contain: layout style paint;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 96px;
+<style id="drl-rankings-mouse-wheel-fix">
+/* Keep horizontal rankings scrolling, but never trap normal vertical page scrolling. */
+#tab-home .table-wrapper {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto !important;
+  touch-action: pan-x pan-y;
 }
-img { content-visibility: auto; }
-body.drl-rendering-home .top-target-hero,
-body.drl-rendering-home .slate-board,
-body.drl-rendering-home .top12-carousel-wrap,
-body.drl-rendering-home .jackpot-section { pointer-events:none; }
+#tab-home .table-wrapper table,
+#tab-home .table-wrapper tbody,
+#tab-home .table-wrapper tr,
+#tab-home .table-wrapper td {
+  touch-action: pan-x pan-y;
+}
 </style>
-<script id="v51-48-performance-clean-final-js">
-(function(){
-  'use strict';
-  const idle = window.requestIdleCallback
-    ? (fn, timeout=500) => window.requestIdleCallback(fn, {timeout})
-    : (fn) => setTimeout(fn, 16);
-  const cancelIdle = window.cancelIdleCallback
-    ? (id) => window.cancelIdleCallback(id)
-    : (id) => clearTimeout(id);
+<script id="drl-rankings-mouse-wheel-fix-script">
+(function () {
+  if (window.__drlRankingsWheelFixInstalled) return;
+  window.__drlRankingsWheelFixInstalled = true;
 
-  let homeRenderToken = 0;
-  let pendingIdle = [];
-  let dataGeneration = 0;
-  let lastPlayerDataRef = null;
-  const tabRenderGeneration = Object.create(null);
-  const whyCache = new WeakMap();
+  document.addEventListener('wheel', function (event) {
+    const rankings = event.target && event.target.closest
+      ? event.target.closest('#tab-home .table-wrapper')
+      : null;
+    if (!rankings) return;
+    if (document.body.classList.contains('modal-open')) return;
 
-  function generation(){
-    const currentPlayerData = (typeof playerData !== 'undefined' && Array.isArray(playerData)) ? playerData : [];
-    if (currentPlayerData !== lastPlayerDataRef) {
-      lastPlayerDataRef = currentPlayerData;
-      dataGeneration++;
-      for (const k in tabRenderGeneration) delete tabRenderGeneration[k];
-      try { whyCache.clear && whyCache.clear(); } catch(e) {}
-    }
-    const list = currentPlayerData;
-    const first = list[0];
-    const last = list[list.length - 1];
-    return dataGeneration + ':' + list.length + ':' +
-      (first ? Number(first.calculatedBBI || 0).toFixed(3) : '') + ':' +
-      (last ? Number(last.calculatedBBI || 0).toFixed(3) : '');
-  }
+    const vertical = Math.abs(event.deltaY);
+    const horizontal = Math.abs(event.deltaX);
+    if (vertical <= horizontal || vertical === 0) return;
 
-  function cancelPendingHomeWork(){
-    pendingIdle.forEach(cancelIdle);
-    pendingIdle = [];
-  }
-  function queueIdle(fn, timeout){
-    const id = idle(() => {
-      pendingIdle = pendingIdle.filter(x => x !== id);
-      try { fn(); } catch(err) { console.error('Deferred render failed:', err); }
-    }, timeout);
-    pendingIdle.push(id);
-  }
-
-  // Cache the expensive row explanation. It was being calculated twice per player per Home render.
-  const originalCompactWhyInsight = window.compactWhyInsight;
-  if (typeof originalCompactWhyInsight === 'function') {
-    window.compactWhyInsight = function(player){
-      if (!player || typeof player !== 'object') return originalCompactWhyInsight(player);
-      const sig = [
-        Number(player.calculatedBBI || 0).toFixed(3),
-        Number(player.bettingEdge || 0).toFixed(3),
-        Number(player.envMultiplier || 0).toFixed(3),
-        Number(player['Barrel %'] || 0).toFixed(4),
-        Number(player['ISO'] || 0).toFixed(4),
-        String(player['Opp Pitcher'] || player['Opp Pitcher Name'] || '')
-      ].join('|');
-      const hit = whyCache.get(player);
-      if (hit && hit.sig === sig) return hit.value;
-      const value = originalCompactWhyInsight(player);
-      whyCache.set(player, {sig, value});
-      return value;
-    };
-  }
-
-  function markImagesLazy(root){
-    if (!root || !root.querySelectorAll) return;
-    root.querySelectorAll('img:not([loading])').forEach(img => {
-      // Modal/loader imagery should remain immediate; everything else can decode off the critical path.
-      if (img.closest('.modal-overlay.active, .ai-loading-overlay.active')) return;
-      img.loading = 'lazy';
-      img.decoding = 'async';
-    });
-  }
-
-  // Keep all current filtering/scoring behavior, but paint rankings before secondary Home widgets.
-  window.applyFiltersAndRender = function(){
-    const token = ++homeRenderToken;
-    cancelPendingHomeWork();
-    document.body.classList.add('drl-rendering-home');
-
-    try { if (typeof syncTeamLogoDropdown === 'function') { syncTeamLogoDropdown(1); syncTeamLogoDropdown(2); } } catch(e) {}
-    const f1El = document.getElementById('teamFilter1');
-    const f2El = document.getElementById('teamFilter2');
-    const batsEl = document.getElementById('batsFilter');
-    const searchEl = document.getElementById('searchFilter');
-    const removedEl = document.getElementById('showRemovedCheck');
-    const f1 = f1El ? f1El.value : 'ALL';
-    const f2 = f2El ? f2El.value : 'ALL';
-    const batsFilter = batsEl ? batsEl.value : 'ALL';
-    const searchVal = searchEl ? searchEl.value.toLowerCase().trim() : '';
-    const showRemoved = !!(removedEl && removedEl.checked);
-    const overallRankMap = getOverallBBIRankMap(showRemoved);
-    const selectedTeams = [f1, f2].filter(t => t && t !== 'ALL');
-    const source = (typeof playerData !== 'undefined' && Array.isArray(playerData)) ? playerData : [];
-    let filtered = [];
-
-    for (let i=0; i<source.length; i++) {
-      const p = source[i];
-      if (!showRemoved && p.isRemoved) continue;
-      const overallRank = getOverallBBIRank(p, overallRankMap);
-      const playerTier = getBBITierForRank(overallRank);
-      if (selectedBBITierFilter !== 'ALL' && playerTier !== selectedBBITierFilter) continue;
-      if (selectedQuickTeamFilter !== 'ALL' && p.Team !== selectedQuickTeamFilter) continue;
-      if (selectedTeams.length && !selectedTeams.includes(p.Team)) continue;
-      if (batsFilter !== 'ALL') {
-        const batsVal = String(p['Bats'] || p['bats'] || p['Hand'] || p['Handedness'] || '').toUpperCase().trim();
-        if (!batsVal.includes(batsFilter)) continue;
-      }
-      if (searchVal && !String(p.Name || '').toLowerCase().includes(searchVal)) continue;
-      p.overallBBIRank = overallRank;
-      p.bbiTier = playerTier;
-      filtered.push(p);
-    }
-
-    if (typeof initBetFinder === 'function') initBetFinder();
-    const betDetailsMap = new Map();
-    const betQualified = [];
-    for (let i=0; i<filtered.length; i++) {
-      const p = filtered[i];
-      const d = (typeof betFinderPassDetails === 'function') ? betFinderPassDetails(p, overallRankMap) : {pass:true,reasons:[]};
-      betDetailsMap.set(p, d);
-      if (d.pass) betQualified.push(p);
-    }
-    const betState = (typeof getBetFinderState === 'function') ? getBetFinderState() : {showQualified:false};
-    if (betState.showQualified) filtered = betQualified.slice();
-    const rankSort = (a,b) => (getOverallBBIRank(a, overallRankMap) || 9999) - (getOverallBBIRank(b, overallRankMap) || 9999);
-    filtered.sort(rankSort);
-    betQualified.sort(rankSort);
-
-    // Critical path: rankings first.
-    if (typeof renderBBITierStats === 'function') renderBBITierStats(filtered.length);
-    if (typeof renderMainTableBoard === 'function') renderMainTableBoard(filtered, overallRankMap);
-    markImagesLazy(document.getElementById('tab-home'));
-
-    requestAnimationFrame(() => {
-      if (token !== homeRenderToken) return;
-      try { if (typeof renderBetFinderResults === 'function') renderBetFinderResults(filtered, betQualified, betDetailsMap); } catch(e) { console.error(e); }
-      queueIdle(() => { if (token === homeRenderToken && typeof renderPregameSlateBoard === 'function') renderPregameSlateBoard(); }, 250);
-      queueIdle(() => { if (token === homeRenderToken && typeof renderTopTargetHero === 'function') renderTopTargetHero(); }, 300);
-      queueIdle(() => { if (token === homeRenderToken && typeof renderTop12Carousel === 'function') renderTop12Carousel(); }, 350);
-      queueIdle(() => { if (token === homeRenderToken && typeof renderFanaticsJackpot === 'function') renderFanaticsJackpot(); }, 450);
-      queueIdle(() => { if (token === homeRenderToken && typeof renderTodaysStorylines === 'function') renderTodaysStorylines(); }, 500);
-      queueIdle(() => {
-        if (token === homeRenderToken && typeof renderBestBettingEdges === 'function') renderBestBettingEdges();
-        document.body.classList.remove('drl-rendering-home');
-        markImagesLazy(document.getElementById('tab-home'));
-      }, 650);
-    });
-  };
-
-  // Build expensive tabs once per loaded/scored slate. Existing controls can still call their renderers directly.
-  window.switchTab = function(tabName, btn){
-    document.querySelectorAll('.tab-content.active').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav-tab.active').forEach(el => el.classList.remove('active'));
-    const activeTabEl = document.getElementById('tab-' + tabName);
-    if (activeTabEl) activeTabEl.classList.add('active');
-    if (btn) btn.classList.add('active');
-
-    const gen = generation();
-    if (tabName === 'home') { markImagesLazy(activeTabEl); return; }
-    if (tabRenderGeneration[tabName] === gen) { markImagesLazy(activeTabEl); return; }
-    tabRenderGeneration[tabName] = gen;
-
-    requestAnimationFrame(() => setTimeout(() => {
-      try {
-        if (tabName === 'stats' && typeof renderStatsTable === 'function') renderStatsTable();
-        else if (tabName === 'odds' && typeof renderOddsBoard === 'function') renderOddsBoard();
-        else if (tabName === 'pitchers' && typeof renderAllPitchers === 'function') renderAllPitchers();
-        else if (tabName === 'environment' && typeof window.renderHREnvironmentTable40 === 'function') window.renderHREnvironmentTable40();
-        else if (tabName === 'hotbat' && typeof renderHotBatTable === 'function') renderHotBatTable();
-        else if (tabName === 'h2h' && typeof renderH2HFullTable === 'function') renderH2HFullTable();
-        else if (tabName === 'pitchlab' && typeof renderPitchLabTable === 'function') renderPitchLabTable();
-        else if (tabName === 'zoneprofile' && typeof renderZoneProfileTab === 'function') renderZoneProfileTab();
-        else if (tabName === 'edge' && typeof renderEdgePanels === 'function') renderEdgePanels();
-        else if (tabName === 'tools') { if (typeof renderWeatherRankings === 'function') renderWeatherRankings(); if (typeof renderStadiumOrientationAudit === 'function') renderStadiumOrientationAudit(); }
-        else if (tabName === 'backtest') {
-          const c = document.getElementById('backtestLabContainer');
-          if (c) c.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">Loading Backtest Lab...</div>';
-          if (typeof renderBacktestLab === 'function') renderBacktestLab();
-        }
-        else if (tabName === 'bbidiagnostics' && typeof renderBBIRankDiagnostics === 'function') renderBBIRankDiagnostics();
-        else if (tabName === 'bucketanalytics' && typeof renderBucketAnalytics === 'function') renderBucketAnalytics();
-        else if (tabName === 'synergy' && typeof renderSynergyBonusesTab === 'function') renderSynergyBonusesTab();
-        markImagesLazy(activeTabEl);
-      } catch(err) {
-        tabRenderGeneration[tabName] = '';
-        console.error(tabName + ' tab render failed:', err);
-      }
-    }, 0));
-  };
-
-  // Debounce typing-only filters; buttons/selects remain immediate.
-  function bindDebouncedSearch(){
-    const input = document.getElementById('searchFilter');
-    if (!input || input.dataset.drlPerfBound) return;
-    input.dataset.drlPerfBound = '1';
-    let timer = 0;
-    input.addEventListener('input', function(ev){
-      ev.stopImmediatePropagation();
-      clearTimeout(timer);
-      timer = setTimeout(() => window.applyFiltersAndRender(), 140);
-    }, true);
-  }
-
-  function init(){
-    bindDebouncedSearch();
-    markImagesLazy(document);
-    // New images inserted by any renderer inherit lazy decoding without touching popup structure/z-index.
-    try {
-      new MutationObserver(records => {
-        records.forEach(r => r.addedNodes.forEach(n => {
-          if (n.nodeType === 1) {
-            if (n.tagName === 'IMG' && !n.loading) { n.loading='lazy'; n.decoding='async'; }
-            markImagesLazy(n);
-          }
-        }));
-      }).observe(document.body, {childList:true, subtree:true});
-    } catch(e) {}
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
-  else init();
+    // The rankings box only needs its own horizontal overflow. Send vertical
+    // wheel movement to the page so the cursor can stay over the rankings.
+    event.preventDefault();
+    window.scrollBy({ top: event.deltaY, left: 0, behavior: 'auto' });
+  }, { passive: false, capture: true });
 })();
 </script>
+
 </body>
 </html>
