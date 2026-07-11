@@ -13270,30 +13270,27 @@ function buildAttackZoneDamageScore(row, side) {
   if (!row || !Object.keys(row).length) return null;
   const s = zoneExtractStats(row);
   const isPitcher = String(side || '').toLowerCase().includes('pitch');
-  // HR-only Attack Zone blend. xSLG intentionally removed.
-  // Batter: Barrels/PA 30, Barrels/BBE 25, ISO 18, HardHit 10, HR 5, LA 7, Bat Speed 5.
-  // Pitcher: Barrels/PA allowed 32, Barrels/BBE allowed 26, ISO allowed 15, HardHit allowed 10, HR allowed 5, LA allowed 7, Bat Speed faced 5.
+  // Home Run EV Engine. Barrels/BBE removed to avoid double-counting barrel quality.
+  // Missing-stat handling remains inside hybridWeightedAvg, which re-normalizes available weights.
   const launchAngleScore = (s.la === null || s.la === undefined || isNaN(Number(s.la)))
     ? null
     : hybridScaleScoreFromPoints(Number(s.la), [[0,0],[5,18],[10,42],[14,65],[18,85],[22,100],[28,72],[34,35],[42,8]]);
   if (isPitcher) {
     return hybridWeightedAvg([
-      { value: attackZoneScaleScore('barrelPA', s.barrelPA), weight: 0.32 },
-      { value: attackZoneScaleScore('barrel', s.barrel), weight: 0.26 },
-      { value: attackZoneScaleScore('iso', s.iso), weight: 0.15 },
-      { value: attackZoneScaleScore('hardhit', s.hardhit), weight: 0.10 },
+      { value: attackZoneScaleScore('barrelPA', s.barrelPA), weight: 0.40 },
+      { value: attackZoneScaleScore('iso', s.iso), weight: 0.25 },
+      { value: attackZoneScaleScore('hardhit', s.hardhit), weight: 0.15 },
+      { value: launchAngleScore, weight: 0.10 },
       { value: attackZoneScaleScore('hr', s.hr), weight: 0.05 },
-      { value: launchAngleScore, weight: 0.07 },
       { value: attackZoneScaleScore('batSpeed', s.batSpeed), weight: 0.05 }
     ]);
   }
   return hybridWeightedAvg([
-    { value: attackZoneScaleScore('barrelPA', s.barrelPA), weight: 0.30 },
-    { value: attackZoneScaleScore('barrel', s.barrel), weight: 0.25 },
-    { value: attackZoneScaleScore('iso', s.iso), weight: 0.18 },
+    { value: attackZoneScaleScore('barrelPA', s.barrelPA), weight: 0.40 },
+    { value: attackZoneScaleScore('iso', s.iso), weight: 0.30 },
     { value: attackZoneScaleScore('hardhit', s.hardhit), weight: 0.10 },
+    { value: launchAngleScore, weight: 0.10 },
     { value: attackZoneScaleScore('hr', s.hr), weight: 0.05 },
-    { value: launchAngleScore, weight: 0.07 },
     { value: attackZoneScaleScore('batSpeed', s.batSpeed), weight: 0.05 }
   ]);
 }
@@ -13357,6 +13354,28 @@ function zoneSheetHasData(sheetKey, name) {
 }
 const ATTACK_ZONE_STARTER_WEIGHT = 0.75;
 const ATTACK_ZONE_BULLPEN_WEIGHT = 0.25;
+// Exact 100% HR-location matrix. Middle zones carry the most HR expected value.
+const ATTACK_ZONE_HR_MATRIX = Object.freeze({
+  1: 0.05638, 2: 0.10880, 3: 0.05638,
+  4: 0.16815, 5: 0.16815, 6: 0.16815,
+  7: 0.10880, 8: 0.10880, 9: 0.05639
+});
+function attackZoneMatrixScore(zones) {
+  if (!Array.isArray(zones) || !zones.length) return null;
+  let total = 0;
+  for (let zone = 1; zone <= 9; zone++) {
+    const row = zones.find(z => Number(z.zone) === zone);
+    total += (row && Number.isFinite(Number(row.edge)) ? Number(row.edge) : 0) * ATTACK_ZONE_HR_MATRIX[zone];
+  }
+  return Math.max(0, Math.min(100, total));
+}
+function attackZoneDisplayPeak(zones) {
+  let peak = null;
+  for (const z of (zones || [])) {
+    if (!peak || (Number(z.edge) || 0) > (Number(peak.edge) || 0)) peak = z;
+  }
+  return peak;
+}
 function zoneBlendStarterBullpenValue(starterValue, bullpenValue) {
   return hybridWeightedAvg([
     { value: starterValue, weight: ATTACK_ZONE_STARTER_WEIGHT },
@@ -13419,18 +13438,10 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   }
   if (!zones.length) return { score:null, zones:[], topZone:null, bucket: bucket || 'GENERIC', bucketLabel: bucketName, summary:`No ${bucketName} BZ/PZ zone data found.` };
   const weightedAvgEdge = zones.reduce((s,z)=>s+(Number(z.edge)||0)*(Number(z.pitchPct)||(1/zones.length)),0) / zones.reduce((s,z)=>s+(Number(z.pitchPct)||(1/zones.length)),0);
-  zones.sort((a,b)=>(b.edge||0)-(a.edge||0));
-  const topZone = zones[0] || null;
-  const bestOverlapEdge = topZone ? Number(topZone.edge)||0 : 0;
-  const bestZoneUsageScore = topZone ? Number(topZone.pitchFrequencyScore)||0 : 0;
-  const rawScore = hybridWeightedAvg([
-    { value: bestOverlapEdge, weight: 0.50 },
-    { value: bestZoneUsageScore, weight: 0.30 },
-    { value: weightedAvgEdge, weight: 0.20 }
-  ]);
-  const score = Math.max(0, Math.min(100, rawScore));
+  const score = attackZoneMatrixScore(zones);
+  const topZone = attackZoneDisplayPeak(zones); // Display only; it no longer affects scoring.
   const summary = topZone ? zoneBuildSummary(hitterName, pitcherName, topZone) : `No ${bucketName} edge`;
-  return { score, zones, topZone, bucket: bucket || 'GENERIC', bucketLabel: bucketName, summary, weightedAvgEdge };
+  return { score, zones, topZone, bucket: bucket || 'GENERIC', bucketLabel: bucketName, summary, weightedAvgEdge, scoringEngine:'HR_EV_MATRIX' };
 }
 function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   const hitterName = player && player.Name;
@@ -13440,39 +13451,51 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
     const pieces = ['FB','BR','OS'].map(bucket => {
       const prof = bucketProfiles[bucket];
       const z = prof && prof.zones ? prof.zones.find(x => Number(x.zone) === i) : null;
-      return z ? { bucket, z, w:Number(mix[bucket]) || 0 } : null;
+      if (!z) return null;
+      // PZ/BPZ pitch_percent is the exact family exposure in this specific zone.
+      const zoneUsage = Number(z.pitchPct);
+      return { bucket, z, zoneUsage: Number.isFinite(zoneUsage) && zoneUsage >= 0 ? zoneUsage : 0 };
     }).filter(Boolean);
     if (!pieces.length) continue;
-    const denom = pieces.reduce((s,x)=>s+x.w,0) || pieces.length;
-    const wavg = fn => pieces.reduce((s,x)=>s+((Number(fn(x.z)) || 0) * (x.w || (1/pieces.length))),0) / (denom || 1);
-    const exposure = pieces.reduce((s,x)=>s+((Number(x.z.pitchPct) || 0) * (Number(mix[x.bucket]) || 0)),0);
-    const bestPiece = pieces.slice().sort((a,b)=>(b.z.edge||0)-(a.z.edge||0))[0];
-    const edge = wavg(z=>z.edge);
-    const batterDamage = wavg(z=>z.batterDamage);
-    const pitcherVulnerability = wavg(z=>z.pitcherVulnerability);
-    const pitchPct = exposure || wavg(z=>z.pitchPct);
-    const freqScore = attackZoneScaleScore('freq', pitchPct === null ? 1/9 : pitchPct);
+
+    let usageTotal = pieces.reduce((sum, piece) => sum + piece.zoneUsage, 0);
+    if (usageTotal <= 0) {
+      // Data-safe fallback only when zone-level usage is absent.
+      pieces.forEach(piece => { piece.zoneUsage = Number(mix && mix[piece.bucket]) || 0; });
+      usageTotal = pieces.reduce((sum, piece) => sum + piece.zoneUsage, 0) || pieces.length;
+    }
+    const zoneMix = piece => (piece.zoneUsage > 0 ? piece.zoneUsage / usageTotal : (usageTotal === pieces.length ? 1 / pieces.length : 0));
+    const wavg = fn => pieces.reduce((sum, piece) => sum + (Number(fn(piece.z)) || 0) * zoneMix(piece), 0);
+
+    const edge = wavg(z => z.edge);
+    const batterDamage = wavg(z => z.batterDamage);
+    const pitcherVulnerability = wavg(z => z.pitcherVulnerability);
+    const pitchPct = pieces.reduce((sum, piece) => sum + piece.zoneUsage, 0);
+    const displayPiece = pieces.reduce((best, piece) => !best || zoneMix(piece) > zoneMix(best) ? piece : best, null);
+    const matrixWeight = ATTACK_ZONE_HR_MATRIX[i];
+
     zones.push({
-      zone:i, bucket:'WEIGHTED', bucketLabel:'Weighted', bestBucket:bestPiece.bucket, bestBucketLabel:zoneBucketLabel(bestPiece.bucket),
-      batterDamage, pitcherVulnerability, pitchFrequencyScore:freqScore, pitchPct,
+      zone:i, bucket:'WEIGHTED', bucketLabel:'Weighted',
+      bestBucket:displayPiece ? displayPiece.bucket : null,
+      bestBucketLabel:displayPiece ? zoneBucketLabel(displayPiece.bucket) : '',
+      batterDamage, pitcherVulnerability,
+      pitchFrequencyScore:attackZoneScaleScore('freq', pitchPct || 1/9), pitchPct,
       edge:Math.max(0,Math.min(100,edge)), weightedEdge:Math.max(0,Math.min(100,edge)),
-      batterStats: zoneMergeDisplayStatsFromPieces(pieces, 'batterStats', bestPiece.z.batterStats || {}),
-      pitcherStats: zoneMergeDisplayStatsFromPieces(pieces, 'pitcherStats', bestPiece.z.pitcherStats || {}),
-      bucketPieces: pieces.map(x=>({bucket:x.bucket,label:zoneBucketLabel(x.bucket),mix:x.w,edge:x.z.edge,pitchPct:x.z.pitchPct,batterDamage:x.z.batterDamage,pitcherVulnerability:x.z.pitcherVulnerability}))
+      matrixWeight, matrixContribution:Math.max(0,Math.min(100,edge)) * matrixWeight,
+      batterStats: zoneMergeDisplayStatsFromPieces(pieces.map(p=>({bucket:p.bucket,z:p.z,w:zoneMix(p)})), 'batterStats', displayPiece && displayPiece.z ? (displayPiece.z.batterStats || {}) : {}),
+      pitcherStats: zoneMergeDisplayStatsFromPieces(pieces.map(p=>({bucket:p.bucket,z:p.z,w:zoneMix(p)})), 'pitcherStats', displayPiece && displayPiece.z ? (displayPiece.z.pitcherStats || {}) : {}),
+      bucketPieces: pieces.map(piece=>({
+        bucket:piece.bucket, label:zoneBucketLabel(piece.bucket), mix:zoneMix(piece), zonePitchPct:piece.zoneUsage,
+        edge:piece.z.edge, pitchPct:piece.z.pitchPct, batterDamage:piece.z.batterDamage, pitcherVulnerability:piece.z.pitcherVulnerability
+      }))
     });
   }
   if (!zones.length) return calculateAttackZoneBucketProfile(player, 'GENERIC', 1);
   const weightedAvgEdge = zones.reduce((s,z)=>s+(Number(z.edge)||0)*(Number(z.pitchPct)||(1/zones.length)),0) / zones.reduce((s,z)=>s+(Number(z.pitchPct)||(1/zones.length)),0);
-  zones.sort((a,b)=>(b.edge||0)-(a.edge||0));
-  const topZone = zones[0] || null;
-  const rawScore = hybridWeightedAvg([
-    { value: topZone ? topZone.edge : null, weight: 0.50 },
-    { value: topZone ? topZone.pitchFrequencyScore : null, weight: 0.30 },
-    { value: weightedAvgEdge, weight: 0.20 }
-  ]);
-  const score = Math.max(0, Math.min(100, rawScore));
+  const score = attackZoneMatrixScore(zones);
+  const topZone = attackZoneDisplayPeak(zones); // Display highlight only.
   const summary = topZone ? zoneBuildSummary(hitterName, pitcherName, topZone) : 'No weighted edge';
-  return { score, zones, topZone, bucket:'WEIGHTED', bucketLabel:'Weighted', summary, weightedAvgEdge };
+  return { score, zones, topZone, bucket:'WEIGHTED', bucketLabel:'Weighted', summary, weightedAvgEdge, scoringEngine:'HR_EV_MATRIX' };
 }
 
 /* =========================
@@ -13586,15 +13609,11 @@ function zoneRecomputeProfileScore(profile, hitterName, pitcherName) {
   profile.zones.forEach(zoneRecalcZoneEdgeWithPitcher);
   const denom = profile.zones.reduce((s,z)=>s+(Number(z.pitchPct)||(1/profile.zones.length)),0) || 1;
   const weightedAvgEdge = profile.zones.reduce((s,z)=>s+(Number(z.edge)||0)*(Number(z.pitchPct)||(1/profile.zones.length)),0) / denom;
-  profile.zones.sort((a,b)=>(Number(b.edge)||0)-(Number(a.edge)||0));
-  profile.topZone = profile.zones[0] || null;
-  const rawScore = hybridWeightedAvg([
-    { value: profile.topZone ? profile.topZone.edge : null, weight: 0.50 },
-    { value: profile.topZone ? profile.topZone.pitchFrequencyScore : null, weight: 0.30 },
-    { value: weightedAvgEdge, weight: 0.20 }
-  ]);
+  profile.topZone = attackZoneDisplayPeak(profile.zones); // Display only; no score bottleneck.
   profile.weightedAvgEdge = weightedAvgEdge;
-  profile.score = rawScore === null || rawScore === undefined || isNaN(Number(rawScore)) ? profile.score : Math.max(0, Math.min(100, Number(rawScore)));
+  const matrixScore = attackZoneMatrixScore(profile.zones);
+  profile.score = matrixScore === null || matrixScore === undefined || isNaN(Number(matrixScore)) ? profile.score : matrixScore;
+  profile.scoringEngine = 'HR_EV_MATRIX';
   if (profile.topZone) profile.summary = zoneBuildSummary(hitterName, pitcherName, profile.topZone);
   return profile;
 }
