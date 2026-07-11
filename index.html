@@ -1559,6 +1559,14 @@ tbody tr.cody-diamond-row:hover td {
 }
 .btn-bomb:hover { transform:translateY(-1px); border-color:#facc15; background:rgba(250,204,21,.18); }
 .btn-bomb.active { background:linear-gradient(135deg,#facc15,#f97316); color:#06111d; border-color:#facc15; box-shadow:0 0 18px rgba(250,204,21,.32); }
+.btn-scratch { background:rgba(148,163,184,.09); color:#cbd5e1; border:1px solid rgba(148,163,184,.30); border-radius:8px; padding:6px 9px; font-size:12px; font-weight:1000; cursor:pointer; transition:all .18s ease; }
+.btn-scratch:hover { transform:translateY(-1px); border-color:#94a3b8; background:rgba(148,163,184,.16); }
+.btn-scratch.active { background:linear-gradient(135deg,#64748b,#334155); color:#fff; border-color:#cbd5e1; box-shadow:0 0 16px rgba(148,163,184,.24); }
+tr.backtest-scratched-row { opacity:.48 !important; filter:grayscale(.75); }
+tr.backtest-scratched-row .espn-player-name { text-decoration:line-through; text-decoration-thickness:2px; }
+.backtest-mark-summary { margin-top:7px; color:#cbd5e1; font-family:monospace; font-size:11px; font-weight:900; }
+.backtest-mark-summary b { color:#facc15; }
+.backtest-mark-summary .scratch-count { color:#94a3b8; }
 .backtest-finalize-wrap { padding:18px 20px 22px; border-top:1px solid var(--border); background:rgba(5,11,20,.48); display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
 .backtest-finalize-copy { color:var(--text-muted); font-size:12px; font-weight:700; line-height:1.35; }
 .backtest-finalize-copy b { color:#fff; }
@@ -8302,7 +8310,7 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 <tbody id="tableBody"><tr><td colspan="11" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 <div class="backtest-finalize-wrap">
-  <div class="backtest-finalize-copy"><b>Backtest workflow:</b> mark only HR hitters with 💣, then finalize. Bombed players save as HR = 1; everyone else in the current rankings saves as HR = 0.</div>
+  <div class="backtest-finalize-copy"><b>Backtest workflow:</b> mark HR hitters with 💣 and scratched players with 🚫, then finalize. Scratched players are excluded completely.<div id="backtestMarkSummary" class="backtest-mark-summary">💣 HR: <b>0</b> &nbsp; 🚫 Scratched: <b class="scratch-count">0</b></div></div>
   <button type="button" class="btn-finalize-backtest" onclick="finalizeTodayBacktest()">✅ Finalize Today's Backtest</button>
 </div>
 </div>
@@ -15057,16 +15065,19 @@ function renderMainTableBoard(data, overallRankMap = null) {
     const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="" loading="lazy" decoding="async">` : '';
     const stadiumPill = renderStadiumParkPill(p);
     const bombActive = isBacktestBombed(p) ? ' active' : '';
+    const scratchActive = isBacktestScratched(p) ? ' active' : '';
     const bombBtn = `<button class="btn-bomb${bombActive}" title="Mark HR for backtest" onclick="event.stopPropagation(); toggleBacktestBomb('${escJSString(p.Name)}','${escJSString(p.Team)}')">💣</button>`;
+    const scratchBtn = `<button class="btn-scratch${scratchActive}" title="Exclude scratched player from backtest" onclick="event.stopPropagation(); toggleBacktestScratch('${escJSString(p.Name)}','${escJSString(p.Team)}')">🚫</button>`;
     const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team).replace('<img ', '<img loading="lazy" decoding="async" ');
     const batterHand = getBatterHandDisplay(p);
     const orbitClass = idx < 10 ? ' orbit-ready' : '';
     const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
     const displayRank = p.overallBBIRank || (overallRankMap ? getOverallBBIRank(p, overallRankMap) : null) || (idx + 1);
     const safeNameAttr = String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td></tr>`;
+    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}${isBacktestScratched(p) ? ' backtest-scratched-row' : ''}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn} ${scratchBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td></tr>`;
   });
   tbody.innerHTML = rows.join('');
+  updateBacktestMarkSummary();
 }
 function toggleBenchPlayer(playerName, shouldRemove) { let matched = playerData.find(p => p.Name === playerName); if (matched) { matched.isRemoved = shouldRemove; window.__drlMaxEvSortedActive = [...playerData].filter(p => !p.isRemoved).sort((a, b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV'])); applyFiltersAndRender(); } }
 function renderTodayTeamsFilter(teams) {
@@ -15372,11 +15383,13 @@ const BACKTEST_DB_NAME = 'DailyRunlineBacktestDB';
 const BACKTEST_STORE_NAME = 'state';
 const BACKTEST_HISTORY_KEY = 'backtestHistory';
 const BACKTEST_BOMBS_KEY = 'drlBacktestBombsCurrentSlate';
+const BACKTEST_SCRATCHES_KEY = 'drlBacktestScratchesCurrentSlate';
 const BACKTEST_MODEL_VERSION = '51.24_MAIN_BUCKETS_PERF_CLEAN';
 const BUCKET_ANALYTICS_HISTORY_KEY = 'drl_bucket_analytics_history_v1';
 let bucketAnalyticsHistory = [];
 let backtestHistory = [];
 let currentBacktestBombs = JSON.parse(localStorage.getItem(BACKTEST_BOMBS_KEY) || '{}');
+let currentBacktestScratches = JSON.parse(localStorage.getItem(BACKTEST_SCRATCHES_KEY) || '{}');
 
 function backtestOpenDB() {
   return new Promise((resolve, reject) => {
@@ -15438,13 +15451,38 @@ async function saveBucketAnalyticsHistory() {
 }
 function backtestBombKey(playerName, team) { return `${normalizeName(playerName)}__${String(team || '').trim().toUpperCase()}`; }
 function saveBacktestBombs() { localStorage.setItem(BACKTEST_BOMBS_KEY, JSON.stringify(currentBacktestBombs)); }
+function saveBacktestScratches() { localStorage.setItem(BACKTEST_SCRATCHES_KEY, JSON.stringify(currentBacktestScratches)); }
 function isBacktestBombed(p) { return !!currentBacktestBombs[backtestBombKey(p.Name, p.Team)]; }
+function isBacktestScratched(p) { return !!currentBacktestScratches[backtestBombKey(p.Name, p.Team)]; }
+function updateBacktestMarkSummary() {
+  const el = document.getElementById('backtestMarkSummary');
+  if (!el) return;
+  const active = [...playerData].filter(p => !p.isRemoved);
+  const hrs = active.filter(p => isBacktestBombed(p) && !isBacktestScratched(p)).length;
+  const scratches = active.filter(p => isBacktestScratched(p)).length;
+  el.innerHTML = `💣 HR: <b>${hrs}</b> &nbsp; 🚫 Scratched: <b class="scratch-count">${scratches}</b>`;
+}
 function toggleBacktestBomb(playerName, team) {
   const key = backtestBombKey(playerName, team);
   if (currentBacktestBombs[key]) delete currentBacktestBombs[key];
-  else currentBacktestBombs[key] = { playerName, team, markedAt: new Date().toISOString() };
+  else {
+    currentBacktestBombs[key] = { playerName, team, markedAt: new Date().toISOString() };
+    if (currentBacktestScratches[key]) { delete currentBacktestScratches[key]; saveBacktestScratches(); }
+  }
   saveBacktestBombs();
   applyFiltersAndRender();
+  updateBacktestMarkSummary();
+}
+function toggleBacktestScratch(playerName, team) {
+  const key = backtestBombKey(playerName, team);
+  if (currentBacktestScratches[key]) delete currentBacktestScratches[key];
+  else {
+    currentBacktestScratches[key] = { playerName, team, markedAt: new Date().toISOString() };
+    if (currentBacktestBombs[key]) { delete currentBacktestBombs[key]; saveBacktestBombs(); }
+  }
+  saveBacktestScratches();
+  applyFiltersAndRender();
+  updateBacktestMarkSummary();
 }
 function getBacktestActivePlayersSorted() {
   return [...playerData].filter(p => !p.isRemoved).sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
@@ -15669,24 +15707,35 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
 }
 async function finalizeTodayBacktest() {
   ensureOfficialWeightsForFinalActions();
-  const players = getBacktestActivePlayersSorted();
-  if (!players.length) { alert('Upload a slate before finalizing a backtest.'); return; }
+  const allPlayers = getBacktestActivePlayersSorted();
+  if (!allPlayers.length) { alert('Upload a slate before finalizing a backtest.'); return; }
+  const scratchedPlayers = allPlayers.filter(p => isBacktestScratched(p));
+  const players = allPlayers.filter(p => !isBacktestScratched(p));
+  if (!players.length) { alert('Every active player is marked scratched. Restore at least one player before finalizing.'); return; }
   const bombCount = players.filter(p => isBacktestBombed(p)).length;
-  const ok = confirm(`Finalize this slate?\n\nPlayers saved: ${players.length}\nHR winners marked: ${bombCount}\nUnmarked players will save as losses.`);
+  const ok = confirm(`Finalize this slate?
+
+Players saved: ${players.length}
+HR winners marked: ${bombCount}
+Scratched/excluded: ${scratchedPlayers.length}
+Unmarked included players will save as losses.`);
   if (!ok) return;
   const finalizedAt = new Date().toISOString();
   const slateId = `${new Date().toISOString().slice(0,10)}_${players.length}players_${Date.now()}`;
   const rows = players.map((p, idx) => snapshotBacktestPlayer(p, idx + 1, slateId, finalizedAt));
-  backtestHistory.push({ slateId, finalizedAt, modelVersion: BACKTEST_MODEL_VERSION, playerCount: rows.length, hrCount: bombCount, rows });
+  backtestHistory.push({ slateId, finalizedAt, modelVersion: BACKTEST_MODEL_VERSION, playerCount: rows.length, hrCount: bombCount, scratchedCount: scratchedPlayers.length, rows });
   await saveBacktestHistory();
   await appendBucketAnalyticsSlate(rows, slateId, finalizedAt, bombCount);
   currentBacktestBombs = {};
+  currentBacktestScratches = {};
   saveBacktestBombs();
+  saveBacktestScratches();
   applyFiltersAndRender();
+  updateBacktestMarkSummary();
   renderBacktestLab();
   renderBBIRankDiagnostics();
   renderBucketAnalytics();
-  alert(`Backtest finalized. Saved ${rows.length} player snapshots with ${bombCount} HR winners. Bucket Analytics also logged this slate as fresh component data.`);
+  alert(`Backtest finalized. Saved ${rows.length} player snapshots with ${bombCount} HR winners. Excluded ${scratchedPlayers.length} scratched player${scratchedPlayers.length === 1 ? '' : 's'} from all backtest and Bucket Analytics calculations.`);
 }
 function getBacktestRows() { return backtestHistory.flatMap(s => (s.rows || []).map(enrichBacktestSnapshotRow)); }
 function mean(arr) { const nums = arr.map(Number).filter(n => isFinite(n)); return nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : null; }
@@ -17008,30 +17057,18 @@ function renderComponentBucketTable(bucketData, baselinePct) {
     return `<tr><td>${b.label}</td><td>${b.players}</td><td>${b.hrs}</td><td class="${cls}">${fmtBack(pct,2,'%')}</td><td class="${cls}">${lift === null ? '-' : lift.toFixed(2)+'x'}</td><td>${fmtBack(avg,1)}</td></tr>`;
   }).join('');
 }
-const BUCKET_ANALYTICS_THRESHOLDS = [50,55,60,65,70,75];
 function thresholdSummary(rows, key) {
-  const counters = BUCKET_ANALYTICS_THRESHOLDS.map(t => ({ label:`${t}+`, threshold:t, players:0, hrs:0, pct:null }));
-  (rows || []).forEach(r => {
-    const value = bucketAnalyticsNum(r[key]);
-    if (value === null) return;
-    const isHr = bucketAnalyticsNum(r.HR_Result) === 1;
-    counters.forEach(c => {
-      if (value >= c.threshold) {
-        c.players++;
-        if (isHr) c.hrs++;
-      }
-    });
-  });
-  counters.forEach(c => { c.pct = c.players ? (c.hrs / c.players) * 100 : null; });
-  return counters;
+  const thresholds = [50,55,60,65,70,75,80,85,90];
+  return thresholds.map(t => {
+    const subset = rows.filter(r => bucketAnalyticsNum(r[key]) !== null && bucketAnalyticsNum(r[key]) >= t);
+    const hrs = subset.filter(r => bucketAnalyticsNum(r.HR_Result) === 1).length;
+    return { label:`${t}+`, players: subset.length, hrs, pct: subset.length ? (hrs / subset.length) * 100 : null };
+  }).filter(x => x.players > 0);
 }
-function renderThresholdCards(rows, key, baselinePct) {
+function renderThresholdCards(rows, key) {
   const vals = thresholdSummary(rows, key);
-  if (!vals.some(x => x.players > 0)) return '<div class="bucket-empty">No score rows yet.</div>';
-  return `<div class="bucket-threshold-grid">${vals.map(x => {
-    const lift = x.pct !== null && baselinePct ? x.pct / baselinePct : null;
-    return `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${x.label}</div><div class="bucket-threshold-val">${fmtBack(x.pct,1,'%')}</div><div class="bucket-threshold-sub">${x.hrs}/${x.players} HR${lift === null ? '' : ` • ${lift.toFixed(2)}x`}</div></div>`;
-  }).join('')}</div>`;
+  if (!vals.length) return '<div class="bucket-empty">No score rows yet.</div>';
+  return `<div class="bucket-threshold-grid">${vals.map(x => `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${x.label}</div><div class="bucket-threshold-val">${fmtBack(x.pct,1,'%')}</div><div class="bucket-threshold-sub">${x.hrs}/${x.players} HR</div></div>`).join('')}</div>`;
 }
 function renderComponentBandCards(rows, key, emptyLabel) {
   const bucketData = buildComponentBuckets(rows, key);
@@ -17065,43 +17102,30 @@ function renderPitchLabBandCardsLegacyUnused(rows) {
     return `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${bucket.label}</div><div class="bucket-threshold-val">${fmtBack(pct,1,'%')}</div><div class="bucket-threshold-sub">${bucket.hrs}/${bucket.players} HR${lift === null ? '' : ` • ${lift.toFixed(2)}x`}</div></div>`;
   }).join('')}</div>`;
 }
-function buildConfluenceGroups(rows) {
-  const groupDefs = [
-    { id:'allThree', title:'All Three', keys:['PitchLab_Score','AttackZone_Score','Pitcher_Score'] },
-    { id:'pitchLabZone', title:'Pitch Lab + Attack Zone', keys:['PitchLab_Score','AttackZone_Score'] },
-    { id:'zonePitcher', title:'Attack Zone + Pitcher', keys:['AttackZone_Score','Pitcher_Score'] },
-    { id:'pitchLabPitcher', title:'Pitch Lab + Pitcher', keys:['PitchLab_Score','Pitcher_Score'] }
-  ];
-  const groups = groupDefs.map(g => ({ ...g, thresholds:BUCKET_ANALYTICS_THRESHOLDS.map(t => ({ threshold:t, label:`${t}+`, players:0, hrs:0, pct:null })) }));
-  (rows || []).forEach(r => {
-    const isHr = bucketAnalyticsNum(r.HR_Result) === 1;
-    groups.forEach(group => {
-      const values = group.keys.map(key => bucketAnalyticsNum(r[key]));
-      if (values.some(v => v === null)) return;
-      group.thresholds.forEach(c => {
-        if (values.every(v => v >= c.threshold)) {
-          c.players++;
-          if (isHr) c.hrs++;
-        }
-      });
-    });
-  });
-  groups.forEach(group => group.thresholds.forEach(c => { c.pct = c.players ? (c.hrs / c.players) * 100 : null; }));
-  return groups;
-}
 function buildConfluenceRows(rows) {
-  return buildConfluenceGroups(rows).flatMap(group => group.thresholds.map(x => ({ ...x, label:`${group.title} ${x.label}`, group:group.id })));
+  const configs = [
+    { label:'Pitch Lab 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 },
+    { label:'Attack Zone 65+', test:r => bucketAnalyticsNum(r.AttackZone_Score) >= 65 },
+    { label:'Pitcher 65+', test:r => bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
+    { label:'Pitch Lab + Zone 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 && bucketAnalyticsNum(r.AttackZone_Score) >= 65 },
+    { label:'Pitch Lab + Pitcher 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 && bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
+    { label:'Zone + Pitcher 65+', test:r => bucketAnalyticsNum(r.AttackZone_Score) >= 65 && bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
+    { label:'All Three 65+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 65 && bucketAnalyticsNum(r.AttackZone_Score) >= 65 && bucketAnalyticsNum(r.Pitcher_Score) >= 65 },
+    { label:'All Three 70+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 70 && bucketAnalyticsNum(r.AttackZone_Score) >= 70 && bucketAnalyticsNum(r.Pitcher_Score) >= 70 },
+    { label:'Pitch Lab 75+ + Zone 70+', test:r => bucketAnalyticsNum(r.PitchLab_Score) >= 75 && bucketAnalyticsNum(r.AttackZone_Score) >= 70 }
+  ];
+  return configs.map(c => {
+    const subset = rows.filter(c.test);
+    const hrs = subset.filter(r => bucketAnalyticsNum(r.HR_Result) === 1).length;
+    return { label:c.label, players: subset.length, hrs, pct: subset.length ? (hrs / subset.length) * 100 : null };
+  });
 }
-function renderConfluenceCards(rows, baselinePct) {
-  return buildConfluenceGroups(rows).map(group => `
-    <div class="bucket-mini-card">
-      <div class="bucket-mini-title">${group.title}</div>
-      <div class="bucket-mini-sub">Every listed score must meet the same cutoff.</div>
-      <div class="bucket-threshold-grid">${group.thresholds.map(x => {
-        const lift = x.pct !== null && baselinePct ? x.pct / baselinePct : null;
-        return `<div class="bucket-threshold-card"><div class="bucket-threshold-label">${x.label}</div><div class="bucket-threshold-val">${fmtBack(x.pct,1,'%')}</div><div class="bucket-threshold-sub">${x.hrs}/${x.players} HR${lift === null ? '' : ` • ${lift.toFixed(2)}x`}</div></div>`;
-      }).join('')}</div>
-    </div>`).join('');
+function renderConfluenceTable(rows, baselinePct) {
+  return buildConfluenceRows(rows).map(x => {
+    const lift = x.pct !== null && baselinePct ? x.pct / baselinePct : null;
+    const cls = lift !== null && lift >= 1.15 ? 'signal-positive' : lift !== null && lift <= 0.85 ? 'signal-negative' : 'signal-neutral';
+    return `<tr><td>${x.label}</td><td>${x.players}</td><td>${x.hrs}</td><td class="${cls}">${fmtBack(x.pct,2,'%')}</td><td class="${cls}">${lift === null ? '-' : lift.toFixed(2)+'x'}</td></tr>`;
+  }).join('');
 }
 function bestThresholdText(rows, key) {
   const vals = thresholdSummary(rows, key).filter(x => x.players >= 5);
@@ -17135,9 +17159,9 @@ function renderBucketAnalytics() {
         <div class="backtest-kpi"><div class="backtest-kpi-label">Best confluence</div><div class="backtest-kpi-value small-title">${bestConfluence ? bestConfluence.label : '-'}</div><div class="backtest-kpi-sub">${bestConfluence ? `${bestConfluence.hrs}/${bestConfluence.players} HR • ${fmtBack(bestConfluence.pct,1,'%')}` : 'Need more data'}</div></div>
       </div>
       <div class="bucket-analytics-section-grid">
-        <div class="bucket-mini-card"><div class="bucket-mini-title">🔥 Pitch Lab Thresholds</div><div class="bucket-mini-sub">50 through 75 cutoffs using all finalized Bucket Analytics rows.</div>${renderThresholdCards(rows, 'PitchLab_Score', baselinePct)}</div>
-        <div class="bucket-mini-card"><div class="bucket-mini-title">🎯 Attack Zone Thresholds</div><div class="bucket-mini-sub">50 through 75 cutoffs using all finalized Bucket Analytics rows.</div>${renderThresholdCards(rows, 'AttackZone_Score', baselinePct)}</div>
-        <div class="bucket-mini-card"><div class="bucket-mini-title">⚾ Pitcher Thresholds</div><div class="bucket-mini-sub">50 through 75 cutoffs using the saved Pitcher Vulnerability score.</div>${renderThresholdCards(rows, 'Pitcher_Score', baselinePct)}</div>
+        <div class="bucket-mini-card"><div class="bucket-mini-title">🔥 Pitch Lab Thresholds</div><div class="bucket-mini-sub">Quick cutoff scan using fresh finalized bucket rows only.</div>${renderPitchLabBandCards(rows)}</div>
+        <div class="bucket-mini-card"><div class="bucket-mini-title">🎯 Attack Zone Thresholds</div><div class="bucket-mini-sub">Find where zone target scores start turning into HRs.</div>${renderThresholdCards(rows, 'AttackZone_Score')}</div>
+        <div class="bucket-mini-card"><div class="bucket-mini-title">⚾ Pitcher Thresholds</div><div class="bucket-mini-sub">Uses the exact large HR Damage score shown on each Pitchers tab card.</div>${renderPitcherBandCards(rows)}</div>
       </div>
       <h2>🔥 Pitch Lab Score Buckets</h2>
       <p class="backtest-note">Pitch Lab / Pitch Matchup score bucketed independently from BBI.</p>
@@ -17149,8 +17173,8 @@ function renderBucketAnalytics() {
       <p class="backtest-note">Pitchers-tab HR Damage score bucketed independently from BBI, using the exact card score (higher of LHB/RHB risk).</p>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitcher Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(pitcherBuckets, baselinePct)}</tbody></table></div>
       <h2>🤝 Confluence Analysis</h2>
-      <p class="backtest-note">All Three and each two-score pairing are shown at 50, 55, 60, 65, 70, and 75. Lift compares each group with the combined Bucket Analytics baseline from every finalized slate.</p>
-      <div class="bucket-analytics-section-grid">${renderConfluenceCards(rows, baselinePct)}</div>
+      <p class="backtest-note">This shows what happens when Pitch Lab, Attack Zone, and Pitcher score agree. Lift compares each group to the clean-slate Bucket Analytics baseline.</p>
+      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Criteria</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th></tr></thead><tbody>${renderConfluenceTable(rows, baselinePct)}</tbody></table></div>
       <h2>✅ Current Best Cutoffs</h2>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Engine</th><th>Best threshold so far</th><th>Usable rows</th><th>Missing rows</th></tr></thead><tbody>
         <tr><td>Pitch Lab</td><td>${bestThresholdText(rows, 'PitchLab_Score')}</td><td>${pitchLabBuckets.usable}</td><td>${pitchLabBuckets.missing}</td></tr>
