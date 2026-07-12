@@ -7813,6 +7813,12 @@ tbody tr:hover .stats-player-mini .player-headshot {
 }
 </style>
 
+
+<style id="manual-player-admin-style">
+.manual-player-admin{grid-column:1/-1;display:grid;grid-template-columns:minmax(220px,1fr) 150px auto;gap:10px;align-items:end;margin-top:12px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);position:relative;z-index:2}
+.manual-player-field{display:flex;flex-direction:column;gap:6px}.manual-player-field label{color:var(--accent);font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px}.manual-player-input{width:100%;box-sizing:border-box;background:#050b14;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:9px;padding:11px 12px;font-size:12px;font-weight:800}.manual-player-add{border:1px solid rgba(56,189,248,.38);background:linear-gradient(135deg,#38bdf8,#1d4ed8);color:#fff;border-radius:9px;padding:11px 15px;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.65px;cursor:pointer;white-space:nowrap}.manual-player-status{grid-column:1/-1;min-height:14px;color:#94a3b8;font-size:10px;font-weight:800}.btn-dnp{border:1px solid rgba(239,68,68,.34);background:rgba(239,68,68,.09);color:#fecaca;border-radius:8px;padding:6px 8px;font-size:12px;font-weight:1000;cursor:pointer;margin-left:3px}.btn-dnp:hover{background:rgba(239,68,68,.18);border-color:#ef4444}.btn-dnp.active{background:linear-gradient(135deg,#ef4444,#991b1b);color:#fff;border-color:#ef4444}.dnp-removed-note{color:#fca5a5!important;text-decoration:line-through;opacity:.72}
+@media(max-width:760px){.manual-player-admin{grid-template-columns:1fr}.manual-player-add{width:100%}}
+</style>
 <style id="bet-finder-style">
 
 .bet-finder-panel{position:relative;overflow:visible;border:1px solid rgba(225,6,0,.28);border-left:5px solid var(--accent);border-radius:18px;padding:18px;margin:0 0 20px;background:radial-gradient(circle at 92% 0%,rgba(225,6,0,.16),transparent 34%),linear-gradient(145deg,rgba(5,11,20,.94),rgba(17,31,53,.70));box-shadow:0 18px 50px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.07)}
@@ -8261,6 +8267,60 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 @media(max-width:620px){.pitchlab10-scout-score-row{grid-template-columns:92px minmax(0,1fr)}.pitchlab10-scout-score{height:92px}.pitchlab10-scout-score b{font-size:35px}.pitchlab10-scout-pitch{font-size:21px}.pitchlab10-scout-kpis{grid-template-columns:1fr 1fr}.pitchlab10-pitches{grid-template-columns:1fr!important}}
 </style>
 
+
+<style id="drl-pitchlab-clean-full-row-final">
+/* Full-width Pitch Lab arsenal. Layout only; scoring and render timing are untouched. */
+#tab-pitchlab .pitchlab10-body,
+#tab-pitchlab .pitchlab10-body.pitchlab10-body-full {
+  display:block!important;
+  grid-template-columns:none!important;
+  width:100%!important;
+  padding:12px 14px 16px!important;
+  box-sizing:border-box!important;
+}
+#tab-pitchlab .pitchlab10-left-scout,
+#tab-pitchlab .pitchlab10-report-card { display:none!important; }
+#tab-pitchlab .pitchlab10-arsenal-full {
+  width:100%!important;
+  box-sizing:border-box!important;
+  padding:14px!important;
+  border-radius:15px!important;
+}
+#tab-pitchlab .pitchlab10-arsenal-full .pitchlab10-section-title {
+  margin-bottom:12px!important;
+  padding:0 2px 10px!important;
+  border-bottom:1px solid rgba(255,255,255,.07)!important;
+  align-items:center!important;
+}
+#tab-pitchlab .pitchlab10-pitches {
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:11px!important;
+  width:100%!important;
+}
+#tab-pitchlab .pitchlab10-pitch {
+  min-width:0!important;
+  padding:12px!important;
+  border-radius:13px!important;
+  box-sizing:border-box!important;
+}
+#tab-pitchlab .pitchlab10-pitch-name { font-size:15px!important; }
+#tab-pitchlab .pitchlab10-pitch-edge { font-size:23px!important; }
+#tab-pitchlab .pitchlab10-mini-grid {
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+#tab-pitchlab .pitchlab10-mini { min-width:0!important; padding:8px 6px!important; }
+#tab-pitchlab .pitchlab10-mini span { white-space:normal!important; line-height:1.08!important; }
+@media(max-width:1500px){#tab-pitchlab .pitchlab10-pitches{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(max-width:1180px){#tab-pitchlab .pitchlab10-pitches{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:860px){#tab-pitchlab .pitchlab10-pitches{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:560px){
+  #tab-pitchlab .pitchlab10-body{padding:8px!important}
+  #tab-pitchlab .pitchlab10-arsenal-full{padding:9px!important}
+  #tab-pitchlab .pitchlab10-pitches{grid-template-columns:1fr!important;gap:8px!important}
+}
+</style>
 </head>
 <body>
 
@@ -8459,7 +8519,7 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 <tbody id="tableBody"><tr><td colspan="11" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 <div class="backtest-finalize-wrap">
-  <div class="backtest-finalize-copy"><b>Backtest workflow:</b> mark only HR hitters with 💣, then finalize. Bombed players save as HR = 1; everyone else in the current rankings saves as HR = 0.</div>
+  <div class="backtest-finalize-copy"><b>Backtest workflow:</b> mark HR hitters with 💣 and use 🚫 for anyone who did not play. Removed players are excluded completely; everyone else saves normally.</div>
   <button type="button" class="btn-finalize-backtest" onclick="finalizeTodayBacktest()">✅ Finalize Today's Backtest</button>
 </div>
 </div>
@@ -8775,6 +8835,13 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
     <span>⬆</span> Choose Workbook
   </label>
   <input type="file" id="excelFile" accept=".xlsx, .xls, .csv"/>
+
+  <div class="manual-player-admin">
+    <div class="manual-player-field"><label for="manualPlayerName">Add Missing Player</label><input id="manualPlayerName" class="manual-player-input" type="text" placeholder="Player name" autocomplete="off"></div>
+    <div class="manual-player-field"><label for="manualPlayerTeam">Team</label><input id="manualPlayerTeam" class="manual-player-input" type="text" maxlength="3" placeholder="Example: NYY" autocomplete="off" autocapitalize="characters"></div>
+    <button class="manual-player-add" type="button" onclick="addMissingPlayerFromWorkbook()">➕ Add to Rankings</button>
+    <div class="manual-player-status" id="manualPlayerStatus">Uses the hitter’s existing workbook metrics and the selected team’s current matchup.</div>
+  </div>
   <div class="live-publish-panel" id="livePublishPanel">
     <input class="live-publish-input" id="liveAdminEmail" type="text" inputmode="email" placeholder="Admin email" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" aria-label="Admin email">
     <input class="live-publish-input" id="liveAdminPassword" type="password" placeholder="Supabase admin password" autocomplete="current-password" aria-label="Admin password">
@@ -12239,18 +12306,8 @@ function renderPitchLab10Card(profile, idx) {
       </div>
       <div class="pitchlab10-scorebox"><div class="pitchlab10-score-label">Pitch Lab</div><div class="pitchlab10-score">${Number(profile.score || 0).toFixed(0)}</div></div>
     </div>
-    <div class="pitchlab10-body">
-      <div class="pitchlab10-section pitchlab10-left-scout pitchlab10-report-card" style="--pitch-color:${topColor}">
-        <div class="pitchlab10-report-head"><div><div class="pitchlab10-report-kicker">Pitch Lab Report</div><div class="pitchlab10-report-grade">${pitchLab10LetterGrade(profile.score || 0)}</div></div><div class="pitchlab10-report-score"><span>Overall</span><b>${Number(profile.score || 0).toFixed(0)}</b></div></div>
-        <div class="pitchlab10-report-groups">
-          ${pitchLab10ReportGroup('Elite Against', reportElite.slice(0,1), 'elite')}
-          ${pitchLab10ReportGroup('Average Against', reportAverage.slice(0,1), 'average')}
-          ${pitchLab10ReportGroup('Weakest Against', reportWeak.slice(0,1), 'weak')}
-        </div>
-        <div class="pitchlab10-report-fit"><div><span>Pitch Mix Fit</span><b>${pitchLab10FitLabel(profile.score || 0)}</b></div><div><span>Primary Pitch</span><b>${topLabel}</b></div><div><span>Pitcher Usage</span><b>${topUsage}</b></div></div>
-        <div class="pitchlab10-report-line">${pitchLab10ReportSentence(p, top)}</div>
-      </div>
-      <div class="pitchlab10-section">
+    <div class="pitchlab10-body pitchlab10-body-full">
+      <div class="pitchlab10-section pitchlab10-arsenal-full">
         <div class="pitchlab10-section-title">Specific Pitch Arsenal <span>${renderPitchMix(profile)}</span></div>
         <div class="pitchlab10-pitches">${pitchCards}</div>
       </div>
@@ -15314,13 +15371,14 @@ function renderMainTableBoard(data, overallRankMap = null) {
     const stadiumPill = renderStadiumParkPill(p);
     const bombActive = isBacktestBombed(p) ? ' active' : '';
     const bombBtn = `<button class="btn-bomb${bombActive}" title="Mark HR for backtest" onclick="event.stopPropagation(); toggleBacktestBomb('${escJSString(p.Name)}','${escJSString(p.Team)}')">💣</button>`;
+    const dnpBtn = `<button class="btn-dnp" title="Did not play — remove from rankings and backtest" onclick="event.stopPropagation(); toggleDidNotPlayPlayer('${escJSString(p.Name)}','${escJSString(p.Team)}')">🚫</button>`;
     const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team).replace('<img ', '<img loading="lazy" decoding="async" ');
     const batterHand = getBatterHandDisplay(p);
     const orbitClass = idx < 10 ? ' orbit-ready' : '';
     const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
     const displayRank = p.overallBBIRank || (overallRankMap ? getOverallBBIRank(p, overallRankMap) : null) || (idx + 1);
     const safeNameAttr = String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td></tr>`;
+    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}${dnpBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}"><span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td></tr>`;
   });
   tbody.innerHTML = rows.join('');
 }
@@ -15701,6 +15759,74 @@ function toggleBacktestBomb(playerName, team) {
   else currentBacktestBombs[key] = { playerName, team, markedAt: new Date().toISOString() };
   saveBacktestBombs();
   applyFiltersAndRender();
+}
+function setManualPlayerStatus(message, kind='') {
+  const el = document.getElementById('manualPlayerStatus');
+  if (!el) return;
+  el.textContent = message;
+  el.style.color = kind === 'good' ? '#86efac' : kind === 'bad' ? '#fca5a5' : '#94a3b8';
+}
+function toggleDidNotPlayPlayer(playerName, team) {
+  const key = backtestBombKey(playerName, team);
+  const player = playerData.find(p => normalizeName(p.Name) === normalizeName(playerName) && String(p.Team || '').toUpperCase() === String(team || '').toUpperCase());
+  if (!player) return;
+  player.isRemoved = true;
+  player.didNotPlay = true;
+  if (currentBacktestBombs[key]) delete currentBacktestBombs[key];
+  saveBacktestBombs();
+  window.__drlMaxEvSortedActive = [...playerData].filter(p => !p.isRemoved).sort((a,b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV']));
+  applyFiltersAndRender();
+  updateHeaderStats();
+}
+function manualPlayerWorkbookRecordExists(name) {
+  const key = normalizeName(name);
+  if (!key) return false;
+  const maps = [plDataMap,lastWeekMap,oddsMap,playerIdMap,zoneBMap,zonePMap,pitchEVMap,pitchWinMap];
+  if (maps.some(m => m && m[key])) return true;
+  if (statSheetMaps && Object.values(statSheetMaps).some(m => m && m[key])) return true;
+  if (batterPitchMaps) {
+    for (const fam of Object.values(batterPitchMaps)) for (const hand of Object.values(fam || {})) if (hand && hand[key]) return true;
+  }
+  return false;
+}
+function mergeManualPlayerWorkbookRows(target, name) {
+  const key = normalizeName(name);
+  const merge = row => { if (row && typeof row === 'object') Object.assign(target, row); };
+  if (statSheetMaps) Object.values(statSheetMaps).forEach(m => merge(m && m[key]));
+  [plDataMap,lastWeekMap,oddsMap,zoneBMap].forEach(m => merge(m && m[key]));
+  if (batterPitchMaps) Object.values(batterPitchMaps).forEach(fam => Object.values(fam || {}).forEach(m => merge(m && m[key])));
+  target.Name = name; target.Player = target.Player || name;
+  return target;
+}
+function addMissingPlayerFromWorkbook() {
+  const nameEl = document.getElementById('manualPlayerName');
+  const teamEl = document.getElementById('manualPlayerTeam');
+  const name = String(nameEl && nameEl.value || '').trim();
+  const team = String(teamEl && teamEl.value || '').trim().toUpperCase();
+  if (!playerData.length) { setManualPlayerStatus('Upload the workbook before adding a player.', 'bad'); return; }
+  if (!name || !team) { setManualPlayerStatus('Enter the player name and team.', 'bad'); return; }
+  const existing = playerData.find(p => normalizeName(p.Name) === normalizeName(name));
+  if (existing) {
+    existing.Team = team; existing.isRemoved = false; existing.didNotPlay = false;
+    recalculateAllBBIScores();
+    setManualPlayerStatus(`${existing.Name} restored and recalculated in the rankings.`, 'good');
+    return;
+  }
+  if (!manualPlayerWorkbookRecordExists(name)) { setManualPlayerStatus(`No workbook metrics were found for ${name}.`, 'bad'); return; }
+  const teammate = playerData.find(p => String(p.Team || '').toUpperCase() === team);
+  if (!teammate) { setManualPlayerStatus(`Team ${team} is not on the current uploaded slate.`, 'bad'); return; }
+  const calculatedKeys = new Set(['calculatedBBI','calculatedBaseBBI','calculatedSynergy','synergyBonuses','category','hybridRaw','hybridRawSnapshot','hybridCategoryContributions','pitchLabProfile','bettingEdge','calculatedHRProbability']);
+  const added = {};
+  Object.keys(teammate).forEach(k => { if (!calculatedKeys.has(k)) added[k] = teammate[k]; });
+  mergeManualPlayerWorkbookRows(added, name);
+  added.Name = name; added.Player = name; added.Team = team; added.isRemoved = false; added.didNotPlay = false; added.manuallyAdded = true;
+  playerData.push(added);
+  assignFallbackGameIds(playerData);
+  pitcherTeamMap = buildPitcherTeamMapFromPlayers(playerData);
+  recalculateAllBBIScores();
+  try { saveCachedData(); } catch (_) {}
+  if (nameEl) nameEl.value = '';
+  setManualPlayerStatus(`${name} added to ${team}, ranked with the normal model, and included in backtesting.`, 'good');
 }
 function getBacktestActivePlayersSorted() {
   return [...playerData].filter(p => !p.isRemoved).sort((a,b) => (b.calculatedBBI || 0) - (a.calculatedBBI || 0));
