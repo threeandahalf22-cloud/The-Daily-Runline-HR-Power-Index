@@ -8225,6 +8225,42 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
   .zone-hover-value { font-size: 9px !important; }
 }
 </style>
+
+<style id="pitch-lab-left-clarity-upgrade">
+/* Pitch Lab visual upgrade: preserve the specific-pitch arsenal on the right,
+   simplify only the left side into a fast, readable scouting summary. */
+.pitchlab10-body{grid-template-columns:minmax(300px,.78fr) minmax(0,1.22fr)!important;gap:16px!important}
+.pitchlab10-left-scout{position:relative;overflow:hidden;padding:0!important;background:linear-gradient(145deg,rgba(5,11,20,.78),rgba(17,31,53,.48))!important}
+.pitchlab10-left-scout:before{content:'';position:absolute;inset:-35% -25%;pointer-events:none;background:radial-gradient(circle at 18% 15%,var(--pitch-color,var(--team-color)),transparent 30%);opacity:.13}
+.pitchlab10-scout-inner{position:relative;z-index:1;padding:15px}
+.pitchlab10-scout-kicker{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--pitch-color,var(--team-color));font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:1.2px}
+.pitchlab10-scout-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--pitch-color,var(--team-color)) 42%,transparent);background:color-mix(in srgb,var(--pitch-color,var(--team-color)) 11%,transparent);color:#fff;font-size:8px;font-weight:1000;white-space:nowrap}
+.pitchlab10-scout-pitch{margin-top:13px;color:#fff;font-size:25px;line-height:1.02;font-weight:1000;text-transform:uppercase;letter-spacing:-.4px}
+.pitchlab10-scout-sub{margin-top:6px;color:#94a3b8;font-size:10px;font-weight:850;line-height:1.35}
+.pitchlab10-scout-score-row{display:grid;grid-template-columns:112px minmax(0,1fr);gap:13px;align-items:center;margin-top:15px}
+.pitchlab10-scout-score{height:102px;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid color-mix(in srgb,var(--pitch-color,var(--team-color)) 38%,transparent);background:radial-gradient(circle at 50% 20%,color-mix(in srgb,var(--pitch-color,var(--team-color)) 22%,transparent),rgba(5,11,20,.70));box-shadow:0 0 24px color-mix(in srgb,var(--pitch-color,var(--team-color)) 18%,transparent),inset 0 1px 0 rgba(255,255,255,.08)}
+.pitchlab10-scout-score b{color:var(--pitch-color,var(--team-color));font-family:monospace;font-size:42px;line-height:.9;font-weight:1000;text-shadow:0 0 18px color-mix(in srgb,var(--pitch-color,var(--team-color)) 42%,transparent)}
+.pitchlab10-scout-score span{margin-top:7px;color:#94a3b8;font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.9px}
+.pitchlab10-scout-meter-copy{display:flex;justify-content:space-between;gap:8px;color:#cbd5e1;font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:.55px}
+.pitchlab10-scout-meter-copy b{color:#fff;font-family:monospace}
+.pitchlab10-scout-track{height:10px;margin-top:7px;border-radius:999px;overflow:hidden;background:rgba(107,124,150,.20);border:1px solid rgba(255,255,255,.06)}
+.pitchlab10-scout-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--pitch-color,var(--team-color)),#38bdf8);box-shadow:0 0 14px color-mix(in srgb,var(--pitch-color,var(--team-color)) 32%,transparent)}
+.pitchlab10-scout-tier{display:inline-flex;margin-top:11px;padding:6px 9px;border-radius:999px;background:var(--pitch-color,var(--team-color));color:#06111d;font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px}
+.pitchlab10-scout-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.pitchlab10-scout-kpi{border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:9px 6px;background:rgba(255,255,255,.035);text-align:center;min-width:0}
+.pitchlab10-scout-kpi span{display:block;color:#6b7c96;font-size:7.5px;font-weight:1000;text-transform:uppercase;letter-spacing:.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pitchlab10-scout-kpi b{display:block;margin-top:4px;color:#fff;font-family:monospace;font-size:13px;font-weight:1000;white-space:nowrap}
+.pitchlab10-scout-reason{margin-top:12px;padding:10px 11px;border-radius:11px;border-left:3px solid var(--pitch-color,var(--team-color));background:rgba(5,11,20,.58);color:#cbd5e1;font-size:10px;font-weight:800;line-height:1.4}
+.pitchlab10-scout-reason b{color:#fff}
+.pitchlab10-pitches{grid-template-columns:repeat(2,minmax(190px,1fr))!important}
+.pitchlab10-pitch{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.pitchlab10-pitch:hover{transform:translateY(-2px);border-color:var(--pitch-color);box-shadow:0 12px 26px rgba(0,0,0,.28),0 0 18px color-mix(in srgb,var(--pitch-color) 18%,transparent)}
+.pitchlab10-pitch.is-best{background:radial-gradient(circle at 95% 0%,color-mix(in srgb,var(--pitch-color) 20%,transparent),transparent 38%),linear-gradient(145deg,rgba(255,255,255,.055),rgba(5,11,20,.56));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pitch-color) 24%,transparent)}
+.pitchlab10-best-tag{display:inline-flex;margin-top:7px;padding:4px 7px;border-radius:999px;background:var(--pitch-color);color:#06111d;font-size:7.5px;font-weight:1000;text-transform:uppercase;letter-spacing:.55px}
+@media(max-width:1050px){.pitchlab10-body{grid-template-columns:1fr!important}.pitchlab10-pitches{grid-template-columns:repeat(2,minmax(170px,1fr))!important}}
+@media(max-width:620px){.pitchlab10-scout-score-row{grid-template-columns:92px minmax(0,1fr)}.pitchlab10-scout-score{height:92px}.pitchlab10-scout-score b{font-size:35px}.pitchlab10-scout-pitch{font-size:21px}.pitchlab10-scout-kpis{grid-template-columns:1fr 1fr}.pitchlab10-pitches{grid-template-columns:1fr!important}}
+</style>
+
 </head>
 <body>
 
@@ -8598,7 +8634,7 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
 <h2 style="margin:0; border:none; padding:0; font-size: 16px;">🧪 Pitch Lab - Batter vs Arsenal</h2>
-<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">HR-only pitch matchup: every pitch is weighted by the pitcher’s actual usage. Inside each pitch: Barrel %, Launch Angle / Sweet Spot fit, and Pull %. Redundant EV, xSLG, Hard Hit, Max EV, and HR-rate inputs are excluded from scoring.</p>
+<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">See the best pitch to attack immediately, then compare the full specific-pitch arsenal on the right. Every matchup remains weighted by the pitcher’s actual usage; scoring is unchanged.</p>
 </div>
 <div class="pitch-lab-grid" id="pitchLabSummaryCards">
 <div class="pitch-lab-card"><div class="pitch-lab-title">Arsenal Exploit Leader</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>
@@ -10564,11 +10600,19 @@ document.getElementById('graphicsPanel').style.display = 'block';
   uploadStep('applyFiltersAndRender', applyFiltersAndRender);
   uploadStep('updateHeaderStats', updateHeaderStats);
   uploadStep('updateSlateTicker', updateSlateTicker);
-  uploadStep('saveCachedData', saveCachedData);
+  // Cache serialization is non-visual and can be expensive on large slates.
+  // Run it only after the first screen has painted so it cannot delay population.
+  const cacheAfterPaint = () => uploadStep('saveCachedData', saveCachedData);
+  if ('requestIdleCallback' in window) requestIdleCallback(cacheAfterPaint, {timeout: 1800});
+  else setTimeout(cacheAfterPaint, 250);
 
-  refreshOpenWeatherForSlate()
-    .then(() => refreshAfterLiveWeatherUpdate())
-    .catch(err => console.warn('Live weather refresh skipped during upload:', err));
+  // Let the first populated screen paint before starting the live-weather pass.
+  // This keeps scoring behavior identical while improving perceived load time.
+  setTimeout(() => {
+    refreshOpenWeatherForSlate()
+      .then(() => refreshAfterLiveWeatherUpdate())
+      .catch(err => console.warn('Live weather refresh skipped during upload:', err));
+  }, 350);
 }
 };
 reader.onerror = function(err) {
@@ -10586,31 +10630,69 @@ const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric
 document.getElementById('currentDateDisplay').innerText = now.toLocaleDateString('en-US', options);
 }
 function updateCountdown() {
-if(gameMatchups.length === 0) return;
-let earliestTime = null;
-gameMatchups.forEach(m => {
-const w = weatherSettings[m.id];
-if(w && w.startTime) {
-let [timeStr, ampm] = w.startTime.split(' ');
-let [hours, minutes] = timeStr.split(':').map(Number);
-if(ampm && ampm.toLowerCase() === 'pm' && hours !== 12) hours += 12;
-if(ampm && ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
-const gameDate = new Date();
-gameDate.setHours(hours, minutes, 0, 0);
-if(!earliestTime || gameDate < earliestTime) earliestTime = gameDate;
-}
-});
-const tickerEl = document.getElementById('tickerText');
-if(!earliestTime) { tickerEl.innerText = `${gameMatchups.length} Games Today | No start times found`; return; }
-const now = new Date();
-const diff = earliestTime - now;
-if(diff <= 0) { tickerEl.innerHTML = `FIRST PITCH IS LIVE! 🟢`; }
-else {
-const hours = Math.floor(diff / (1000 * 60 * 60));
-const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-const secs = Math.floor((diff % (1000 * 60)) / 1000);
-tickerEl.innerHTML = `FIRST PITCH IN: <span>${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}</span>`;
-}
+  const tickerEl = document.getElementById('tickerText');
+  if (!tickerEl) return;
+  if (!Array.isArray(gameMatchups) || gameMatchups.length === 0) {
+    tickerEl.textContent = 'Waiting for slate data...';
+    return;
+  }
+
+  const now = new Date();
+  const candidates = [];
+
+  function parseSlateStart(raw) {
+    if (!raw) return null;
+    if (raw instanceof Date && !isNaN(raw.getTime())) return raw;
+    const text = String(raw).trim();
+    if (!text) return null;
+
+    // Full date/time values can be parsed directly.
+    if (/\d{4}-\d{1,2}-\d{1,2}|T\d{1,2}:\d{2}/.test(text)) {
+      const direct = new Date(text);
+      if (!isNaN(direct.getTime())) return direct;
+    }
+
+    // Slate values are commonly stored as "6:40 PM" or "6:40 PM EDT".
+    const match = text.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);
+    if (!match) return null;
+    let hour = Number(match[1]);
+    const minute = Number(match[2] || 0);
+    const ampm = String(match[3] || '').toUpperCase();
+    if (ampm === 'PM' && hour !== 12) hour += 12;
+    if (ampm === 'AM' && hour === 12) hour = 0;
+    if (!ampm && hour > 23) return null;
+
+    const d = new Date(now);
+    d.setHours(hour, minute, 0, 0);
+    return d;
+  }
+
+  gameMatchups.forEach(m => {
+    const w = weatherSettings[m.id] || {};
+    const rawStart = w.startTime || m.startTime || m.time || m.gameTime || m.firstPitch || m.StartTime || m.Time;
+    const parsed = parseSlateStart(rawStart);
+    if (parsed) candidates.push(parsed);
+  });
+
+  if (!candidates.length) {
+    tickerEl.textContent = `${gameMatchups.length} Games Today | First pitch time unavailable`;
+    return;
+  }
+
+  candidates.sort((a,b) => a - b);
+  const upcoming = candidates.find(d => d.getTime() > now.getTime());
+  const target = upcoming || candidates[0];
+
+  if (!upcoming) {
+    tickerEl.innerHTML = 'FIRST PITCH IS LIVE! 🟢';
+    return;
+  }
+
+  const diff = Math.max(0, target.getTime() - now.getTime());
+  const hours = Math.floor(diff / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  tickerEl.innerHTML = `FIRST PITCH IN: <span>${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}</span>`;
 }
 
 
@@ -12079,46 +12161,73 @@ function pitchLab10StatPW(r) {
 function pitchLab10StatRate(v) {
   return (v !== null && v !== undefined && !isNaN(Number(v))) ? pctFmt(Number(v)) : '--';
 }
+function pitchLab10Tier(score) {
+  const v = Number(score) || 0;
+  if (v >= 85) return 'Elite HR Attack';
+  if (v >= 72) return 'Strong Advantage';
+  if (v >= 60) return 'Favorable Matchup';
+  if (v >= 48) return 'Neutral Matchup';
+  return 'Limited Advantage';
+}
+function pitchLab10SafeNumber(value, digits = 0, suffix = '') {
+  return (value !== null && value !== undefined && !isNaN(Number(value))) ? Number(value).toFixed(digits) + suffix : '--';
+}
+function pitchLab10LetterGrade(score){const n=Number(score)||0;return n>=92?'A+':n>=87?'A':n>=82?'A-':n>=77?'B+':n>=72?'B':n>=67?'B-':n>=62?'C+':n>=57?'C':'C-';}
+function pitchLab10FitLabel(score){const n=Number(score)||0;return n>=85?'Excellent':n>=75?'Strong':n>=65?'Playable':n>=55?'Neutral':'Difficult';}
+function pitchLab10ReportGroup(label,rows,tone){const list=(rows||[]).slice(0,2);const body=list.length?list.map(r=>`<div class="pitchlab10-report-pitch"><span>${r.label||r.key||'Pitch'}</span><b>${Number(r.edge||0).toFixed(0)}</b></div>`).join(''):'<div class="pitchlab10-report-empty">No qualifying pitch</div>';return `<div class="pitchlab10-report-group ${tone}"><div class="pitchlab10-report-label">${label}</div>${body}</div>`;}
+function pitchLab10ReportSentence(player,top){const name=(player&&player.Name)||'This hitter';const pitch=(top&&(top.label||top.key))||'the primary pitch';const usage=top&&isFinite(top.usage)?Math.round(Number(top.usage)*100):0;const edge=top&&isFinite(top.edge)?Number(top.edge):0;const verb=edge>=80?'is in an elite spot against':edge>=70?'has a strong matchup against':'matches up best with';return `<b>${name}</b> ${verb} <b>${pitch}</b>, which this pitcher uses <b>${usage}%</b> of the time.`;}
 function renderPitchLab10Card(profile, idx) {
   const p = profile.player || {};
-  const top = profile.top || null;
+  const top = profile.top || ((profile.rows || [])[0] || null);
   const team = p.Team || '';
   const style = teamVisualStyle ? teamVisualStyle(team) : '';
   const face = createHeadshotHtml(p.Name, 'sm', team);
   const logoUrl = teamLogos[team] || '';
   const logo = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
-  const rows = (profile.rows || []).slice(0,4);
-  const componentBars = [
-    pitchLab10Bar('Usage-Weighted Pitch Edge', profile.pitchMixScore, '100%'),
-    pitchLab10Bar('Batter HR Damage', profile.batterShapeScore, '66% of pitch edge'),
-    pitchLab10Bar('Pitcher HR Weakness', profile.pitcherDamageScore, '29% of pitch edge'),
-    pitchLab10Bar('Stuff Weakness', profile.pitchQualityScore, '5% of pitch edge'),
-    pitchLab10Bar('Pitch EV', profile.pitchEVScore, 'EV input'),
-    pitchLab10Bar('Max EV', profile.pitchMaxEVScore || 50, 'Max EV input')
-  ].join('');
+  const rows = (profile.rows || []).slice().sort((a,b)=>Number(b.edge||0)-Number(a.edge||0)).slice(0,4);
+  const sortedForReport = rows.slice().sort((a,b)=>Number(b.edge||0)-Number(a.edge||0));
+  const reportElite = sortedForReport.filter(r=>Number(r.edge||0)>=80);
+  const reportAverage = sortedForReport.filter(r=>Number(r.edge||0)>=65 && Number(r.edge||0)<80);
+  const reportWeak = sortedForReport.slice().sort((a,b)=>Number(a.edge||0)-Number(b.edge||0));
+  const topColor = pitchLab10Color(top && (top.key || top.group || top.label));
+  const topEdge = top && isFinite(top.edge) ? Number(top.edge) : Number(profile.score || 0);
+  const topUsage = top ? pctFmt(top.usage || 0) : '--';
+  const topShape = top && top.bat && top.bat.shape ? top.bat.shape : {};
+  const topBatScore = top && top.bat && isFinite(top.bat.score) ? Number(top.bat.score) : Number(profile.batterShapeScore || 0);
+  const topPitcherWeakness = top && top.pitcherDamage && isFinite(top.pitcherDamage.score) ? Number(top.pitcherDamage.score) : Number(profile.pitcherDamageScore || 0);
+  const topEV = top ? pitchLab10StatEV(top) : '--';
+  const topBarrel = topShape.barrel !== null && topShape.barrel !== undefined && !isNaN(Number(topShape.barrel)) ? Number(topShape.barrel).toFixed(1) + '%' : '--';
+  const topPull = pitchLab10StatRate(topShape.pull);
+  const topXslg = topShape.xslg !== null && topShape.xslg !== undefined && !isNaN(Number(topShape.xslg)) ? Number(topShape.xslg).toFixed(3) : '--';
+  const topLabel = top ? (top.label || top.key || 'Pitch') : 'No Pitch Data';
+  const reason = top ? `${p.Name || 'This hitter'} grades ${topBatScore.toFixed(0)} for HR damage against ${topLabel}, while ${profile.pitcherName || 'the opposing pitcher'} grades ${topPitcherWeakness.toFixed(0)} vulnerable and uses it ${topUsage}.` : 'No specific-pitch matchup data is available for this player.';
+
   const pitchCards = rows.map(r => {
     const color = pitchLab10Color(r.key || r.group || r.label);
     const evVal = pitchLab10StatEV(r);
-    const fbVal = pitchLab10StatRate(r.bat && r.bat.shape ? r.bat.shape.fb : r.bat ? r.bat.fb : null);
     const pullVal = pitchLab10StatRate(r.bat && r.bat.shape ? r.bat.shape.pull : r.bat ? r.bat.pull : null);
     const barrelVal = (r.bat && r.bat.shape && r.bat.shape.barrel !== null && r.bat.shape.barrel !== undefined && !isNaN(Number(r.bat.shape.barrel))) ? Number(r.bat.shape.barrel).toFixed(1) + '%' : '--';
-    const ohVal = r.onlyHomers ? ((Number(r.onlyHomers.batterCount)||0) + '/' + (Number(r.onlyHomers.pitcherCount)||0)) : '--';
-    const stuff = isFinite(r.stuff) ? Number(r.stuff).toFixed(0) : '--';
-    const edge = isFinite(r.edge) ? r.edge.toFixed(0) : '--';
+    const xslgVal = r.bat && r.bat.shape && r.bat.shape.xslg !== null && r.bat.shape.xslg !== undefined && !isNaN(Number(r.bat.shape.xslg)) ? Number(r.bat.shape.xslg).toFixed(3) : '--';
+    const batDamage = r.bat && isFinite(r.bat.score) ? Number(r.bat.score).toFixed(0) : '--';
+    const pitcherWeak = r.pitcherDamage && isFinite(r.pitcherDamage.score) ? Number(r.pitcherDamage.score).toFixed(0) : '--';
+    const edge = isFinite(r.edge) ? Number(r.edge).toFixed(0) : '--';
     const usage = pctFmt(r.usage || 0);
-    return `<div class="pitchlab10-pitch" style="--pitch-color:${color}">
-      <div class="pitchlab10-pitch-top"><div class="pitchlab10-pitch-name">${r.label || r.key || 'Pitch'}</div><div class="pitchlab10-pitch-edge">${edge}</div></div>
+    const isBest = top && r === top;
+    return `<div class="pitchlab10-pitch${isBest ? ' is-best' : ''}" style="--pitch-color:${color}">
+      <div class="pitchlab10-pitch-top"><div><div class="pitchlab10-pitch-name">${r.label || r.key || 'Pitch'}</div>${isBest ? '<div class="pitchlab10-best-tag">Best Pitch to Attack</div>' : ''}</div><div class="pitchlab10-pitch-edge">${edge}</div></div>
       <div class="pitchlab10-mini-grid">
-        ${pitchLab10Mini('Usage', usage)}
+        ${pitchLab10Mini('Pitcher Usage', usage)}
+        ${pitchLab10Mini('Hitter Damage', batDamage)}
+        ${pitchLab10Mini('Pitcher Weakness', pitcherWeak)}
         ${pitchLab10Mini('EV', evVal)}
-        ${pitchLab10Mini('Pull%', pullVal)}
-        ${pitchLab10Mini('xSLG', r.bat && r.bat.shape && r.bat.shape.xslg !== null && r.bat.shape.xslg !== undefined ? Number(r.bat.shape.xslg).toFixed(3) : '-')}
         ${pitchLab10Mini('Barrel%', barrelVal)}
-        ${pitchLab10Mini('OH HR', ohVal)}
+        ${pitchLab10Mini('xSLG', xslgVal)}
+        ${pitchLab10Mini('Pull%', pullVal)}
+        ${pitchLab10Mini('Matchup', pitchLab10Tier(r.edge))}
       </div>
     </div>`;
   }).join('') || `<div class="pitchlab10-note">No pitch rows available for this player/pitcher matchup.</div>`;
-  const topText = top ? `${top.label} ${pctFmt(top.usage)} usage // ${top.edge.toFixed(0)} edge` : 'No top pitch found';
+
   return `<div class="pitchlab10-card" style="${style}">
     <div class="pitchlab10-top">
       <div class="pitchlab10-rank">#${idx+1}</div>
@@ -12128,21 +12237,27 @@ function renderPitchLab10Card(profile, idx) {
         <div class="pitchlab10-name player-clickable" onclick="openPlayerModalByName('${escJSString(p.Name)}')">${p.Name || '-'}</div>
         <div class="pitchlab10-meta">${logo}${team || '-'} vs ${profile.pitcherName || 'Starter'} ${profile.pitcherHand ? '// P throws ' + profile.pitcherHand : ''}</div>
       </div>
-      <div class="pitchlab10-scorebox"><div class="pitchlab10-score-label">Pitch Lab</div><div class="pitchlab10-score">${profile.score.toFixed(0)}</div></div>
+      <div class="pitchlab10-scorebox"><div class="pitchlab10-score-label">Pitch Lab</div><div class="pitchlab10-score">${Number(profile.score || 0).toFixed(0)}</div></div>
     </div>
     <div class="pitchlab10-body">
-      <div class="pitchlab10-section">
-        <div class="pitchlab10-section-title">Profile Breakdown <span>${profile.note || ''}</span></div>
-        <div class="pitchlab10-bars">${componentBars}</div>
-        <div class="pitchlab10-note"><b>Top Threat:</b> ${topText}. Display shows only HR-relevant inputs: EV, FB%, pulled-air, barrel%, OnlyHomers HR history, usage, pitcher HR damage, and Zone context.</div>
+      <div class="pitchlab10-section pitchlab10-left-scout pitchlab10-report-card" style="--pitch-color:${topColor}">
+        <div class="pitchlab10-report-head"><div><div class="pitchlab10-report-kicker">Pitch Lab Report</div><div class="pitchlab10-report-grade">${pitchLab10LetterGrade(profile.score || 0)}</div></div><div class="pitchlab10-report-score"><span>Overall</span><b>${Number(profile.score || 0).toFixed(0)}</b></div></div>
+        <div class="pitchlab10-report-groups">
+          ${pitchLab10ReportGroup('Elite Against', reportElite.slice(0,1), 'elite')}
+          ${pitchLab10ReportGroup('Average Against', reportAverage.slice(0,1), 'average')}
+          ${pitchLab10ReportGroup('Weakest Against', reportWeak.slice(0,1), 'weak')}
+        </div>
+        <div class="pitchlab10-report-fit"><div><span>Pitch Mix Fit</span><b>${pitchLab10FitLabel(profile.score || 0)}</b></div><div><span>Primary Pitch</span><b>${topLabel}</b></div><div><span>Pitcher Usage</span><b>${topUsage}</b></div></div>
+        <div class="pitchlab10-report-line">${pitchLab10ReportSentence(p, top)}</div>
       </div>
       <div class="pitchlab10-section">
-        <div class="pitchlab10-section-title">Pitch-by-Pitch Matchup <span>${renderPitchMix(profile)}</span></div>
+        <div class="pitchlab10-section-title">Specific Pitch Arsenal <span>${renderPitchMix(profile)}</span></div>
         <div class="pitchlab10-pitches">${pitchCards}</div>
       </div>
     </div>
   </div>`;
 }
+
 let pitchLabVisibleCount = 0;
 let pitchLabLastViewKey = '';
 let pitchLabSearchTimer = null;
@@ -18922,7 +19037,53 @@ body.performance-lite tbody tr:hover { transform: none !important; }
     const card=(label,value,cls='')=>`<div class="pcc-damage-card ${cls}"><span>${label}</span><b>${value}</b></div>`;
     return `<div class="pcc-damage-grid">${card('HR Damage',damage!==null&&Number.isFinite(Number(damage))?Number(damage).toFixed(0):'--','danger')}${card('Barrel Allowed',pctPcc(barrel))}${card('Hard Hit Allowed',pctPcc(hard))}${card('Average EV',nPcc(ev)!==null?Number(ev).toFixed(1):'--')}${card('EV90',nPcc(ev90)!==null?Number(ev90).toFixed(1):'--')}${card('Max EV',nPcc(maxev)!==null?Number(maxev).toFixed(1):'--')}${card('Pitcher',escPcc(name))}${card('Hitter Side',escPcc(String(valPcc(player,['Bats','Hand'])||'R').toUpperCase()))}</div><div class="pcc-split-wrap"><div class="pcc-split"><h4>vs Left-Handed Batters</h4><div class="pcc-split-line"><span>HR/9</span><b>${nPcc(lhr9)!==null?Number(lhr9).toFixed(2):'--'}</b></div><div class="pcc-split-line"><span>HR/FB</span><b>${pctPcc(lhrfb)}</b></div><div class="pcc-split-line"><span>Fly Ball %</span><b>${pctPcc(lfb)}</b></div></div><div class="pcc-split"><h4>vs Right-Handed Batters</h4><div class="pcc-split-line"><span>HR/9</span><b>${nPcc(rhr9)!==null?Number(rhr9).toFixed(2):'--'}</b></div><div class="pcc-split-line"><span>HR/FB</span><b>${pctPcc(rhrfb)}</b></div><div class="pcc-split-line"><span>Fly Ball %</span><b>${pctPcc(rfb)}</b></div></div></div>`;
   }
+  function cleanPccLegacyHtml(legacyHtml){
+    const root=document.createElement('div');
+    root.innerHTML=legacyHtml || '';
+
+    // If the popup was already enhanced, do NOT feed the whole command center back
+    // into Full Player Breakdown. Unwrap only the original legacy contents.
+    // This is the real cause of the full duplicate Zone + Pitch Lab block.
+    let safety=0;
+    while(root.querySelector('.player-command-center') && safety++ < 5){
+      const nestedPanel=root.querySelector('.player-command-center .pcc-full-breakdown .pcc-panel');
+      if(!nestedPanel) break;
+      const copy=nestedPanel.cloneNode(true);
+      const heading=copy.querySelector(':scope > .pcc-panel-title');
+      if(heading) heading.remove();
+      root.innerHTML=copy.innerHTML;
+    }
+
+    // Full Player Breakdown must not repeat the dedicated Zone Profile or Pitch Lab panels above.
+    const duplicateSectionWords=['pitch lab','zone breakdown','zone profile','attack zone','batter zone'];
+    root.querySelectorAll('.modal-section-title, h2, h3, h4').forEach(function(title){
+      const text=String(title.textContent||'').trim().toLowerCase();
+      if(!duplicateSectionWords.some(function(word){ return text.includes(word); })) return;
+      let section=title;
+      while(section.parentElement && section.parentElement!==root) section=section.parentElement;
+      if(section.parentElement===root) section.remove();
+    });
+
+    // The legacy BBI wheel and HR Blueprint also repeat these two categories as cards.
+    // Remove only those cards, not the rest of either breakdown.
+    root.querySelectorAll('.bbi-slice-card').forEach(function(card){
+      const label=String((card.querySelector('.bbi-slice-name')||card).textContent||'').trim().toLowerCase();
+      if(label.includes('pitch lab') || label.includes('attack zone') || label.includes('zone profile')) card.remove();
+    });
+    root.querySelectorAll('.hr-blueprint-card').forEach(function(card){
+      const label=String((card.querySelector('.hr-blueprint-label')||card).textContent||'').trim().toLowerCase();
+      if(label==='pitch matchup' || label.includes('pitch lab') || label.includes('attack zone') || label.includes('zone profile')) card.remove();
+    });
+
+    // Catch any legacy stat row that is explicitly labeled as Pitch Lab or Zone.
+    root.querySelectorAll('.modal-stat-item').forEach(function(item){
+      const label=String((item.querySelector('.modal-stat-label')||item).textContent||'').trim().toLowerCase();
+      if(label==='pitch lab' || label==='pitch lab score' || label==='attack zone' || label==='zone profile' || label==='zone score') item.remove();
+    });
+    return root.innerHTML;
+  }
   function buildPcc(player, legacyHtml){
+    legacyHtml=cleanPccLegacyHtml(legacyHtml);
     const pitcher=String(valPcc(player,['Opp Pitcher','Opp Pitcher Name'])||'Starter');
     const rank=(window.playerData||[]).filter(p=>!p.isRemoved).slice().sort((a,b)=>(Number(b.calculatedBBI)||0)-(Number(a.calculatedBBI)||0)).findIndex(p=>normalizeName(p.Name)===normalizeName(player.Name))+1;
     let pitchLab=null, zone=null, damage=null;
@@ -18937,13 +19098,23 @@ body.performance-lite tbody tr:hover { transform: none !important; }
       try{
         const box=document.getElementById('modalStatsContainer');
         if(!box||!player)return;
+        if(box.dataset.pccRendering==='1') return;
+        box.dataset.pccRendering='1';
         const legacyHtml=box.innerHTML;
-        box.innerHTML=buildPcc(player,legacyHtml);
+        // Keep the dedicated Zone Profile and Pitch Lab panels above, but strip
+        // their legacy duplicates from Full Player Breakdown before rebuilding.
+        const cleanedLegacyHtml=cleanPccLegacyHtml(legacyHtml);
+        box.innerHTML=buildPcc(player,cleanedLegacyHtml);
         box.querySelectorAll('[data-pcc-zone]').forEach(btn=>btn.addEventListener('click',()=>{
           box.querySelectorAll('[data-pcc-zone]').forEach(x=>x.classList.toggle('active',x===btn));
           const mount=document.getElementById('pccZoneMount'); if(mount) mount.innerHTML=renderPccZone(player,btn.dataset.pccZone);
         }));
-      }catch(e){ console.warn('Player command center render failed safely',e); }
+        box.dataset.pccRendering='0';
+      }catch(e){
+        const box=document.getElementById('modalStatsContainer');
+        if(box) box.dataset.pccRendering='0';
+        console.warn('Player command center render failed safely',e);
+      }
     },0);
   }
   openPlayerModal=enhancedOpen;
@@ -19034,7 +19205,7 @@ body.performance-lite tbody tr:hover { transform: none !important; }
 
   function placeFloating(card, x, y){
     const margin = 12;
-    const gap = 16;
+    const gap = 18;
     const vw = document.documentElement.clientWidth || window.innerWidth;
     const vh = document.documentElement.clientHeight || window.innerHeight;
 
@@ -19044,15 +19215,13 @@ body.performance-lite tbody tr:hover { transform: none !important; }
     document.body.appendChild(card);
 
     const rect = card.getBoundingClientRect();
+    /* Keep the popup beside the pointer, then flip it only when needed to stay visible. */
     let left = x + gap;
     let top = y + gap;
-
     if (left + rect.width > vw - margin) left = x - rect.width - gap;
     if (top + rect.height > vh - margin) top = y - rect.height - gap;
-
     left = Math.max(margin, Math.min(left, vw - rect.width - margin));
     top = Math.max(margin, Math.min(top, vh - rect.height - margin));
-
     card.style.left = Math.round(left) + 'px';
     card.style.top = Math.round(top) + 'px';
     card.style.visibility = 'visible';
@@ -19410,5 +19579,235 @@ body.drl-scrolling *,body.drl-scrolling *::before,body.drl-scrolling *::after{
   window.addEventListener('scroll',function(){document.querySelectorAll('.zone-hover-card.zone-hover-fixed').forEach(c=>clearZoneHover(c.closest('.zone-cell')));},true);
   window.addEventListener('resize',function(){document.querySelectorAll('.zone-hover-card.zone-hover-fixed').forEach(c=>clearZoneHover(c.closest('.zone-cell')));});
 })();
-</script>\n</body>
+</script>\n
+<style id="drl-safe-zone-popup-size-fix">
+.zone-hover-floating-card {
+  width: 610px !important;
+  max-width: calc(100vw - 24px) !important;
+  max-height: calc(100vh - 24px) !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+}
+.zone-hover-floating-card .zone-hover-title {
+  font-size: 20px !important;
+  gap: 12px !important;
+  margin-bottom: 14px !important;
+}
+.zone-hover-floating-card .zone-hover-grid { gap: 10px !important; }
+.zone-hover-floating-card .zone-hover-stat { padding: 12px !important; border-radius: 12px !important; }
+.zone-hover-floating-card .zone-hover-label { font-size: 12px !important; margin-bottom: 4px !important; }
+.zone-hover-floating-card .zone-hover-value { font-size: 18px !important; }
+html, body { min-height: 100%; }
+body:not(.modal-open) { overflow-y: auto; }
+</style>
+
+<script id="drl-safe-scroll-unlock">
+(function(){
+  function unlockIfNoModal(){
+    var open = document.querySelector('.modal-overlay.active, .zone-modal-overlay.active, .compare-modal-overlay.active');
+    if (!open) {
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+  }
+  document.addEventListener('click', function(e){
+    if (e.target.closest && e.target.closest('.nav-tab')) setTimeout(unlockIfNoModal, 0);
+  }, true);
+  window.addEventListener('pageshow', unlockIfNoModal);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') setTimeout(unlockIfNoModal, 0); });
+})();
+</script>
+<style id="drl-pitch-report-and-zone-popup-final">
+#tab-pitchlab .pitchlab10-body{display:grid!important;grid-template-columns:minmax(285px,.85fr) minmax(0,1.15fr)!important;gap:14px!important;padding:14px 16px 16px!important;align-items:start!important}
+#tab-pitchlab .pitchlab10-left-scout{display:block!important}#tab-pitchlab .pitchlab10-pitches{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important}
+.pitchlab10-report-card{padding:14px!important;background:linear-gradient(145deg,rgba(5,11,20,.78),rgba(17,31,53,.52))!important}.pitchlab10-report-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08)}.pitchlab10-report-kicker{color:#fff;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:1.25px}.pitchlab10-report-grade{margin-top:6px;color:var(--pitch-color,#e10600);font-family:monospace;font-size:42px;line-height:.9;font-weight:1000;text-shadow:0 0 18px color-mix(in srgb,var(--pitch-color,#e10600) 35%,transparent)}.pitchlab10-report-score{min-width:74px;text-align:center;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:9px 8px;background:rgba(255,255,255,.035)}.pitchlab10-report-score span{display:block;color:#6b7c96;font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px}.pitchlab10-report-score b{display:block;margin-top:4px;color:#fff;font-family:monospace;font-size:22px;font-weight:1000}.pitchlab10-report-groups{display:grid;gap:9px;margin-top:12px}.pitchlab10-report-group{border:1px solid rgba(255,255,255,.07);border-left:3px solid #94a3b8;border-radius:11px;padding:9px 10px;background:rgba(5,11,20,.48)}.pitchlab10-report-group.elite{border-left-color:#ef4444}.pitchlab10-report-group.average{border-left-color:#facc15}.pitchlab10-report-group.weak{border-left-color:#38bdf8}.pitchlab10-report-label{margin-bottom:6px;color:#94a3b8;font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px}.pitchlab10-report-pitch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:3px 0;color:#fff;font-size:11px;font-weight:950}.pitchlab10-report-pitch b{color:var(--pitch-color,#e10600);font-family:monospace;font-size:12px}.pitchlab10-report-empty{color:#64748b;font-size:10px;font-weight:800}.pitchlab10-report-fit{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}.pitchlab10-report-fit>div{min-width:0;padding:8px 6px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:rgba(255,255,255,.03);text-align:center}.pitchlab10-report-fit span{display:block;color:#6b7c96;font-size:7px;font-weight:1000;text-transform:uppercase;letter-spacing:.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pitchlab10-report-fit b{display:block;margin-top:4px;color:#fff;font-size:10px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pitchlab10-report-line{margin-top:10px;padding:9px 10px;border-radius:10px;border-left:3px solid var(--pitch-color,#e10600);background:rgba(5,11,20,.56);color:#cbd5e1;font-size:10px;font-weight:800;line-height:1.35}.pitchlab10-report-line b{color:#fff}
+.zone-hover-floating-card{width:420px!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 24px)!important;padding:14px!important;border-radius:15px!important;overflow-y:auto!important}.zone-hover-floating-card .zone-hover-title{font-size:13px!important;gap:8px!important;margin-bottom:10px!important}.zone-hover-floating-card .zone-hover-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}.zone-hover-floating-card .zone-hover-stat{padding:8px 9px!important;border-radius:9px!important}.zone-hover-floating-card .zone-hover-label{font-size:8px!important;line-height:1.1!important;margin-bottom:3px!important}.zone-hover-floating-card .zone-hover-value{font-size:12px!important;line-height:1.08!important}
+@media(max-width:950px){#tab-pitchlab .pitchlab10-body{grid-template-columns:1fr!important}}@media(max-width:760px){.zone-hover-floating-card{display:none!important}}
+</style>
+
+<style id="drl-pitchlab-compact-cursor-final">
+/* Restore the original compact Pitch Lab footprint while keeping the new report-card look. */
+#tab-pitchlab .pitchlab10-shell{gap:10px!important;padding:10px 12px 16px!important}
+#tab-pitchlab .pitchlab10-top{padding:10px 14px!important}
+#tab-pitchlab .pitchlab10-body{grid-template-columns:minmax(265px,.72fr) minmax(0,1.28fr)!important;gap:12px!important;padding:10px 12px 12px!important}
+#tab-pitchlab .pitchlab10-section{padding:11px!important;border-radius:13px!important}
+#tab-pitchlab .pitchlab10-report-card{padding:11px!important}
+#tab-pitchlab .pitchlab10-report-head{padding-bottom:8px!important}
+#tab-pitchlab .pitchlab10-report-grade{font-size:32px!important;margin-top:3px!important}
+#tab-pitchlab .pitchlab10-report-score{padding:6px!important;min-width:62px!important}
+#tab-pitchlab .pitchlab10-report-score b{font-size:18px!important}
+#tab-pitchlab .pitchlab10-report-groups{gap:6px!important;margin-top:8px!important}
+#tab-pitchlab .pitchlab10-report-group{padding:6px 8px!important;border-radius:9px!important}
+#tab-pitchlab .pitchlab10-report-label{margin-bottom:3px!important;font-size:7px!important}
+#tab-pitchlab .pitchlab10-report-pitch{font-size:10px!important;padding:1px 0!important}
+#tab-pitchlab .pitchlab10-report-fit{gap:5px!important;margin-top:7px!important}
+#tab-pitchlab .pitchlab10-report-fit>div{padding:6px 4px!important;border-radius:8px!important}
+#tab-pitchlab .pitchlab10-report-line{margin-top:7px!important;padding:7px 8px!important;font-size:9px!important;line-height:1.25!important}
+#tab-pitchlab .pitchlab10-pitches{grid-template-columns:repeat(4,minmax(150px,1fr))!important;gap:9px!important}
+#tab-pitchlab .pitchlab10-pitch{padding:10px!important;border-radius:12px!important}
+#tab-pitchlab .pitchlab10-mini-grid{gap:6px!important}
+#tab-pitchlab .pitchlab10-mini{padding:7px 5px!important}
+/* Keep the cleaner medium popup, but anchor it close to the cursor. */
+.zone-hover-floating-card{width:390px!important;max-width:calc(100vw - 20px)!important;padding:12px!important}
+@media(max-width:1200px){#tab-pitchlab .pitchlab10-pitches{grid-template-columns:repeat(2,minmax(160px,1fr))!important}}
+@media(max-width:950px){#tab-pitchlab .pitchlab10-body{grid-template-columns:1fr!important}}
+</style>
+
+<style id="drl-wheel-scroll-untrap-final">
+/* Let the page receive the mouse wheel when a table/card area reaches its edge. */
+html, body { overflow-x: hidden; overflow-y: auto !important; overscroll-behavior-y: auto !important; }
+body.modal-open { overflow: hidden !important; }
+#tab-home .table-wrapper,
+#tab-synergy .full-edge-table-wrapper,
+#tab-pitchlab .table-wrapper,
+#tab-pitchers .table-wrapper,
+#tab-pitchers .pitcher-targets-grid,
+.stats-table-wrapper,
+.full-edge-table-wrapper {
+  overscroll-behavior-y: auto !important;
+}
+/* Horizontal tables can still scroll sideways without trapping vertical wheel movement. */
+#tab-home .table-wrapper, #tab-pitchlab .table-wrapper, #tab-pitchers .table-wrapper {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+}
+</style>
+
+<style id="drl-final-countdown-game-hover-modal-dedup-style">
+/* Make the hovered Game Center matchup unmistakably active without changing card layout. */
+.game-center-grid .game-center-card,
+#pregameSlateBoard .slate-game-center-card {
+  transform-origin: center center;
+  will-change: transform;
+}
+.game-center-grid .game-center-card:hover,
+#pregameSlateBoard .slate-game-center-card:hover {
+  transform: translateY(-8px) scale(1.025) !important;
+  z-index: 20 !important;
+  border-color: var(--team-color, var(--accent)) !important;
+  box-shadow:
+    0 30px 70px rgba(0,0,0,.58),
+    0 0 38px var(--team-glow, rgba(225,6,0,.25)),
+    inset 0 1px 0 rgba(255,255,255,.12) !important;
+  filter: brightness(1.08);
+}
+.game-center-grid .game-center-card:hover::after,
+#pregameSlateBoard .slate-game-center-card:hover::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.11);
+}
+</style>
+<script id="drl-final-countdown-game-hover-modal-dedup-script">
+(function(){
+  function parseTimeValue(raw, now){
+    if(raw === null || raw === undefined || raw === '') return null;
+    if(raw instanceof Date && !isNaN(raw.getTime())) return raw;
+    if(typeof raw === 'number' && isFinite(raw)){
+      // Excel serial date/time support.
+      if(raw > 0 && raw < 100000){
+        var whole=Math.floor(raw), frac=raw-whole;
+        var base=new Date(Date.UTC(1899,11,30));
+        var d=new Date(base.getTime()+whole*86400000+Math.round(frac*86400000));
+        // Time-only Excel fractions should use today's local date.
+        if(raw < 1){
+          var td=new Date(now); td.setHours(d.getUTCHours(),d.getUTCMinutes(),d.getUTCSeconds(),0); return td;
+        }
+        return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),d.getUTCHours(),d.getUTCMinutes(),d.getUTCSeconds());
+      }
+      var epoch=new Date(raw); if(!isNaN(epoch.getTime())) return epoch;
+    }
+    var text=String(raw).replace(/\u00a0/g,' ').trim();
+    if(!text) return null;
+    var direct=new Date(text);
+    if(!isNaN(direct.getTime()) && /\d/.test(text) && (/[-\/]\d|\dT\d|\b20\d{2}\b/.test(text))) return direct;
+    // Handles 6:40 PM, 6:40PM EDT, 18:40, and values with extra labels.
+    var m=text.match(/(?:^|\s)(\d{1,2})(?::(\d{2}))(?::(\d{2}))?\s*(AM|PM)?(?:\s*(?:ET|EST|EDT|CT|CST|CDT|MT|MST|MDT|PT|PST|PDT))?(?:$|\s)/i)
+      || text.match(/(\d{1,2})(?::(\d{2}))(?::(\d{2}))?\s*(AM|PM)?/i);
+    if(!m) return null;
+    var h=Number(m[1]), min=Number(m[2]||0), sec=Number(m[3]||0), ap=String(m[4]||'').toUpperCase();
+    if(ap==='PM' && h!==12) h+=12;
+    if(ap==='AM' && h===12) h=0;
+    if(h>23 || min>59) return null;
+    var d=new Date(now); d.setHours(h,min,sec,0); return d;
+  }
+
+  function collectTimeCandidates(){
+    var now=new Date(), values=[];
+    var keys=['startTime','StartTime','start_time','gameTime','GameTime','game_time','firstPitch','FirstPitch','first_pitch','time','Time','TIME','scheduledTime','Scheduled Time','Game Time','First Pitch'];
+    function addObject(obj){
+      if(!obj || typeof obj!=='object') return;
+      keys.forEach(function(k){ if(Object.prototype.hasOwnProperty.call(obj,k)) values.push(obj[k]); });
+    }
+    try{ (typeof gameMatchups!=='undefined'?gameMatchups:[]).forEach(addObject); }catch(e){}
+    try{ var ws=(typeof weatherSettings!=='undefined'?weatherSettings:{}); Object.keys(ws).forEach(function(k){addObject(ws[k]);}); }catch(e){}
+    try{ (typeof playerData!=='undefined'?playerData:[]).forEach(addObject); }catch(e){}
+    try{ (typeof currentData!=='undefined'?currentData:[]).forEach(addObject); }catch(e){}
+    // Read any visible slate/game time labels as a last-resort source.
+    document.querySelectorAll('[data-start-time],[data-game-time],.slate-game-time,.game-time,.matchup-time').forEach(function(el){
+      values.push(el.getAttribute('data-start-time')||el.getAttribute('data-game-time')||el.textContent);
+    });
+    var parsed=values.map(function(v){return parseTimeValue(v,now);}).filter(function(d){return d && !isNaN(d.getTime());});
+    // De-duplicate exact times.
+    var seen={}; return parsed.filter(function(d){var k=d.getTime(); if(seen[k])return false; seen[k]=1; return true;});
+  }
+
+  window.updateCountdown=function(){
+    var ticker=document.getElementById('tickerText'); if(!ticker) return;
+    var now=new Date(), times=collectTimeCandidates().sort(function(a,b){return a-b;});
+    if(!times.length){
+      var gc=0; try{gc=(typeof gameMatchups!=='undefined'&&gameMatchups.length)||0;}catch(e){} ticker.textContent=gc+' Games Today';
+      return;
+    }
+    var upcoming=times.find(function(d){return d.getTime()>now.getTime();});
+    if(!upcoming){ ticker.innerHTML='FIRST PITCH IS LIVE! 🟢'; return; }
+    var diff=Math.max(0,upcoming-now), h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+    ticker.innerHTML='FIRST PITCH IN: <span>'+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+'</span>';
+  };
+  try{ clearInterval(window.__drlCountdownTimer); }catch(e){}
+  window.__drlCountdownTimer=setInterval(function(){try{window.updateCountdown();}catch(e){}},1000);
+  setTimeout(function(){try{window.updateCountdown();}catch(e){}},0);
+
+  function removeDuplicateLegacySections(root){
+    if(!root) return;
+    var legacy=root.querySelector('.pcc-full-breakdown'); if(!legacy) return;
+    var panel=legacy.querySelector('.pcc-panel'); if(!panel) return;
+    var duplicateWords=['pitch lab','zone breakdown','zone profile','attack zone','batter zone'];
+    Array.from(panel.children).forEach(function(section){
+      var title=section.querySelector && section.querySelector('.modal-section-title, h2, h3, h4');
+      if(!title) return;
+      var text=String(title.textContent||'').trim().toLowerCase();
+      if(duplicateWords.some(function(word){return text.includes(word);})) section.remove();
+    });
+    panel.querySelectorAll('.bbi-slice-card').forEach(function(card){
+      var label=String((card.querySelector('.bbi-slice-name')||card).textContent||'').trim().toLowerCase();
+      if(label.includes('pitch lab')||label.includes('attack zone')||label.includes('zone profile')) card.remove();
+    });
+    panel.querySelectorAll('.hr-blueprint-card').forEach(function(card){
+      var label=String((card.querySelector('.hr-blueprint-label')||card).textContent||'').trim().toLowerCase();
+      if(label==='pitch matchup'||label.includes('pitch lab')||label.includes('attack zone')||label.includes('zone profile')) card.remove();
+    });
+    panel.querySelectorAll('.modal-stat-item').forEach(function(item){
+      var label=String((item.querySelector('.modal-stat-label')||item).textContent||'').trim().toLowerCase();
+      if(label==='pitch lab'||label==='pitch lab score'||label==='attack zone'||label==='zone profile'||label==='zone score') item.remove();
+    });
+  }
+  document.addEventListener('click',function(e){
+    if(e.target.closest && (e.target.closest('.player-clickable') || e.target.closest('[onclick*="openPlayerModal"]') || e.target.closest('[onclick*="openPlayerModalByName"]'))){
+      setTimeout(function(){removeDuplicateLegacySections(document.getElementById('modalStatsContainer'));},30);
+      setTimeout(function(){removeDuplicateLegacySections(document.getElementById('modalStatsContainer'));},150);
+    }
+  },true);
+  var modal=document.getElementById('modalStatsContainer');
+  if(modal && window.MutationObserver){
+    new MutationObserver(function(){removeDuplicateLegacySections(modal);}).observe(modal,{childList:true,subtree:true});
+  }
+})();
+</script>
+
+</body>
 </html>
