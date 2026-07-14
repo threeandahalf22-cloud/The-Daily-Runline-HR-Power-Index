@@ -9227,14 +9227,14 @@ function getStarterShareForPlayer(player) {
 }
 function modelHRProbability(score, player) {
   // Market-facing HR probability calibration for the current uncapped BBI scale.
-  // Anchor requested by model owner: BBI 95.0 = approximately 35% HR probability.
-  // This affects probability/edge only and does not alter BBI ranking or scoring.
+  // Owner anchors: BBI 70 = 15.0% and BBI 100 = 33.3% HR probability.
+  // This affects probability, edge, and EV only; it does not alter BBI rankings or scoring.
   const s = Math.max(0, cleanNumber(score || 0));
   const curve = [
-    [0, 1.0], [30, 2.0], [40, 3.5], [45, 4.5], [50, 5.8],
-    [55, 7.3], [60, 9.2], [65, 11.5], [70, 14.2], [75, 17.5],
-    [80, 21.2], [85, 25.5], [90, 30.0], [95, 35.0], [100, 39.0],
-    [110, 45.0], [120, 50.0], [140, 56.0]
+    [0, 1.0], [30, 2.0], [40, 3.5], [45, 4.5], [50, 6.0],
+    [55, 7.8], [60, 10.0], [65, 12.5], [70, 15.0], [75, 18.2],
+    [80, 21.5], [85, 24.8], [90, 28.0], [95, 30.8], [100, 33.3],
+    [110, 37.0], [120, 40.0], [140, 45.0]
   ];
   let pct = curve[curve.length - 1][1];
   if (s <= curve[0][0]) {
@@ -9251,7 +9251,7 @@ function modelHRProbability(score, player) {
   }
   const conf = cleanNumber(player && player.calculatedDataConfidence);
   if (conf && conf < 0.55) pct *= 0.97;
-  return Math.max(1.0, Math.min(56.0, pct));
+  return Math.max(1.0, Math.min(45.0, pct));
 }
 function americanOddsToImplied(oddsRaw) {
   if (oddsRaw === undefined || oddsRaw === null || oddsRaw === '') return null;
