@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line HR Power Index - Unified HR Attack Map — Stat Confidence Engine</title>
-<!-- DRL v62.6 Phase 7 FINAL: scoring audit and cleanup.
+<!-- DRL v62.6 Phase 7 FINAL: scoring audit, cleanup, and performance pass.
      Canonical buckets: Power 24, Batted Ball 20, Pitcher 14, Pitch Lab 8,
      Attack Zone 23, BvP 5, Weather 4, Park 2. Synergy cap: +7.50. -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -10404,18 +10404,54 @@ document.getElementById('valWeightWeather').innerText = document.getElementById(
 recalculateAllBBIScores();
 }
 
+// Workbook parse caches: the same large sheets are consumed by several model maps.
+// Cache the raw matrix and each header interpretation so SheetJS only decodes cells once.
+const DRL_SHEET_ARRAY_CACHE = new WeakMap();
+const DRL_SHEET_OBJECT_CACHE = new WeakMap();
+const DRL_SHEET_SMART_CACHE = new WeakMap();
+function sheetArrayRowsFast(sheet) {
+  if (!sheet) return [];
+  let rows = DRL_SHEET_ARRAY_CACHE.get(sheet);
+  if (!rows) {
+    rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true, blankrows: false });
+    DRL_SHEET_ARRAY_CACHE.set(sheet, rows);
+  }
+  return rows;
+}
+function sheetToObjectsFast(sheet) {
+  if (!sheet) return [];
+  let rows = DRL_SHEET_OBJECT_CACHE.get(sheet);
+  if (!rows) {
+    rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true, blankrows: false });
+    DRL_SHEET_OBJECT_CACHE.set(sheet, rows);
+  }
+  return rows;
+}
 function sheetToJsonSmart(workbook, sheetName, headerKeys = ['Player', 'Name']) {
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return [];
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const cacheKey = headerKeys.join('|');
+  let sheetCache = DRL_SHEET_SMART_CACHE.get(sheet);
+  if (!sheetCache) { sheetCache = new Map(); DRL_SHEET_SMART_CACHE.set(sheet, sheetCache); }
+  if (sheetCache.has(cacheKey)) return sheetCache.get(cacheKey);
+  const rows = sheetArrayRowsFast(sheet);
   let headerIndex = rows.findIndex(row => row && row.some(cell => headerKeys.includes(String(cell).trim())));
   if (headerIndex < 0) headerIndex = 0;
   const headers = (rows[headerIndex] || []).map((h, idx) => String(h || `Column${idx+1}`).trim() || `Column${idx+1}`);
-  return rows.slice(headerIndex + 1).map(row => {
+  const result = [];
+  for (let r = headerIndex + 1; r < rows.length; r++) {
+    const row = rows[r] || [];
+    let hasValue = false;
     const obj = {};
-    headers.forEach((h, idx) => obj[h] = row[idx]);
-    return obj;
-  }).filter(obj => Object.values(obj).some(v => v !== '' && v !== null && v !== undefined));
+    for (let i = 0; i < headers.length; i++) {
+      const value = row[i];
+      obj[headers[i]] = value;
+      if (value !== '' && value !== null && value !== undefined) hasValue = true;
+    }
+    if (hasValue) result.push(obj);
+  }
+  sheetCache.set(cacheKey, result);
+  return result;
 }
 function mapRowsByName(rows) {
   const out = {};
@@ -10516,7 +10552,7 @@ if (!drlLoadingSharedWorkbook) {
 const reader = new FileReader();
 reader.onload = function(e) {
 const data = new Uint8Array(e.target.result);
-const workbook = XLSX.read(data, {type: 'array'});
+const workbook = XLSX.read(data, { type: 'array', cellStyles: false, cellNF: false, cellHTML: false, cellDates: false, bookVBA: false });
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
 let batTrackingSheetNames = {}; 
@@ -10542,8 +10578,8 @@ if (['BULLPEN','BULLPENEV','BULLPENL7','BULLPENEVL7'].includes(nameClean)) statS
 if (nameClean === 'PARKFACTORL') parkFactorLMap = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm','Park Team','Home Team']));
 if (nameClean === 'PARKFACTORR') parkFactorRMap = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm','Park Team','Home Team']));
 if (nameClean === 'ODDS') oddsRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name']);
-if (nameClean === 'HR' || nameClean === 'HOMERUN') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'SHEET1' && (!hrRaw || hrRaw.length === 0)) hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'HR' || nameClean === 'HOMERUN') hrRaw = sheetToObjectsFast(workbook.Sheets[sheetName]);
+if (nameClean === 'SHEET1' && (!hrRaw || hrRaw.length === 0)) hrRaw = sheetToObjectsFast(workbook.Sheets[sheetName]);
 if (nameClean === 'VSPITCHER' || nameClean === 'BVP') {
   vpRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name','Batter','Hitter','Pitcher','SLG','HR','EV','LA']);
   bvpRawRows = vpRaw;
@@ -10552,15 +10588,15 @@ if (nameClean === 'SHEET2' && (!vpRaw || vpRaw.length === 0)) {
   vpRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name','Batter','Hitter','Pitcher','SLG','HR','EV','LA']);
   bvpRawRows = vpRaw;
 }
-if (nameClean === 'PLDATA' || nameClean === 'PL') plRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'LASTWEEK') lwRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'WEATHER') { weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]); statSheetMaps['WEATHER'] = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM'])); }
-if (nameClean === 'BULLPEN') bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'TOP5') top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'SHEET3' && (!top5Raw || top5Raw.length === 0)) top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'ID' || nameClean === 'IDS' || nameClean === 'PLAYERID' || nameClean === 'PLAYERIDS') idRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'PITCHTYPE') pitchTypeRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'STUFF') stuffRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+if (nameClean === 'PLDATA' || nameClean === 'PL') plRaw = sheetToObjectsFast(workbook.Sheets[sheetName]);
+if (nameClean === 'LASTWEEK') lwRaw = sheetToObjectsFast(workbook.Sheets[sheetName]);
+if (nameClean === 'WEATHER') { weatherRaw = sheetToObjectsFast(workbook.Sheets[sheetName]); statSheetMaps['WEATHER'] = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM'])); }
+if (nameClean === 'BULLPEN') bullpenRaw = sheetToObjectsFast(workbook.Sheets[sheetName]);
+if (nameClean === 'TOP5') top5Raw = sheetToObjectsFast(workbook.Sheets[sheetName]);
+if (nameClean === 'SHEET3' && (!top5Raw || top5Raw.length === 0)) top5Raw = sheetToObjectsFast(workbook.Sheets[sheetName]);
+if (nameClean === 'ID' || nameClean === 'IDS' || nameClean === 'PLAYERID' || nameClean === 'PLAYERIDS') idRaw = sheetToObjectsFast(workbook.Sheets[sheetName]);
+if (nameClean === 'PITCHTYPE') pitchTypeRaw = sheetToObjectsFast(workbook.Sheets[sheetName]);
+if (nameClean === 'STUFF') stuffRaw = sheetToObjectsFast(workbook.Sheets[sheetName]);
 if (nameClean === 'PITCHEV') pitchEVRaw = sheetToJsonSmart(workbook, sheetName, ['Name','Player']);
 if (nameClean === 'PW') pitchWinRaw = sheetToJsonSmart(workbook, sheetName, ['Name','Player']);
 if (nameClean === 'PITCHBAG') pitchBagRaw = sheetToJsonSmart(workbook, sheetName, ['last_name, first_name','pitch_type']);
@@ -10595,7 +10631,7 @@ if (nameClean === 'ZONEB') zoneBMap = mapRowsByName(sheetToJsonSmart(workbook, s
 if (nameClean === 'ZONEP') zonePMap = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Pitcher','Player','Name']));
 if (['FBL','FBR','BBL','BBR','OSL','OSR'].includes(nameClean)) batTrackingSheetNames[nameClean] = sheetName;
 if (nameClean === 'HA') processHomeAwaySheet(workbook.Sheets[sheetName]);
-if (nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
+if (nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(sheetToObjectsFast(workbook.Sheets[sheetName]));
 });
 oddsRaw.forEach(row => { const nm = getNameFromRow(row); addNameAlias(oddsMap, nm, row); });
 oddsBookColumns = detectOddsBookColumns(oddsRaw);
@@ -10658,13 +10694,14 @@ if (longshot && team3) longshotData.push({ name: longshot, team: team3 });
 hrDueData = [];
 if (lwRaw && lwRaw.length > 0) {
 let candidates = [];
+const playerByNormalizedName = new Map(playerData.map(p => [normalizeName(p.Name), p]));
 lwRaw.forEach(row => {
 let hrsLastWeek = cleanNumber(safeGet(row, 'hrs', 'HRs', 'HR'));
 let totalHrs = cleanNumber(safeGet(row, 'total hrs', 'Total HRs', 'Total HR'));
 let name = String(safeGet(row, 'Player', 'Name', 'player') || '').trim();
 let team = String(safeGet(row, 'Team', 'TEAM', 'Tm', 'team') || '').trim().toUpperCase();
 if (!team && name) {
-const matchedPlayer = playerData.find(p => p.Name.toLowerCase() === name.toLowerCase());
+const matchedPlayer = playerByNormalizedName.get(normalizeName(name));
 if (matchedPlayer) team = matchedPlayer.Team;
 }
 if (name && hrsLastWeek === 0 && totalHrs > 0) candidates.push({ name, totalHrs, team });
@@ -10674,12 +10711,10 @@ hrDueData = candidates.slice(0, 5);
 }
 const uniqueTeams = getTeamsPlayingToday();
 renderTodayTeamsFilter(uniqueTeams);
+const teamOptionHtml = uniqueTeams.filter(t => t !== 'OPP').map(t => `<option value="${t}">${t}</option>`).join('');
 ['parlayTeam1', 'parlayTeam2', 'parlayTeam3', 'teamFilter1', 'teamFilter2'].forEach(id => {
 const el = document.getElementById(id);
-if(el) {
-el.innerHTML = el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</option>` : `<option value="ALL">All Teams</option>`;
-uniqueTeams.forEach(t => { if(t !== 'OPP') el.innerHTML += `<option value="${t}">${t}</option>`; });
-}
+if(el) el.innerHTML = (el.id.startsWith('parlay') ? `<option value="">-- Leg Select --</option>` : `<option value="ALL">All Teams</option>`) + teamOptionHtml;
 });
 rebuildTeamLogoDropdown();
 document.getElementById('graphicsPanel').style.display = 'block';
@@ -10703,7 +10738,7 @@ document.getElementById('graphicsPanel').style.display = 'block';
   // 1) Calculate/store all BBI scores immediately using spreadsheet weather.
   // 2) Render Home right away so upload never waits on OpenWeather/network.
   // 3) Refresh OpenWeather in the background, then recalculate/rerender from the live weather data.
-  uploadStep('recalculateAllBBIScores', recalculateAllBBIScores);
+  uploadStep('recalculateAllBBIScores', () => recalculateAllBBIScores({skipRender:true}));
   uploadStep('applyFiltersAndRender', applyFiltersAndRender);
   uploadStep('updateHeaderStats', updateHeaderStats);
   uploadStep('updateSlateTicker', updateSlateTicker);
@@ -15412,7 +15447,8 @@ function calculateMicroSynergyBonuses(player, raw, cats) {
     return { items: [], rawTotal: 0, total: 0 };
   }
 }
-function recalculateAllBBIScores() {
+function recalculateAllBBIScores(options) {
+  const skipRender = options === true || !!(options && options.skipRender);
   try {
     playerData.forEach(p => {
       try {
@@ -15440,9 +15476,15 @@ function recalculateAllBBIScores() {
   } catch (err) {
     console.error('Recalculate pipeline failed:', err);
   }
-  try { applyFiltersAndRender(); } catch (err) { console.error('Render failed after recalc:', err); }
-  try { renderSynergyBonusesTab(); } catch (err) { console.warn('Synergy tab render failed:', err); }
-  try { updateHeaderStats(); } catch (err) { console.warn('Command Center update failed:', err); }
+  if (!skipRender) {
+    try { applyFiltersAndRender(); } catch (err) { console.error('Render failed after recalc:', err); }
+    // Hidden heavy tabs render lazily when opened; do not build them during every score refresh.
+    try {
+      const synergyTab = document.getElementById('tab-synergy');
+      if (synergyTab && synergyTab.classList.contains('active')) renderSynergyBonusesTab();
+    } catch (err) { console.warn('Synergy tab render failed:', err); }
+    try { updateHeaderStats(); } catch (err) { console.warn('Command Center update failed:', err); }
+  }
 }
 function syncSynergyTeamFilter() {
   const sel = document.getElementById('synergyTeamFilter');
