@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>The Daily Run Line HR Power Index - Unified HR Attack Map — Stat Confidence Engine</title>
+<title>The Daily Run Line</title>
 <!-- DRL v62.6 Phase 7 FINAL: scoring audit and cleanup.
      Canonical buckets: Power 24, Batted Ball 20, Pitcher 14, Pitch Lab 8,
      Attack Zone 23, BvP 5, Weather 4, Park 2. Synergy cap: +7.50. -->
@@ -8414,7 +8414,7 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 <div class="main-logo"><img id="dashboardLogoSource" src="https://www.mlbstatic.com/team-logos/league-on-dark/1.svg" alt="MLB Logo" onerror="this.style.display='none';"></div>
 <div class="header-title-section">
 <h1>The Daily Run Line</h1>
-<div class="subtitle"></div>
+<div class="subtitle">MLB Betting & Home Run Analytics</div>
 <div class="date-display" id="currentDateDisplay"></div>
 </div>
 </div>
@@ -8475,6 +8475,7 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 <button class="nav-tab" onclick="switchTab('betfinder', this)">🎯 Bet Finder</button>
 <button class="nav-tab" onclick="switchTab('teamedges', this)">⚾ Team Edge Center</button>
 <button class="nav-tab" onclick="switchTab('nrfi', this)">🎯 NRFI Center</button>
+<button class="nav-tab" onclick="switchTab('betbacktest', this)">📒 Betting Backtest</button>
 <button class="nav-tab" onclick="switchTab('stats', this)">📊 Stats</button>
 <button class="nav-tab" onclick="switchTab('odds', this)">💰 Odds</button>
 <button class="nav-tab" onclick="switchTab('pitchers', this)">🎯 Pitchers</button>
@@ -8625,6 +8626,17 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
     </div>
     <div id="nrfiSummary" class="nrfi-summary-grid" style="display:none;"></div>
     <div id="nrfiGames" class="nrfi-games"><div class="nrfi-empty">Loading the published NRFI slate…</div></div>
+  </div>
+</div>
+
+<div id="tab-betbacktest" class="tab-content">
+  <div class="bet-backtest-shell">
+    <div class="bet-backtest-hero">
+      <div><div class="bet-backtest-kicker">📒 Results Tracker</div><div class="bet-backtest-title">Betting Backtest</div><div class="bet-backtest-sub">Simple win-loss records for Moneyline, Run Line, Game Total, First 5 Total, Team Total, F5 Team Total, and NRFI.</div></div>
+      <div class="bet-backtest-actions"><button type="button" class="backtest-tool-btn" onclick="drlExportBetBacktest()">Export CSV</button><button type="button" class="backtest-tool-btn backtest-warning-btn" onclick="drlClearBetBacktest()">Clear Records</button></div>
+    </div>
+    <div id="betBacktestSummary" class="bet-backtest-summary"></div>
+    <div class="table-wrapper bet-backtest-table-wrap"><table class="bet-backtest-table"><thead><tr><th>Date</th><th>Matchup</th><th>Market</th><th>Projection / Pick</th><th>Edge</th><th>Result</th><th>Action</th></tr></thead><tbody id="betBacktestRows"></tbody></table></div>
   </div>
 </div>
 
@@ -8967,7 +8979,7 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 <h3 id="modalName" class="modal-player-name"></h3>
 <div id="modalMeta" class="modal-player-meta"></div>
 <div class="modal-bbi-display">
-<div class="modal-bbi-label">Bowen's Bash Index</div>
+<div class="modal-bbi-label">HR Model Score</div>
 <div id="modalBBI" class="modal-bbi-value">0.0</div>
 </div>
 <div id="modalWheelHome"></div>
@@ -10619,7 +10631,7 @@ if (nameClean === 'SHEET2' && (!vpRaw || vpRaw.length === 0)) {
 }
 if (nameClean === 'PLDATA' || nameClean === 'PL') plRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'LASTWEEK') lwRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-if (nameClean === 'WEATHER') { weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]); statSheetMaps['WEATHER'] = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM'])); }
+if (nameClean === 'WEATHER') { weatherRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval:null, raw:true}); window.drlWeatherRows = weatherRaw; statSheetMaps['WEATHER'] = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM'])); setTimeout(function(){ if(window.drlStartExactFirstPitchCountdown) window.drlStartExactFirstPitchCountdown(); }, 0); }
 if (nameClean === 'BULLPEN') bullpenRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'TOP5') top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'SHEET3' && (!top5Raw || top5Raw.length === 0)) top5Raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -10965,12 +10977,11 @@ function commandRenderPitcherCard(pitcher) {
     commandRenderEmpty('weakPitcherValue', 'weakPitcherPlayer', '--', 'No pitcher target found', '🎯');
     return;
   }
-  setCommandCenterText('weakPitcherValue', Number(pitcher.maxHR9 || 0).toFixed(2));
+  const damageScore = Number(pitcher.damageScore);
+  setCommandCenterText('weakPitcherValue', Number.isFinite(damageScore) ? damageScore.toFixed(1) : '--');
   const stats = [
-    commandDetail('vs LHB HR/9', Number(pitcher.lhb || 0).toFixed(2)),
-    commandDetail('vs RHB HR/9', Number(pitcher.rhb || 0).toFixed(2)),
-    commandDetail('Team', pitcher.team || 'N/A'),
-    commandDetail('Signal', 'HR Risk')
+    commandDetail('HR/9 vs LHB', Number(pitcher.lhb || 0).toFixed(2)),
+    commandDetail('HR/9 vs RHB', Number(pitcher.rhb || 0).toFixed(2))
   ].join('');
   setCommandCenterText('weakPitcherPlayer', `
     ${commandTeamLogoWatermark(pitcher.team)}
@@ -10982,8 +10993,8 @@ function commandRenderPitcherCard(pitcher) {
       </div>
     </div>
     <div class="command-card-details">${stats}</div>
-    ${commandMeter(Number(pitcher.maxHR9 || 0).toFixed(2))}
-    <div class="command-card-note">Worst HR split on today's pitching board</div>
+    ${commandMeter(Number.isFinite(damageScore) ? damageScore.toFixed(1) : '--')}
+    <div class="command-card-note">Pitcher Damage Score</div>
   `);
 }
 function setCommandCenterText(id, value) {
@@ -11133,7 +11144,10 @@ if(rawPitchers.length > 0) {
     let valC = cleanNumber(safeGet(row, 'HR/9 vs LHB', 'HR/9 vs L', 'HR/9 LHB', 'HR/9 L', 'C'));
     let valD = cleanNumber(safeGet(row, 'HR/9 vs RHB', 'HR/9 vs R', 'HR/9 RHB', 'HR/9 R', 'D'));
     const filledSides = fillPitcherHR9SidesFromHR(pName, valC, valD);
-    return { name: pName, team: pTeam, lhb: filledSides.lhb, rhb: filledSides.rhb, maxHR9: Math.max(filledSides.lhb, filledSides.rhb) };
+    const matchedHitters = activePlayers.filter(h => normalizeName(safeGet(h, 'Opp Pitcher', 'Opponent Pitcher', 'Pitcher')) === normalizeName(pName));
+    const damageValues = matchedHitters.map(h => cleanNumberOrNull(h.calculatedPitcherBaseScore ?? h.calculatedPitcherScore ?? (h.category && h.category.pitcher))).filter(v => v !== null && Number.isFinite(Number(v)));
+    const damageScore = damageValues.length ? damageValues.reduce((sum,v)=>sum+Number(v),0) / damageValues.length : null;
+    return { name: pName, team: pTeam, lhb: filledSides.lhb, rhb: filledSides.rhb, maxHR9: Math.max(filledSides.lhb, filledSides.rhb), damageScore };
   }).filter(p => p.name && p.name !== '' && p.maxHR9 > 0);
   if(processed.length > 0) {
     processed.sort((a,b) => b.maxHR9 - a.maxHR9);
@@ -21932,5 +21946,965 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<style id="drl-speed-brand-countdown-final">
+/* Performance pass: remove expensive page-wide blur and perpetual decorative animation. */
+.panel,.upload-box,.controls-bar,.table-wrapper,.spotlight-ticker,.jackpot-section,
+.pitch-lab-card,.diamond-card,.modal-card,.header-area,.command-center-board,
+.game-center-card,.nrfi-card,.team-edge-card{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+body::before,body::after,.header-area::before,.command-center-board::before,
+.command-feature-card::before,.command-logo-core::after,.community-hero::after,
+.slate-board::after,.ai-loader-card::after{animation:none !important;}
+.tab-content:not(.active){display:none !important;}
+.tab-content.active{content-visibility:auto;contain-intrinsic-size:900px;}
+.table-wrapper,.full-edge-table-wrapper,.stats-table-wrapper,.signal-table-wrapper{
+  contain:layout paint style;
+}
+/* Keep the countdown obvious and stable. */
+.command-ai-ticker,.slate-ticker{
+  display:flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  justify-content:center !important;
+}
+#tickerText{animation:none !important;transform:none !important;min-width:0 !important;}
+</style>
+<script id="drl-brand-countdown-speed-final">
+(function(){
+  'use strict';
+
+  function replaceVisibleBranding(root){
+    root=root||document.body;
+    if(!root) return;
+    var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    var n, changes=[];
+    while((n=walker.nextNode())){
+      var t=n.nodeValue;
+      if(!t || (!/Bowen'?s Bash Index|\bBBI\b/i.test(t))) continue;
+      var next=t
+        .replace(/Bowen'?s Bash Index\s*\(BBI\)/gi,'HR Model Score')
+        .replace(/Bowen'?s Bash Index/gi,'HR Model Score')
+        .replace(/\bTop BBI\b/gi,'Top HR Score')
+        .replace(/\bAvg BBI\b/gi,'Avg HR Score')
+        .replace(/\bBBI Score\b/gi,'HR Model Score')
+        .replace(/\bBBI Bucket\b/gi,'HR Score Bucket')
+        .replace(/\bBBI Tier\b/gi,'HR Score Tier')
+        .replace(/\bBBI\b/g,'HR Score');
+      if(next!==t) changes.push([n,next]);
+    }
+    changes.forEach(function(x){x[0].nodeValue=x[1];});
+    document.title='The Daily Run Line';
+  }
+
+  function parseTimeValue(raw, now){
+    if(raw===null||raw===undefined||raw==='') return null;
+    if(raw instanceof Date && !isNaN(raw)) return raw;
+    if(typeof raw==='number' && isFinite(raw)){
+      /* Excel time fraction or serial date. */
+      if(raw>0 && raw<1){
+        var seconds=Math.round(raw*86400), d=new Date(now);
+        d.setHours(Math.floor(seconds/3600),Math.floor((seconds%3600)/60),seconds%60,0);
+        return d;
+      }
+      if(raw>25000 && raw<80000){
+        var excelEpoch=Date.UTC(1899,11,30);
+        var dt=new Date(excelEpoch+raw*86400000);
+        return new Date(dt.getUTCFullYear(),dt.getUTCMonth(),dt.getUTCDate(),dt.getUTCHours(),dt.getUTCMinutes(),dt.getUTCSeconds());
+      }
+    }
+    var text=String(raw).trim();
+    if(!text) return null;
+    var direct=new Date(text);
+    if(!isNaN(direct) && /\d{4}|\d{1,2}[\/-]\d{1,2}/.test(text)) return direct;
+    var m=text.match(/(?:^|\s)(\d{1,2})(?::(\d{2}))(?::(\d{2}))?\s*(AM|PM)?/i);
+    if(!m) return null;
+    var h=Number(m[1]), min=Number(m[2]||0), sec=Number(m[3]||0), ap=String(m[4]||'').toUpperCase();
+    if(ap==='PM'&&h!==12)h+=12;
+    if(ap==='AM'&&h===12)h=0;
+    if(h>23||min>59)return null;
+    var d=new Date(now); d.setHours(h,min,sec,0); return d;
+  }
+
+  function collectObjects(){
+    var objects=[];
+    function add(v){
+      if(!v) return;
+      if(Array.isArray(v)){v.forEach(function(x){if(x&&typeof x==='object')objects.push(x);});}
+      else if(typeof v==='object'){Object.keys(v).forEach(function(k){var x=v[k];if(x&&typeof x==='object')objects.push(x);});}
+    }
+    ['gameMatchups','weatherSettings','playerData','currentData','teamEdgeRows','teamEdgeGames','nrfiRows','nrfiGames'].forEach(function(name){
+      try{add(window[name]);}catch(e){}
+    });
+    return objects;
+  }
+
+  function collectFirstPitchTimes(){
+    var now=new Date(), values=[];
+    var keyRe=/(game.?time|start.?time|first.?pitch|scheduled.?time|gametime|time$)/i;
+    collectObjects().forEach(function(obj){
+      Object.keys(obj).forEach(function(k){if(keyRe.test(k)) values.push(obj[k]);});
+    });
+    document.querySelectorAll('[data-start-time],[data-game-time],[data-first-pitch],.slate-game-time,.game-time,.matchup-time').forEach(function(el){
+      values.push(el.getAttribute('data-start-time')||el.getAttribute('data-game-time')||el.getAttribute('data-first-pitch')||el.textContent);
+    });
+    var seen={};
+    return values.map(function(v){return parseTimeValue(v,now);}).filter(function(d){
+      if(!d||isNaN(d))return false;
+      var k=d.getTime(); if(seen[k])return false; seen[k]=1; return true;
+    }).sort(function(a,b){return a-b;});
+  }
+
+  function renderCountdown(){
+    var ticker=document.getElementById('tickerText');
+    if(!ticker)return;
+    var now=new Date(), times=collectFirstPitchTimes();
+    if(!times.length){ticker.textContent='FIRST PITCH: TIME UNAVAILABLE';return;}
+    var upcoming=times.find(function(d){return d.getTime()>now.getTime();});
+    if(!upcoming){ticker.innerHTML='FIRST PITCH IS LIVE! 🟢';return;}
+    var diff=upcoming.getTime()-now.getTime();
+    var h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),sec=Math.floor((diff%60000)/1000);
+    ticker.innerHTML='FIRST PITCH IN: <span>'+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')+'</span>';
+  }
+
+  function init(){
+    replaceVisibleBranding(document.body);
+    try{clearInterval(window.__drlCountdownTimer);}catch(e){}
+    try{clearInterval(window.__firstPitchCountdownTimer);}catch(e){}
+    window.updateCountdown=renderCountdown;
+    renderCountdown();
+    window.__drlCountdownTimer=setInterval(renderCountdown,1000);
+    /* Re-label dynamic sections after workbook rendering without a permanent observer. */
+    [750,2000,5000,10000].forEach(function(ms){setTimeout(function(){replaceVisibleBranding(document.body);renderCountdown();},ms);});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+
+
+<style id="drl-betting-backtest-v1-style">
+.bet-result-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;justify-content:center}.bet-result-btn{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#cbd5e1;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:1000;cursor:pointer;text-transform:uppercase}.bet-result-btn:hover{transform:translateY(-1px);border-color:#facc15}.bet-result-btn.win.active{background:linear-gradient(135deg,#facc15,#f97316);color:#06111d;border-color:#facc15;box-shadow:0 0 16px rgba(250,204,21,.28)}.bet-result-btn.loss.active{background:#ef4444;color:#fff;border-color:#ef4444}.bet-result-btn.push.active{background:#38bdf8;color:#06111d;border-color:#38bdf8}.team-market-card.result-win,.nrfi-card.result-win{border-color:#facc15!important;box-shadow:0 0 26px rgba(250,204,21,.28)!important}.team-market-card.result-loss,.nrfi-card.result-loss{border-color:#ef4444!important;opacity:.78}.bet-backtest-shell{display:flex;flex-direction:column;gap:18px}.bet-backtest-hero{display:flex;justify-content:space-between;gap:18px;align-items:center;border:1px solid rgba(255,255,255,.09);border-left:5px solid #facc15;border-radius:18px;padding:20px;background:linear-gradient(145deg,rgba(5,11,20,.92),rgba(17,31,53,.70))}.bet-backtest-kicker{color:#facc15;font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:1.4px}.bet-backtest-title{color:#fff;font-size:25px;font-weight:1000;text-transform:uppercase;margin-top:5px}.bet-backtest-sub{color:var(--text-muted);font-size:12px;font-weight:800;margin-top:6px}.bet-backtest-actions{display:flex;gap:8px;flex-wrap:wrap}.bet-backtest-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.bet-backtest-kpi{border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:13px;background:rgba(5,11,20,.58)}.bet-backtest-kpi span{display:block;color:var(--text-muted);font-size:9px;font-weight:1000;text-transform:uppercase}.bet-backtest-kpi b{display:block;color:#fff;font-family:monospace;font-size:21px;margin-top:5px}.bet-backtest-table-wrap{max-height:720px;overflow:auto}.bet-backtest-table{min-width:980px}.bet-backtest-table th{position:sticky;top:0;z-index:2}.record-win{color:#10b981;font-weight:1000}.record-loss{color:#f87171;font-weight:1000}.record-push{color:#38bdf8;font-weight:1000}.record-pending{color:#94a3b8;font-weight:1000}.countdown-fixed{color:#facc15!important;text-shadow:0 0 10px rgba(250,204,21,.24)}
+@media(max-width:700px){.bet-backtest-hero{flex-direction:column;align-items:stretch}}
+</style>
+<script id="drl-exact-countdown-betting-backtest-v1">
+(function(){
+  const STORE='drl_betting_backtest_v1';
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function records(){try{return JSON.parse(localStorage.getItem(STORE)||'[]')}catch(e){return[]}}
+  function save(a){localStorage.setItem(STORE,JSON.stringify(a));renderBacktest();decorateAll();}
+  function today(){return new Date().toLocaleDateString('en-CA')}
+  function norm(s){return String(s||'').replace(/\s+/g,' ').trim()}
+  function keyFor(x){return [x.date,x.matchup,x.market,x.pick].map(norm).join('|')}
+  function upsert(x,result){let a=records(),k=keyFor(x),i=a.findIndex(r=>keyFor(r)===k);let row={...x,result,updatedAt:new Date().toISOString()};if(i>=0)a[i]=row;else a.unshift(row);save(a)}
+  function removeRecord(k){save(records().filter(r=>keyFor(r)!==k))}
+  function currentResult(x){let r=records().find(r=>keyFor(r)===keyFor(x));return r?r.result:''}
+  function parseMarketCard(card,matchup){let label=norm(card.querySelector('.team-market-label,.market-label')?.textContent)||'Market';let pick=norm(card.querySelector('.team-market-pick,.market-pick')?.textContent)||norm(card.textContent).slice(0,100);let edge=norm(card.querySelector('.team-market-edge,.market-edge')?.textContent);return{date:today(),matchup,market:label,pick,edge,type:'TEAM'}}
+  function controls(x,allowPush=true){let r=currentResult(x);let wrap=document.createElement('div');wrap.className='bet-result-tools';[['win','💣 Win'],['loss','❌ Loss'],...(allowPush?[['push','↔ Push']]:[])].forEach(([v,l])=>{let b=document.createElement('button');b.type='button';b.className='bet-result-btn '+v+(r===v?' active':'');b.textContent=l;b.onclick=e=>{e.stopPropagation();upsert(x,v)};wrap.appendChild(b)});return wrap}
+  function decorateTeam(){document.querySelectorAll('#teamEdgeGames .team-game-card').forEach(game=>{let teams=[...game.querySelectorAll('.team-game-abbr')].map(x=>norm(x.textContent));let matchup=teams.length>=2?teams[0]+' @ '+teams[1]:'Team Game';game.querySelectorAll('.team-market-card').forEach(card=>{if(card.dataset.backtestReady)return;card.dataset.backtestReady='1';let x=parseMarketCard(card,matchup);card.appendChild(controls(x,true));let r=currentResult(x);if(r)card.classList.add('result-'+r)})})}
+  function decorateNrfi(){document.querySelectorAll('#nrfiGames .nrfi-card').forEach(card=>{if(card.dataset.backtestReady)return;card.dataset.backtestReady='1';let names=[...card.querySelectorAll('.nrfi-team-name,.nrfi-team-abbr')].map(x=>norm(x.textContent)).filter(Boolean);let matchup=names.length>=2?names[0]+' @ '+names[1]:norm(card.querySelector('.nrfi-matchup')?.textContent).slice(0,80);let pick='NRFI '+(norm(card.querySelector('.nrfi-model')?.textContent)||'');let edge=norm(card.querySelector('.nrfi-edge')?.textContent);let x={date:today(),matchup,market:'NRFI',pick,edge,type:'NRFI'};card.appendChild(controls(x,false));let r=currentResult(x);if(r)card.classList.add('result-'+r)})}
+  function decorateAll(){decorateTeam();decorateNrfi()}
+  function renderBacktest(){let a=records();let body=document.getElementById('betBacktestRows'),sum=document.getElementById('betBacktestSummary');if(!body||!sum)return;let markets=['Moneyline','Run Line','Game Total','First 5 Total','Team Total','F5 Team Total','NRFI'];let kpis=[];markets.forEach(m=>{let rows=a.filter(r=>r.market===m||r.market.includes(m));let w=rows.filter(r=>r.result==='win').length,l=rows.filter(r=>r.result==='loss').length,p=rows.filter(r=>r.result==='push').length;let pct=(w+l)?(w/(w+l)*100).toFixed(1)+'%':'--';kpis.push(`<div class="bet-backtest-kpi"><span>${esc(m)}</span><b>${w}-${l}${p?' ('+p+'P)':''}</b><span>${pct}</span></div>`)});sum.innerHTML=kpis.join('');body.innerHTML=a.length?a.map(r=>{let k=keyFor(r);return `<tr><td>${esc(r.date)}</td><td>${esc(r.matchup)}</td><td>${esc(r.market)}</td><td>${esc(r.pick)}</td><td>${esc(r.edge||'--')}</td><td class="record-${esc(r.result||'pending')}">${esc((r.result||'pending').toUpperCase())}</td><td><button class="backtest-tool-btn backtest-warning-btn" onclick='drlDeleteBetRecord(${JSON.stringify(k)})'>Delete</button></td></tr>`}).join(''):'<tr><td colspan="7" class="full-edge-empty">No results marked yet. Use the buttons on Team Edge Center or NRFI Center.</td></tr>'}
+  window.drlDeleteBetRecord=removeRecord;
+  window.drlClearBetBacktest=function(){if(confirm('Clear all team and NRFI backtest records?'))save([])};
+  window.drlExportBetBacktest=function(){let a=records(),cols=['date','matchup','market','pick','edge','result'];let csv=[cols.join(','),...a.map(r=>cols.map(c=>'"'+String(r[c]??'').replace(/"/g,'""')+'"').join(','))].join('\n');let b=new Blob([csv],{type:'text/csv'}),u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download='daily-run-line-betting-backtest.csv';x.click();URL.revokeObjectURL(u)};
+  const obs=new MutationObserver(()=>{clearTimeout(window.__drlDecorateTimer);window.__drlDecorateTimer=setTimeout(decorateAll,80)});obs.observe(document.documentElement,{subtree:true,childList:true});
+
+  function val(row,name){let target=String(name).toLowerCase().replace(/[^a-z0-9]/g,'');for(let k in row){if(String(k).toLowerCase().replace(/[^a-z0-9]/g,'')===target)return row[k]}return null}
+  function parseGameTime(v,base){if(v===null||v===undefined||v==='')return null;let d=new Date(base);if(typeof v==='number'&&isFinite(v)){let frac=((v%1)+1)%1,total=Math.round(frac*86400),h=Math.floor(total/3600),m=Math.floor((total%3600)/60),s=total%60;d.setHours(h,m,s,0);return d}if(v instanceof Date&&!isNaN(v)){d.setHours(v.getHours(),v.getMinutes(),v.getSeconds(),0);return d}let s=String(v).trim();let direct=new Date(s);if(!isNaN(direct)&&/\d{4}|\//.test(s))return direct;let m=s.match(/(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?\s*(AM|PM)?/i);if(!m)return null;let h=+m[1],mi=+(m[2]||0),se=+(m[3]||0),ap=(m[4]||'').toUpperCase();if(ap==='PM'&&h<12)h+=12;if(ap==='AM'&&h===12)h=0;d.setHours(h,mi,se,0);return d}
+  function updateCountdown(){let el=document.getElementById('tickerText');if(!el)return;let rows=window.drlWeatherRows||[];let now=new Date(),times=[];rows.forEach(r=>{let raw=val(r,'GameTime');if(raw===null)return;let dateRaw=val(r,'GameDate')??val(r,'Date');let base=now;if(dateRaw){let bd=new Date(dateRaw);if(!isNaN(bd))base=bd}let dt=parseGameTime(raw,base);if(dt)times.push(dt)});let unique=[...new Map(times.map(d=>[d.getTime(),d])).values()].sort((a,b)=>a-b);let next=unique.find(d=>d>now);if(!unique.length){el.textContent='FIRST PITCH: WAITING FOR WEATHER / GameTime';return}if(!next){el.textContent='FIRST PITCH IS LIVE';el.classList.add('countdown-fixed');return}let diff=next-now,h=Math.floor(diff/36e5),m=Math.floor(diff%36e5/6e4),s=Math.floor(diff%6e4/1000);el.innerHTML='FIRST PITCH IN: <span class="countdown-fixed">'+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+'</span>';}
+  window.drlStartExactFirstPitchCountdown=function(){if(window.__drlExactClock)clearInterval(window.__drlExactClock);updateCountdown();window.__drlExactClock=setInterval(updateCountdown,1000)};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{renderBacktest();decorateAll();window.drlStartExactFirstPitchCountdown()});else{renderBacktest();decorateAll();window.drlStartExactFirstPitchCountdown()}
+})();
+</script>
+
+
+<style id="drl-games-count-only-final">
+#slateTicker.command-ai-ticker,
+#slateTicker.slate-ticker {
+  display:flex !important;
+  width:fit-content !important;
+  min-width:180px !important;
+  max-width:100% !important;
+  margin:16px auto 0 !important;
+  justify-content:center !important;
+  align-items:center !important;
+  text-align:center !important;
+}
+#slateTicker .live-dot { display:none !important; }
+#tickerText {
+  display:block !important;
+  width:100% !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+  animation:none !important;
+  transform:none !important;
+  color:#fff !important;
+  font-family:monospace !important;
+  font-size:14px !important;
+  font-weight:1000 !important;
+  letter-spacing:1px !important;
+}
+</style>
+<script id="drl-games-count-only-final-script">
+(function(){
+  'use strict';
+  function countGames(){
+    try {
+      if (Array.isArray(window.gameMatchups) && window.gameMatchups.length) return window.gameMatchups.length;
+      if (typeof gameMatchups !== 'undefined' && Array.isArray(gameMatchups) && gameMatchups.length) return gameMatchups.length;
+    } catch(e) {}
+    try {
+      if (Array.isArray(window.teamEdgeGames) && window.teamEdgeGames.length) return window.teamEdgeGames.length;
+    } catch(e) {}
+    var cards=document.querySelectorAll('#pregameSlateBoard .slate-game-card, #gameCenterContainer .game-center-card');
+    if(cards.length) return cards.length;
+    return 0;
+  }
+  function renderGamesCount(){
+    var el=document.getElementById('tickerText');
+    if(!el) return;
+    var n=countGames();
+    el.textContent=n+' '+(n===1?'Game':'Games');
+  }
+  function stopClock(){
+    ['__drlExactClock','__drlCountdownTimer','__drlClockTimer','__drlFirstPitchTimer'].forEach(function(k){
+      try{ if(window[k]) clearInterval(window[k]); window[k]=null; }catch(e){}
+    });
+  }
+  function init(){
+    stopClock();
+    renderGamesCount();
+    setTimeout(renderGamesCount,300);
+    setTimeout(renderGamesCount,1000);
+    setTimeout(renderGamesCount,2500);
+    var target=document.getElementById('pregameSlateBoard')||document.body;
+    if(window.MutationObserver && target){
+      new MutationObserver(function(){ stopClock(); renderGamesCount(); }).observe(target,{childList:true,subtree:true});
+    }
+  }
+  window.drlStartExactFirstPitchCountdown=function(){ stopClock(); renderGamesCount(); };
+  window.startSlateCountdown=function(){ stopClock(); renderGamesCount(); };
+  window.updateCountdown=function(){ stopClock(); renderGamesCount(); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  window.addEventListener('load',init);
+})();
+</script>
+
+<style id="drl-section-finalize-fix-style">
+#teamEdgeGames .team-market-card,
+#nrfiGames .nrfi-card { position:relative !important; }
+#teamEdgeGames .team-market-card::before,
+#teamEdgeGames .team-market-card::after,
+#nrfiGames .nrfi-card::before,
+#nrfiGames .nrfi-card::after { pointer-events:none !important; }
+.bet-result-tools { position:relative !important; z-index:50 !important; pointer-events:auto !important; }
+.bet-result-btn { position:relative !important; z-index:51 !important; pointer-events:auto !important; cursor:pointer !important; }
+.drl-section-finalize-wrap { display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; margin:20px 0 8px; padding:16px; border:1px solid rgba(255,255,255,.08); border-radius:16px; background:rgba(5,11,20,.62); }
+.drl-section-finalize-btn { border:0; border-radius:12px; padding:14px 20px; background:linear-gradient(135deg,#e10600,#b00000); color:#fff; font-size:12px; font-weight:1000; text-transform:uppercase; letter-spacing:.85px; cursor:pointer; box-shadow:0 12px 28px rgba(225,6,0,.18); }
+.drl-section-finalize-btn:hover { transform:translateY(-2px); filter:brightness(1.07); }
+.drl-section-finalize-status { color:var(--text-muted); font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.55px; }
+.drl-section-finalize-status.ready { color:#facc15; }
+.drl-section-finalize-status.saved { color:#10b981; }
+.bet-result-btn.pending.active { background:linear-gradient(135deg,#facc15,#f97316)!important; color:#06111d!important; border-color:#facc15!important; box-shadow:0 0 16px rgba(250,204,21,.28)!important; }
+</style>
+<script id="drl-section-finalize-fix-script">
+(function(){
+  'use strict';
+  const STORE='drl_betting_backtest_v1';
+  const pending={TEAM:new Map(),NRFI:new Map()};
+  const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
+  const today=()=>new Date().toLocaleDateString('en-CA');
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function records(){try{return JSON.parse(localStorage.getItem(STORE)||'[]')}catch(e){return[]}}
+  function saveRows(rows){localStorage.setItem(STORE,JSON.stringify(rows));}
+  function keyFor(x){return [x.date,x.matchup,x.market,x.pick].map(norm).join('|')}
+  function currentSaved(x){return records().find(r=>keyFor(r)===keyFor(x))?.result||''}
+  function parseTeam(card){
+    const game=card.closest('.team-game-card');
+    const teams=[...game.querySelectorAll('.team-game-abbr')].map(x=>norm(x.textContent));
+    const matchup=teams.length>=2?teams[0]+' @ '+teams[1]:'Team Game';
+    const market=norm(card.querySelector('.team-market-label,.market-label')?.textContent)||'Market';
+    const pick=norm(card.querySelector('.team-market-pick,.market-pick')?.textContent)||norm(card.textContent).slice(0,100);
+    const edge=norm(card.querySelector('.team-market-edge,.market-edge')?.textContent);
+    return {date:today(),matchup,market,pick,edge,type:'TEAM'};
+  }
+  function parseNrfi(card){
+    const names=[...card.querySelectorAll('.nrfi-team-name,.nrfi-team-abbr')].map(x=>norm(x.textContent)).filter(Boolean);
+    const matchup=names.length>=2?names[0]+' @ '+names[1]:norm(card.querySelector('.nrfi-matchup')?.textContent).slice(0,80);
+    const pick='NRFI '+(norm(card.querySelector('.nrfi-model')?.textContent)||'');
+    const edge=norm(card.querySelector('.nrfi-edge')?.textContent);
+    return {date:today(),matchup,market:'NRFI',pick,edge,type:'NRFI'};
+  }
+  function status(type,msg,cls){const el=document.getElementById(type==='TEAM'?'teamFinalizeStatus':'nrfiFinalizeStatus');if(el){el.textContent=msg;el.className='drl-section-finalize-status '+(cls||'')}}
+  function stage(type,x,result,card){
+    pending[type].set(keyFor(x),{...x,result,updatedAt:new Date().toISOString()});
+    card.querySelectorAll('.bet-result-btn').forEach(b=>b.classList.remove('active','pending'));
+    const btn=[...card.querySelectorAll('.bet-result-btn')].find(b=>b.dataset.result===result);if(btn)btn.classList.add('active','pending');
+    card.classList.remove('result-win','result-loss','result-push');card.classList.add('result-'+result);
+    status(type,pending[type].size+' selection'+(pending[type].size===1?'':'s')+' ready to finalize','ready');
+  }
+  function rebuildControls(card,type,x,allowPush){
+    card.querySelectorAll('.bet-result-tools').forEach(n=>n.remove());
+    const wrap=document.createElement('div');wrap.className='bet-result-tools';
+    const saved=currentSaved(x);
+    [['win','💣 Win'],['loss','❌ Loss']].concat(allowPush?[['push','↔ Push']]:[]).forEach(([result,label])=>{
+      const b=document.createElement('button');b.type='button';b.className='bet-result-btn '+result+(saved===result?' active':'');b.dataset.result=result;b.textContent=label;
+      b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();stage(type,x,result,card)},true);wrap.appendChild(b);
+    });
+    card.appendChild(wrap);
+  }
+  function decorate(){
+    document.querySelectorAll('#teamEdgeGames .team-market-card').forEach(card=>{if(card.dataset.sectionFinalize==='1')return;card.dataset.sectionFinalize='1';rebuildControls(card,'TEAM',parseTeam(card),true)});
+    document.querySelectorAll('#nrfiGames .nrfi-card').forEach(card=>{if(card.dataset.sectionFinalize==='1')return;card.dataset.sectionFinalize='1';rebuildControls(card,'NRFI',parseNrfi(card),false)});
+    ensureFinalizeButtons();
+  }
+  function ensureFinalizeButtons(){
+    const team=document.getElementById('teamEdgeGames');if(team&&!document.getElementById('finalizeTeamEdgeBtn')){const w=document.createElement('div');w.className='drl-section-finalize-wrap';w.innerHTML='<button id="finalizeTeamEdgeBtn" class="drl-section-finalize-btn" type="button">✅ Finalize Team Edge Results</button><div id="teamFinalizeStatus" class="drl-section-finalize-status">No team selections pending</div>';team.insertAdjacentElement('afterend',w);document.getElementById('finalizeTeamEdgeBtn').onclick=()=>finalize('TEAM');}
+    const nrfi=document.getElementById('nrfiGames');if(nrfi&&!document.getElementById('finalizeNrfiBtn')){const w=document.createElement('div');w.className='drl-section-finalize-wrap';w.innerHTML='<button id="finalizeNrfiBtn" class="drl-section-finalize-btn" type="button">✅ Finalize NRFI Results</button><div id="nrfiFinalizeStatus" class="drl-section-finalize-status">No NRFI selections pending</div>';nrfi.insertAdjacentElement('afterend',w);document.getElementById('finalizeNrfiBtn').onclick=()=>finalize('NRFI');}
+  }
+  function finalize(type){
+    const staged=[...pending[type].values()];
+    if(!staged.length){alert(type==='TEAM'?'Mark Team Edge results first.':'Mark NRFI results first.');return;}
+    const a=records();staged.forEach(row=>{const k=keyFor(row),i=a.findIndex(r=>keyFor(r)===k);if(i>=0)a[i]=row;else a.unshift(row)});saveRows(a);pending[type].clear();
+    status(type,(type==='TEAM'?'Team Edge':'NRFI')+' finalized: '+staged.length+' result'+(staged.length===1?'':'s'),'saved');
+    renderCombinedBacktest();
+    alert((type==='TEAM'?'Team Edge':'NRFI')+' results finalized. Only this section was added to the backtest.');
+  }
+  function renderCombinedBacktest(){
+    const a=records(),body=document.getElementById('betBacktestRows'),sum=document.getElementById('betBacktestSummary');if(!body||!sum)return;
+    const markets=['Moneyline','Run Line','Game Total','First 5 Total','Team Total','F5 Team Total','NRFI'];
+    sum.innerHTML=markets.map(m=>{const rows=a.filter(r=>r.market===m||r.market.includes(m)),w=rows.filter(r=>r.result==='win').length,l=rows.filter(r=>r.result==='loss').length,p=rows.filter(r=>r.result==='push').length,pct=(w+l)?(w/(w+l)*100).toFixed(1)+'%':'--';return '<div class="bet-backtest-kpi"><span>'+esc(m)+'</span><b>'+w+'-'+l+(p?' ('+p+'P)':'')+'</b><span>'+pct+'</span></div>'}).join('');
+    body.innerHTML=a.length?a.map(r=>'<tr><td>'+esc(r.date)+'</td><td>'+esc(r.matchup)+'</td><td>'+esc(r.market)+'</td><td>'+esc(r.pick)+'</td><td>'+esc(r.edge||'--')+'</td><td class="record-'+esc(r.result||'pending')+'">'+esc((r.result||'pending').toUpperCase())+'</td><td><button class="backtest-tool-btn backtest-warning-btn" data-delete-key="'+esc(keyFor(r))+'">Delete</button></td></tr>').join(''):'<tr><td colspan="7" class="full-edge-empty">No finalized results yet.</td></tr>';
+    body.querySelectorAll('[data-delete-key]').forEach(b=>b.onclick=()=>{const k=b.dataset.deleteKey;saveRows(records().filter(r=>keyFor(r)!==k));renderCombinedBacktest()});
+  }
+  const obs=new MutationObserver(()=>{clearTimeout(window.__drlSectionFinalizeTimer);window.__drlSectionFinalizeTimer=setTimeout(decorate,120)});obs.observe(document.documentElement,{childList:true,subtree:true});
+  function init(){decorate();renderCombinedBacktest();setTimeout(decorate,300);setTimeout(decorate,1200)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+
+<style id="drl-command-center-backtest-final-redesign">
+/* Remove the failed first-pitch / game-count strip completely. */
+#slateTicker,
+.command-ai-ticker,
+#tickerText { display:none !important; }
+
+/* Larger command center with compact HR cards left, logo center, betting edges right. */
+.command-center-ai-core {
+  max-width: 1420px !important;
+  width: 100% !important;
+  padding: 24px !important;
+  box-sizing: border-box !important;
+}
+.command-center-core-layout {
+  grid-template-columns: minmax(430px,1.15fr) 330px minmax(430px,1.15fr) !important;
+  gap: 22px !important;
+  align-items: stretch !important;
+}
+.command-side-left,
+.command-side-right {
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  grid-template-rows:repeat(2,minmax(0,1fr)) !important;
+  gap:12px !important;
+}
+.command-side-left .command-trading-card,
+.command-side-right .command-bet-edge-card {
+  min-height: 142px !important;
+  height:auto !important;
+  padding:14px !important;
+  border-radius:12px !important;
+  box-sizing:border-box !important;
+}
+.command-side-left .command-tile-label,
+.command-side-right .command-tile-label {
+  font-size:10px !important;
+  letter-spacing:.8px !important;
+}
+.command-side-left .command-tile-value,
+.command-side-right .command-tile-value {
+  font-size:26px !important;
+  margin-top:8px !important;
+}
+.command-side-left .command-tile-player,
+.command-side-right .command-tile-player {
+  min-height:50px !important;
+  grid-template-columns:48px minmax(0,1fr) !important;
+  gap:9px !important;
+  margin-top:9px !important;
+  font-size:12px !important;
+  text-transform:none !important;
+}
+.command-side-left .command-tile-player img,
+.command-side-right .command-tile-player img,
+.command-edge-team-logo {
+  width:46px !important;
+  height:46px !important;
+  min-width:46px !important;
+  min-height:46px !important;
+  object-fit:contain !important;
+  border-radius:50% !important;
+  background:#fff !important;
+  padding:4px !important;
+  box-sizing:border-box !important;
+  border:2px solid var(--tile-color,var(--accent)) !important;
+}
+.command-logo-core { min-height: 360px !important; }
+.command-core-logo-wrap { width:178px !important; height:178px !important; }
+.command-logo-core::before { width:262px !important; height:262px !important; }
+.command-logo-core::after { width:316px !important; height:316px !important; }
+.command-edge-detail { color:#94a3b8; font-size:10px; font-weight:800; margin-top:3px; line-height:1.25; }
+.command-bet-edge-card { --tile-color:#10b981; --tile-glow:rgba(16,185,129,.18); }
+.command-bet-edge-card.total { --tile-color:#38bdf8; --tile-glow:rgba(56,189,248,.18); }
+.command-bet-edge-card.f5 { --tile-color:#f59e0b; --tile-glow:rgba(245,158,11,.18); }
+.command-bet-edge-card.tt { --tile-color:#a855f7; --tile-glow:rgba(168,85,247,.18); }
+
+/* Betting backtest now visually matches the other backtest labs. */
+#tab-betbacktest .bet-backtest-shell { display:flex; flex-direction:column; gap:18px; }
+#tab-betbacktest .bet-backtest-hero {
+  display:flex !important; align-items:center !important; justify-content:space-between !important; gap:18px !important; flex-wrap:wrap !important;
+  padding:22px 24px !important; border-radius:16px !important; border:1px solid rgba(255,255,255,.08) !important;
+  border-left:5px solid var(--accent) !important; background:linear-gradient(145deg,rgba(17,31,53,.72),rgba(5,11,20,.76)) !important;
+  box-shadow:0 16px 42px rgba(0,0,0,.30) !important;
+}
+#tab-betbacktest .bet-backtest-kicker { color:var(--accent) !important; font-size:10px !important; font-weight:1000 !important; text-transform:uppercase !important; letter-spacing:1.5px !important; }
+#tab-betbacktest .bet-backtest-title { color:#fff !important; font-size:22px !important; font-weight:1000 !important; text-transform:uppercase !important; margin-top:4px !important; }
+#tab-betbacktest .bet-backtest-sub { color:var(--text-muted) !important; font-size:12px !important; font-weight:750 !important; margin-top:5px !important; }
+#tab-betbacktest .bet-backtest-summary { display:grid !important; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)) !important; gap:12px !important; }
+#tab-betbacktest .bet-backtest-summary > * {
+  border:1px solid rgba(255,255,255,.08) !important; border-radius:14px !important; padding:14px !important;
+  background:linear-gradient(145deg,rgba(17,31,53,.68),rgba(5,11,20,.72)) !important; box-shadow:0 10px 26px rgba(0,0,0,.22) !important;
+}
+#tab-betbacktest .bet-backtest-table-wrap { max-height:720px !important; overflow:auto !important; border-radius:16px !important; }
+#tab-betbacktest .bet-backtest-table th { position:sticky !important; top:0 !important; z-index:3 !important; }
+#tab-betbacktest .bet-backtest-table td { font-size:12px !important; font-weight:800 !important; }
+
+@media(max-width:1120px){
+  .command-center-core-layout{grid-template-columns:1fr !important;}
+  .command-logo-core{order:-1 !important;min-height:290px !important;}
+  .command-side-left,.command-side-right{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+}
+@media(max-width:650px){
+  .command-side-left,.command-side-right{grid-template-columns:1fr !important;}
+  .command-side-left .command-trading-card,.command-side-right .command-bet-edge-card{min-height:126px !important;}
+}
+</style>
+<script id="drl-command-center-backtest-final-redesign-js">
+(function(){
+  const edgeDefs = [
+    {key:'Moneyline', label:'Best Moneyline Edge', cls:'ml'},
+    {key:'Game Total', label:'Best Total Edge', cls:'total'},
+    {key:'First 5 Total', label:'Best F5 Total Edge', cls:'f5'},
+    {key:'Team Total', label:'Best Team Total Edge', cls:'tt'}
+  ];
+
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function edgeNumber(text){const m=String(text||'').match(/[-+]?\d+(?:\.\d+)?/);return m?Math.abs(Number(m[0])):-Infinity;}
+  function teamFromPick(pick){const m=String(pick||'').trim().match(/^([A-Z]{2,3})\b/);return m?m[1]:'';}
+  function logoFor(team){try{return (window.teamLogos&&window.teamLogos[team])||'';}catch(e){return '';}}
+
+  function restructureCommandCenter(){
+    const layout=document.querySelector('.command-center-core-layout');
+    const left=layout&&layout.querySelector('.command-side-left');
+    const right=layout&&layout.querySelector('.command-side-right');
+    if(!layout||!left||!right||layout.dataset.edgeRedesign==='1') return;
+    layout.dataset.edgeRedesign='1';
+
+    // Move all four existing HR/player cards to the left side.
+    Array.from(right.querySelectorAll('.command-trading-card')).forEach(card=>left.appendChild(card));
+    right.innerHTML='';
+    edgeDefs.forEach((d,i)=>{
+      const card=document.createElement('div');
+      card.className='command-tile command-feature-card command-bet-edge-card '+d.cls;
+      card.innerHTML='<div class="command-tile-label">'+esc(d.label)+'</div>'+
+        '<div class="command-tile-value" id="commandBetEdgeValue'+i+'">--</div>'+
+        '<div class="command-tile-player" id="commandBetEdgePlayer'+i+'"><span style="color:var(--text-muted)">Waiting for Team Edge slate...</span></div>';
+      right.appendChild(card);
+    });
+
+    // Remove the clock/count box, not just its text.
+    const ticker=document.getElementById('slateTicker');
+    if(ticker) ticker.remove();
+  }
+
+  function collectMarketCards(){
+    return Array.from(document.querySelectorAll('#teamEdgeGames .team-market-card')).map(card=>{
+      const label=(card.querySelector('.team-market-label')||{}).textContent||'';
+      const pick=(card.querySelector('.team-market-pick')||{}).textContent||'';
+      const edgeText=(card.querySelector('.team-market-edge')||{}).textContent||'';
+      const meta=(card.querySelector('.team-market-meta')||{}).textContent||'';
+      return {label:label.trim(),pick:pick.trim(),edge:edgeNumber(edgeText),edgeText:edgeText.trim(),meta:meta.trim()};
+    }).filter(x=>Number.isFinite(x.edge));
+  }
+
+  function matchDef(item,def){
+    if(def.key==='Team Total') return /Team Total/i.test(item.label) && !/F5|First 5/i.test(item.label);
+    return item.label.toLowerCase()===def.key.toLowerCase();
+  }
+
+  function refreshBetEdges(){
+    const all=collectMarketCards();
+    edgeDefs.forEach((d,i)=>{
+      const value=document.getElementById('commandBetEdgeValue'+i);
+      const player=document.getElementById('commandBetEdgePlayer'+i);
+      if(!value||!player)return;
+      const best=all.filter(x=>matchDef(x,d)).sort((a,b)=>b.edge-a.edge)[0];
+      if(!best){value.textContent='--';player.innerHTML='<span style="color:var(--text-muted)">Waiting for Team Edge slate...</span>';return;}
+      value.textContent='+'+best.edge.toFixed(2);
+      const team=teamFromPick(best.pick), logo=logoFor(team);
+      player.innerHTML=(logo?'<img class="command-edge-team-logo" src="'+esc(logo)+'" alt="'+esc(team)+'">':'')+
+        '<span><b>'+esc(best.pick)+'</b><div class="command-edge-detail">'+esc(best.meta)+'</div></span>';
+    });
+  }
+
+  function reorderBacktestTab(){
+    const tabs=document.querySelector('.nav-tabs');
+    if(!tabs)return;
+    const betBtn=Array.from(tabs.querySelectorAll('.nav-tab')).find(b=>/betbacktest/.test(b.getAttribute('onclick')||''));
+    const labBtn=Array.from(tabs.querySelectorAll('.nav-tab')).find(b=>/switchTab\('backtest'/.test(b.getAttribute('onclick')||''));
+    if(betBtn&&labBtn&&labBtn.nextSibling!==betBtn) tabs.insertBefore(betBtn,labBtn.nextSibling);
+    if(betBtn) betBtn.textContent='📒 Betting Backtest Lab';
+    const title=document.querySelector('#tab-betbacktest .bet-backtest-title');
+    if(title) title.textContent='Betting Backtest Lab';
+  }
+
+  function init(){
+    restructureCommandCenter();
+    reorderBacktestTab();
+    refreshBetEdges();
+    const box=document.getElementById('teamEdgeGames');
+    if(box){
+      new MutationObserver(()=>requestAnimationFrame(refreshBetEdges)).observe(box,{childList:true,subtree:true,characterData:true});
+    }
+    setTimeout(refreshBetEdges,600);
+    setTimeout(refreshBetEdges,1800);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  window.addEventListener('load',init);
+})();
+</script>
+
+<style id="drl-command-center-clean-rebuild-css">
+/* Clean command center rebuild: compact HR cards, large centered logo, centered betting cards with logos. */
+.command-center-ai-core{
+  max-width:1480px!important;
+  width:100%!important;
+  padding:22px!important;
+  box-sizing:border-box!important;
+}
+.command-center-core-layout{
+  display:grid!important;
+  grid-template-columns:minmax(480px,1fr) 390px minmax(480px,1fr)!important;
+  gap:20px!important;
+  align-items:stretch!important;
+  width:100%!important;
+}
+.command-side-left,.command-side-right{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:repeat(2,1fr)!important;
+  gap:14px!important;
+  min-width:0!important;
+}
+/* LEFT: remove the oversized legacy trading-card layout and show only clear essentials. */
+.command-side-left .command-trading-card{
+  height:210px!important;
+  min-height:210px!important;
+  max-height:210px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  padding:0!important;
+  border-radius:16px!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+.command-side-left .command-trading-card .command-tile-label{
+  position:relative!important;
+  height:auto!important;
+  min-height:42px!important;
+  padding:12px 14px!important;
+  display:flex!important;
+  align-items:center!important;
+  font-size:10px!important;
+  line-height:1.15!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  box-sizing:border-box!important;
+}
+.command-side-left .command-trading-card .command-tile-value{
+  position:absolute!important;
+  top:54px!important;
+  right:12px!important;
+  min-width:84px!important;
+  max-width:100px!important;
+  padding:7px 8px!important;
+  border-radius:11px!important;
+  font-size:24px!important;
+  line-height:1!important;
+  z-index:20!important;
+}
+.command-side-left .command-trading-card .command-tile-player{
+  display:block!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  flex:1 1 auto!important;
+  padding:12px 12px 10px!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+.command-side-left .command-card-watermark{width:46%!important;height:46%!important;opacity:.07!important;}
+.command-side-left .command-card-hero-row{
+  display:grid!important;
+  grid-template-columns:64px minmax(0,1fr)!important;
+  gap:10px!important;
+  height:82px!important;
+  min-height:82px!important;
+  padding-right:92px!important;
+  align-items:center!important;
+  overflow:visible!important;
+  box-sizing:border-box!important;
+}
+.command-side-left .command-card-photo-stage,
+.command-side-left .command-card-photo-stage::before{
+  width:62px!important;height:62px!important;min-width:62px!important;min-height:62px!important;
+}
+.command-side-left .command-card-photo-stage img,
+.command-side-left .command-card-face-fallback{
+  width:56px!important;height:56px!important;min-width:56px!important;min-height:56px!important;
+  border-width:2px!important;
+}
+.command-side-left .command-card-copy-block{overflow:visible!important;min-width:0!important;}
+.command-side-left .command-card-name{
+  font-size:14px!important;
+  line-height:1.12!important;
+  text-align:left!important;
+  white-space:normal!important;
+  display:-webkit-box!important;
+  -webkit-line-clamp:2!important;
+  -webkit-box-orient:vertical!important;
+  overflow:hidden!important;
+  max-height:32px!important;
+}
+.command-side-left .command-card-meta{
+  margin-top:5px!important;
+  font-size:9px!important;
+  line-height:1.15!important;
+  text-align:left!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  display:block!important;
+}
+.command-side-left .command-card-details{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:38px!important;
+  gap:7px!important;
+  height:38px!important;
+  min-height:38px!important;
+  padding:0!important;
+  margin-top:7px!important;
+  overflow:hidden!important;
+}
+.command-side-left .command-card-detail{
+  min-height:38px!important;
+  padding:5px 6px!important;
+  border-radius:9px!important;
+}
+.command-side-left .command-card-detail:nth-child(n+3){display:none!important;}
+.command-side-left .command-card-detail b{font-size:11px!important;line-height:1!important;}
+.command-side-left .command-card-detail span{font-size:7px!important;margin-top:3px!important;}
+.command-side-left .command-card-meter{
+  height:32px!important;
+  min-height:32px!important;
+  margin-top:7px!important;
+  padding:6px 9px!important;
+  border-radius:9px!important;
+}
+.command-side-left .command-card-note{display:none!important;}
+/* CENTER */
+.command-logo-core{
+  height:438px!important;
+  min-height:438px!important;
+  max-height:438px!important;
+  border-radius:20px!important;
+}
+.command-core-logo-wrap{
+  width:250px!important;height:250px!important;min-width:250px!important;min-height:250px!important;
+}
+.command-logo-core::before{width:330px!important;height:330px!important;}
+.command-logo-core::after{width:380px!important;height:380px!important;}
+.command-core-ring-one{width:278px!important;height:278px!important;}
+.command-core-ring-two{width:352px!important;height:352px!important;}
+.command-core-ring-three{width:410px!important;height:410px!important;}
+/* RIGHT */
+.command-side-right .command-bet-edge-card{
+  height:210px!important;
+  min-height:210px!important;
+  max-height:210px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  text-align:center!important;
+  padding:15px 14px!important;
+  border-radius:16px!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+.command-side-right .command-bet-edge-card .command-tile-label{
+  width:100%!important;
+  justify-content:center!important;
+  text-align:center!important;
+  font-size:10px!important;
+  line-height:1.2!important;
+  white-space:normal!important;
+}
+.command-side-right .command-bet-edge-card .command-tile-value{
+  position:static!important;
+  min-width:0!important;
+  max-width:none!important;
+  margin:7px 0 5px!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  font-size:27px!important;
+  text-align:center!important;
+}
+.command-side-right .command-bet-edge-card .command-tile-player{
+  width:100%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  min-height:0!important;
+  margin:0!important;
+  text-align:center!important;
+  overflow:visible!important;
+  color:#fff!important;
+  font-size:12px!important;
+}
+.command-side-right .command-edge-team-logo{
+  width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;
+  display:block!important;
+  object-fit:contain!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  padding:6px!important;
+  margin:0 auto 2px!important;
+  box-sizing:border-box!important;
+  border:2px solid var(--tile-color,var(--accent))!important;
+}
+.command-side-right .command-tile-player>span{display:block!important;width:100%!important;text-align:center!important;overflow:visible!important;white-space:normal!important;}
+.command-side-right .command-tile-player b{display:block!important;font-size:12px!important;line-height:1.15!important;text-align:center!important;}
+.command-side-right .command-edge-detail{
+  margin-top:4px!important;
+  font-size:9px!important;
+  line-height:1.2!important;
+  text-align:center!important;
+  white-space:normal!important;
+  color:#94a3b8!important;
+}
+@media(max-width:1250px){
+  .command-center-core-layout{grid-template-columns:1fr!important;}
+  .command-logo-core{order:-1!important;height:330px!important;min-height:330px!important;max-height:none!important;}
+  .command-side-left,.command-side-right{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
+@media(max-width:650px){
+  .command-side-left,.command-side-right{grid-template-columns:1fr!important;}
+  .command-side-left .command-trading-card,.command-side-right .command-bet-edge-card{height:200px!important;min-height:200px!important;max-height:200px!important;}
+}
+</style>
+<script id="drl-command-center-clean-rebuild-js">
+(function(){
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function findLogo(team){
+    const key=String(team||'').trim().toUpperCase();
+    try{ if(typeof teamLogos!=='undefined' && teamLogos && teamLogos[key]) return teamLogos[key]; }catch(e){}
+    try{ if(window.teamLogos && window.teamLogos[key]) return window.teamLogos[key]; }catch(e){}
+    return '';
+  }
+  function teamFromText(text){
+    const s=String(text||'').toUpperCase();
+    const teams=['ARI','ATL','BAL','BOS','CHC','CHW','CIN','CLE','COL','DET','HOU','KCR','LAA','LAD','MIA','MIL','MIN','NYM','NYY','ATH','PHI','PIT','SDP','SEA','SFG','STL','TBR','TEX','TOR','WSN'];
+    return teams.find(t=>new RegExp('(^|\\s|\\b)'+t+'(\\b|\\s|$)').test(s))||'';
+  }
+  function repairRightCards(){
+    document.querySelectorAll('.command-side-right .command-bet-edge-card').forEach(card=>{
+      const player=card.querySelector('.command-tile-player');
+      if(!player)return;
+      const text=player.textContent||'';
+      const team=teamFromText(text);
+      const logo=findLogo(team);
+      let img=player.querySelector('img.command-edge-team-logo');
+      if(logo&&!img){
+        img=document.createElement('img');
+        img.className='command-edge-team-logo';
+        img.alt=team;
+        img.src=logo;
+        player.insertBefore(img,player.firstChild);
+      } else if(img&&logo&&img.src!==logo){ img.src=logo; }
+    });
+  }
+  function init(){repairRightCards();setTimeout(repairRightCards,300);setTimeout(repairRightCards,1000);setTimeout(repairRightCards,2500);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  window.addEventListener('load',init);
+  const box=document.getElementById('teamEdgeGames');
+  if(box)new MutationObserver(()=>requestAnimationFrame(repairRightCards)).observe(box,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+
+
+<style id="drl-command-center-readable-final-css">
+/* Final readability pass: full names, team-only subtitles, score badges in headers. */
+.command-side-left .command-trading-card{
+  height:220px!important;min-height:220px!important;max-height:220px!important;
+}
+.command-side-left .command-trading-card .command-tile-label{
+  min-height:44px!important;padding:10px 12px!important;gap:8px!important;
+  overflow:visible!important;text-overflow:clip!important;
+}
+.command-side-left .command-trading-card .command-tile-value{
+  position:static!important;order:5!important;margin-left:auto!important;
+  min-width:auto!important;max-width:112px!important;padding:6px 10px!important;
+  font-size:20px!important;line-height:1!important;flex:0 0 auto!important;
+}
+.command-side-left .command-trading-card .command-tile-player{
+  padding:13px 14px 10px!important;
+}
+.command-side-left .command-card-hero-row{
+  grid-template-columns:66px minmax(0,1fr)!important;
+  padding-right:0!important;height:78px!important;min-height:78px!important;
+}
+.command-side-left .command-card-copy-block{min-width:0!important;width:100%!important;}
+.command-side-left .command-card-name{
+  display:block!important;max-height:none!important;overflow:visible!important;
+  white-space:normal!important;text-overflow:clip!important;
+  font-size:15px!important;line-height:1.12!important;word-break:normal!important;
+  overflow-wrap:normal!important;
+}
+.command-side-left .command-card-meta{
+  white-space:normal!important;overflow:visible!important;text-overflow:clip!important;
+  font-size:10px!important;line-height:1.15!important;margin-top:5px!important;
+  color:#cbd5e1!important;
+}
+.command-side-left .command-card-details{
+  margin-top:8px!important;height:42px!important;min-height:42px!important;grid-template-rows:42px!important;
+}
+.command-side-left .command-card-detail{min-height:42px!important;padding:6px 7px!important;}
+.command-side-left .command-card-detail b{font-size:12px!important;}
+.command-side-left .command-card-detail span{font-size:8px!important;}
+.command-side-left .command-card-meter{margin-top:8px!important;}
+/* Two-logo matchup treatment for full-game and F5 totals. */
+.command-edge-logo-row{display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;margin:1px auto 3px!important;}
+.command-edge-logo-row .command-edge-team-logo{margin:0!important;}
+.command-edge-versus{font-size:10px!important;color:#64748b!important;font-weight:1000!important;}
+.command-side-right .command-bet-edge-card{height:220px!important;min-height:220px!important;max-height:220px!important;}
+.command-side-right .command-bet-edge-card .command-edge-team-logo{width:54px!important;height:54px!important;min-width:54px!important;min-height:54px!important;}
+@media(max-width:650px){
+ .command-side-left .command-trading-card,.command-side-right .command-bet-edge-card{height:auto!important;min-height:210px!important;max-height:none!important;}
+}
+</style>
+<script id="drl-command-center-readable-final-js">
+(function(){
+  const TEAM_KEYS=['ARI','ATL','BAL','BOS','CHC','CHW','CIN','CLE','COL','DET','HOU','KCR','LAA','LAD','MIA','MIL','MIN','NYM','NYY','ATH','PHI','PIT','SDP','SEA','SFG','STL','TBR','TEX','TOR','WSN'];
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function logo(team){
+    const k=String(team||'').trim().toUpperCase();
+    try{if(typeof teamLogos!=='undefined'&&teamLogos&&teamLogos[k])return teamLogos[k];}catch(e){}
+    try{if(window.teamLogos&&window.teamLogos[k])return window.teamLogos[k];}catch(e){}
+    return '';
+  }
+  function fixLeft(){
+    document.querySelectorAll('.command-side-left .command-trading-card').forEach(card=>{
+      const label=card.querySelector('.command-tile-label');
+      const value=card.querySelector('.command-tile-value');
+      if(label&&value&&value.parentElement!==label) label.appendChild(value);
+      const meta=card.querySelector('.command-card-meta');
+      if(meta){
+        const raw=(meta.textContent||'').trim();
+        let team=(raw.split('•')[0]||'').trim().toUpperCase();
+        if(!TEAM_KEYS.includes(team)){
+          const wm=card.querySelector('.command-card-watermark img');
+          team=(wm&&wm.alt||'').trim().toUpperCase();
+        }
+        if(team) meta.textContent=team;
+      }
+      const name=card.querySelector('.command-card-name');
+      if(name) name.title=name.textContent.trim();
+    });
+    const pCard=document.querySelector('.command-side-left .command-trading-card.command-pitcher-card') || document.getElementById('weakPitcherPlayer')?.closest('.command-trading-card');
+    if(pCard){
+      const ds=pCard.querySelectorAll('.command-card-detail');
+      ds.forEach((d,i)=>{d.style.display=i<2?'flex':'none';});
+      if(ds[0]){const s=ds[0].querySelector('span');if(s)s.textContent='HR/9 vs LHB';}
+      if(ds[1]){const s=ds[1].querySelector('span');if(s)s.textContent='HR/9 vs RHB';}
+    }
+  }
+  function marketData(){
+    return Array.from(document.querySelectorAll('#teamEdgeGames .team-market-card')).map(card=>{
+      const game=card.closest('.team-game-card');
+      const teams=game?Array.from(game.querySelectorAll('.team-game-abbr')).map(x=>(x.textContent||'').trim().toUpperCase()).filter(Boolean):[];
+      const label=(card.querySelector('.team-market-label')?.textContent||'').trim();
+      const pick=(card.querySelector('.team-market-pick')?.textContent||'').trim();
+      const meta=(card.querySelector('.team-market-meta')?.textContent||'').trim();
+      const m=(card.querySelector('.team-market-edge')?.textContent||'').match(/[-+]?\d+(?:\.\d+)?/);
+      return {label,pick,meta,teams,edge:m?Math.abs(Number(m[0])):-Infinity};
+    }).filter(x=>Number.isFinite(x.edge));
+  }
+  function teamFromPick(p){return TEAM_KEYS.find(t=>new RegExp('(^|\\s)'+t+'(\\s|$)').test(String(p||'').toUpperCase()))||'';}
+  function setCard(i,item,dual){
+    const value=document.getElementById('commandBetEdgeValue'+i), player=document.getElementById('commandBetEdgePlayer'+i);
+    if(!value||!player||!item)return;
+    value.textContent='+'+item.edge.toFixed(2);
+    let logos='';
+    if(dual&&item.teams.length>=2){
+      logos='<div class="command-edge-logo-row">'+item.teams.slice(0,2).map((t,j)=>{
+        const u=logo(t);return (j?'<span class="command-edge-versus">VS</span>':'')+(u?'<img class="command-edge-team-logo" src="'+esc(u)+'" alt="'+esc(t)+'">':'');
+      }).join('')+'</div>';
+    }else{
+      const t=teamFromPick(item.pick),u=logo(t); if(u)logos='<img class="command-edge-team-logo" src="'+esc(u)+'" alt="'+esc(t)+'">';
+    }
+    player.innerHTML=logos+'<span><b>'+esc(item.pick)+'</b><div class="command-edge-detail">'+esc(item.meta)+'</div></span>';
+  }
+  function fixRight(){
+    const all=marketData();
+    const ml=all.filter(x=>x.label.toLowerCase()==='moneyline').sort((a,b)=>b.edge-a.edge)[0];
+    const total=all.filter(x=>x.label.toLowerCase()==='game total').sort((a,b)=>b.edge-a.edge)[0];
+    const f5=all.filter(x=>x.label.toLowerCase()==='first 5 total').sort((a,b)=>b.edge-a.edge)[0];
+    const tt=all.filter(x=>/team total/i.test(x.label)&&!/f5|first 5/i.test(x.label)).sort((a,b)=>b.edge-a.edge)[0];
+    setCard(0,ml,false);setCard(1,total,true);setCard(2,f5,true);setCard(3,tt,false);
+  }
+  function run(){fixLeft();fixRight();}
+  function init(){run();setTimeout(run,250);setTimeout(run,900);setTimeout(run,2200);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  window.addEventListener('load',init);
+  const root=document.querySelector('.command-center-ai-core');if(root)new MutationObserver(()=>requestAnimationFrame(run)).observe(root,{childList:true,subtree:true,characterData:true});
+  const games=document.getElementById('teamEdgeGames');if(games)new MutationObserver(()=>requestAnimationFrame(fixRight)).observe(games,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+
+
+<style id="drl-pitcher-card-final-exact-fix">
+.command-side-left .command-trading-card.command-pitcher-card .command-card-details{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:42px!important;
+  gap:10px!important;height:42px!important;min-height:42px!important;margin-top:8px!important;padding:0!important;
+  border:0!important;outline:0!important;background:transparent!important;
+}
+.command-side-left .command-trading-card.command-pitcher-card .command-card-detail{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  min-height:42px!important;height:42px!important;padding:6px 7px!important;border:1px solid rgba(255,255,255,.14)!important;
+  border-radius:10px!important;background:linear-gradient(145deg,rgba(35,39,46,.96),rgba(18,22,28,.96))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)!important;
+}
+.command-side-left .command-trading-card.command-pitcher-card .command-card-detail b{font-size:13px!important;color:#fff!important;line-height:1!important;}
+.command-side-left .command-trading-card.command-pitcher-card .command-card-detail span{font-size:8px!important;color:#cbd5e1!important;line-height:1.1!important;margin-top:4px!important;}
+.command-side-left .command-trading-card.command-pitcher-card .command-tile-value{color:#ff3b3b!important;}
+</style>
 </body>
 </html>
