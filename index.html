@@ -22881,7 +22881,8 @@ body::before,body::after,.header-area::before,.command-center-board::before,
       const pick=(card.querySelector('.team-market-pick')?.textContent||'').trim();
       const meta=(card.querySelector('.team-market-meta')?.textContent||'').trim();
       const m=(card.querySelector('.team-market-edge')?.textContent||'').match(/[-+]?\d+(?:\.\d+)?/);
-      return {label,pick,meta,teams,edge:m?Math.abs(Number(m[0])):-Infinity};
+      const signedEdge=m?Number(m[0]):-Infinity;
+      return {label,pick,meta,teams,edge:Number.isFinite(signedEdge)?Math.abs(signedEdge):-Infinity,signedEdge};
     }).filter(x=>Number.isFinite(x.edge));
   }
   function teamFromPick(p){return TEAM_KEYS.find(t=>new RegExp('(^|\\s)'+t+'(\\s|$)').test(String(p||'').toUpperCase()))||'';}
@@ -22901,7 +22902,7 @@ body::before,body::after,.header-area::before,.command-center-board::before,
   }
   function fixRight(){
     const all=marketData();
-    const ml=all.filter(x=>x.label.toLowerCase()==='moneyline').sort((a,b)=>b.edge-a.edge)[0];
+    const ml=all.filter(x=>/moneyline/i.test(x.label)&&x.signedEdge>0).sort((a,b)=>b.signedEdge-a.signedEdge)[0];
     const total=all.filter(x=>x.label.toLowerCase()==='game total').sort((a,b)=>b.edge-a.edge)[0];
     const f5=all.filter(x=>x.label.toLowerCase()==='first 5 total').sort((a,b)=>b.edge-a.edge)[0];
     const tt=all.filter(x=>/team total/i.test(x.label)&&!/f5|first 5/i.test(x.label)).sort((a,b)=>b.edge-a.edge)[0];
