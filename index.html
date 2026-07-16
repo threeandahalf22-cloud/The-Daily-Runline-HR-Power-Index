@@ -8540,7 +8540,7 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 <div class="filter-group team-filter-future-wrap"><label>Filter Team 2</label><div class="team-filter-future" data-filter="2"><select id="teamFilter2" class="select-input-sm native-team-select" onchange="syncTeamLogoDropdown(2); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button type="button" id="teamFilterTrigger2" class="team-filter-trigger" onclick="toggleTeamLogoDropdown(event, 2)"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel2">All Teams</span><span class="team-filter-chevron">▾</span></button><div id="teamLogoDropdown2" class="team-logo-dropdown"></div></div></div>
 <div class="filter-group"><label>Filter Bats</label><select id="batsFilter" class="select-input-sm" onchange="applyFiltersAndRender()"><option value="ALL">All</option><option value="L">Left</option><option value="R">Right</option><option value="S">Switch</option></select></div>
 <div class="filter-group"><label>Search Player Name</label><input type="text" id="searchFilter" class="search-input" placeholder="Type player name..." oninput="applyFiltersAndRender()" /></div>
-<div class="filter-group home-rank-sort-group"><label>Rank View</label><div class="home-rank-sort-toggle" role="group" aria-label="Home ranking sort"><button type="button" id="homeSortBBI" class="home-rank-sort-btn active" onclick="setHomeRankSort('BBI')">BBI Score</button><button type="button" id="homeSortEdge" class="home-rank-sort-btn" onclick="setHomeRankSort('EDGE')">Market Edge</button></div><select id="homeZoneSortSelect" class="select-input-sm home-zone-sort-select" onchange="setHomeZoneSort(this.value)" aria-label="Sort by hitter zone damage"><option value="">Zone Damage</option><option value="1">Zone 1</option><option value="2">Zone 2</option><option value="3">Zone 3</option><option value="4">Zone 4</option><option value="5">Zone 5</option><option value="6">Zone 6</option><option value="7">Zone 7</option><option value="8">Zone 8</option><option value="9">Zone 9</option></select><div id="homeRankSortNote" class="home-rank-sort-note">Most likely to homer</div></div>
+<div class="filter-group home-rank-sort-group"><label>Rank View</label><div class="home-rank-sort-toggle" role="group" aria-label="Home ranking sort"><button type="button" id="homeSortBBI" class="home-rank-sort-btn active" onclick="setHomeRankSort('BBI')">BBI Score</button><button type="button" id="homeSortEdge" class="home-rank-sort-btn" onclick="setHomeRankSort('EDGE')">Market Edge</button></div><div id="homeRankSortNote" class="home-rank-sort-note">Most likely to homer</div></div>
 <div class="filter-group" style="margin-left: auto; flex-direction: row; align-items: center; gap: 10px;">
 <input type="checkbox" id="showRemovedCheck" onchange="applyFiltersAndRender()" style="cursor:pointer; width:auto;" />
 <label for="showRemovedCheck" style="cursor:pointer; margin-bottom:0; color:var(--accent);">Show Removed Bench Players</label>
@@ -8718,6 +8718,7 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
           <div class="filter-group"><label>Team</label><select id="zoneTeamFilter" class="select-input-sm" onchange="renderZoneProfileTab()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
           <div class="filter-group"><label>Pitcher</label><select id="zonePitcherFilter" class="select-input-sm" onchange="renderZoneProfileTab()" style="width:190px;"><option value="ALL">All Pitchers</option></select></div>
           <div class="filter-group"><label>Sort</label><select id="zoneSortFilter" class="select-input-sm" onchange="renderZoneProfileTab()" style="width:170px;"><option value="RANK">Model Rank</option><option value="ZONE">Zone Score</option><option value="TOPEDGE">Best Zone Edge</option><option value="USAGE">Pitcher Usage</option><option value="ALPHA">Player A-Z</option></select></div>
+          <div class="filter-group"><label>Zone Damage Sort</label><select id="zoneDamageSortSelect" class="select-input-sm home-zone-sort-select" onchange="setZoneDamageSort(this.value)" aria-label="Sort HR Attack Map by hitter zone damage" style="width:170px;"><option value="">Off</option><option value="1">Zone 1</option><option value="2">Zone 2</option><option value="3">Zone 3</option><option value="4">Zone 4</option><option value="5">Zone 5</option><option value="6">Zone 6</option><option value="7">Zone 7</option><option value="8">Zone 8</option><option value="9">Zone 9</option></select></div>
           <div class="filter-group"><label>Zone View</label><div class="zone-view-toggle"><button type="button" class="zone-view-btn active" data-zone-view="WEIGHTED" onclick="setZoneProfileView('WEIGHTED')">Weighted</button><button type="button" class="zone-view-btn" data-zone-view="FB" onclick="setZoneProfileView('FB')">Fastball</button><button type="button" class="zone-view-btn" data-zone-view="BR" onclick="setZoneProfileView('BR')">Breaking</button><button type="button" class="zone-view-btn" data-zone-view="OS" onclick="setZoneProfileView('OS')">Offspeed</button></div></div>
         </div>
         <div class="zone-summary-pill" id="zoneSummaryPill">Players: <b>0</b></div>
@@ -12581,10 +12582,11 @@ function windVectorRotationForField(weather) {
   if (type === 'cross' || label.includes('cross') || label.includes('across')) {
     const from = String((weather && weather.windCrossFrom) || '').toLowerCase();
     const to = String((weather && weather.windCrossTo) || weather.windFieldZone || '').toLowerCase();
-    // v38.5 HARD FLIP: invert whatever the prior crosswind animation did.
-    // This flips BOTH the arrow direction and the moving lanes.
-    if (from === 'rf' || to === 'lf') return 0;
-    return 180;
+    // Match the visual arrow to the displayed FROM → TO direction.
+    // LF → RF points right; RF → LF points left.
+    if (from === 'lf' || to === 'rf') return 0;
+    if (from === 'rf' || to === 'lf') return 180;
+    return 0;
   }
   const homeTeam = String(weather.homeTeam || '').toUpperCase();
   const stadium = stadiumCoordinates[homeTeam] || {};
@@ -14401,6 +14403,24 @@ function zoneAttackIntelHtml(profile) {
   </div>`;
 }
 
+let zoneDamageSortNumber = null;
+function setZoneDamageSort(value) {
+  const zone = Number(value);
+  zoneDamageSortNumber = Number.isInteger(zone) && zone >= 1 && zone <= 9 ? zone : null;
+  const select = document.getElementById('zoneDamageSortSelect');
+  if (select) select.value = zoneDamageSortNumber ? String(zoneDamageSortNumber) : '';
+  if (typeof window.scheduleZoneProfileRender === 'function') window.scheduleZoneProfileRender(0);
+  else if (typeof renderZoneProfileTab === 'function') renderZoneProfileTab();
+}
+window.setZoneDamageSort = setZoneDamageSort;
+function getZoneDamageSortValue(profile, view, zoneNumber) {
+  const display = zoneProfileDisplayProfile(profile, view || window.zoneProfileView || 'WEIGHTED');
+  const zone = display && Array.isArray(display.zones)
+    ? display.zones.find(z => Number(z.zone) === Number(zoneNumber))
+    : null;
+  return zone && Number.isFinite(Number(zone.batterDamage)) ? Number(zone.batterDamage) : null;
+}
+
 function renderZoneProfileTab() {
   const grid = document.getElementById('zoneProfileGrid');
   if (!grid) return;
@@ -14418,6 +14438,13 @@ function renderZoneProfileTab() {
   if (team !== 'ALL') data = data.filter(x => String(x.player.Team||'') === team);
   if (pitcherFilter !== 'ALL') data = data.filter(x => String(safeGet(x.player,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '').trim() === pitcherFilter);
   data.sort((a,b) => {
+    if (Number.isInteger(zoneDamageSortNumber)) {
+      const av = getZoneDamageSortValue(a.profile, window.zoneProfileView || 'WEIGHTED', zoneDamageSortNumber);
+      const bv = getZoneDamageSortValue(b.profile, window.zoneProfileView || 'WEIGHTED', zoneDamageSortNumber);
+      const aValid = Number.isFinite(av), bValid = Number.isFinite(bv);
+      if (aValid !== bValid) return bValid ? 1 : -1;
+      if (aValid && bValid && bv !== av) return bv - av;
+    }
     const at = a.profile && a.profile.topZone ? a.profile.topZone : {};
     const bt = b.profile && b.profile.topZone ? b.profile.topZone : {};
     if (sort === 'ZONE') return (Number(b.profile && b.profile.score) || -1) - (Number(a.profile && a.profile.score) || -1);
@@ -20013,6 +20040,15 @@ body.performance-lite tbody tr:hover { transform: none !important; }
     let data = players.map(p => ({ player:p, profile:getProfile(p) }));
     data.sort((a,b) => {
       const ap = zoneProfileDisplayProfile(a.profile, view), bp = zoneProfileDisplayProfile(b.profile, view);
+      if (Number.isInteger(zoneDamageSortNumber)) {
+        const az = ap && Array.isArray(ap.zones) ? ap.zones.find(z => Number(z.zone) === zoneDamageSortNumber) : null;
+        const bz = bp && Array.isArray(bp.zones) ? bp.zones.find(z => Number(z.zone) === zoneDamageSortNumber) : null;
+        const av = az && Number.isFinite(Number(az.batterDamage)) ? Number(az.batterDamage) : null;
+        const bv = bz && Number.isFinite(Number(bz.batterDamage)) ? Number(bz.batterDamage) : null;
+        const aValid = Number.isFinite(av), bValid = Number.isFinite(bv);
+        if (aValid !== bValid) return bValid ? 1 : -1;
+        if (aValid && bValid && bv !== av) return bv - av;
+      }
       const at = ap && ap.topZone ? ap.topZone : {}, bt = bp && bp.topZone ? bp.topZone : {};
       if (sort === 'ZONE') return (Number(bp && bp.score) || -1) - (Number(ap && ap.score) || -1);
       if (sort === 'TOPEDGE') return (Number(bt.edge) || -1) - (Number(at.edge) || -1);
@@ -20025,7 +20061,7 @@ body.performance-lite tbody tr:hover { transform: none !important; }
     const pill = document.getElementById('zoneSummaryPill');
     if (pill) {
       const withData = data.reduce((n,x)=>n + (x.profile && x.profile.zones && x.profile.zones.length ? 1 : 0), 0);
-      pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(view)}</b> &nbsp; Formula: <b>Unified 27-Cell Engine</b>`;
+      pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(view)}</b>${Number.isInteger(zoneDamageSortNumber) ? ` &nbsp; Sorted: <b>Zone ${zoneDamageSortNumber} Damage</b>` : ''} &nbsp; Formula: <b>Unified 27-Cell Engine</b>`;
     }
     if (!data.length) { grid.classList.remove('zone-rendering'); grid.innerHTML = '<div class="zone-empty">No players match the current HR Attack Map filters.</div>'; return; }
 
