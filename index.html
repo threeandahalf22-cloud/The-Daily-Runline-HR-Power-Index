@@ -6328,7 +6328,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
 
 .command-trading-card .command-tile-value{
   top: 42px !important;
-  right: 18px !important;
+  right: 26px !important;
   bottom: auto !important;
   left: auto !important;
   z-index: 45 !important;
@@ -6340,7 +6340,7 @@ tbody tr:hover .stats-player-mini .player-headshot {
   .command-trading-card .command-tile-value,
   .command-trading-card.command-pitcher-card .command-tile-value{
     top: 42px !important;
-    right: 14px !important;
+    right: 26px !important;
   }
 }
 @media(max-width: 760px){
@@ -15044,31 +15044,142 @@ function drlConvexEliteScore(adjustedValue, leagueAverage, naturalSpread, points
   const eliteDistance = z - eliteZ;
   return linear + (acceleration * eliteDistance * eliteDistance);
 }
+// ==================== v64.4 WORKBOOK-DERIVED LEAGUE BASELINES ====================
+// Only Hitter Power, Batted Ball Shape and Pitcher Vulnerability use these.
+// The scoring curves, confidence/regression strength, natural spreads and weights
+// remain unchanged. If a workbook field is missing, the prior fixed baseline is used.
+const DRL_FIXED_LEAGUE_BASELINES = Object.freeze({
+  powerBarrel: 0.083, powerEV90: 101.5, powerHardHit: 0.400,
+  powerXHRRate: 0.032, powerSweetSpot: 0.340,
+  shapeHRFB: 0.130, shapeFlyBall: 0.350, shapePull: 0.400,
+  shapeLaunchAngle: 12.5,
+  pitcherSweetSpot: 0.350, pitcherBarrel: 0.085,
+  pitcher95: 0.400, pitcherHR9: 1.10
+});
+let DRL_LEAGUE_BASELINES = { ...DRL_FIXED_LEAGUE_BASELINES };
+
+function drlRowsFromSheet(sheetKey) {
+  const map = statSheetMaps[String(sheetKey || '').toUpperCase()] || {};
+  const seen = new Set();
+  const rows = [];
+  Object.keys(map).forEach(k => {
+    const row = map[k];
+    if (!row || typeof row !== 'object' || seen.has(row)) return;
+    seen.add(row);
+    rows.push(row);
+  });
+  return rows;
+}
+function drlRowName(row) {
+  return String(safeGet(row, 'Name', 'Player', 'PLAYER', 'Batter', 'Pitcher') || '').trim();
+}
+function drlPAForRow(row) {
+  const direct = firstNumber(safeGet(row, 'PA', 'PAs', 'Plate Appearances', 'BF', 'TBF', 'BBE'));
+  if (direct && direct > 0) return direct;
+  const name = drlRowName(row);
+  const paRow = name ? lookupStat('PA', name) : {};
+  return Math.max(1, firstNumber(safeGet(paRow, 'PA', 'PAs', 'Plate Appearances')) || 1);
+}
+function drlIPForRow(row) {
+  return Math.max(0.1, firstNumber(safeGet(row, 'IP', 'Innings Pitched', 'P IP')) || 0.1);
+}
+function drlWeightedSheetAverage(sheetKeys, valueReader, weightReader, fallback) {
+  let weighted = 0, totalWeight = 0, count = 0;
+  (Array.isArray(sheetKeys) ? sheetKeys : [sheetKeys]).forEach(key => {
+    drlRowsFromSheet(key).forEach(row => {
+      const value = valueReader(row);
+      const weight = Math.max(0, Number(weightReader ? weightReader(row) : 1) || 0);
+      if (!Number.isFinite(value) || !Number.isFinite(weight) || weight <= 0) return;
+      weighted += value * weight;
+      totalWeight += weight;
+      count += 1;
+    });
+  });
+  return count >= 5 && totalWeight > 0 ? weighted / totalWeight : fallback;
+}
+function drlRateFromRow(row, ...keys) { return firstRate(...keys.map(k => safeGet(row, k))); }
+function drlNumberFromRow(row, ...keys) { return firstNumber(...keys.map(k => safeGet(row, k))); }
+function drlReasonable(value, low, high, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= low && n <= high ? n : fallback;
+}
+function refreshDynamicLeagueBaselines() {
+  const F = DRL_FIXED_LEAGUE_BASELINES;
+  const B = { ...F };
+
+  B.powerBarrel = drlWeightedSheetAverage('BARRELL', r => drlRateFromRow(r, 'Barrel %','Barrel%','Brls/BBE %'), drlPAForRow, F.powerBarrel);
+  B.powerEV90 = drlWeightedSheetAverage('BARRELL', r => drlNumberFromRow(r, 'EV90'), drlPAForRow, F.powerEV90);
+  B.powerHardHit = drlWeightedSheetAverage('BARRELL', r => drlRateFromRow(r, 'HardHit%','Hard Hit %','Hard Hit'), drlPAForRow, F.powerHardHit);
+  B.powerSweetSpot = drlWeightedSheetAverage('SS', r => drlRateFromRow(r, 'LA SwSp%','Sweet Spot %'), drlPAForRow, F.powerSweetSpot);
+
+  // xHR is a count, so calculate the league rate as total expected HR / total PA.
+  let xhrTotal = 0, xhrPA = 0, xhrCount = 0;
+  drlRowsFromSheet('PXHR').forEach(r => {
+    const x = drlNumberFromRow(r, 'xHR','Expected HR');
+    const pa = drlPAForRow(r);
+    if (!Number.isFinite(x) || !(pa > 0)) return;
+    xhrTotal += x; xhrPA += pa; xhrCount += 1;
+  });
+  if (xhrCount >= 5 && xhrPA > 0) B.powerXHRRate = xhrTotal / xhrPA;
+
+  // Combine both handedness sheets so the baseline represents the workbook league,
+  // while each player's matchup-specific row is still used for his individual score.
+  B.shapeHRFB = drlWeightedSheetAverage(['RHPBB','LHPBB'], r => drlRateFromRow(r, 'HR/FB','HR/FB %'), drlPAForRow, F.shapeHRFB);
+  B.shapeFlyBall = drlWeightedSheetAverage(['PAR','PAL','RHPBB','LHPBB'], r => drlRateFromRow(r, 'FB %','FB%'), drlPAForRow, F.shapeFlyBall);
+  B.shapePull = drlWeightedSheetAverage(['PAR','PAL','RHPBB','LHPBB'], r => drlRateFromRow(r, 'Pull %','Pull%'), drlPAForRow, F.shapePull);
+  B.shapeLaunchAngle = drlWeightedSheetAverage('SS', r => drlNumberFromRow(r, 'LA (°)','LA','Launch Angle'), drlPAForRow, F.shapeLaunchAngle);
+
+  B.pitcherSweetSpot = drlWeightedSheetAverage('PSS', r => drlRateFromRow(r, 'LA SwSp%','Sweet Spot %'), r => firstNumber(safeGet(r,'BF','TBF','Batters Faced','BBE')) || 1, F.pitcherSweetSpot);
+  B.pitcherBarrel = drlWeightedSheetAverage('PITCHERBB', r => drlRateFromRow(r, 'Barrel %','Barrel%','Brls/BBE %'), r => firstNumber(safeGet(r,'BF','TBF','Batters Faced','BBE')) || 1, F.pitcherBarrel);
+  B.pitcher95 = drlWeightedSheetAverage(['PSS','PITCHMAX'], r => drlRateFromRow(r, '95 MPH+ %','95+ %','95 MPH+'), r => firstNumber(safeGet(r,'BF','TBF','Batters Faced','BBE')) || 1, F.pitcher95);
+  B.pitcherHR9 = drlWeightedSheetAverage('PITCHER', r => drlNumberFromRow(r, 'HR/9'), drlIPForRow, F.pitcherHR9);
+
+  // Guard against malformed columns or percentage parsing errors.
+  B.powerBarrel = drlReasonable(B.powerBarrel, .02, .20, F.powerBarrel);
+  B.powerEV90 = drlReasonable(B.powerEV90, 95, 108, F.powerEV90);
+  B.powerHardHit = drlReasonable(B.powerHardHit, .20, .65, F.powerHardHit);
+  B.powerXHRRate = drlReasonable(B.powerXHRRate, .005, .10, F.powerXHRRate);
+  B.powerSweetSpot = drlReasonable(B.powerSweetSpot, .15, .55, F.powerSweetSpot);
+  B.shapeHRFB = drlReasonable(B.shapeHRFB, .03, .35, F.shapeHRFB);
+  B.shapeFlyBall = drlReasonable(B.shapeFlyBall, .15, .60, F.shapeFlyBall);
+  B.shapePull = drlReasonable(B.shapePull, .20, .65, F.shapePull);
+  B.shapeLaunchAngle = drlReasonable(B.shapeLaunchAngle, 5, 25, F.shapeLaunchAngle);
+  B.pitcherSweetSpot = drlReasonable(B.pitcherSweetSpot, .15, .55, F.pitcherSweetSpot);
+  B.pitcherBarrel = drlReasonable(B.pitcherBarrel, .02, .20, F.pitcherBarrel);
+  B.pitcher95 = drlReasonable(B.pitcher95, .15, .65, F.pitcher95);
+  B.pitcherHR9 = drlReasonable(B.pitcherHR9, .20, 2.50, F.pitcherHR9);
+
+  DRL_LEAGUE_BASELINES = B;
+  window.DRL_LEAGUE_BASELINES = { ...B };
+  console.info('[DRL] Workbook league baselines loaded', B);
+  return B;
+}
+// ===============================================================================
 function drlPowerBarrelScore(raw, pa) {
-  const adjusted = drlRegressByScale(raw, 0.083, pa, 40, 260, 0.35);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.powerBarrel, pa, 40, 260, 0.35);
   // Elite acceleration begins near 9.8% after regression. Trusted 13%+ Barrel
   // rates separate materially, while average and below-average hitters retain
   // the original linear behavior.
-  return drlConvexEliteScore(adjusted, 0.083, 0.030, 18, 0.50, 7);
+  return drlConvexEliteScore(adjusted, DRL_LEAGUE_BASELINES.powerBarrel, 0.030, 18, 0.50, 7);
 }
 function drlPowerEV90Score(raw, pa) {
-  const adjusted = drlRegressByScale(raw, 101.5, pa, 25, 160, 0.40);
-  return drlOpenStatScore(adjusted, 101.5, 2.25, 18);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.powerEV90, pa, 25, 160, 0.40);
+  return drlOpenStatScore(adjusted, DRL_LEAGUE_BASELINES.powerEV90, 2.25, 18);
 }
 function drlPowerHardHitScore(raw, pa) {
-  const adjusted = drlRegressByScale(raw, 0.400, pa, 45, 240, 0.35);
-  return drlOpenStatScore(adjusted, 0.400, 0.055, 18);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.powerHardHit, pa, 45, 240, 0.35);
+  return drlOpenStatScore(adjusted, DRL_LEAGUE_BASELINES.pitcher95, 0.055, 18);
 }
 function drlPowerXHRScore(rawXHR, pa) {
   const sample = Math.max(0, Number(pa) || 0);
   const xhr = Math.max(0, Number(rawXHR) || 0);
-  const rawRate = sample > 0 ? xhr / sample : 0.032;
-  const adjustedRate = drlRegressByScale(rawRate, 0.032, sample, 80, 420, 0.25);
-  return drlOpenStatScore(adjustedRate, 0.032, 0.018, 18);
+  const rawRate = sample > 0 ? xhr / sample : DRL_LEAGUE_BASELINES.powerXHRRate;
+  const adjustedRate = drlRegressByScale(rawRate, DRL_LEAGUE_BASELINES.powerXHRRate, sample, 80, 420, 0.25);
+  return drlOpenStatScore(adjustedRate, DRL_LEAGUE_BASELINES.powerXHRRate, 0.018, 18);
 }
 function drlPowerSweetSpotScore(raw, pa) {
-  const adjusted = drlRegressByScale(raw, 0.340, pa, 45, 240, 0.35);
-  return drlOpenStatScore(adjusted, 0.340, 0.055, 18);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.powerSweetSpot, pa, 45, 240, 0.35);
+  return drlOpenStatScore(adjusted, DRL_LEAGUE_BASELINES.powerSweetSpot, 0.055, 18);
 }
 
 // ==================== v60.9 OPEN-ENDED BBI ENGINE — PHASE 2 ====================
@@ -15079,21 +15190,21 @@ function drlBattedBallHRFBScore(raw, pa) {
   // HR/FB remains heavily stabilized because it is volatile. Phase 6 changes
   // only the trusted elite tail: acceleration begins around 16% after regression
   // and becomes progressively stronger above roughly 22%.
-  const adjusted = drlRegressByScale(raw, 0.130, pa, 70, 380, 0.25);
-  return drlConvexEliteScore(adjusted, 0.130, 0.065, 20, 0.46, 8);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.shapeHRFB, pa, 70, 380, 0.25);
+  return drlConvexEliteScore(adjusted, DRL_LEAGUE_BASELINES.shapeHRFB, 0.065, 20, 0.46, 8);
 }
 function drlBattedBallFlyBallScore(raw, pa) {
-  const adjusted = drlRegressByScale(raw, 0.350, pa, 55, 300, 0.35);
-  return drlOpenStatScore(adjusted, 0.350, 0.060, 18);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.shapeFlyBall, pa, 55, 300, 0.35);
+  return drlOpenStatScore(adjusted, DRL_LEAGUE_BASELINES.shapeFlyBall, 0.060, 18);
 }
 function drlBattedBallPullScore(raw, pa) {
-  const adjusted = drlRegressByScale(raw, 0.400, pa, 55, 300, 0.35);
-  return drlOpenStatScore(adjusted, 0.400, 0.055, 16);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.shapePull, pa, 55, 300, 0.35);
+  return drlOpenStatScore(adjusted, DRL_LEAGUE_BASELINES.shapePull, 0.055, 16);
 }
 function drlBattedBallLaunchAngleScore(raw, pa) {
   // Launch angle is not a higher-is-always-better stat. Regress tiny samples
   // toward league average, then reward the HR launch window centered near 22°.
-  const adjusted = drlRegressByScale(raw, 12.5, pa, 45, 260, 0.40);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.shapeLaunchAngle, pa, 45, 260, 0.40);
   if (!Number.isFinite(adjusted)) return 50;
   const distance = Math.abs(adjusted - 22);
   if (distance <= 3) return 108 - (distance * 2);      // 102-108 in the ideal window
@@ -15112,24 +15223,24 @@ function drlPitcherExposureBF(rawBF, rawIP) {
 }
 function drlPitcherSweetSpotScore(raw, bf, ip) {
   const sample = drlPitcherExposureBF(bf, ip);
-  const adjusted = drlRegressByScale(raw, 0.350, sample, 90, 500, 0.35);
-  return drlOpenStatScore(adjusted, 0.350, 0.050, 18);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.pitcherSweetSpot, sample, 90, 500, 0.35);
+  return drlOpenStatScore(adjusted, DRL_LEAGUE_BASELINES.pitcherSweetSpot, 0.050, 18);
 }
 function drlPitcherBarrelAllowedScore(raw, bf, ip) {
   const sample = drlPitcherExposureBF(bf, ip);
-  const adjusted = drlRegressByScale(raw, 0.085, sample, 80, 450, 0.35);
-  return drlOpenStatScore(adjusted, 0.085, 0.025, 20);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.pitcherBarrel, sample, 80, 450, 0.35);
+  return drlOpenStatScore(adjusted, DRL_LEAGUE_BASELINES.pitcherBarrel, 0.025, 20);
 }
 function drlPitcher95AllowedScore(raw, bf, ip) {
   const sample = drlPitcherExposureBF(bf, ip);
-  const adjusted = drlRegressByScale(raw, 0.400, sample, 80, 450, 0.35);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.pitcher95, sample, 80, 450, 0.35);
   return drlOpenStatScore(adjusted, 0.400, 0.055, 18);
 }
 function drlPitcherHR9Score(raw, ip) {
   // HR/9 is the noisiest pitcher input, so it receives the strongest shrinkage.
   const innings = Math.max(0, Number(ip) || 0);
-  const adjusted = drlRegressByScale(raw, 1.10, innings, 20, 110, 0.30);
-  return drlOpenStatScore(adjusted, 1.10, 0.45, 20);
+  const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.pitcherHR9, innings, 20, 110, 0.30);
+  return drlOpenStatScore(adjusted, DRL_LEAGUE_BASELINES.pitcherHR9, 0.45, 20);
 }
 // ==================== v61.4 OPEN-ENDED BBI ENGINE — PHASE 7 ====================
 // Final scoring cleanup: BvP keeps the existing PA confidence ladder, but every
@@ -15540,6 +15651,7 @@ function calculateMicroSynergyBonuses(player, raw, cats) {
   }
 }
 function recalculateAllBBIScores() {
+  try { refreshDynamicLeagueBaselines(); } catch (err) { console.warn('Dynamic league baseline refresh failed; fixed baselines retained.', err); DRL_LEAGUE_BASELINES = { ...DRL_FIXED_LEAGUE_BASELINES }; }
   try {
     playerData.forEach(p => {
       try {
