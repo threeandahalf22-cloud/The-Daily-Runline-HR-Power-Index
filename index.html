@@ -4,9 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line</title>
-<!-- DRL v62.6 Phase 7 FINAL: scoring audit and cleanup.
-     Canonical buckets: Power 24, Batted Ball 20, Pitcher 14, Pitch Lab 8,
-     Attack Zone 23, BvP 5, Weather 4, Park 2. Synergy cap: +7.50. -->
+<!-- DRL v64.5: scoring audit, synergy-family cleanup, and updated bucket weights.
+     Canonical buckets: Power 23, Batted Ball 19, Pitcher 17, Pitch Lab 8,
+     Attack Zone 20, BvP 8, Weather 3, Park 2. Synergy cap: +7.50. -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -8904,7 +8904,6 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
       <button class="backtest-tool-btn" onclick="renderBacktestLab()">🔄 Refresh Lab</button>
       <button class="backtest-tool-btn" onclick="resetLastBacktestUpload()">↩ Reset Last Upload</button>
       <button class="backtest-tool-btn" onclick="exportBacktestMasterXLSX()">⬇ Export Backtest_Master</button>
-      <button class="backtest-tool-btn" onclick="exportPitchLabBacktestCSV()">🧪 Export Pitch Lab CSV</button>
       <button class="backtest-tool-btn" onclick="exportBacktestJSON()">🧰 Export Backup JSON</button>
       <button class="backtest-tool-btn" onclick="document.getElementById('backtestImportFile').click()">⬆ Import Backup JSON</button>
       <input id="backtestImportFile" class="backtest-file-input" type="file" accept=".json" onchange="importBacktestJSON(event)">
@@ -8928,10 +8927,11 @@ tbody tr.team-heat-row::after, tbody tr.stadium-row::after, tbody tr.nuclear-row
 <div id="tab-bucketanalytics" class="tab-content">
   <div class="panel bucket-analytics-panel">
     <h2>🧱 Bucket Analytics</h2>
-    <p class="backtest-note">Clean-slate component tracking. This tab starts fresh from the new Bucket Analytics storage only and does not read old BBI backtest history. It updates automatically when you click <b>Finalize Today’s Backtest</b>.</p>
+    <p class="backtest-note">Component-level research for Attack Zone, Pitcher Vulnerability, Pitch Lab, pitch families, individual zones, and diamond signals. Clean-slate bucket tables use Bucket Analytics storage; deeper Pitch Lab and zone diagnostics use finalized Backtest snapshots.</p>
     <div class="backtest-tools">
       <button class="backtest-tool-btn" onclick="renderBucketAnalytics()">🔄 Refresh Bucket Analytics</button>
       <button class="backtest-tool-btn" onclick="exportBucketAnalyticsXLSX()">⬇ Export Bucket Analytics</button>
+      <button class="backtest-tool-btn" onclick="exportPitchLabBacktestCSV()">🧪 Export Pitch Lab CSV</button>
       <button class="backtest-tool-btn backtest-warning-btn" onclick="resetBucketAnalyticsConfirm()">🧹 Reset Bucket Analytics Only</button>
     </div>
     <div id="bucketAnalyticsContainer"><div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No Bucket Analytics rows yet. Tonight’s next finalized slate will become Day 1 for Attack Zone and Pitcher tracking.</div></div>
@@ -13374,16 +13374,16 @@ function parseUsageValue(raw) { let v = cleanNumber(raw); if (!v) return 0; if (
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const DRL_SYNERGY_CAP = 7.5; // Phase 7 canonical applied synergy ceiling (+7.50 BBI)
 const HYBRID_CATEGORY_WEIGHTS = {
-  // Phase 1 official bucket weights. Must always total exactly 100%.
-  // Power 24, Batted Ball 20, Pitcher 14, Pitch Lab 8, Attack Zone 23, BvP 5, Weather 4, Park 2.
+  // Official bucket weights. Must always total exactly 100%.
+  // Power 23, Batted Ball 19, Pitcher 17, Pitch Lab 8, Attack Zone 20, BvP 8, Weather 3, Park 2.
   // Pitch Lab is the real pitcher-usage-weighted pitch-mix matchup score.
-  power: 0.24,
-  battedBall: 0.20,
-  pitcher: 0.14,
+  power: 0.23,
+  battedBall: 0.19,
+  pitcher: 0.17,
   pitchLevel: 0.08,
-  attackZone: 0.23,
-  bvp: 0.05,
-  weather: 0.04,
+  attackZone: 0.20,
+  bvp: 0.08,
+  weather: 0.03,
   park: 0.02
 };
 const MODEL_SANDBOX_WEIGHT_META = [
@@ -15539,6 +15539,8 @@ function scoreHybridPlayer(p, ranges) {
   p.calculatedRawSynergy = microSynergy.rawTotal;
   p.calculatedSynergyMultiplier = 1 + (microSynergy.total / 100);
   p.synergyBonuses = microSynergy.items;
+  p.calculatedSynergyFamilies = microSynergy.families || {};
+  p.calculatedPerfectStorm = !!microSynergy.perfectStorm;
 
   p.calculatedPowerModifier = power !== null ? power / 50 : 1.0;
   p.calculatedPVF = pitcher !== null ? pitcher / 50 : 1.0;
@@ -15575,7 +15577,20 @@ function calculateMicroSynergyBonuses(player, raw, cats) {
   try {
     const items = [];
     const n = v => (v === null || v === undefined || isNaN(v)) ? null : Number(v);
-    const score = v => n(v) === null ? 50 : n(v);
+    const clamp01 = v => Math.max(0, Math.min(1, Number(v) || 0));
+    const score01 = v => clamp01(((n(v) === null ? 50 : n(v)) - 45) / 45);
+    const pct01 = (v, floor, elite) => {
+      const x = n(v);
+      if (x === null || elite <= floor) return 0;
+      return clamp01((x - floor) / (elite - floor));
+    };
+    const rangePeak = (v, low, idealLow, idealHigh, high) => {
+      const x = n(v);
+      if (x === null || x <= low || x >= high) return 0;
+      if (x >= idealLow && x <= idealHigh) return 1;
+      if (x < idealLow) return clamp01((x - low) / (idealLow - low));
+      return clamp01((high - x) / (high - idealHigh));
+    };
     const pct = v => {
       const x = n(v);
       if (x === null) return 'N/A';
@@ -15585,6 +15600,12 @@ function calculateMicroSynergyBonuses(player, raw, cats) {
       const x = n(v);
       return x === null ? 'N/A' : x.toFixed(d);
     };
+    const add = (name, points, reason, key) => {
+      const pts = Math.round((Number(points) || 0) * 100) / 100;
+      if (pts <= 0) return;
+      items.push({ name, points: pts, reason, family: key || name });
+    };
+
     const weatherBits = player.weatherImpactComponents || {};
     const windPoints = n(weatherBits.windPoints) || 0;
     const weatherScore = n(raw.weatherScore) || n(cats.weather) || 50;
@@ -15592,62 +15613,95 @@ function calculateMicroSynergyBonuses(player, raw, cats) {
       const w = (typeof weatherSettings !== 'undefined' && player && player.gameId) ? (weatherSettings[player.gameId] || null) : null;
       return w && w.temp !== undefined ? Number(w.temp || 72) : 72;
     })();
-    const add = (name, points, reason) => {
-      const pts = Number(points || 0);
-      if (!pts || pts <= 0 || isNaN(pts)) return;
-      items.push({ name, points: Math.round(pts * 100) / 100, reason });
+
+    // FAMILY 1: CONTACT COLLISION (max +2.25)
+    // One combined reward for hitter damage quality meeting pitcher contact weakness.
+    const hitterContact =
+      pct01(raw.barrel, 0.055, 0.155) * 0.45 +
+      pct01(raw.hardHit, 0.32, 0.52) * 0.30 +
+      pct01(raw.ev90, 98, 108) * 0.25;
+    const pitcherContact =
+      pct01(raw.pitcherBarrel, 0.055, 0.125) * 0.45 +
+      pct01(raw.pitcherHardHit, 0.32, 0.48) * 0.30 +
+      Math.max(pct01(raw.pitcherEV90, 98, 108), pct01(raw.pitcherEV, 86, 93)) * 0.25;
+    const baseContactStrength = Math.sqrt(clamp01(hitterContact) * clamp01(pitcherContact));
+    const recentStrength = Math.max(
+      pct01(raw.lwBarrel, 0.055, 0.145),
+      pct01(raw.lwMaxEV, 103, 112)
+    );
+    const recentMultiplier = 1 + (0.20 * recentStrength); // recent form strengthens contact; it never creates a second bonus
+    const contactStrength = clamp01(baseContactStrength * recentMultiplier);
+    const contactBonus = 2.25 * contactStrength;
+    add('Contact Collision', contactBonus,
+      `${pct(raw.barrel)} barrels / ${pct(raw.hardHit)} hard hit vs ${pct(raw.pitcherBarrel)} barrel / ${pct(raw.pitcherHardHit)} hard hit allowed${recentStrength > 0.35 ? ' + recent-contact modifier' : ''}`,
+      'contact');
+
+    // FAMILY 2: AIR-BALL SHAPE (max +1.75)
+    // Fly ball, pulled air and launch angle are blended once instead of stacking separate rewards.
+    const hitterAir =
+      pct01(raw.flyBall, 0.25, 0.48) * 0.40 +
+      pct01(raw.pullAir, 0.08, 0.28) * 0.35 +
+      rangePeak(raw.launchAngle, 7, 16, 27, 36) * 0.25;
+    const pitcherAir =
+      pct01(raw.pitcherFB, 0.27, 0.48) * 0.65 +
+      score01(cats.pitcher) * 0.35;
+    const airStrength = clamp01(Math.sqrt(clamp01(hitterAir) * clamp01(pitcherAir)));
+    const airBonus = 1.75 * airStrength;
+    add('Air-Ball Shape', airBonus,
+      `${pct(raw.flyBall)} FB / ${pct(raw.pullAir)} pulled air / ${num(raw.launchAngle)}° matched to ${pct(raw.pitcherFB)} pitcher FB allowed`,
+      'airBall');
+
+    // FAMILY 3: PITCH MATCHUP (max +2.00)
+    // Pitch Lab and Attack Zone remain distinct inputs, but they share one family ceiling.
+    const pitchLabStrength = score01(cats.pitchLevel);
+    const attackZoneStrength = score01(cats.attackZone);
+    const pitchStrength = clamp01((pitchLabStrength * 0.50) + (attackZoneStrength * 0.50));
+    const pitchBonus = 2.00 * pitchStrength;
+    add('Pitch Matchup', pitchBonus,
+      `Pitch Lab ${num(cats.pitchLevel,0)} + Attack Zone ${num(cats.attackZone,0)} combined under one matchup cap`,
+      'pitchMatchup');
+
+    // FAMILY 4: ENVIRONMENTAL AMPLIFIER (max +1.50)
+    // Environment can amplify an existing pull-air profile, but cannot trigger several separate bonuses.
+    const weatherStrength = clamp01(
+      Math.max(0, (weatherScore - 48) / 32) * 0.55 +
+      Math.max(0, Math.min(1, windPoints / 4)) * 0.30 +
+      Math.max(0, Math.min(1, (temp - 65) / 25)) * 0.15
+    );
+    const pullFenceStrength = n(raw.pullFence) === null ? 0.35 : clamp01((365 - n(raw.pullFence)) / 55);
+    const pullProfileStrength = pct01(raw.pullAir, 0.08, 0.28);
+    const environmentStrength = clamp01(weatherStrength * (0.55 + 0.25 * pullProfileStrength + 0.20 * pullFenceStrength));
+    const environmentBonus = 1.50 * environmentStrength;
+    add('Environmental Amplifier', environmentBonus,
+      `${num(weatherScore,0)} weather score / ${num(windPoints)} wind pts / ${Math.round(temp)}°F${n(raw.pullFence) !== null ? ` / ${num(raw.pullFence,0)} ft pull fence` : ''}`,
+      'environment');
+
+    const families = {
+      contact: Math.round(contactBonus * 100) / 100,
+      airBall: Math.round(airBonus * 100) / 100,
+      pitchMatchup: Math.round(pitchBonus * 100) / 100,
+      environment: Math.round(environmentBonus * 100) / 100
     };
 
-    // Main cross-bucket stacks. These are intentionally small micro bonuses, not new buckets.
-    if (n(raw.flyBall) >= 0.36 && n(raw.pitcherFB) >= 0.36 && (windPoints >= 0.75 || weatherScore >= 58)) {
-      const pts = (n(raw.flyBall) >= 0.43 && n(raw.pitcherFB) >= 0.43 && windPoints >= 2.5) ? 1.35 : 0.75;
-      add('Fly Ball Stack', pts, `${pct(raw.flyBall)} hitter FB + ${pct(raw.pitcherFB)} pitcher FB allowed + weather support (${num(windPoints)} wind pts)`);
-    }
-    if (n(raw.pullAir) >= 0.16 && n(raw.pullFence) && n(raw.pullFence) <= 340 && (windPoints >= 0.75 || weatherScore >= 58)) {
-      const pts = (n(raw.pullAir) >= 0.24 && windPoints >= 2.5 && n(raw.pullFence) <= 325) ? 2.25 : 1.10;
-      add('Pull-Air Park/Wind Stack', pts, `${pct(raw.pullAir)} pulled-air profile + ${num(raw.pullFence,0)} ft pull-side fence + today's environment`);
-    }
-    if (n(raw.barrel) >= 0.085 && n(raw.pitcherBarrel) >= 0.075) {
-      const pts = (n(raw.barrel) >= 0.13 && n(raw.pitcherBarrel) >= 0.105) ? 1.15 : 0.65;
-      add('Barrel Collision', pts, `${pct(raw.barrel)} hitter barrels + ${pct(raw.pitcherBarrel)} pitcher barrel allowed`);
-    }
-    if ((n(raw.hardHit) >= 0.40 || n(raw.ev90) >= 103) && (n(raw.pitcherHardHit) >= 0.38 || n(raw.pitcherEV90) >= 103)) {
-      const pts = (n(raw.hardHit) >= 0.48 && n(raw.pitcherHardHit) >= 0.45) ? 0.90 : 0.50;
-      add('EV Collision', pts, `hitter EV90/Max EV ${num(raw.ev90)}/${num(raw.maxEV)} vs pitcher EV allowed/EV90 ${num(raw.pitcherEV)}/${num(raw.pitcherEV90)}`);
-    }
-    if (n(raw.launchAngle) >= 12 && n(raw.launchAngle) <= 30 && temp >= 72 && (windPoints >= 0.75 || weatherScore >= 58)) {
-      const pts = (temp >= 85 && windPoints >= 2.5) ? 1.00 : 0.55;
-      add('Launch Carry', pts, `${num(raw.launchAngle)}° launch angle + ${Math.round(temp)}°F + environment support (${num(windPoints)} wind pts)`);
-    }
-    if ((n(raw.lwBarrel) >= 0.085 || n(raw.lwMaxEV) >= 107) && (n(raw.pitcherBarrel) >= 0.075 || n(raw.pitcherHardHit) >= 0.38)) {
-      const pts = (n(raw.lwBarrel) >= 0.13 && (n(raw.pitcherBarrel) >= 0.105 || n(raw.pitcherHardHit) >= 0.45)) ? 1.75 : 0.85;
-      add('Recent Contact vs Weak Pitcher', pts, `recent barrel/Max EV ${pct(raw.lwBarrel)}/${num(raw.lwMaxEV)} meets pitcher barrel/HH allowed ${pct(raw.pitcherBarrel)}/${pct(raw.pitcherHardHit)}`);
-    }
-    if (score(cats.power) >= 70 && score(cats.pitcher) >= 68) {
-      const pts = (score(cats.power) >= 82 && score(cats.pitcher) >= 78) ? 1.20 : 0.70;
-      add('Power vs Pitcher Weakness', pts, `Power ${num(cats.power,0)} aligns with Pitcher Vulnerability ${num(cats.pitcher,0)}`);
-    }
-    if (score(cats.battedBall) >= 68 && score(cats.pitcher) >= 68) {
-      add('Batted-Ball Matchup', 0.60, `Batted Ball ${num(cats.battedBall,0)} lines up with Pitcher Vulnerability ${num(cats.pitcher,0)}`);
-    }
-    if (score(cats.pitchLevel) >= 68 && score(cats.pitcher) >= 66) {
-      add('Pitch Lab Matchup', 1.00, `Pitch Lab ${num(cats.pitchLevel,0)} lines up with Pitcher Vulnerability ${num(cats.pitcher,0)}`);
-    }
-    if (score(cats.attackZone) >= 72 && score(cats.power) >= 64) {
-      const pts = score(cats.attackZone) >= 84 && score(cats.power) >= 76 ? 1.10 : 0.60;
-      add('Attack Zone Matchup', pts, `Attack Zone ${num(cats.attackZone,0)} puts hitter damage into pitcher locations`);
-    }
-    if (score(cats.power) >= 75 && score(cats.battedBall) >= 70 && score(cats.pitcher) >= 70 && (weatherScore >= 58 || windPoints >= 1.0)) {
-      const pts = (score(cats.power) >= 85 && score(cats.battedBall) >= 80 && score(cats.pitcher) >= 80 && weatherScore >= 68) ? 2.75 : 1.35;
-      add('Perfect Storm', pts, `Power ${num(cats.power,0)} + Batted Ball ${num(cats.battedBall,0)} + Pitcher ${num(cats.pitcher,0)} + Weather ${num(weatherScore,0)} all align`);
-    }
+    // Perfect Storm is a label only. The aligned families have already earned their points.
+    const perfectStorm =
+      families.contact >= 1.65 &&
+      families.airBall >= 1.20 &&
+      families.pitchMatchup >= 1.40 &&
+      families.environment >= 0.90;
 
-    const rawTotal = items.reduce((s,x) => s + x.points, 0);
+    const rawTotal = Object.values(families).reduce((s, x) => s + x, 0);
     const total = Math.min(rawTotal, DRL_SYNERGY_CAP);
-    return { items, rawTotal: Math.round(rawTotal * 100) / 100, total: Math.round(total * 100) / 100 };
+    return {
+      items,
+      families,
+      perfectStorm,
+      rawTotal: Math.round(rawTotal * 100) / 100,
+      total: Math.round(total * 100) / 100
+    };
   } catch (err) {
     console.warn('Micro synergy failed for', player && player.Name, err);
-    return { items: [], rawTotal: 0, total: 0 };
+    return { items: [], families: {}, perfectStorm: false, rawTotal: 0, total: 0 };
   }
 }
 function recalculateAllBBIScores() {
@@ -17002,34 +17056,116 @@ function getBacktestMetricConfidence(validCount, hitCount, missCount, totalRows)
 }
 function getSignalStats(rows, key, metric) {
   const valid = rows.filter(r => r[key] !== '' && r[key] !== null && r[key] !== undefined && isFinite(Number(r[key])));
-  const values = valid.map(r => ({ row: r, value: backtestMetricDisplayValue(Number(r[key]), metric) }))
+  const values = valid.map(r => ({
+      row: r,
+      value: backtestMetricDisplayValue(Number(r[key]), metric),
+      hr: Number(r.HR_Result) === 1 ? 1 : 0
+    }))
     .filter(x => x.value !== null && isFinite(x.value))
     .filter(x => !(key === 'Raw_maxEV' && (x.value < 80 || x.value > 130)));
-  const hits = values.filter(x => Number(x.row.HR_Result) === 1);
-  const misses = values.filter(x => Number(x.row.HR_Result) !== 1);
+
+  const hits = values.filter(x => x.hr === 1);
+  const misses = values.filter(x => x.hr !== 1);
   const hitAvg = mean(hits.map(x => x.value));
   const missAvg = mean(misses.map(x => x.value));
   const diff = (hitAvg !== null && missAvg !== null) ? hitAvg - missAvg : null;
+
   const overallStd = (() => {
-    const vals = values.map(x => x.value); const m = mean(vals); if (m === null || vals.length < 2) return null;
+    const vals = values.map(x => x.value);
+    const m = mean(vals);
+    if (m === null || vals.length < 2) return null;
     return Math.sqrt(vals.reduce((s,v)=>s+Math.pow(v-m,2),0)/(vals.length-1));
   })();
-  const strength = (diff !== null && overallStd && overallStd > 0) ? Math.abs(diff / overallStd) : 0;
+
+  const effectSize = (diff !== null && overallStd && overallStd > 0)
+    ? Math.abs(diff / overallStd)
+    : 0;
+
+  const sorted = values.slice().sort((a,b) => a.value - b.value);
+  const quintileSize = Math.max(1, Math.floor(sorted.length * 0.20));
+  const higherIsBetter = diff === null ? true : diff >= 0;
+  const weakGroup = higherIsBetter ? sorted.slice(0, quintileSize) : sorted.slice(-quintileSize);
+  const strongGroup = higherIsBetter ? sorted.slice(-quintileSize) : sorted.slice(0, quintileSize);
+  const groupHrRate = group => group.length ? (group.reduce((s,x)=>s+x.hr,0) / group.length) * 100 : null;
+  const weakHrRate = groupHrRate(weakGroup);
+  const strongHrRate = groupHrRate(strongGroup);
+  const hrRateGap = (strongHrRate !== null && weakHrRate !== null) ? strongHrRate - weakHrRate : 0;
+
+  const ranked = [];
+  let i = 0;
+  while (i < sorted.length) {
+    let j = i + 1;
+    while (j < sorted.length && sorted[j].value === sorted[i].value) j++;
+    const averageRank = ((i + 1) + j) / 2;
+    for (let k=i; k<j; k++) ranked.push({ rank: averageRank, hr: sorted[k].hr });
+    i = j;
+  }
+
+  const rankCorrelation = (() => {
+    if (ranked.length < 3) return 0;
+    const meanRank = mean(ranked.map(x => x.rank));
+    const meanHr = mean(ranked.map(x => x.hr));
+    let numerator = 0, rankSq = 0, hrSq = 0;
+    ranked.forEach(x => {
+      const dr = x.rank - meanRank;
+      const dh = x.hr - meanHr;
+      numerator += dr * dh;
+      rankSq += dr * dr;
+      hrSq += dh * dh;
+    });
+    if (!rankSq || !hrSq) return 0;
+    return numerator / Math.sqrt(rankSq * hrSq);
+  })();
+
+  const sampleComponent =
+    Math.min(1, values.length / 2500) * 0.60 +
+    Math.min(1, hits.length / 100) * 0.40;
+
+  const separationComponent = Math.max(0, Math.min(1, Math.abs(hrRateGap) / 12));
+  const effectComponent = Math.max(0, Math.min(1, effectSize / 0.50));
+  const rankComponent = Math.max(0, Math.min(1, Math.abs(rankCorrelation) / 0.20));
+
+  const predictiveness = Math.round(100 * (
+    separationComponent * 0.40 +
+    effectComponent * 0.25 +
+    rankComponent * 0.20 +
+    sampleComponent * 0.15
+  ));
+
+  const rating =
+    predictiveness >= 90 ? 'Elite HR Predictor' :
+    predictiveness >= 80 ? 'Excellent Predictor' :
+    predictiveness >= 70 ? 'Strong Predictor' :
+    predictiveness >= 60 ? 'Good Predictor' :
+    predictiveness >= 45 ? 'Moderate Predictor' :
+    predictiveness >= 30 ? 'Weak Predictor' :
+    'Minimal Signal';
+
   const confidence = getBacktestMetricConfidence(values.length, hits.length, misses.length, rows.length);
   const direction = diff === null ? '-' : diff > 0 ? 'Higher in HRs' : diff < 0 ? 'Lower in HRs' : 'No separation';
-  return { key, count: values.length, hitCount: hits.length, missCount: misses.length, hitRate: values.length ? (hits.length / values.length) * 100 : null, hitAvg, missAvg, diff, strength, confidence, direction, metric };
+
+  return {
+    key, count: values.length, hitCount: hits.length, missCount: misses.length,
+    hitRate: values.length ? (hits.length / values.length) * 100 : null,
+    hitAvg, missAvg, diff, effectSize, strongHrRate, weakHrRate, hrRateGap,
+    rankCorrelation, sampleComponent, strength: predictiveness,
+    predictiveness, rating, confidence, direction, metric
+  };
 }
+
 function getBacktestWeightCategories() {
   return [
     { cat:'power', label:'Hitter Power', key:'Category_Power', min:0.08, max:0.42 },
     { cat:'battedBall', label:'Batted Ball Shape', key:'Category_BattedBall', min:0.05, max:0.32 },
     { cat:'pitcher', label:'Pitcher Vulnerability', key:'Category_Pitcher', min:0.06, max:0.35 },
+    { cat:'pitchLevel', label:'Pitch Lab', key:'Category_PitchLab', min:0.03, max:0.20 },
     { cat:'attackZone', label:'Attack Zone', key:'Category_AttackZone', min:0.03, max:0.24 },
     { cat:'bvp', label:'BVP', key:'Category_BVP', min:0.00, max:0.18 },
     { cat:'weather', label:'Weather', key:'Category_Weather', min:0.00, max:0.14 },
     { cat:'park', label:'Park Factor', key:'Category_Park', min:0.00, max:0.10 }
   ];
 }
+
 function backtestNormalizeWeightsWithBounds(raw, cats, totalTarget) {
   const total = totalTarget || 1;
   const out = {};
@@ -17308,7 +17444,7 @@ function getSuggestedWeights(rows) {
 
     const cur = Number(current[meta.cat]) || 0;
     const sep = Number(stat.diff) || 0;
-    const strength = Number(stat.strength) || 0;
+    const strength = (Number(stat.strength) || 0) / 100;
     const conf = confidenceMult(stat.confidence);
 
     // Direction matters: if HR hitters score higher in this category, it earns weight.
@@ -17508,8 +17644,10 @@ function buildDynamicBacktestMetrics(rows, options={}) {
 function renderBacktestSignalRows(signals, limit=35) {
   return signals.slice(0, limit).map(s => {
     const cls = s.diff > 0 ? 'signal-positive' : s.diff < 0 ? 'signal-negative' : 'signal-neutral';
+    const gapCls = s.hrRateGap > 0 ? 'signal-positive' : s.hrRateGap < 0 ? 'signal-negative' : 'signal-neutral';
     const sign = s.diff > 0 ? '+' : '';
-    return `<tr><td>${s.label}</td><td>${s.type || '-'}</td><td>${s.count}</td><td>${s.hitCount}</td><td>${fmtBack(s.hitRate,2,'%')}</td><td>${fmtSignalValue(s.hitAvg, s.metric)}</td><td>${fmtSignalValue(s.missAvg, s.metric)}</td><td class="${cls}">${sign}${fmtSignalValue(s.diff, s.metric)}</td><td>${s.direction}</td><td>${fmtBack(s.strength,2)}</td><td>${s.confidence}</td></tr>`;
+    const gapSign = s.hrRateGap > 0 ? '+' : '';
+    return `<tr><td>${s.label}</td><td>${s.type || '-'}</td><td>${s.count}</td><td>${s.hitCount}</td><td>${fmtBack(s.hitRate,2,'%')}</td><td>${fmtSignalValue(s.hitAvg, s.metric)}</td><td>${fmtSignalValue(s.missAvg, s.metric)}</td><td class="${cls}">${sign}${fmtSignalValue(s.diff, s.metric)}</td><td>${s.direction}</td><td class="${gapCls}">${gapSign}${fmtBack(s.hrRateGap,2,'%')}</td><td><b>${Math.round(s.predictiveness || 0)}</b></td><td>${s.rating || '-'}</td><td>${s.confidence}</td></tr>`;
   }).join('');
 }
 
@@ -17680,7 +17818,7 @@ function optimizeBacktestRawStatWeights(rows, metrics) {
       const directionMult = sig.diff === 0 || sig.diff === null || sig.diff === undefined ? 0.25 : 1.0;
       // Strength is absolute HR/miss separation after metric formatting. This allows both higher-is-better
       // and lower-is-better raw inputs to be surfaced without changing live scoring.
-      rawScores[m.key] = Math.max(0, Number(sig.strength) || 0) * coverage * hrCoverage * confidenceMult * directionMult;
+      rawScores[m.key] = Math.max(0, (Number(sig.strength) || 0) / 100) * coverage * hrCoverage * confidenceMult * directionMult;
     });
 
     let suggested = normalizeStatWeights(rawScores, usable);
@@ -17721,8 +17859,10 @@ function optimizeBacktestRawStatWeights(rows, metrics) {
 function renderBacktestRawStatWeightRows(signals, limit=120) {
   return signals.slice(0, limit).map(s => {
     const cls = s.diff > 0 ? 'signal-positive' : s.diff < 0 ? 'signal-negative' : 'signal-neutral';
+    const gapCls = s.hrRateGap > 0 ? 'signal-positive' : s.hrRateGap < 0 ? 'signal-negative' : 'signal-neutral';
     const sign = s.diff > 0 ? '+' : '';
-    return `<tr><td>${s.label}</td><td>${s.type || '-'}</td><td>${s.bucket || '-'}</td><td>${s.count}</td><td>${s.hitCount}</td><td>${fmtBack(s.hitRate,2,'%')}</td><td>${fmtSignalValue(s.hitAvg, s.metric)}</td><td>${fmtSignalValue(s.missAvg, s.metric)}</td><td class="${cls}">${sign}${fmtSignalValue(s.diff, s.metric)}</td><td>${s.direction}</td><td>${fmtBack(s.strength,2)}</td><td>${s.confidence}</td></tr>`;
+    const gapSign = s.hrRateGap > 0 ? '+' : '';
+    return `<tr><td>${s.label}</td><td>${s.type || '-'}</td><td>${s.bucket || '-'}</td><td>${s.count}</td><td>${s.hitCount}</td><td>${fmtBack(s.hitRate,2,'%')}</td><td>${fmtSignalValue(s.hitAvg, s.metric)}</td><td>${fmtSignalValue(s.missAvg, s.metric)}</td><td class="${cls}">${sign}${fmtSignalValue(s.diff, s.metric)}</td><td>${s.direction}</td><td class="${gapCls}">${gapSign}${fmtBack(s.hrRateGap,2,'%')}</td><td><b>${Math.round(s.predictiveness || 0)}</b></td><td>${s.rating || '-'}</td><td>${s.confidence}</td></tr>`;
   }).join('');
 }
 
@@ -18079,17 +18219,9 @@ function renderPhase5Validation(rows) {
       <div class="backtest-kpi"><div class="backtest-kpi-label">Pitch Lab Top Quartile</div><div class="backtest-kpi-value">${fmtBack(pitch.topQuartile.rate,2,'%')}</div><div class="backtest-kpi-sub">${pitch.topQuartile.hrs}/${pitch.topQuartile.players} HR</div></div>
       <div class="backtest-kpi"><div class="backtest-kpi-label">Edge Top 10</div><div class="backtest-kpi-value">${fmtBack(edge.top10.rate,2,'%')}</div><div class="backtest-kpi-sub">Top 10 Edge per finalized slate</div></div>
       <div class="backtest-kpi"><div class="backtest-kpi-label">Long Odds +500</div><div class="backtest-kpi-value">${fmtBack(edge.longOdds.rate,2,'%')}</div><div class="backtest-kpi-sub">${edge.longOdds.hrs}/${edge.longOdds.players} HR</div></div>
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Daily Top 15 Volatility</div><div class="backtest-kpi-value">${fmtBack(vol.top15Std,2,'%')}</div><div class="backtest-kpi-sub">Std. deviation of slate Top-15 HR%</div></div>
     </div>
     <h2>🏁 Rank-Band Performance</h2>
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Rank Band</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg BBI</th><th>Avg Pitch Lab</th><th>Avg Raw Synergy</th></tr></thead><tbody>${bandRows}</tbody></table></div>
-    <h2>📏 Score Compression</h2>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Measure</th><th>Result</th><th>Meaning</th></tr></thead><tbody>
-      <tr><td>All adjacent ranks</td><td>${fmtBack(sep.avgAdjacent,3)}</td><td>Average BBI gap between neighboring players</td></tr>
-      <tr><td>Ranks 16-100 adjacent gap</td><td>${fmtBack(sep.avgAdjacent16to100,3)}</td><td>Direct measurement of the muddy middle</td></tr>
-      <tr><td>Rank 15 to Rank 16 gap</td><td>${fmtBack(sep.avgTop15To16,3)}</td><td>How sharply the proven top group separates</td></tr>
-      <tr><td>Rank 1 to Rank 100 spread</td><td>${fmtBack(sep.avgRank1To100,2)}</td><td>Total model-board stretch</td></tr>
-    </tbody></table></div>
     <h2>⚡ Synergy Distribution</h2>
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Raw Synergy</th><th>Players</th><th>HR</th><th>HR %</th></tr></thead><tbody>${synergyRows}</tbody></table></div>
     <p class="backtest-note">Average raw synergy: ${fmtBack(syn.avgRaw,2)}. Average applied synergy: ${fmtBack(syn.avgApplied,2)}. Raw synergy 5.0+ hit rate: ${fmtBack(syn.highRawRate.rate,2,'%')} (${syn.highRawRate.hrs}/${syn.highRawRate.players}).</p>
@@ -18104,17 +18236,7 @@ function renderPhase5Validation(rows) {
       <tr><td>Long odds +500 or longer</td><td>${edge.longOdds.players}</td><td>${edge.longOdds.hrs}</td><td>${fmtBack(edge.longOdds.rate,2,'%')}</td></tr>
       <tr><td>Long odds + positive Edge</td><td>${edge.longOddsPositive.players}</td><td>${edge.longOddsPositive.hrs}</td><td>${fmtBack(edge.longOddsPositive.rate,2,'%')}</td></tr>
     </tbody></table></div>
-    <h2>📅 Version Comparison</h2>
-    <p class="backtest-note">Rows are grouped by the model version frozen at finalization. This automatically compares old and new builds as the history grows. A version with no finalized rows cannot be reconstructed honestly after the fact.</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Model Version</th><th>Slates</th><th>Rows</th><th>Overall HR%</th><th>1-15</th><th>16-30</th><th>31-50</th><th>51-100</th><th>101+</th><th>16-100 Gap</th><th>Cap Rate</th><th>Edge Top 10</th></tr></thead><tbody>${versionRows || '<tr><td colspan="12">No version data.</td></tr>'}</tbody></table></div>
-    <h2>🌊 Daily Volatility</h2>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Measure</th><th>Std. Deviation</th></tr></thead><tbody>
-      <tr><td>Top 15 HR rate</td><td>${fmtBack(vol.top15Std,2,'%')}</td></tr>
-      <tr><td>Ranks 16-100 HR rate</td><td>${fmtBack(vol.middleStd,2,'%')}</td></tr>
-      <tr><td>Full-slate HR rate</td><td>${fmtBack(vol.overallStd,2,'%')}</td></tr>
-      <tr><td>Average Top-15 BBI</td><td>${fmtBack(vol.top15BBIStd,2)}</td></tr>
-    </tbody></table></div>
-    <p class="backtest-note"><b>Phase 6 audit:</b> compare this version against prior finalized builds for Top-15 retention, ranks 16-100 separation, rank-1-to-100 spread, and daily volatility. The curve remains open-ended and still uses the existing PA stabilization.</p>`;
+`;
 }
 
 function renderBacktestLab() {
@@ -18166,7 +18288,7 @@ function renderBacktestLab() {
     const stat = getSignalStats(weights.analysisRows || rows, weights.keyMap[cat], { format:'score' });
     const cls = delta > 0.75 ? 'signal-positive' : delta < -0.75 ? 'signal-negative' : 'signal-neutral';
     const sepCls = stat.diff > 0 ? 'signal-positive' : stat.diff < 0 ? 'signal-negative' : 'signal-neutral';
-    return `<tr><td>${meta.label}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(stat.hitAvg,2)}</td><td>${fmtBack(stat.missAvg,2)}</td><td class="${sepCls}">${stat.diff >= 0 ? '+' : ''}${fmtBack(stat.diff,2)}</td><td>${fmtBack(stat.strength,2)}</td><td>${weights.confidenceByCategory && weights.confidenceByCategory[cat] ? weights.confidenceByCategory[cat] : stat.confidence}</td></tr>`;
+    return `<tr><td>${meta.label}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(stat.hitAvg,2)}</td><td>${fmtBack(stat.missAvg,2)}</td><td class="${sepCls}">${stat.diff >= 0 ? '+' : ''}${fmtBack(stat.diff,2)}</td><td>${Math.round(stat.predictiveness || 0)}</td><td>${weights.confidenceByCategory && weights.confidenceByCategory[cat] ? weights.confidenceByCategory[cat] : stat.confidence}</td></tr>`;
   }).join('');
   const curPerf = weights.currentPerformance || {};
   const sugPerf = weights.suggestedPerformance || {};
@@ -18185,13 +18307,13 @@ function renderBacktestLab() {
       <div class="backtest-kpi"><div class="backtest-kpi-label">Finalized slates</div><div class="backtest-kpi-value">${slates}</div><div class="backtest-kpi-sub">Latest: ${latest ? new Date(latest.finalizedAt).toLocaleString() : '-'}</div></div>
       <div class="backtest-kpi"><div class="backtest-kpi-label">Player snapshots</div><div class="backtest-kpi-value">${rows.length.toLocaleString()}</div><div class="backtest-kpi-sub">Every scoring input frozen</div></div>
       <div class="backtest-kpi"><div class="backtest-kpi-label">HR winners marked</div><div class="backtest-kpi-value">${hrs}</div><div class="backtest-kpi-sub">Hit rate ${fmtBack(hitRate,2,'%')}</div></div>
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Strongest raw signal</div><div class="backtest-kpi-value" style="font-size:18px;">${strongestRaw ? strongestRaw.label : '-'}</div><div class="backtest-kpi-sub">Strength ${strongestRaw ? fmtBack(strongestRaw.strength,2) : '-'}</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Strongest raw signal</div><div class="backtest-kpi-value" style="font-size:18px;">${strongestRaw ? strongestRaw.label : '-'}</div><div class="backtest-kpi-sub">Predictiveness ${strongestRaw ? Math.round(strongestRaw.predictiveness || 0) + '/100' : '-'}</div></div>
     </div>
 
     ${renderPhase5Validation(rows)}
 
     <h2>🧠 Current vs Category-Signal Suggested Weights</h2>
-    <p class="backtest-note">Suggested weights now roll up directly from the Category Signal Board: HR Avg vs Miss Avg, Avg Separation, Signal Strength, and sample confidence. No separate category optimizer is used. Same history = same suggested weights. Reference-only: this never changes live BBI scoring or zone scoring.</p>
+    <p class="backtest-note">Suggested weights now roll up directly from the Category Signal Board: HR Avg vs Miss Avg, top-vs-bottom HR-rate separation, 0-100 Predictiveness, and sample confidence. No separate category optimizer is used. Same history = same suggested weights. Reference-only: this never changes live BBI scoring or zone scoring.</p>
     <div class="backtest-kpi-grid">
       <div class="backtest-kpi"><div class="backtest-kpi-label">Signal sample</div><div class="backtest-kpi-value">${Number(weights.usableRows || 0).toLocaleString()}</div><div class="backtest-kpi-sub">HR + Top ${weights.candidateRankCutoff || 60} candidates • HR rows: ${weights.hrCount} • ${weights.confidence}</div></div>
       <div class="backtest-kpi"><div class="backtest-kpi-label">Historical movement</div><div class="backtest-kpi-value">${fmtBack(weights.improvementPct,1,'%')}</div><div class="backtest-kpi-sub">Suggested vs current AUC check</div></div>
@@ -18199,15 +18321,15 @@ function renderBacktestLab() {
       <div class="backtest-kpi"><div class="backtest-kpi-label">Avg HR Rank</div><div class="backtest-kpi-value">${fmtBack(weights.suggestedPerformance.avgHrRank,1)}</div><div class="backtest-kpi-sub">Lower is better</div></div>
     </div>
     <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Tested System</th><th>HR Separation AUC</th><th>Top 5 HR%</th><th>Top 10 HR%</th><th>Top 25 HR%</th><th>Top 10 Lift</th><th>Avg HR Rank</th><th>Avg Rank %</th><th>NDCG</th></tr></thead><tbody>${optimizerSummaryRows}</tbody></table></div>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Category</th><th>Current Weight</th><th>Suggested Weight</th><th>Difference</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Separation</th><th>Signal Strength</th><th>Confidence</th></tr></thead><tbody>${weightRows}</tbody></table></div>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Category</th><th>Current Weight</th><th>Suggested Weight</th><th>Difference</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Separation</th><th>Predictiveness</th><th>Confidence</th></tr></thead><tbody>${weightRows}</tbody></table></div>
 
     <h2>📊 Category Signal Board</h2>
     <p class="backtest-note">This is only the broad model-category view. It explains how the major scoring buckets are separating HR hitters from misses, but it is not enough by itself to change weights.</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${categoryRows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before category signals are useful.</td></tr>'}</tbody></table></div>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Top/Bottom HR Gap</th><th>Predictiveness</th><th>Rating</th><th>Sample</th></tr></thead><tbody>${categoryRows || '<tr><td colspan="13" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before category signals are useful.</td></tr>'}</tbody></table></div>
 
     <h2>🔬 Individual Raw Stat Analysis</h2>
-    <p class="backtest-note">This shows only the individual stats that directly feed the live scoring buckets. Current/suggested raw-stat weights were removed because the raw-stat optimizer was creating misleading recommendations. Use this table as a clean signal audit: rows, HR rate, HR vs miss averages, direction, strength, and sample confidence.</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Bucket</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Difference</th><th>Direction</th><th>Strength</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
+    <p class="backtest-note">This shows only the individual stats that directly feed the live scoring buckets. Current/suggested raw-stat weights were removed because the raw-stat optimizer was creating misleading recommendations. Use this table as a clean signal audit. HR Avg, Miss Avg, and Avg Difference are unchanged. Predictiveness is a 0-100 blend of top-vs-bottom HR-rate separation (40%), standardized average difference (25%), rank correlation with HR results (20%), and sample confidence (15%).</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Bucket</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Difference</th><th>Direction</th><th>Top/Bottom HR Gap</th><th>Predictiveness ▼</th><th>Rating</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="14" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
   `;
   initSortableSignalTables(container);
   } catch (err) {
@@ -18540,13 +18662,6 @@ function bestThresholdText(rows, key) {
   return `${best.label} (${fmtBack(best.pct,1,'%')})`;
 }
 
-const phase3OriginalRenderBacktestLab = renderBacktestLab;
-renderBacktestLab = function() {
-  const result = phase3OriginalRenderBacktestLab.apply(this, arguments);
-  try { appendPhase3PitchLabReport(); } catch (err) { console.error('Phase 3 Pitch Lab report failed:', err); }
-  return result;
-};
-
 function renderBucketAnalytics() {
   const container = document.getElementById('bucketAnalyticsContainer');
   if (!container) return;
@@ -18591,6 +18706,8 @@ function renderBucketAnalytics() {
       </tbody></table></div>
     `;
     initSortableSignalTables(container);
+    try { appendPhase3PitchLabReport(); } catch (err) { console.error('Pitch Lab Bucket Analysis report failed:', err); }
+    try { if (typeof window.renderAttackZonePhaseDReport === 'function') window.renderAttackZonePhaseDReport(); } catch (err) { console.error('Zone Bucket Analysis report failed:', err); }
   } catch (err) {
     console.error('Bucket Analytics render failed:', err);
     container.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;line-height:1.45;"><b>Bucket Analytics error:</b> ${err && err.message ? err.message : err}<br><span style="color:var(--text-muted);">BBI Backtest data was not touched.</span></div>`;
@@ -18632,31 +18749,129 @@ function phase3Corr(rows, aKey, bKey) {
 }
 function phase3Band(rows, label, pred) { const g=rows.filter(pred), h=g.filter(r=>Number(r.HR_Result)===1).length; return {label,n:g.length,h,pct:g.length?h/g.length*100:null}; }
 function phase3PitchLabReportHTML() {
-  const rows=phase3Rows(); if(!rows.length) return '<div class="backtest-note">No Phase 3 Pitch Lab snapshots yet. Finalize a new slate to populate these diagnostics.</div>';
-  const hr=rows.filter(r=>Number(r.HR_Result)===1), no=rows.filter(r=>Number(r.HR_Result)!==1), base=phase3Pct(rows)||0;
-  const bands=[phase3Band(rows,'90+',r=>Number(r.PitchLab_Score)>=90),phase3Band(rows,'80–89',r=>Number(r.PitchLab_Score)>=80&&Number(r.PitchLab_Score)<90),phase3Band(rows,'70–79',r=>Number(r.PitchLab_Score)>=70&&Number(r.PitchLab_Score)<80),phase3Band(rows,'60–69',r=>Number(r.PitchLab_Score)>=60&&Number(r.PitchLab_Score)<70),phase3Band(rows,'50–59',r=>Number(r.PitchLab_Score)>=50&&Number(r.PitchLab_Score)<60),phase3Band(rows,'Under 50',r=>Number(r.PitchLab_Score)<50)];
-  const ranks=[phase3Band(rows,'Top 10',r=>Number(r.PitchLab_Slate_Rank)<=10),phase3Band(rows,'Top 25',r=>Number(r.PitchLab_Slate_Rank)<=25),phase3Band(rows,'Top 50',r=>Number(r.PitchLab_Slate_Rank)<=50),phase3Band(rows,'Full Slate',r=>true)];
-  const diamonds=rows.filter(r=>Number(r.Rank)>=16&&Number(r.Rank)<=100&&Number(r.PitchLab_Slate_Percentile)>=75);
-  const pitchMap={}; rows.forEach(r=>{const k=String(r.PitchLab_Top_Pitch_Key||r.PitchLab_Top_Pitch||'Unknown');(pitchMap[k]??=[]).push(r)});
-  const pitchRows=Object.entries(pitchMap).map(([k,g])=>({k,n:g.length,h:g.filter(r=>Number(r.HR_Result)===1).length,p:phase3Pct(g),u:phase3Avg(g,'PitchLab_Top_Pitch_Usage_Pct')})).sort((a,b)=>(b.p||0)-(a.p||0));
-  const daily={}; rows.forEach(r=>{const k=String(r.Slate_ID||r.Date||'Unknown');(daily[k]??=[]).push(r)}); const dailyRows=Object.entries(daily).slice(-20).reverse();
-  const cell=x=>x===null||x===undefined||!Number.isFinite(Number(x))?'-':Number(x).toFixed(1);
-  const bandRows=bands.map(x=>`<tr><td>${x.label}</td><td>${x.n}</td><td>${x.h}</td><td>${cell(x.p)}%</td><td>${x.p===null?'-':cell(x.p-base)} pts</td></tr>`).join('');
-  const rankRows=ranks.map(x=>`<tr><td>${x.label}</td><td>${x.n}</td><td>${x.h}</td><td>${cell(x.p)}%</td><td>${x.p===null?'-':cell(x.p-base)} pts</td></tr>`).join('');
-  const pRows=pitchRows.map(x=>`<tr><td>${x.k}</td><td>${x.n}</td><td>${x.h}</td><td>${cell(x.p)}%</td><td>${cell(x.u)}%</td></tr>`).join('');
-  const dRows=dailyRows.map(([k,g])=>`<tr><td>${k}</td><td>${g.length}</td><td>${g.filter(r=>Number(r.HR_Result)===1).length}</td><td>${cell(phase3Pct(g))}%</td><td>${cell(phase3Avg(g,'PitchLab_Score'))}</td></tr>`).join('');
-  return `<h2>🧪 Phase 3 Pitch Lab Backtesting</h2><div class="backtest-kpi-grid">
-    <div class="backtest-kpi"><div class="backtest-kpi-label">Pitch Lab snapshots</div><div class="backtest-kpi-value">${rows.length}</div><div class="backtest-kpi-sub">${Object.keys(daily).length} finalized slates</div></div>
-    <div class="backtest-kpi"><div class="backtest-kpi-label">HR vs Non-HR Avg</div><div class="backtest-kpi-value">${cell(phase3Avg(hr,'PitchLab_Score'))} / ${cell(phase3Avg(no,'PitchLab_Score'))}</div><div class="backtest-kpi-sub">Difference ${cell((phase3Avg(hr,'PitchLab_Score')||0)-(phase3Avg(no,'PitchLab_Score')||0))}</div></div>
-    <div class="backtest-kpi"><div class="backtest-kpi-label">Independent of Attack Zone</div><div class="backtest-kpi-value">${cell(phase3Corr(rows,'PitchLab_Score','AttackZone_Score'))}</div><div class="backtest-kpi-sub">Pitch Lab ↔ Attack Zone correlation</div></div>
-    <div class="backtest-kpi"><div class="backtest-kpi-label">16–100 Diamonds</div><div class="backtest-kpi-value">${diamonds.filter(r=>Number(r.HR_Result)===1).length}/${diamonds.length}</div><div class="backtest-kpi-sub">Top-quartile Pitch Lab percentile</div></div></div>
-    <h2>Pitch Lab Score Ranges</h2><div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Vs Baseline</th></tr></thead><tbody>${bandRows}</tbody></table></div>
-    <h2>Pitch Lab Slate Rank Groups</h2><div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Group</th><th>Players</th><th>HR</th><th>HR %</th><th>Vs Baseline</th></tr></thead><tbody>${rankRows}</tbody></table></div>
-    <h2>Top Favorable Pitch Results</h2><div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitch</th><th>Players</th><th>HR</th><th>HR %</th><th>Avg Usage</th></tr></thead><tbody>${pRows}</tbody></table></div>
-    <h2>Daily Pitch Lab Performance</h2><div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Slate</th><th>Players</th><th>HR</th><th>HR %</th><th>Avg Pitch Lab</th></tr></thead><tbody>${dRows}</tbody></table></div>`;
+  const rows=phase3Rows();
+  if(!rows.length) return '<div class="backtest-note">No Pitch Lab snapshots yet. Finalize a new slate to populate these diagnostics.</div>';
+
+  const hr=rows.filter(r=>Number(r.HR_Result)===1);
+  const no=rows.filter(r=>Number(r.HR_Result)!==1);
+  const base=phase3Pct(rows);
+  const daily={};
+  rows.forEach(r=>{const k=String(r.Slate_ID||r.Date||'Unknown');(daily[k]??=[]).push(r)});
+
+  const bands=[
+    phase3Band(rows,'90+',r=>Number(r.PitchLab_Score)>=90),
+    phase3Band(rows,'80–89',r=>Number(r.PitchLab_Score)>=80&&Number(r.PitchLab_Score)<90),
+    phase3Band(rows,'70–79',r=>Number(r.PitchLab_Score)>=70&&Number(r.PitchLab_Score)<80),
+    phase3Band(rows,'60–69',r=>Number(r.PitchLab_Score)>=60&&Number(r.PitchLab_Score)<70),
+    phase3Band(rows,'50–59',r=>Number(r.PitchLab_Score)>=50&&Number(r.PitchLab_Score)<60),
+    phase3Band(rows,'Under 50',r=>Number(r.PitchLab_Score)<50)
+  ];
+
+  const diamonds=rows.filter(r=>
+    Number(r.Rank)>=16 &&
+    Number(r.Rank)<=100 &&
+    Number(r.PitchLab_Slate_Percentile)>=75
+  );
+  const diamondHR=diamonds.filter(r=>Number(r.HR_Result)===1).length;
+  const diamondRate=diamonds.length ? diamondHR/diamonds.length*100 : null;
+
+  const pitchMap={};
+  rows.forEach(r=>{
+    const raw=String(r.PitchLab_Top_Pitch_Key||r.PitchLab_Top_Pitch||'').trim();
+    if(!raw || raw.toUpperCase()==='UNKNOWN') return;
+    (pitchMap[raw]??=[]).push(r);
+  });
+  const pitchRows=Object.entries(pitchMap)
+    .map(([k,g])=>({
+      k,n:g.length,h:g.filter(r=>Number(r.HR_Result)===1).length,
+      p:phase3Pct(g),u:phase3Avg(g,'PitchLab_Top_Pitch_Usage_Pct')
+    }))
+    .filter(x=>x.n>=5)
+    .sort((a,b)=>(b.p||0)-(a.p||0));
+
+  const dailyRows=Object.entries(daily).slice(-20).reverse();
+
+  const value=(v,d=1,s='') =>
+    v===null||v===undefined||!Number.isFinite(Number(v)) ? '-' : Number(v).toFixed(d)+s;
+  const lift=(pct) =>
+    pct===null||base===null||!Number.isFinite(Number(pct))||!Number.isFinite(Number(base))
+      ? '-'
+      : `${pct-base>=0?'+':''}${(pct-base).toFixed(1)} pts`;
+
+  const bandRows=bands.map(x=>`
+    <tr>
+      <td>${x.label}</td><td>${x.n}</td><td>${x.h}</td>
+      <td>${value(x.p,1,'%')}</td><td>${lift(x.p)}</td>
+    </tr>`).join('');
+
+  const pRows=pitchRows.length
+    ? pitchRows.map(x=>`
+      <tr><td>${x.k}</td><td>${x.n}</td><td>${x.h}</td>
+      <td>${value(x.p,1,'%')}</td><td>${value(x.u,1,'%')}</td></tr>`).join('')
+    : '<tr><td colspan="5">Not enough identified top-pitch samples yet.</td></tr>';
+
+  const dRows=dailyRows.map(([k,g])=>`
+    <tr><td>${k}</td><td>${g.length}</td>
+    <td>${g.filter(r=>Number(r.HR_Result)===1).length}</td>
+    <td>${value(phase3Pct(g),1,'%')}</td>
+    <td>${value(phase3Avg(g,'PitchLab_Score'),1)}</td></tr>`).join('');
+
+  const hrAvg=phase3Avg(hr,'PitchLab_Score');
+  const missAvg=phase3Avg(no,'PitchLab_Score');
+  const avgDiff=(hrAvg!==null&&missAvg!==null)?hrAvg-missAvg:null;
+
+  return `
+    <div class="bucket-research-block">
+      <h2>🧪 Pitch Lab Performance</h2>
+      <p class="backtest-note">Pitch Lab is evaluated independently from the final BBI score. Blank percentage placeholders have been removed; groups with no usable players now show a clean dash.</p>
+
+      <div class="backtest-kpi-grid">
+        <div class="backtest-kpi">
+          <div class="backtest-kpi-label">Pitch Lab snapshots</div>
+          <div class="backtest-kpi-value">${rows.length.toLocaleString()}</div>
+          <div class="backtest-kpi-sub">${Object.keys(daily).length} finalized slates</div>
+        </div>
+        <div class="backtest-kpi">
+          <div class="backtest-kpi-label">HR vs Non-HR Average</div>
+          <div class="backtest-kpi-value">${value(hrAvg,1)} / ${value(missAvg,1)}</div>
+          <div class="backtest-kpi-sub">Difference ${avgDiff===null?'-':`${avgDiff>=0?'+':''}${avgDiff.toFixed(1)}`}</div>
+        </div>
+        <div class="backtest-kpi">
+          <div class="backtest-kpi-label">16–100 Pitch Lab Diamonds</div>
+          <div class="backtest-kpi-value">${diamondHR}/${diamonds.length}</div>
+          <div class="backtest-kpi-sub">${value(diamondRate,1,'%')} HR rate • top-quartile Pitch Lab</div>
+        </div>
+      </div>
+
+      <h2>Pitch Lab Score Ranges</h2>
+      <div class="signal-table-wrapper">
+        <table class="signal-table">
+          <thead><tr><th>Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Vs Baseline</th></tr></thead>
+          <tbody>${bandRows}</tbody>
+        </table>
+      </div>
+
+      <h2>Top Favorable Pitch Results</h2>
+      <p class="backtest-note">Unknown pitch labels are excluded so this table only shows identified pitch types with at least five snapshots.</p>
+      <div class="signal-table-wrapper">
+        <table class="signal-table">
+          <thead><tr><th>Pitch</th><th>Players</th><th>HR</th><th>HR %</th><th>Avg Usage</th></tr></thead>
+          <tbody>${pRows}</tbody>
+        </table>
+      </div>
+
+      <h2>Daily Pitch Lab Performance</h2>
+      <div class="signal-table-wrapper">
+        <table class="signal-table">
+          <thead><tr><th>Slate</th><th>Players</th><th>HR</th><th>HR %</th><th>Avg Pitch Lab</th></tr></thead>
+          <tbody>${dRows}</tbody>
+        </table>
+      </div>
+    </div>`;
 }
+
 function appendPhase3PitchLabReport() {
-  const c=document.getElementById('backtestLabContainer'); if(!c)return;
+  const c=document.getElementById('bucketAnalyticsContainer'); if(!c)return;
   let box=document.getElementById('phase3PitchLabBacktestReport'); if(!box){box=document.createElement('div');box.id='phase3PitchLabBacktestReport';box.style.marginTop='26px';c.appendChild(box);} box.innerHTML=phase3PitchLabReportHTML();
   if(typeof initSortableSignalTables==='function')initSortableSignalTables(box);
 }
@@ -22000,51 +22215,112 @@ window.addEventListener('DOMContentLoaded', () => {
     const usable=rows.filter(r=>Number.isFinite(Number(r[key])));
     const hits=usable.filter(r=>Number(r.HR_Result)===1), misses=usable.filter(r=>Number(r.HR_Result)!==1);
     const avg=a=>a.length?a.reduce((s,r)=>s+Number(r[key]),0)/a.length:null;
-    const hitAvg=avg(hits), missAvg=avg(misses), corr=pearson(usable.map(r=>r[key]),usable.map(r=>Number(r.HR_Result)===1?1:0));
+    const hitAvg=avg(hits), missAvg=avg(misses);
+    const diff=(hitAvg!==null&&missAvg!==null)?hitAvg-missAvg:null;
+    const corr=pearson(usable.map(r=>r[key]),usable.map(r=>Number(r.HR_Result)===1?1:0));
+    const vals=usable.map(r=>Number(r[key]));
+    const meanVal=vals.length?vals.reduce((s,v)=>s+v,0)/vals.length:null;
+    const std=vals.length>1?Math.sqrt(vals.reduce((s,v)=>s+Math.pow(v-meanVal,2),0)/(vals.length-1)):null;
+    const effect=(diff!==null&&std)?Math.abs(diff/std):0;
+    const ordered=usable.slice().sort((a,b)=>Number(a[key])-Number(b[key]));
+    const q=Math.max(1,Math.floor(ordered.length*.20));
+    const higherBetter=diff===null?true:diff>=0;
+    const strong=higherBetter?ordered.slice(-q):ordered.slice(0,q);
+    const weak=higherBetter?ordered.slice(0,q):ordered.slice(-q);
+    const rate=g=>g.length?100*g.filter(r=>Number(r.HR_Result)===1).length/g.length:null;
+    const strongRate=rate(strong), weakRate=rate(weak);
+    const gap=(strongRate!==null&&weakRate!==null)?strongRate-weakRate:0;
+    const confidence=Math.min(1,usable.length/2500)*.60+Math.min(1,hits.length/100)*.40;
+    const predictiveness=Math.round(100*(
+      Math.min(1,Math.abs(gap)/12)*.40+
+      Math.min(1,effect/.50)*.25+
+      Math.min(1,Math.abs(corr||0)/.20)*.20+
+      confidence*.15
+    ));
+    const rating=predictiveness>=90?'Elite':predictiveness>=80?'Excellent':predictiveness>=70?'Strong':predictiveness>=60?'Good':predictiveness>=45?'Moderate':predictiveness>=30?'Weak':'Minimal';
     const subset=test?usable.filter(test):usable, sh=subset.filter(r=>Number(r.HR_Result)===1).length;
-    return {key,n:usable.length,hits:hits.length,hitAvg,missAvg,diff:(hitAvg!==null&&missAvg!==null)?hitAvg-missAvg:null,corr,subsetN:subset.length,subsetHR:sh,subsetRate:subset.length?100*sh/subset.length:null};
+    return {key,n:usable.length,hits:hits.length,hitAvg,missAvg,diff,corr,effect,strongRate,weakRate,gap,predictiveness,rating,subsetN:subset.length,subsetHR:sh,subsetRate:subset.length?100*sh/subset.length:null};
   }
   function fmt(v,d=2,s=''){return Number.isFinite(Number(v))?Number(v).toFixed(d)+s:'-';}
   function phaseDReport(){
-    const container=document.getElementById('backtestLabContainer'); if(!container||!window.getBacktestRows)return;
-    const rows=getBacktestRows(); if(!rows.length)return;
-    const available=rows.some(r=>Number.isFinite(Number(r.AttackZone_Zone1)));
+    const container=document.getElementById('bucketAnalyticsContainer');
+    if(!container||!window.getBacktestRows)return;
+    const rows=getBacktestRows();
     let box=document.getElementById('attackZonePhaseDReport');
-    if(!box){ box=document.createElement('div'); box.id='attackZonePhaseDReport'; container.appendChild(box); }
-    const base=buildAttackZoneLeagueBaselines(false);
-    const baselineRows=base.cells.slice().sort((a,b)=>(b.score||0)-(a.score||0)).map(c=>`<tr><td>${AZ_LABELS[c.family]} Z${c.zone}</td><td>${fmt(c.rate*100,3,'%')}</td><td>${(c.samples||0).toLocaleString()}</td><td>${fmt(c.score,1)}</td><td>${fmt((c.reliability||0)*100,0,'%')}</td></tr>`).join('');
-    if(!available){
-      box.innerHTML=`<h2>🎯 Attack Zone Phase C — Empirical 27-Cell Baselines</h2><p class="backtest-note">The live engine is now learning league HR danger from the uploaded workbook. Phase D historical diagnostics begin with the next finalized slate because older snapshots did not store all 27 cells.</p><div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitch / Zone</th><th>League HR Rate</th><th>Sample</th><th>Danger Score</th><th>Reliability</th></tr></thead><tbody>${baselineRows}</tbody></table></div>`;
+    if(!box){
+      box=document.createElement('div');
+      box.id='attackZonePhaseDReport';
+      box.style.marginTop='28px';
+      container.appendChild(box);
+    }
+    if(!rows.length){
+      box.innerHTML='<div class="backtest-note">No finalized Attack Zone snapshots yet.</div>';
       return;
     }
-    const zoneStats=[]; for(let z=1;z<=9;z++) zoneStats.push({label:`Zone ${z}`,...azStats(rows,`AttackZone_Zone${z}`,r=>Number(r.BBI_Rank||r.Rank)>30)});
+    const available=rows.some(r=>Number.isFinite(Number(r.AttackZone_Zone1)));
+    if(!available){
+      box.innerHTML='<h2>🎯 Zone & Pitch-Family Research</h2><p class="backtest-note">Historical 27-cell snapshots begin with finalized slates created after Attack Zone Phase D was enabled. The live model still uses the current zone engine.</p>';
+      return;
+    }
+
+    const zoneStats=[];
+    for(let z=1;z<=9;z++) zoneStats.push({label:`Zone ${z}`,...azStats(rows,`AttackZone_Zone${z}`,r=>Number(r.BBI_Rank||r.Rank)>30)});
+
     const famStats=AZ_FAMILIES.map(f=>{
       const keys=Array.from({length:9},(_,i)=>`AttackZone_${f}_Zone${i+1}`);
-      const synthetic=rows.map(r=>{const vals=keys.map(k=>Number(r[k])).filter(Number.isFinite);return {...r,__fam:vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null};});
+      const synthetic=rows.map(r=>{
+        const vals=keys.map(k=>Number(r[k])).filter(Number.isFinite);
+        return {...r,__fam:vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null};
+      });
       return {label:AZ_LABELS[f],...azStats(synthetic,'__fam',r=>Number(r.BBI_Rank||r.Rank)>30)};
     });
-    const zoneRows=zoneStats.sort((a,b)=>(b.corr||-9)-(a.corr||-9)).map(x=>`<tr><td>${x.label}</td><td>${x.n}</td><td>${fmt(x.hitAvg,1)}</td><td>${fmt(x.missAvg,1)}</td><td class="${(x.diff||0)>=0?'signal-positive':'signal-negative'}">${fmt(x.diff,2)}</td><td>${fmt(x.corr,3)}</td><td>${x.subsetHR}/${x.subsetN}</td><td>${fmt(x.subsetRate,1,'%')}</td></tr>`).join('');
-    const familyRows=famStats.sort((a,b)=>(b.corr||-9)-(a.corr||-9)).map(x=>`<tr><td>${x.label}</td><td>${x.n}</td><td>${fmt(x.hitAvg,1)}</td><td>${fmt(x.missAvg,1)}</td><td class="${(x.diff||0)>=0?'signal-positive':'signal-negative'}">${fmt(x.diff,2)}</td><td>${fmt(x.corr,3)}</td><td>${fmt(x.subsetRate,1,'%')}</td></tr>`).join('');
-    const cellStats=[]; for(const f of AZ_FAMILIES)for(let z=1;z<=9;z++){const st=azStats(rows,`AttackZone_${f}_Zone${z}`,r=>Number(r.BBI_Rank||r.Rank)>30);cellStats.push({label:`${AZ_LABELS[f]} Z${z}`,...st});}
-    const cellRows=cellStats.filter(x=>x.n>=8).sort((a,b)=>(b.corr||-9)-(a.corr||-9)).slice(0,15).map(x=>`<tr><td>${x.label}</td><td>${x.n}</td><td>${fmt(x.diff,2)}</td><td>${fmt(x.corr,3)}</td><td>${x.subsetHR}/${x.subsetN}</td><td>${fmt(x.subsetRate,1,'%')}</td></tr>`).join('');
+
+    const cellStats=[];
+    for(const f of AZ_FAMILIES)for(let z=1;z<=9;z++){
+      const st=azStats(rows,`AttackZone_${f}_Zone${z}`,r=>Number(r.BBI_Rank||r.Rank)>30);
+      cellStats.push({label:`${AZ_LABELS[f]} Z${z}`,...st});
+    }
+
+    const zoneRows=zoneStats
+      .sort((a,b)=>(b.predictiveness||0)-(a.predictiveness||0))
+      .map(x=>`<tr><td>${x.label}</td><td>${x.n}</td><td>${fmt(x.hitAvg,1)}</td><td>${fmt(x.missAvg,1)}</td><td class="${(x.diff||0)>=0?'signal-positive':'signal-negative'}">${fmt(x.diff,2)}</td><td>${fmt(x.gap,1,'%')}</td><td><b>${x.predictiveness}</b></td><td>${x.rating}</td><td>${x.subsetHR}/${x.subsetN}</td><td>${fmt(x.subsetRate,1,'%')}</td></tr>`).join('');
+
+    const familyRows=famStats
+      .sort((a,b)=>(b.predictiveness||0)-(a.predictiveness||0))
+      .map(x=>`<tr><td>${x.label}</td><td>${x.n}</td><td>${fmt(x.hitAvg,1)}</td><td>${fmt(x.missAvg,1)}</td><td class="${(x.diff||0)>=0?'signal-positive':'signal-negative'}">${fmt(x.diff,2)}</td><td>${fmt(x.gap,1,'%')}</td><td><b>${x.predictiveness}</b></td><td>${x.rating}</td><td>${fmt(x.subsetRate,1,'%')}</td></tr>`).join('');
+
+    const cellRows=cellStats
+      .filter(x=>x.n>=20)
+      .sort((a,b)=>(b.predictiveness||0)-(a.predictiveness||0))
+      .slice(0,15)
+      .map(x=>`<tr><td>${x.label}</td><td>${x.n}</td><td>${fmt(x.diff,2)}</td><td>${fmt(x.gap,1,'%')}</td><td><b>${x.predictiveness}</b></td><td>${x.rating}</td><td>${x.subsetHR}/${x.subsetN}</td><td>${fmt(x.subsetRate,1,'%')}</td></tr>`).join('');
+
     box.innerHTML=`
-      <h2>🎯 Attack Zone Phase C — Empirical 27-Cell Baselines</h2>
-      <p class="backtest-note">These values are recalculated from the active workbook. Higher danger scores mean that pitch-family/location cell has produced more league HR damage, with low-sample cells pulled toward the prior map.</p>
-      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitch / Zone</th><th>League HR Rate</th><th>Sample</th><th>Danger Score</th><th>Reliability</th></tr></thead><tbody>${baselineRows}</tbody></table></div>
-      <h2>📊 Phase D — Which Zones Predict Home Runs?</h2>
-      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Zone</th><th>N</th><th>HR Avg</th><th>Non-HR Avg</th><th>Separation</th><th>Correlation</th><th>Diamonds HR</th><th>Diamonds HR%</th></tr></thead><tbody>${zoneRows}</tbody></table></div>
-      <h2>⚾ Pitch-Family Signal</h2>
-      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Family</th><th>N</th><th>HR Avg</th><th>Non-HR Avg</th><th>Separation</th><th>Correlation</th><th>Ranks 31+ HR%</th></tr></thead><tbody>${familyRows}</tbody></table></div>
-      <h2>💎 Best Pitch/Zone Diamond Signals</h2>
-      <p class="backtest-note">Diamond rows are hitters ranked 31 or lower on the finalized slate. This table surfaces cells that identify winners outside the obvious top group.</p>
-      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitch / Zone</th><th>N</th><th>Separation</th><th>Correlation</th><th>Diamond HR</th><th>Diamond HR%</th></tr></thead><tbody>${cellRows||'<tr><td colspan="6">Need more finalized Phase D snapshots.</td></tr>'}</tbody></table></div>`;
+      <div class="bucket-research-block">
+        <h2>🎯 Zone Predictiveness</h2>
+        <p class="backtest-note">The old 27-cell developer baseline dump has been removed. This table now focuses on whether each zone has actually separated HR hitters from non-HR hitters.</p>
+        <div class="signal-table-wrapper"><table class="signal-table">
+          <thead><tr><th>Zone</th><th>N</th><th>HR Avg</th><th>Non-HR Avg</th><th>Avg Difference</th><th>Top/Bottom HR Gap</th><th>Predictiveness</th><th>Rating</th><th>Ranks 31+ HR</th><th>Ranks 31+ HR%</th></tr></thead>
+          <tbody>${zoneRows}</tbody>
+        </table></div>
+
+        <h2>⚾ Pitch-Family Predictiveness</h2>
+        <div class="signal-table-wrapper"><table class="signal-table">
+          <thead><tr><th>Family</th><th>N</th><th>HR Avg</th><th>Non-HR Avg</th><th>Avg Difference</th><th>Top/Bottom HR Gap</th><th>Predictiveness</th><th>Rating</th><th>Ranks 31+ HR%</th></tr></thead>
+          <tbody>${familyRows}</tbody>
+        </table></div>
+
+        <h2>💎 Best Pitch/Zone Diamond Signals</h2>
+        <p class="backtest-note">Only cells with at least 20 stored snapshots are shown. Diamond results use hitters ranked 31 or lower.</p>
+        <div class="signal-table-wrapper"><table class="signal-table">
+          <thead><tr><th>Pitch / Zone</th><th>N</th><th>Avg Difference</th><th>Top/Bottom HR Gap</th><th>Predictiveness</th><th>Rating</th><th>Diamond HR</th><th>Diamond HR%</th></tr></thead>
+          <tbody>${cellRows||'<tr><td colspan="8">Need more finalized Phase D snapshots.</td></tr>'}</tbody>
+        </table></div>
+      </div>`;
     if(typeof initSortableSignalTables==='function')initSortableSignalTables(box);
   }
+
   window.renderAttackZonePhaseDReport=phaseDReport;
-  if(typeof window.renderBacktestLab==='function'){
-    const prior=window.renderBacktestLab;
-    window.renderBacktestLab=function(){ const out=prior.apply(this,arguments); try{phaseDReport();}catch(e){console.error('Attack Zone Phase D failed',e);} return out; };
-  }
   // Clear baseline cache whenever a new workbook import rebuilds statSheetMaps.
   document.addEventListener('change',function(e){ if(e.target && e.target.type==='file'){ azLeagueCache=null; azLeagueFingerprint=''; window.zonePitcherOnlyCache={}; }},true);
 })();
