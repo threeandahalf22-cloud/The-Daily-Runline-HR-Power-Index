@@ -9885,12 +9885,21 @@ async function fetchLatestLiveSlate({apply=true,silent=false}={}){
       cache:'no-store'
     });
     if(!response.ok) throw new Error(`Live workbook download failed (${response.status}).`);
-    const blob=await response.blob();
-    if(!blob.size) throw new Error('The published workbook is empty.');
+    // Read the response once as an ArrayBuffer. Avoid response.blob() -> File ->
+    // file.arrayBuffer(), which temporarily keeps multiple copies of a large workbook
+    // in memory and can crash the browser before parsing begins.
+    const workbookBuffer=await response.arrayBuffer();
+    if(!workbookBuffer.byteLength) throw new Error('The published workbook is empty.');
     const fileName=meta.originalName||`Daily-Runline-Live.${meta.extension||'xlsx'}`;
-    const file=new File([blob],fileName,{type:meta.contentType||blob.type||workbookContentType({name:fileName}),lastModified:Date.now()});
+    const sharedWorkbookFile={
+      name:fileName,
+      size:workbookBuffer.byteLength,
+      type:meta.contentType||workbookContentType({name:fileName}),
+      lastModified:Date.now(),
+      arrayBuffer:async()=>workbookBuffer
+    };
     drlLoadingSharedWorkbook=true; drlPendingSharedMeta=meta;
-    handleFile({target:{files:[file],value:''}});
+    await handleFile({target:{files:[sharedWorkbookFile],value:''}});
     return meta;
   }catch(err){ drlLoadingSharedWorkbook=false; drlPendingSharedMeta=null; if(!silent) setLivePublishStatus(err.message||'Could not load the shared workbook.','warn'); return false; }
 }
@@ -9967,17 +9976,10 @@ setInterval(updateCountdown, 1000);
 setInterval(() => { if (!drlUsingSharedSlate && gameMatchups && gameMatchups.length) refreshOpenWeatherAndRerender(); }, 10 * 60 * 1000);
 document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalDirect(); });
 
-// Recovery mode: do not auto-download and parse the 63 MB shared workbook in every visitor's browser.
-// Manual workbook upload and cached local data remain available.
-updateLiveAdminUI(!!drlPublishToken);
-loadCachedData();
-setLivePublishStatus(
-  playerData.length
-    ? 'Cached workbook loaded. Automatic shared-workbook loading is temporarily disabled.'
-    : 'Site ready. Upload today’s workbook manually. Automatic shared-workbook loading is temporarily disabled.',
-  playerData.length ? 'good' : 'muted'
-);
-drlSplashRelease(playerData.length ? 'Cached workbook loaded' : 'Site ready — upload today’s workbook');
+// Load the latest shared Cloudflare workbook automatically.
+// The downloader now passes one ArrayBuffer directly into the parser to avoid
+// the previous Blob/File/ArrayBuffer duplication that exhausted browser memory.
+initializeLiveSlate();
 });
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
 function normalizeName(s) {
@@ -10234,7 +10236,9 @@ if (!drlLoadingSharedWorkbook) {
   drlPendingSharedMeta = null;
 }
 try {
-const data = new Uint8Array(await f.arrayBuffer());
+// Pass the original ArrayBuffer directly to SheetJS. Creating an additional
+// Uint8Array copy here can double peak memory for a large shared workbook.
+const data = await f.arrayBuffer();
 const workbook = XLSX.read(data, {type: 'array'});
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
