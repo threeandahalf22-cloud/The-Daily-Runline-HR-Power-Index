@@ -9817,12 +9817,12 @@ function drlSplashUpdateFromStatus(message){
 
 /* ========================= LIVE SHARED SLATE (CLOUDFLARE R2) ========================= */
 const DRL_PUBLIC_DATA_URL = 'https://data.dailyrunline.com';
-const DRL_PUBLISH_WORKER_URL = 'https://daily-runline-publisher.threeandahalf22.workers.dev';
+const DRL_PUBLISH_WORKER_URL = `${window.location.origin}/api`;
 const DRL_META_READ_URL = `${DRL_PUBLISH_WORKER_URL}/latest-workbook-meta.json`;
 const DRL_WORKBOOK_READ_URL = `${DRL_PUBLISH_WORKER_URL}/latest-workbook.xlsx`;
 const DRL_LATEST_WORKBOOK_PATH = 'latest-workbook.xlsx';
 const DRL_LATEST_META_PATH = 'latest-workbook-meta.json';
-const DRL_BUILD_VERSION = '70.2-cloudflare-r2-final-worker-read';
+const DRL_BUILD_VERSION = '70.2-cloudflare-same-origin-api';
 let drlPublishToken = sessionStorage.getItem('drlPublishToken') || '';
 let drlLoadedPublishedAt = '';
 let drlLivePollTimer = null;
