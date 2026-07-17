@@ -9816,13 +9816,11 @@ function drlSplashUpdateFromStatus(message){
 }
 
 /* ========================= LIVE SHARED SLATE (CLOUDFLARE R2) ========================= */
-const DRL_PUBLIC_DATA_URL = 'https://data.dailyrunline.com';
-const DRL_PUBLISH_WORKER_URL = `${window.location.origin}/api`;
-const DRL_META_READ_URL = `${DRL_PUBLISH_WORKER_URL}/latest-workbook-meta.json`;
-const DRL_WORKBOOK_READ_URL = `${DRL_PUBLISH_WORKER_URL}/latest-workbook.xlsx`;
+const DRL_PUBLISH_WORKER_URL = 'https://daily-runline-publisher.threeandahalf22.workers.dev';
+const DRL_PUBLIC_DATA_URL = DRL_PUBLISH_WORKER_URL;
 const DRL_LATEST_WORKBOOK_PATH = 'latest-workbook.xlsx';
 const DRL_LATEST_META_PATH = 'latest-workbook-meta.json';
-const DRL_BUILD_VERSION = '70.2-cloudflare-same-origin-api';
+const DRL_BUILD_VERSION = '70.2-worker-direct-final';
 let drlPublishToken = sessionStorage.getItem('drlPublishToken') || '';
 let drlLoadedPublishedAt = '';
 let drlLivePollTimer = null;
@@ -9858,7 +9856,7 @@ function buildWorkbookMeta(file){
 }
 async function fetchLatestWorkbookMeta({silent=false}={}){
   try{
-    const response=await fetch(`${DRL_META_READ_URL}?v=${Date.now()}`,{
+    const response=await fetch(`${DRL_PUBLISH_WORKER_URL}/${DRL_LATEST_META_PATH}?v=${Date.now()}`,{
       method:'GET',
       mode:'cors',
       credentials:'omit',
@@ -9880,7 +9878,7 @@ async function fetchLatestLiveSlate({apply=true,silent=false}={}){
     if(!meta) return false;
     if(!apply) return meta;
     setLivePublishStatus('Downloading today’s published workbook…');
-    const response=await fetch(`${DRL_WORKBOOK_READ_URL}?v=${encodeURIComponent(meta.publishedAt)}`,{
+    const response=await fetch(`${DRL_PUBLISH_WORKER_URL}/${DRL_LATEST_WORKBOOK_PATH}?v=${encodeURIComponent(meta.publishedAt)}`,{
       method:'GET',
       mode:'cors',
       credentials:'omit',
