@@ -9961,12 +9961,23 @@ async function reloadLatestLiveSlate(){
 }
 /* ======================= END LIVE SHARED SLATE ======================= */
 
-drlOnReady( async () => {
+drlOnReady(() => {
 updateDateDisplay();
 setInterval(updateCountdown, 1000);
 setInterval(() => { if (!drlUsingSharedSlate && gameMatchups && gameMatchups.length) refreshOpenWeatherAndRerender(); }, 10 * 60 * 1000);
 document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalDirect(); });
-await initializeLiveSlate();
+
+// Recovery mode: do not auto-download and parse the 63 MB shared workbook in every visitor's browser.
+// Manual workbook upload and cached local data remain available.
+updateLiveAdminUI(!!drlPublishToken);
+loadCachedData();
+setLivePublishStatus(
+  playerData.length
+    ? 'Cached workbook loaded. Automatic shared-workbook loading is temporarily disabled.'
+    : 'Site ready. Upload today’s workbook manually. Automatic shared-workbook loading is temporarily disabled.',
+  playerData.length ? 'good' : 'muted'
+);
+drlSplashRelease(playerData.length ? 'Cached workbook loaded' : 'Site ready — upload today’s workbook');
 });
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
 function normalizeName(s) {
