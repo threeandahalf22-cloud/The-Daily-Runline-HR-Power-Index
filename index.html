@@ -9819,9 +9819,10 @@ function drlSplashUpdateFromStatus(message){
 const DRL_PUBLIC_DATA_URL = 'https://data.dailyrunline.com';
 const DRL_PUBLISH_WORKER_URL = 'https://daily-runline-publisher.threeandahalf22.workers.dev';
 const DRL_META_READ_URL = `${DRL_PUBLISH_WORKER_URL}/latest-workbook-meta.json`;
+const DRL_WORKBOOK_READ_URL = `${DRL_PUBLISH_WORKER_URL}/latest-workbook.xlsx`;
 const DRL_LATEST_WORKBOOK_PATH = 'latest-workbook.xlsx';
 const DRL_LATEST_META_PATH = 'latest-workbook-meta.json';
-const DRL_BUILD_VERSION = '70.2-cloudflare-r2';
+const DRL_BUILD_VERSION = '70.2-cloudflare-r2-final-worker-read';
 let drlPublishToken = sessionStorage.getItem('drlPublishToken') || '';
 let drlLoadedPublishedAt = '';
 let drlLivePollTimer = null;
@@ -9857,12 +9858,21 @@ function buildWorkbookMeta(file){
 }
 async function fetchLatestWorkbookMeta({silent=false}={}){
   try{
-    const response=await fetch(`${DRL_META_READ_URL}?v=${Date.now()}`,{cache:'no-store'});
+    const response=await fetch(`${DRL_META_READ_URL}?v=${Date.now()}`,{
+      method:'GET',
+      mode:'cors',
+      credentials:'omit',
+      cache:'no-store'
+    });
     if(!response.ok){ if(response.status===404) return false; throw new Error(`Live slate metadata download failed (${response.status}).`); }
     const meta=await response.json();
     if(!meta || !meta.publishedAt) throw new Error('Published workbook metadata is invalid.');
     return meta;
-  }catch(err){ if(!silent) setLivePublishStatus(err.message||'Could not read the published slate.','warn'); return false; }
+  }catch(err){
+    window.__DRL_LIVE_ERROR__=String(err?.message||err||'Unknown Cloudflare read error');
+    setLivePublishStatus(`Cloudflare read failed: ${window.__DRL_LIVE_ERROR__}`,'bad');
+    return false;
+  }
 }
 async function fetchLatestLiveSlate({apply=true,silent=false}={}){
   try{
@@ -9870,10 +9880,12 @@ async function fetchLatestLiveSlate({apply=true,silent=false}={}){
     if(!meta) return false;
     if(!apply) return meta;
     setLivePublishStatus('Downloading today’s published workbook…');
-    let response=await fetch(`${publicLiveSlateUrl(DRL_LATEST_WORKBOOK_PATH)}?v=${encodeURIComponent(meta.publishedAt)}`,{cache:'no-cache'});
-    if(!response.ok){
-      response=await fetch(`${DRL_PUBLISH_WORKER_URL}/${DRL_LATEST_WORKBOOK_PATH}?v=${encodeURIComponent(meta.publishedAt)}`,{cache:'no-cache'});
-    }
+    const response=await fetch(`${DRL_WORKBOOK_READ_URL}?v=${encodeURIComponent(meta.publishedAt)}`,{
+      method:'GET',
+      mode:'cors',
+      credentials:'omit',
+      cache:'no-store'
+    });
     if(!response.ok) throw new Error(`Live workbook download failed (${response.status}).`);
     const blob=await response.blob();
     if(!blob.size) throw new Error('The published workbook is empty.');
@@ -9889,7 +9901,7 @@ async function initializeLiveSlate(){
   const loaded=await fetchLatestLiveSlate({apply:true,silent:true});
   if(!loaded){
     loadCachedData();
-    if(!playerData.length) setLivePublishStatus('No Cloudflare workbook has been published yet; local upload still works.','muted');
+    if(!playerData.length && !window.__DRL_LIVE_ERROR__) setLivePublishStatus('No Cloudflare workbook has been published yet; local upload still works.','muted');
     drlSplashRelease(playerData.length?'Cached workbook loaded':'Site ready');
   }
   drlLivePollTimer=setInterval(checkForNewLiveSlate,600000);
