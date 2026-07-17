@@ -7885,6 +7885,30 @@ body::after,
 .command-side-left .command-trading-card.command-pitcher-card .command-card-detail span{font-size:8px!important;color:#cbd5e1!important;line-height:1.1!important;margin-top:4px!important;}
 .command-side-left .command-trading-card.command-pitcher-card .command-tile-value{color:#ff3b3b!important;}
 
+
+/* ===== HOME TEAM DROPDOWN LAYERING FIX ===== */
+#tab-home .controls-bar{
+  position: relative !important;
+  z-index: 20000 !important;
+  overflow: visible !important;
+}
+#tab-home .controls-bar > .filter-group{
+  position: relative !important;
+  z-index: 1 !important;
+}
+#tab-home .controls-bar > .filter-group:has(.team-filter-future.open){
+  z-index: 20010 !important;
+}
+#tab-home .team-filter-future.open{
+  z-index: 20020 !important;
+}
+#tab-home .team-filter-future.open .team-logo-dropdown{
+  z-index: 20030 !important;
+  isolation: isolate;
+}
+#tab-home .home-rank-sort-group{
+  z-index: 1 !important;
+}
 </style>
 
 
@@ -8470,6 +8494,9 @@ body.drl-splash-active .container{visibility:hidden!important;}
       </div>
     </div>
     <div id="zoneProfileGrid" class="zone-card-grid"><div class="zone-empty">Upload workbook with BZ1-BZ9 and PZ1-PZ9 sheets to load zone profiles...</div></div>
+    <div style="display:flex;justify-content:center;margin:22px 0 4px;">
+      <button type="button" class="btn-blue" style="width:auto;min-width:240px;" onclick="exportZoneScoresToExcel()">Export Player Zone Scores</button>
+    </div>
   </div>
 </div>
 
@@ -20781,5 +20808,53 @@ drlOnReady(init);window.renderTeamEdgeCenter=renderTeam;window.renderNrfiCenter=
 
 
 
+
+<script id="drl-zone-score-export">
+function exportZoneScoresToExcel() {
+  try {
+    if (typeof XLSX === 'undefined') {
+      alert('Excel export library is not available.');
+      return;
+    }
+    const players = (Array.isArray(playerData) ? playerData : []).filter(p => p && !p.isRemoved && String(p.Name || '').trim());
+    if (!players.length) {
+      alert('No player data is loaded yet.');
+      return;
+    }
+
+    const rows = players.map(player => {
+      let profile = player.attackZoneProfile;
+      if (!profile || !Array.isArray(profile.zones)) {
+        profile = calculateAttackZoneProfile(player);
+        player.attackZoneProfile = profile;
+      }
+      const score = profile && profile.score !== null && profile.score !== undefined && Number.isFinite(Number(profile.score))
+        ? Number(Number(profile.score).toFixed(2))
+        : '';
+      return {
+        'Player Name': String(player.Name || '').trim(),
+        'Zone Score': score
+      };
+    }).sort((a, b) => {
+      const av = Number(a['Zone Score']);
+      const bv = Number(b['Zone Score']);
+      if (Number.isFinite(av) && Number.isFinite(bv)) return bv - av;
+      if (Number.isFinite(av)) return -1;
+      if (Number.isFinite(bv)) return 1;
+      return a['Player Name'].localeCompare(b['Player Name']);
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows, { header: ['Player Name', 'Zone Score'] });
+    ws['!cols'] = [{ wch: 28 }, { wch: 14 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Zone Scores');
+    const stamp = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `DRL_Zone_Scores_${stamp}.xlsx`);
+  } catch (error) {
+    console.error('Zone score export failed:', error);
+    alert('Unable to export zone scores. Check the browser console for details.');
+  }
+}
+</script>
 </body>
 </html>
