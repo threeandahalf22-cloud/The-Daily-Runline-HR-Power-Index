@@ -9,7 +9,6 @@
      Attack Zone 20, BvP 8, Weather 3, Park 2. Synergy cap: +7.50.
      Consolidation: Phases 2-4 preserved; unused CSS selectors with no HTML or JavaScript references removed; dynamic modifiers and cascade order preserved. -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="drl-phase4-ready-dispatcher">
 (function(){
   'use strict';
@@ -8704,12 +8703,11 @@ body.drl-splash-active .container{visibility:hidden!important;}
     <div class="manual-player-status" id="manualPlayerStatus">Uses the hitter’s existing workbook metrics and the selected team’s current matchup.</div>
   </div>
   <div class="live-publish-panel" id="livePublishPanel">
-    <input class="live-publish-input" id="liveAdminEmail" type="text" inputmode="email" placeholder="Admin email" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" aria-label="Admin email">
-    <input class="live-publish-input" id="liveAdminPassword" type="password" placeholder="Supabase admin password" autocomplete="current-password" aria-label="Admin password">
-    <button class="live-publish-btn secondary" id="liveLoginBtn" type="button" onclick="liveSlateSignIn()">Admin Login</button>
+    <input class="live-publish-input" id="liveAdminPassword" type="password" placeholder="Cloudflare publish token" autocomplete="current-password" aria-label="Cloudflare publish token">
+    <button class="live-publish-btn secondary" id="liveLoginBtn" type="button" onclick="liveSlateSignIn()">Unlock Publishing</button>
     <button class="live-publish-btn" id="livePublishBtn" type="button" onclick="publishLiveSlate()" disabled>🔴 Publish Live Slate</button>
-    <button class="live-publish-btn secondary" id="liveLogoutBtn" type="button" onclick="liveSlateSignOut()" style="display:none">Log Out</button>
-    <div class="live-publish-status" id="livePublishStatus">Shared slate connection is not configured yet.</div>
+    <button class="live-publish-btn secondary" id="liveLogoutBtn" type="button" onclick="liveSlateSignOut()" style="display:none">Lock Publishing</button>
+    <div class="live-publish-status" id="livePublishStatus">Loading the published Cloudflare workbook…</div>
   </div>
 </div>
 <div class="live-update-toast" id="liveUpdateToast"><span>🔴 New slate available</span><button class="live-publish-btn" type="button" onclick="reloadLatestLiveSlate()">Refresh</button></div>
@@ -9817,15 +9815,13 @@ function drlSplashUpdateFromStatus(message){
   }
 }
 
-/* ========================= LIVE SHARED SLATE (SUPABASE) ========================= */
-const DRL_SUPABASE_URL = 'https://fgditxwtppcmzgezgvun.supabase.co';
-const DRL_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_COrEVU2pb2Wa784ql7q1_w_iawkJoC8";
-const DRL_SLATE_BUCKET = 'daily-slates';
+/* ========================= LIVE SHARED SLATE (CLOUDFLARE R2) ========================= */
+const DRL_PUBLIC_DATA_URL = 'https://data.dailyrunline.com';
+const DRL_PUBLISH_WORKER_URL = 'https://daily-runline-publisher.threeandahalf22.workers.dev';
 const DRL_LATEST_WORKBOOK_PATH = 'latest-workbook.xlsx';
 const DRL_LATEST_META_PATH = 'latest-workbook-meta.json';
-const DRL_WORKBOOK_CHUNK_BYTES = 4 * 1024 * 1024; // 4 MB per Supabase object
-const DRL_BUILD_VERSION = '51.48-workbook-live-mirror';
-let drlSupabase = null;
+const DRL_BUILD_VERSION = '70.2-cloudflare-r2';
+let drlPublishToken = sessionStorage.getItem('drlPublishToken') || '';
 let drlLoadedPublishedAt = '';
 let drlLivePollTimer = null;
 let drlUsingSharedSlate = false;
@@ -9833,9 +9829,7 @@ let drlOriginalWorkbookFile = null;
 let drlLoadingSharedWorkbook = false;
 let drlPendingSharedMeta = null;
 
-function liveSlateConfigured(){
-  return DRL_SUPABASE_PUBLISHABLE_KEY && !DRL_SUPABASE_PUBLISHABLE_KEY.includes('PASTE_YOUR');
-}
+function liveSlateConfigured(){ return true; }
 function setLivePublishStatus(message, tone='muted'){
   drlSplashUpdateFromStatus(message);
   const el=document.getElementById('livePublishStatus');
@@ -9844,7 +9838,7 @@ function setLivePublishStatus(message, tone='muted'){
   el.style.color=tone==='good'?'#86efac':tone==='bad'?'#fca5a5':tone==='warn'?'#fde68a':'#94a3b8';
 }
 function publicLiveSlateUrl(path){
-  return `${DRL_SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(DRL_SLATE_BUCKET)}/${path.split('/').map(encodeURIComponent).join('/')}`;
+  return `${DRL_PUBLIC_DATA_URL}/${String(path||'').split('/').map(encodeURIComponent).join('/')}`;
 }
 function workbookContentType(file){
   const name=String(file?.name||'').toLowerCase();
@@ -9856,195 +9850,89 @@ function workbookExtension(file){
   const match=String(file?.name||'').toLowerCase().match(/\.(xlsx|xls|csv)$/);
   return match ? match[1] : 'xlsx';
 }
-function buildWorkbookMeta(file, chunkPaths=[]){
+function buildWorkbookMeta(file){
   const now=new Date();
-  return {
-    schemaVersion:3,
-    publishMode:'chunked-original-workbook',
-    buildVersion:DRL_BUILD_VERSION,
-    publishedAt:now.toISOString(),
-    slateDate:now.toISOString().slice(0,10),
-    originalName:file.name || 'HR Model.xlsx',
-    extension:workbookExtension(file),
-    contentType:workbookContentType(file),
-    size:file.size || 0,
-    chunkSize:DRL_WORKBOOK_CHUNK_BYTES,
-    chunkCount:chunkPaths.length,
-    chunks:chunkPaths,
-    publisher:'cmitchell303@gmail.com'
-  };
+  return {schemaVersion:4,publishMode:'cloudflare-r2',buildVersion:DRL_BUILD_VERSION,publishedAt:now.toISOString(),slateDate:now.toISOString().slice(0,10),originalName:file.name||'HR Model.xlsx',extension:workbookExtension(file),contentType:workbookContentType(file),size:file.size||0};
 }
 async function fetchLatestWorkbookMeta({silent=false}={}){
   try{
-    const response=await fetch(publicLiveSlateUrl(DRL_LATEST_META_PATH),{cache:'no-cache'});
+    const response=await fetch(`${publicLiveSlateUrl(DRL_LATEST_META_PATH)}?v=${Date.now()}`,{cache:'no-cache'});
     if(!response.ok){ if(response.status===404) return false; throw new Error(`Live slate metadata download failed (${response.status}).`); }
     const meta=await response.json();
-    if(!meta || ![2,3].includes(meta.schemaVersion) || !meta.publishedAt) throw new Error('Published workbook metadata is invalid.');
+    if(!meta || !meta.publishedAt) throw new Error('Published workbook metadata is invalid.');
     return meta;
-  }catch(err){
-    if(!silent) setLivePublishStatus(err.message||'Could not read the published slate.','warn');
-    return false;
-  }
-}
-async function downloadChunkedWorkbook(meta){
-  if(!Array.isArray(meta.chunks) || !meta.chunks.length) throw new Error('Published workbook chunk list is missing.');
-  const total=meta.chunks.length;
-  const parts=new Array(total);
-  let received=0;
-  let completed=0;
-  let nextIndex=0;
-  const concurrency=Math.min(6,total);
-  setLivePublishStatus(`Live workbook loaded 0/${total}`);
-
-  async function worker(){
-    while(true){
-      const i=nextIndex++;
-      if(i>=total) return;
-      const response=await fetch(`${publicLiveSlateUrl(meta.chunks[i])}?v=${encodeURIComponent(meta.publishedAt)}`,{cache:'force-cache'});
-      if(!response.ok) throw new Error(`Workbook chunk ${i+1} download failed (${response.status}).`);
-      const part=await response.blob();
-      if(!part.size) throw new Error(`Workbook chunk ${i+1} is empty.`);
-      parts[i]=part;
-      received += part.size;
-      completed += 1;
-      setLivePublishStatus(`Live workbook loaded ${completed}/${total}`);
-    }
-  }
-
-  await Promise.all(Array.from({length:concurrency},worker));
-  if(meta.size && received!==meta.size) throw new Error(`Workbook download was incomplete (${received} of ${meta.size} bytes).`);
-  return new Blob(parts,{type:meta.contentType||'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  }catch(err){ if(!silent) setLivePublishStatus(err.message||'Could not read the published slate.','warn'); return false; }
 }
 async function fetchLatestLiveSlate({apply=true,silent=false}={}){
   try{
     const meta=await fetchLatestWorkbookMeta({silent});
     if(!meta) return false;
     if(!apply) return meta;
-
-    let blob;
-    if(meta.schemaVersion===3){
-      blob=await downloadChunkedWorkbook(meta);
-    }else{
-      setLivePublishStatus('Downloading today’s published workbook…');
-      const response=await fetch(`${publicLiveSlateUrl(DRL_LATEST_WORKBOOK_PATH)}?v=${encodeURIComponent(meta.publishedAt)}`,{cache:'force-cache'});
-      if(!response.ok) throw new Error(`Live workbook download failed (${response.status}).`);
-      blob=await response.blob();
-    }
+    setLivePublishStatus('Downloading today’s published workbook…');
+    const response=await fetch(`${publicLiveSlateUrl(DRL_LATEST_WORKBOOK_PATH)}?v=${encodeURIComponent(meta.publishedAt)}`,{cache:'force-cache'});
+    if(!response.ok) throw new Error(`Live workbook download failed (${response.status}).`);
+    const blob=await response.blob();
     if(!blob.size) throw new Error('The published workbook is empty.');
-
-    const fileName=meta.originalName || `Daily-Runline-Live.${meta.extension||'xlsx'}`;
+    const fileName=meta.originalName||`Daily-Runline-Live.${meta.extension||'xlsx'}`;
     const file=new File([blob],fileName,{type:meta.contentType||blob.type||workbookContentType({name:fileName}),lastModified:Date.now()});
-    drlLoadingSharedWorkbook=true;
-    drlPendingSharedMeta=meta;
+    drlLoadingSharedWorkbook=true; drlPendingSharedMeta=meta;
     handleFile({target:{files:[file],value:''}});
     return meta;
-  }catch(err){
-    drlLoadingSharedWorkbook=false;
-    drlPendingSharedMeta=null;
-    if(!silent) setLivePublishStatus(err.message||'Could not load the shared workbook.','warn');
-    return false;
-  }
+  }catch(err){ drlLoadingSharedWorkbook=false; drlPendingSharedMeta=null; if(!silent) setLivePublishStatus(err.message||'Could not load the shared workbook.','warn'); return false; }
 }
 async function initializeLiveSlate(){
-  if(liveSlateConfigured() && window.supabase){
-    drlSupabase=window.supabase.createClient(DRL_SUPABASE_URL,DRL_SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-    const {data}=await drlSupabase.auth.getSession();
-    updateLiveAdminUI(data&&data.session?data.session:null);
-  } else {
-    setLivePublishStatus('Paste the Supabase publishable key into the HTML to enable login and publishing.','warn');
-  }
+  updateLiveAdminUI(!!drlPublishToken);
   const loaded=await fetchLatestLiveSlate({apply:true,silent:true});
   if(!loaded){
     loadCachedData();
-    if(!playerData.length) setLivePublishStatus(liveSlateConfigured()?'No live workbook has been published yet.':'No live slate loaded; local upload still works.','muted');
+    if(!playerData.length) setLivePublishStatus('No Cloudflare workbook has been published yet; local upload still works.','muted');
     drlSplashRelease(playerData.length?'Cached workbook loaded':'Site ready');
   }
-  if(liveSlateConfigured()) drlLivePollTimer=setInterval(checkForNewLiveSlate,60000);
+  drlLivePollTimer=setInterval(checkForNewLiveSlate,600000);
 }
-function updateLiveAdminUI(session){
-  const signed=!!session;
+function updateLiveAdminUI(signed){
   const pub=document.getElementById('livePublishBtn'), login=document.getElementById('liveLoginBtn'), logout=document.getElementById('liveLogoutBtn');
   if(pub) pub.disabled=!signed;
   if(login) login.style.display=signed?'none':'';
   if(logout) logout.style.display=signed?'':'none';
-  if(signed) setLivePublishStatus(`Admin signed in as ${session.user.email}. Upload today’s workbook, review it, then publish.`,'good');
+  document.getElementById('publishTeamWorkbookBtn')?.toggleAttribute('data-publishing-unlocked',signed);
+  document.getElementById('publishNrfiWorkbookBtn')?.toggleAttribute('data-publishing-unlocked',signed);
+  if(signed) setLivePublishStatus('Cloudflare publishing unlocked. Upload a workbook, review it, then publish.','good');
+}
+async function cloudflarePublish(path,file,meta=null){
+  if(!drlPublishToken) throw new Error('Enter the Cloudflare publish token and unlock publishing first.');
+  const headers={'Authorization':`Bearer ${drlPublishToken}`,'Content-Type':workbookContentType(file),'X-DRL-Filename':encodeURIComponent(file.name||path)};
+  if(meta) headers['X-DRL-Meta']=btoa(unescape(encodeURIComponent(JSON.stringify(meta))));
+  const response=await fetch(`${DRL_PUBLISH_WORKER_URL}/publish/${encodeURIComponent(path)}`,{method:'PUT',headers,body:file});
+  let payload={}; try{ payload=await response.json(); }catch(_e){}
+  if(!response.ok) throw new Error(payload.error||`Cloudflare publish failed (${response.status}).`);
+  return payload;
 }
 async function liveSlateSignIn(){
-  if(!drlSupabase){ setLivePublishStatus('Supabase publishable key is not configured.','bad'); return; }
-  const email=(document.getElementById('liveAdminEmail')?.value||'').trim();
   const password=document.getElementById('liveAdminPassword')?.value||'';
-  const btn=document.getElementById('liveLoginBtn');
-  try{
-    if(btn) btn.disabled=true;
-    setLivePublishStatus('Signing in…');
-    const {data,error}=await drlSupabase.auth.signInWithPassword({email,password});
-    if(error) throw error;
-    updateLiveAdminUI(data.session);
-    const pw=document.getElementById('liveAdminPassword'); if(pw) pw.value='';
-  }catch(err){ setLivePublishStatus(`Login failed: ${err.message}`,'bad'); }
-  finally{ if(btn) btn.disabled=false; }
+  if(!password.trim()){ setLivePublishStatus('Enter the Cloudflare publish token.','bad'); return; }
+  drlPublishToken=password.trim(); sessionStorage.setItem('drlPublishToken',drlPublishToken);
+  const pw=document.getElementById('liveAdminPassword'); if(pw) pw.value='';
+  updateLiveAdminUI(true);
 }
 async function liveSlateSignOut(){
-  if(!drlSupabase) return;
-  await drlSupabase.auth.signOut();
-  updateLiveAdminUI(null);
-  setLivePublishStatus('Admin logged out. Public viewing remains active.');
+  drlPublishToken=''; sessionStorage.removeItem('drlPublishToken'); updateLiveAdminUI(false);
+  setLivePublishStatus('Publishing locked. Public viewing remains active.');
 }
 async function publishLiveSlate(){
-  if(!drlSupabase){ setLivePublishStatus('Supabase is not configured.','bad'); return; }
   const btn=document.getElementById('livePublishBtn');
   try{
     if(btn) btn.disabled=true;
     if(!drlOriginalWorkbookFile) throw new Error('Upload today’s Excel workbook before publishing.');
-    if(!Array.isArray(playerData) || !playerData.length) throw new Error('Wait for the workbook to finish loading before publishing.');
-
-    const file=drlOriginalWorkbookFile;
-    const sizeMB=file.size/1024/1024;
-    const publishId=`workbooks/${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
-    const chunkCount=Math.ceil(file.size/DRL_WORKBOOK_CHUNK_BYTES);
-    const chunkPaths=[];
-
-    chunkPaths.length=chunkCount;
-    let uploadedCount=0;
-    let nextUploadIndex=0;
-    const uploadConcurrency=Math.min(4,chunkCount);
-    async function uploadWorker(){
-      while(true){
-        const i=nextUploadIndex++;
-        if(i>=chunkCount) return;
-        const begin=i*DRL_WORKBOOK_CHUNK_BYTES;
-        const finish=Math.min(file.size,begin+DRL_WORKBOOK_CHUNK_BYTES);
-        const chunk=file.slice(begin,finish,'application/octet-stream');
-        const path=`${publishId}/chunk-${String(i+1).padStart(4,'0')}.bin`;
-        const result=await drlSupabase.storage.from(DRL_SLATE_BUCKET).upload(path,chunk,{contentType:'application/octet-stream',cacheControl:'31536000',upsert:false});
-        if(result.error) throw result.error;
-        chunkPaths[i]=path;
-        uploadedCount += 1;
-        setLivePublishStatus(`Uploading workbook chunk ${uploadedCount}/${chunkCount} (${sizeMB.toFixed(2)} MB total)…`);
-      }
-    }
-    await Promise.all(Array.from({length:uploadConcurrency},uploadWorker));
-
-    const meta=buildWorkbookMeta(file,chunkPaths);
-    const metaBlob=new Blob([JSON.stringify(meta)],{type:'application/json'});
-    const metaResult=await drlSupabase.storage.from(DRL_SLATE_BUCKET).upload(
-      DRL_LATEST_META_PATH,
-      metaBlob,
-      {contentType:'application/json',cacheControl:'30',upsert:true}
-    );
-    if(metaResult.error) throw metaResult.error;
-
-    drlLoadedPublishedAt=meta.publishedAt;
-    setLivePublishStatus(`✓ Live workbook published in ${chunkCount} parts • ${new Date(meta.publishedAt).toLocaleString()} • ${sizeMB.toFixed(2)} MB`,'good');
-    const title=document.getElementById('uploadFileName');
-    if(title) title.innerHTML=`${file.name} <span class="live-slate-badge">LIVE</span>`;
-  }catch(err){
-    console.error('Live workbook publish failed:',err);
-    setLivePublishStatus(`Publish failed: ${err.message}`,'bad');
-  }finally{
-    const {data}=drlSupabase?await drlSupabase.auth.getSession():{data:{session:null}};
-    if(btn) btn.disabled=!(data&&data.session);
-  }
+    if(!Array.isArray(playerData)||!playerData.length) throw new Error('Wait for the workbook to finish loading before publishing.');
+    const file=drlOriginalWorkbookFile, meta=buildWorkbookMeta(file), sizeMB=file.size/1024/1024;
+    setLivePublishStatus(`Publishing ${sizeMB.toFixed(2)} MB to Cloudflare R2…`);
+    const published=await cloudflarePublish(DRL_LATEST_WORKBOOK_PATH,file,meta);
+    drlLoadedPublishedAt=published.publishedAt||meta.publishedAt;
+    setLivePublishStatus(`✓ Live workbook published • ${new Date(drlLoadedPublishedAt).toLocaleString()} • ${sizeMB.toFixed(2)} MB`,'good');
+    const title=document.getElementById('uploadFileName'); if(title) title.innerHTML=`${file.name} <span class="live-slate-badge">LIVE</span>`;
+  }catch(err){ console.error('Live workbook publish failed:',err); setLivePublishStatus(`Publish failed: ${err.message}`,'bad'); }
+  finally{ if(btn) btn.disabled=!drlPublishToken; }
 }
 async function checkForNewLiveSlate(){
   if(document.hidden) return;
@@ -20318,11 +20206,11 @@ function num(v){if(typeof v==='number'&&Number.isFinite(v))return v;const n=pars
 const fmt=(v,d=1)=>Number.isFinite(v)?Number(v).toFixed(d):'--';
 const odds=v=>{const n=num(v);return n===null?'--':(n>0?`+${Math.round(n)}`:`${Math.round(n)}`);};
 const logo=t=>{const k=String(t||'').trim().toUpperCase();return (typeof teamLogos!=='undefined'&&teamLogos[k])||'';};
-function publicUrl(path){if(typeof publicLiveSlateUrl==='function')return publicLiveSlateUrl(path);return `https://fgditxwtppcmzgezgvun.supabase.co/storage/v1/object/public/daily-slates/${encodeURIComponent(path)}`;}
+function publicUrl(path){return typeof publicLiveSlateUrl==='function'?publicLiveSlateUrl(path):`https://data.dailyrunline.com/${String(path||'').split('/').map(encodeURIComponent).join('/')}`;}
 async function workbookFromArrayBuffer(data){return XLSX.read(data,{type:'array',cellFormula:true,cellDates:true});}
-async function fetchWorkbook(path){const r=await fetch(`${publicUrl(path)}?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw new Error(r.status===404?'No published workbook yet.':`Download failed (${r.status})`);return workbookFromArrayBuffer(await r.arrayBuffer());}
+async function fetchWorkbook(path){const r=await fetch(publicUrl(path),{cache:'no-cache'});if(!r.ok)throw new Error(r.status===404?'No published workbook yet.':`Download failed (${r.status})`);return workbookFromArrayBuffer(await r.arrayBuffer());}
 async function fileWorkbook(file){return workbookFromArrayBuffer(await file.arrayBuffer());}
-async function publishFile(path,file,statusEl){if(!file)throw new Error('Choose a workbook first.');if(typeof drlSupabase==='undefined'||!drlSupabase)throw new Error('Live storage is not initialized. Sign in with the publisher controls first.');const session=(await drlSupabase.auth.getSession()).data.session;if(!session)throw new Error('Publisher sign-in is required.');statusEl.textContent='Publishing live workbook…';const result=await drlSupabase.storage.from(DRL_SLATE_BUCKET).upload(path,file,{contentType:workbookContentType(file),cacheControl:'60',upsert:true});if(result.error)throw result.error;statusEl.textContent='Published live. Visitors will load this workbook automatically.';statusEl.className=statusEl.className.replace(' bad','')+' good';}
+async function publishFile(path,file,statusEl){if(!file)throw new Error('Choose a workbook first.');if(typeof cloudflarePublish!=='function')throw new Error('Cloudflare publisher is not initialized.');statusEl.textContent='Publishing to Cloudflare R2…';await cloudflarePublish(path,file);statusEl.textContent='Published live. Visitors will load this workbook automatically.';statusEl.className=statusEl.className.replace(' bad','')+' good';}
 
 /* TEAM EDGE */
 function sideEdge(model,line,over='OVER',under='UNDER'){if(!Number.isFinite(model)||!Number.isFinite(line))return null;const diff=model-line;return{pick:diff>=0?over:under,edge:Math.abs(diff),line};}
