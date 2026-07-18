@@ -8405,7 +8405,7 @@ body.drl-splash-active .container{visibility:hidden!important;}
       <div class="bet-backtest-actions"><button type="button" class="backtest-tool-btn" onclick="drlExportBetBacktest()">Export CSV</button><button type="button" class="backtest-tool-btn backtest-warning-btn" onclick="drlClearBetBacktest()">Clear Records</button></div>
     </div>
     <div id="betBacktestSummary" class="bet-backtest-summary"></div>
-    <div class="table-wrapper bet-backtest-table-wrap"><table class="bet-backtest-table"><thead><tr><th>Date</th><th>Matchup</th><th>Market</th><th>Projection / Pick</th><th>Edge</th><th>Result</th><th>Action</th></tr></thead><tbody id="betBacktestRows"></tbody></table></div>
+    <div class="table-wrapper bet-backtest-table-wrap"><table class="bet-backtest-table"><thead><tr><th>Date</th><th>Matchup</th><th>Market</th><th>Model Projection / Pick</th><th>Edge</th><th>Result</th><th>Action</th></tr></thead><tbody id="betBacktestRows"></tbody></table></div>
   </div>
 </div>
 
@@ -20454,7 +20454,7 @@ drlOnReady(init);window.renderTeamEdgeCenter=renderTeam;window.renderNrfiCenter=
   function decorateTeam(){document.querySelectorAll('#teamEdgeGames .team-game-card').forEach(game=>{let teams=[...game.querySelectorAll('.team-game-abbr')].map(x=>norm(x.textContent));let matchup=teams.length>=2?teams[0]+' @ '+teams[1]:'Team Game';game.querySelectorAll('.team-market-card').forEach(card=>{if(card.dataset.backtestReady)return;card.dataset.backtestReady='1';let x=parseMarketCard(card,matchup);card.appendChild(controls(x,true));let r=currentResult(x);if(r)card.classList.add('result-'+r)})})}
   function decorateNrfi(){document.querySelectorAll('#nrfiGames .nrfi-card').forEach(card=>{if(card.dataset.backtestReady)return;card.dataset.backtestReady='1';let names=[...card.querySelectorAll('.nrfi-team-name,.nrfi-team-abbr')].map(x=>norm(x.textContent)).filter(Boolean);let matchup=names.length>=2?names[0]+' @ '+names[1]:norm(card.querySelector('.nrfi-matchup')?.textContent).slice(0,80);let pick='NRFI '+(norm(card.querySelector('.nrfi-model')?.textContent)||'');let edge=norm(card.querySelector('.nrfi-edge')?.textContent);let x={date:today(),matchup,market:'NRFI',pick,edge,type:'NRFI'};card.appendChild(controls(x,false));let r=currentResult(x);if(r)card.classList.add('result-'+r)})}
   function decorateAll(){decorateTeam();decorateNrfi()}
-  function renderBacktest(){let a=records();let body=document.getElementById('betBacktestRows'),sum=document.getElementById('betBacktestSummary');if(!body||!sum)return;let markets=['Moneyline','Run Line','Game Total','First 5 Total','Team Total','F5 Team Total','NRFI'];let kpis=[];markets.forEach(m=>{let rows=a.filter(r=>r.market===m||r.market.includes(m));let w=rows.filter(r=>r.result==='win').length,l=rows.filter(r=>r.result==='loss').length,p=rows.filter(r=>r.result==='push').length;let pct=(w+l)?(w/(w+l)*100).toFixed(1)+'%':'--';kpis.push(`<div class="bet-backtest-kpi"><span>${esc(m)}</span><b>${w}-${l}${p?' ('+p+'P)':''}</b><span>${pct}</span></div>`)});sum.innerHTML=kpis.join('');body.innerHTML=a.length?a.map(r=>{let k=keyFor(r);return `<tr><td>${esc(r.date)}</td><td>${esc(r.matchup)}</td><td>${esc(r.market)}</td><td>${esc(r.pick)}</td><td>${esc(r.edge||'--')}</td><td class="record-${esc(r.result||'pending')}">${esc((r.result||'pending').toUpperCase())}</td><td><button class="backtest-tool-btn backtest-warning-btn" onclick='drlDeleteBetRecord(${JSON.stringify(k)})'>Delete</button></td></tr>`}).join(''):'<tr><td colspan="7" class="full-edge-empty">No results marked yet. Use the buttons on Team Edge Center or NRFI Center.</td></tr>'}
+  function renderBacktest(){let a=records();let body=document.getElementById('betBacktestRows'),sum=document.getElementById('betBacktestSummary');if(!body||!sum)return;let markets=['Moneyline','Run Line','Game Total','First 5 Total','Team Total','F5 Team Total','NRFI'];let kpis=[];markets.forEach(m=>{let rows=a.filter(r=>r.market===m||r.market.includes(m));let w=rows.filter(r=>r.result==='win').length,l=rows.filter(r=>r.result==='loss').length,p=rows.filter(r=>r.result==='push').length;let pct=(w+l)?(w/(w+l)*100).toFixed(1)+'%':'--';kpis.push(`<div class="bet-backtest-kpi"><span>${esc(m)}</span><b>${w}-${l}${p?' ('+p+'P)':''}</b><span>${pct}</span></div>`)});sum.innerHTML=kpis.join('');body.innerHTML=a.length?a.map(r=>{let k=keyFor(r);return `<tr><td>${esc(r.date)}</td><td>${esc(r.matchup)}</td><td>${esc(r.market)}</td><td>${esc(r.pick)}</td><td>${esc(r.edge||'--')}</td><td class="record-${esc(r.result||'pending')}">${esc((r.result||'pending').toUpperCase())}</td><td><button class="backtest-tool-btn backtest-warning-btn" onclick='drlDeleteBetRecord(${JSON.stringify(k)})'>Delete</button></td></tr>`}).join(''):'<tr><td colspan="7" class="full-edge-empty">No results marked yet. For NRFI, mark the actual first-inning result; the backtest grades it against the stored model projection.</td></tr>'}
   window.drlDeleteBetRecord=removeRecord;
   window.drlClearBetBacktest=function(){if(confirm('Clear all team and NRFI backtest records?'))save([])};
   window.drlExportBetBacktest=function(){let a=records(),cols=['date','matchup','market','pick','edge','result'];let csv=[cols.join(','),...a.map(r=>cols.map(c=>'"'+String(r[c]??'').replace(/"/g,'""')+'"').join(','))].join('\n');let b=new Blob([csv],{type:'text/csv'}),u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download='daily-run-line-betting-backtest.csv';x.click();URL.revokeObjectURL(u)};
@@ -20539,9 +20539,13 @@ drlOnReady(init);window.renderTeamEdgeCenter=renderTeam;window.renderNrfiCenter=
   function parseNrfi(card){
     const names=[...card.querySelectorAll('.nrfi-team-name,.nrfi-team-abbr')].map(x=>norm(x.textContent)).filter(Boolean);
     const matchup=names.length>=2?names[0]+' @ '+names[1]:norm(card.querySelector('.nrfi-matchup')?.textContent).slice(0,80);
-    const pick='NRFI '+(norm(card.querySelector('.nrfi-model')?.textContent)||'');
+    const modelText=norm(card.querySelector('.nrfi-model')?.textContent)||'';
     const edge=norm(card.querySelector('.nrfi-edge')?.textContent);
-    return {date:today(),matchup,market:'NRFI',pick,edge,type:'NRFI'};
+    const projectionMatch=modelText.match(/[-+]?\d+(?:\.\d+)?/);
+    const modelProjection=projectionMatch?Number(projectionMatch[0]):null;
+    const modelPick=Number.isFinite(modelProjection)&&modelProjection>=50?'NRFI':'YRFI';
+    const pick=modelPick+' | Model '+(Number.isFinite(modelProjection)?modelProjection.toFixed(1)+'%':'--')+(edge?' | Edge '+edge:'');
+    return {date:today(),matchup,market:'NRFI',pick,edge,type:'NRFI',modelPick,modelProjection};
   }
   function status(type,msg,cls){const el=document.getElementById(type==='TEAM'?'teamFinalizeStatus':'nrfiFinalizeStatus');if(el){el.textContent=msg;el.className='drl-section-finalize-status '+(cls||'')}}
   function stage(type,x,result,card){
@@ -20555,9 +20559,17 @@ drlOnReady(init);window.renderTeamEdgeCenter=renderTeam;window.renderNrfiCenter=
     card.querySelectorAll('.bet-result-tools').forEach(n=>n.remove());
     const wrap=document.createElement('div');wrap.className='bet-result-tools';
     const saved=currentSaved(x);
-    [['win','💣 Win'],['loss','❌ Loss']].concat(allowPush?[['push','↔ Push']]:[]).forEach(([result,label])=>{
+    const choices=type==='NRFI'
+      ? [['nrfi','✅ Actual NRFI'],['yrfi','⚾ Actual YRFI']]
+      : [['win','💣 Win'],['loss','❌ Loss']].concat(allowPush?[['push','↔ Push']]:[]);
+    choices.forEach(([choice,label])=>{
+      const result=type==='NRFI'?(x.modelPick===choice.toUpperCase()?'win':'loss'):choice;
       const b=document.createElement('button');b.type='button';b.className='bet-result-btn '+result+(saved===result?' active':'');b.dataset.result=result;b.textContent=label;
-      b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();stage(type,x,result,card)},true);wrap.appendChild(b);
+      b.addEventListener('click',e=>{
+        e.preventDefault();e.stopPropagation();
+        const row=type==='NRFI'?{...x,actualResult:choice.toUpperCase()}:x;
+        stage(type,row,result,card);
+      },true);wrap.appendChild(b);
     });
     card.appendChild(wrap);
   }
