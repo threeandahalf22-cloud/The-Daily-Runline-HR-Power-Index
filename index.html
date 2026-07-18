@@ -20071,6 +20071,17 @@ drlOnReady( () => {
 (function(){
 'use strict';
 let teamBettingGames=[], teamSelectedFile=null, teamStatMap={}, nrfiGames=[], nrfiSelectedFile=null;
+
+async function fileWorkbook(file){
+  if(!file) throw new Error('No workbook selected.');
+  if(typeof XLSX==='undefined') throw new Error('Excel reader did not load. Refresh the page and try again.');
+  const data=await file.arrayBuffer();
+  try{
+    return XLSX.read(data,{type:'array',cellDates:true,cellNF:false,cellText:false});
+  }catch(err){
+    throw new Error('Could not read '+file.name+'. Make sure it is a valid Excel workbook.');
+  }
+}
 const COLORS={ARI:'#a71930',ATL:'#ce1141',BAL:'#df4601',BOS:'#bd3039',CHC:'#0e3386',CHW:'#c4ced4',CIN:'#c6011f',CLE:'#e31937',COL:'#33006f',DET:'#fa4616',HOU:'#eb6e1f',KCR:'#004687',LAA:'#ba0021',LAD:'#005a9c',MIA:'#00a3e0',MIL:'#ffc52f',MIN:'#002b5c',NYM:'#ff5910',NYY:'#003087',ATH:'#003831',PHI:'#e81828',PIT:'#fdb827',SDP:'#2f241d',SEA:'#0c2c56',SFG:'#fd5a1e',STL:'#c41e3a',TBR:'#8fbce6',TEX:'#003278',TOR:'#134a8e',WSN:'#ab0003'};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function num(v){if(typeof v==='number'&&Number.isFinite(v))return v;const n=parseFloat(String(v??'').replace(/[^0-9+-.]/g,''));return Number.isFinite(n)?n:null;}
@@ -20120,7 +20131,36 @@ async function loadTeamWorkbook(wb,label){teamBettingGames=parseTeamGames(wb);co
 function pct(v){const n=num(v);if(n===null)return null;return n>1?n/100:n;}
 function implied(o){const n=num(o);if(n===null||n===0)return null;return n<0?(-n)/((-n)+100):100/(n+100);}
 function fairOdds(p){if(!Number.isFinite(p)||p<=0||p>=1)return null;return p>=.5?-100*p/(1-p):100*(1-p)/p;}
-function parseNrfi(wb){const name=wb.SheetNames.find(n=>String(n).trim().toLowerCase()==='sheet2')||wb.SheetNames[1]||wb.SheetNames[0];const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{defval:null,raw:true});const clean=rows.map(r=>({team:String(r.Team??'').trim().toUpperCase(),teamPct:pct(r['NRF I%']??r['NRFI %']??r['NRF I %']),pitcher:String(r['OPP Pitcher']??''),pitcherRec:String(r['P NRFI Rec']??''),pitcherPct:pct(r['P NRF I%']??r['P NRFI %']??r['P NRF I %']),streak:String(r.Streak??''),cm:pct(r['CM NRFI']),nrfiOdds:num(r['NRFI Odds']??r.Odds)})).filter(r=>r.team);const games=[];for(let i=0;i+1<clean.length;i+=2){const a=clean[i],h=clean[i+1];let model=(Number.isFinite(a.cm)?a.cm:null)??(Number.isFinite(h.cm)?h.cm:null);if(!Number.isFinite(model)){const vals=[a.teamPct,h.teamPct,a.pitcherPct,h.pitcherPct].filter(Number.isFinite);model=vals.length?vals.reduce((x,y)=>x+y,0)/vals.length:null;}const offered=Number.isFinite(a.nrfiOdds)?a.nrfiOdds:h.nrfiOdds,imp=implied(offered),edge=Number.isFinite(model)&&Number.isFinite(imp)?model-imp:null;games.push({away:a,home:h,model,offered,implied:imp,edge,fair:fairOdds(model)});}return games;}
+function parseNrfi(wb){
+  const name=wb.SheetNames.find(n=>String(n).trim().toLowerCase()==='sheet2')||wb.SheetNames.find(n=>/nrfi/i.test(String(n)))||wb.SheetNames[1]||wb.SheetNames[0];
+  if(!name) throw new Error('No worksheet was found in the NRFI workbook.');
+  const rawRows=XLSX.utils.sheet_to_json(wb.Sheets[name],{defval:null,raw:true});
+  const key=v=>String(v??'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const value=(row,names)=>{const wanted=names.map(key);for(const [k,v] of Object.entries(row)){if(wanted.includes(key(k)))return v;}return null;};
+  const clean=rawRows.map(r=>({
+    team:String(value(r,['TEAM','Team'])??'').trim().toUpperCase(),
+    teamPct:pct(value(r,['NRFI %','NRFI%','NRF I%','NRF I %'])),
+    pitcher:String(value(r,['OPP PITCHER','Opp Pitcher','Opponent Pitcher'])??''),
+    pitcherRec:String(value(r,['P NRFI RECORD','P NRFI Rec','Pitcher NRFI Record'])??''),
+    pitcherPct:pct(value(r,['P NRFI %','P NRFI%','P NRF I%','P NRF I %','Pitcher NRFI %'])),
+    streak:String(value(r,['STREAK','Streak'])??''),
+    cm:pct(value(r,['CM NRFI %','CM NRFI','Combined NRFI %'])),
+    nrfiOdds:num(value(r,['NRFI ODDS','NRFI Odds','Odds']))
+  })).filter(r=>r.team);
+  if(clean.length<2) throw new Error('No NRFI team rows were found. Check that the sheet has TEAM and NRFI columns.');
+  const games=[];
+  for(let i=0;i+1<clean.length;i+=2){
+    const a=clean[i],h=clean[i+1];
+    let model=(Number.isFinite(a.cm)?a.cm:null)??(Number.isFinite(h.cm)?h.cm:null);
+    if(!Number.isFinite(model)){
+      const vals=[a.teamPct,h.teamPct,a.pitcherPct,h.pitcherPct].filter(Number.isFinite);
+      model=vals.length?vals.reduce((x,y)=>x+y,0)/vals.length:null;
+    }
+    const offered=Number.isFinite(a.nrfiOdds)?a.nrfiOdds:h.nrfiOdds,imp=implied(offered),edge=Number.isFinite(model)&&Number.isFinite(imp)?model-imp:null;
+    games.push({away:a,home:h,model,offered,implied:imp,edge,fair:fairOdds(model)});
+  }
+  return games;
+}
 function nrfiTeamBlock(t){const l=logo(t.team);return `<div class="nrfi-team-block">${l?`<img class="nrfi-logo" src="${l}">`:''}<div class="nrfi-team-name">${esc(t.team)}</div><div class="nrfi-mini-grid"><div><span>Team NRFI</span><b>${Number.isFinite(t.teamPct)?fmt(t.teamPct*100,1)+'%':'--'}</b></div><div><span>Opp Pitcher</span><b>${esc(t.pitcher||'--')}</b></div><div><span>Pitcher NRFI</span><b>${Number.isFinite(t.pitcherPct)?fmt(t.pitcherPct*100,1)+'%':'--'}</b></div><div><span>Record</span><b>${esc(t.pitcherRec||'--')}</b></div><div><span>Streak</span><b>${esc(t.streak||'--')}</b></div></div></div>`;}
 function renderNrfi(){const box=document.getElementById('nrfiGames'),sum=document.getElementById('nrfiSummary');if(!box)return;if(!nrfiGames.length){box.innerHTML='<div class="nrfi-empty">Upload an NRFI workbook to begin.</div>';sum.style.display='none';return;}const ranked=[...nrfiGames].sort((a,b)=>(b.edge??-9)-(a.edge??-9));box.innerHTML=ranked.map((g,i)=>{const edgePts=Number.isFinite(g.edge)?g.edge*100:null;const tone=edgePts>=5?'elite':edgePts>=2?'good':edgePts>=0?'lean':'bad';return `<div class="nrfi-card ${tone}"><div class="nrfi-rank">#${i+1}</div><div class="nrfi-matchup">${nrfiTeamBlock(g.away)}<div class="nrfi-center"><div class="nrfi-vs">NRFI</div><div class="nrfi-model">${Number.isFinite(g.model)?fmt(g.model*100,1)+'%':'--'}</div><div class="nrfi-model-label">Model Probability</div><div class="nrfi-edge ${tone}">${Number.isFinite(edgePts)?(edgePts>=0?'+':'')+fmt(edgePts,1)+'%':'--'}</div><div class="nrfi-edge-label">Probability Edge</div></div>${nrfiTeamBlock(g.home)}</div><div class="nrfi-market-row"><div><span>Odds</span><b>${odds(g.offered)}</b></div><div><span>Implied</span><b>${Number.isFinite(g.implied)?fmt(g.implied*100,1)+'%':'--'}</b></div><div><span>Fair Odds</span><b>${odds(g.fair)}</b></div><div><span>CM NRFI</span><b>${Number.isFinite(g.model)?fmt(g.model*100,1)+'%':'--'}</b></div></div></div>`;}).join('');const best=ranked[0],positive=ranked.filter(g=>Number.isFinite(g.edge)&&g.edge>0).length,avg=ranked.filter(g=>Number.isFinite(g.edge)).reduce((z,g)=>z+g.edge,0)/(ranked.filter(g=>Number.isFinite(g.edge)).length||1);sum.style.display='grid';sum.innerHTML=`<div class="nrfi-summary-card"><span>Games</span><b>${ranked.length}</b></div><div class="nrfi-summary-card"><span>Positive Edges</span><b>${positive}</b></div><div class="nrfi-summary-card"><span>Best Edge</span><b>${best&&Number.isFinite(best.edge)?'+'+fmt(best.edge*100,1)+'%':'--'}</b></div><div class="nrfi-summary-card"><span>Average Edge</span><b>${fmt(avg*100,1)}%</b></div>`;}
 async function loadNrfiWorkbook(wb,label){nrfiGames=parseNrfi(wb);const st=document.getElementById('nrfiUploadStatus');st.className='nrfi-upload-status good';st.textContent=`${label} • ${nrfiGames.length} games`;renderNrfi();}
