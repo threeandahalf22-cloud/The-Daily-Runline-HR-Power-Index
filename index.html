@@ -1039,18 +1039,6 @@ tbody tr.cody-diamond-row:hover td{
 
 
 
-/* LIVE SLATE PUBLISHER */
-.live-publish-panel{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) auto;gap:10px;align-items:center;width:100%;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
-.live-publish-input{background:#050b14;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:9px;padding:11px 12px;font-size:12px;min-width:0}
-.live-publish-btn{border:1px solid rgba(225,6,0,.48);background:linear-gradient(135deg,#e10600,#a90000);color:#fff;border-radius:9px;padding:11px 15px;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.65px;cursor:pointer;white-space:nowrap}
-.live-publish-btn.secondary{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.13);color:#dbeafe}
-.live-publish-btn:disabled{opacity:.5;cursor:not-allowed}
-.live-publish-status{grid-column:1/-1;text-align:left;font-size:10px;font-weight:800;color:#94a3b8;min-height:14px}
-.live-slate-badge{display:inline-flex;align-items:center;gap:7px;margin-left:10px;padding:5px 9px;border-radius:999px;border:1px solid rgba(34,197,94,.28);background:rgba(34,197,94,.08);color:#86efac;font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:.6px}
-.live-slate-badge.offline{border-color:rgba(148,163,184,.25);background:rgba(148,163,184,.07);color:#94a3b8}
-.live-update-toast{display:none;position:fixed;right:18px;bottom:18px;z-index:2147483600;background:#080d15;border:1px solid rgba(225,6,0,.5);border-radius:12px;padding:13px 15px;box-shadow:0 18px 44px rgba(0,0,0,.5);color:#fff;font-size:12px;font-weight:900}
-.live-update-toast.show{display:flex;align-items:center;gap:12px}
-@media(max-width:760px){.live-publish-panel{grid-template-columns:1fr}.live-publish-status{grid-column:1}.live-publish-btn{width:100%}}
 
 /* ===== CONSOLIDATED SECTION: best-betting-edges-style ===== */
 .best-edges-list{ display:flex; flex-direction:column; gap:10px; }
@@ -8361,19 +8349,18 @@ body.drl-splash-active .container{visibility:hidden!important;}
       <div>
         <div class="team-edge-kicker">⚾ Live Team Betting Model</div>
         <div class="team-edge-title">Team Edge Center</div>
-        <div class="team-edge-sub">Automatically loads the published team workbook for every visitor. Local upload is available for testing and publishing updates.</div>
+        <div class="team-edge-sub">Upload the team workbook directly in your browser to load the Team Edge Center.</div>
       </div>
       <div class="team-edge-upload-wrap">
-        <label class="team-edge-upload-label" for="teamBettingWorkbookInput">Test / Update Team Workbook</label>
+        <label class="team-edge-upload-label" for="teamBettingWorkbookInput">Upload Team Workbook</label>
         <input id="teamBettingWorkbookInput" type="file" accept=".xlsx,.xls,.xlsm" />
-        <button id="publishTeamWorkbookBtn" class="live-publish-btn" type="button" disabled>Publish Team Model Live</button>
-        <div id="teamBettingUploadStatus" class="team-edge-upload-status">Loading published team model…</div>
+        <div id="teamBettingUploadStatus" class="team-edge-upload-status">Choose a team workbook to begin.</div>
       </div>
     </div>
     <div id="teamEdgeSummary" class="team-edge-summary-grid" style="display:none;"></div>
     <div id="teamEdgeTopPlays" class="team-edge-top-plays" style="display:none;"></div>
     <div id="teamEdgeGames" class="team-edge-games">
-      <div class="team-edge-empty">Loading the published Team Edge slate…</div>
+      <div class="team-edge-empty">Upload a Team Edge workbook to begin.</div>
     </div>
   </div>
 </div>
@@ -8387,14 +8374,13 @@ body.drl-splash-active .container{visibility:hidden!important;}
         <div class="nrfi-sub">Both teams must stay scoreless. The model combines both team NRFI rates and both opposing-pitcher NRFI rates, then compares the result with the listed NRFI odds.</div>
       </div>
       <div class="nrfi-upload-wrap">
-        <label class="nrfi-upload-label" for="nrfiWorkbookInput">Test / Update NRFI Workbook</label>
+        <label class="nrfi-upload-label" for="nrfiWorkbookInput">Upload NRFI Workbook</label>
         <input id="nrfiWorkbookInput" type="file" accept=".xlsx,.xls,.xlsm" />
-        <button id="publishNrfiWorkbookBtn" class="live-publish-btn" type="button" disabled>Publish NRFI Model Live</button>
-        <div id="nrfiUploadStatus" class="nrfi-upload-status">Loading published NRFI model…</div>
+        <div id="nrfiUploadStatus" class="nrfi-upload-status">Choose an NRFI workbook to begin.</div>
       </div>
     </div>
     <div id="nrfiSummary" class="nrfi-summary-grid" style="display:none;"></div>
-    <div id="nrfiGames" class="nrfi-games"><div class="nrfi-empty">Loading the published NRFI slate…</div></div>
+    <div id="nrfiGames" class="nrfi-games"><div class="nrfi-empty">Upload an NRFI workbook to begin.</div></div>
   </div>
 </div>
 
@@ -8729,15 +8715,7 @@ body.drl-splash-active .container{visibility:hidden!important;}
     <button class="manual-player-add" type="button" onclick="addMissingPlayerFromWorkbook()">➕ Add to Rankings</button>
     <div class="manual-player-status" id="manualPlayerStatus">Uses the hitter’s existing workbook metrics and the selected team’s current matchup.</div>
   </div>
-  <div class="live-publish-panel" id="livePublishPanel">
-    <input class="live-publish-input" id="liveAdminPassword" type="password" placeholder="Cloudflare publish token" autocomplete="current-password" aria-label="Cloudflare publish token">
-    <button class="live-publish-btn secondary" id="liveLoginBtn" type="button" onclick="liveSlateSignIn()">Unlock Publishing</button>
-    <button class="live-publish-btn" id="livePublishBtn" type="button" onclick="publishLiveSlate()" disabled>🔴 Publish Live Slate</button>
-    <button class="live-publish-btn secondary" id="liveLogoutBtn" type="button" onclick="liveSlateSignOut()" style="display:none">Lock Publishing</button>
-    <div class="live-publish-status" id="livePublishStatus">Loading the published Cloudflare workbook…</div>
-  </div>
 </div>
-<div class="live-update-toast" id="liveUpdateToast"><span>🔴 New slate available</span><button class="live-publish-btn" type="button" onclick="reloadLatestLiveSlate()">Refresh</button></div>
 </div>
 
 <div id="playerModal" class="modal-overlay" onclick="closeModal(event)">
@@ -9842,171 +9820,23 @@ function drlSplashUpdateFromStatus(message){
   }
 }
 
-/* ========================= LIVE SHARED SLATE (CLOUDFLARE R2) ========================= */
-const DRL_PUBLISH_WORKER_URL = 'https://daily-runline-publisher.threeandahalf22.workers.dev';
-const DRL_PUBLIC_DATA_URL = DRL_PUBLISH_WORKER_URL;
-const DRL_LATEST_WORKBOOK_PATH = 'latest-workbook.xlsx';
-const DRL_LATEST_META_PATH = 'latest-workbook-meta.json';
-const DRL_BUILD_VERSION = '70.2-worker-direct-final';
-let drlPublishToken = sessionStorage.getItem('drlPublishToken') || '';
+/* ========================= MANUAL WORKBOOK MODE ========================= */
 let drlLoadedPublishedAt = '';
-let drlLivePollTimer = null;
 let drlUsingSharedSlate = false;
 let drlOriginalWorkbookFile = null;
 let drlLoadingSharedWorkbook = false;
 let drlPendingSharedMeta = null;
-
-function liveSlateConfigured(){ return true; }
-function setLivePublishStatus(message, tone='muted'){
-  drlSplashUpdateFromStatus(message);
-  const el=document.getElementById('livePublishStatus');
-  if(!el) return;
-  el.textContent=message;
-  el.style.color=tone==='good'?'#86efac':tone==='bad'?'#fca5a5':tone==='warn'?'#fde68a':'#94a3b8';
-}
-function publicLiveSlateUrl(path){
-  return `${DRL_PUBLIC_DATA_URL}/${String(path||'').split('/').map(encodeURIComponent).join('/')}`;
-}
-function workbookContentType(file){
-  const name=String(file?.name||'').toLowerCase();
-  if(name.endsWith('.csv')) return 'text/csv';
-  if(name.endsWith('.xls')) return 'application/vnd.ms-excel';
-  return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-}
-function workbookExtension(file){
-  const match=String(file?.name||'').toLowerCase().match(/\.(xlsx|xls|csv)$/);
-  return match ? match[1] : 'xlsx';
-}
-function buildWorkbookMeta(file){
-  const now=new Date();
-  return {schemaVersion:4,publishMode:'cloudflare-r2',buildVersion:DRL_BUILD_VERSION,publishedAt:now.toISOString(),slateDate:now.toISOString().slice(0,10),originalName:file.name||'HR Model.xlsx',extension:workbookExtension(file),contentType:workbookContentType(file),size:file.size||0};
-}
-async function fetchLatestWorkbookMeta({silent=false}={}){
-  try{
-    const response=await fetch(`${DRL_PUBLISH_WORKER_URL}/${DRL_LATEST_META_PATH}?v=${Date.now()}`,{
-      method:'GET',
-      mode:'cors',
-      credentials:'omit',
-      cache:'no-store'
-    });
-    if(!response.ok){ if(response.status===404) return false; throw new Error(`Live slate metadata download failed (${response.status}).`); }
-    const meta=await response.json();
-    if(!meta || !meta.publishedAt) throw new Error('Published workbook metadata is invalid.');
-    return meta;
-  }catch(err){
-    window.__DRL_LIVE_ERROR__=String(err?.message||err||'Unknown Cloudflare read error');
-    setLivePublishStatus(`Cloudflare read failed: ${window.__DRL_LIVE_ERROR__}`,'bad');
-    return false;
-  }
-}
-async function fetchLatestLiveSlate({apply=true,silent=false}={}){
-  try{
-    const meta=await fetchLatestWorkbookMeta({silent});
-    if(!meta) return false;
-    if(!apply) return meta;
-    setLivePublishStatus('Downloading today’s published workbook…');
-    const response=await fetch(`${DRL_PUBLISH_WORKER_URL}/${DRL_LATEST_WORKBOOK_PATH}?v=${encodeURIComponent(meta.publishedAt)}`,{
-      method:'GET',
-      mode:'cors',
-      credentials:'omit',
-      cache:'no-store'
-    });
-    if(!response.ok) throw new Error(`Live workbook download failed (${response.status}).`);
-    // Read the response once as an ArrayBuffer. Avoid response.blob() -> File ->
-    // file.arrayBuffer(), which temporarily keeps multiple copies of a large workbook
-    // in memory and can crash the browser before parsing begins.
-    const workbookBuffer=await response.arrayBuffer();
-    if(!workbookBuffer.byteLength) throw new Error('The published workbook is empty.');
-    const fileName=meta.originalName||`Daily-Runline-Live.${meta.extension||'xlsx'}`;
-    const sharedWorkbookFile={
-      name:fileName,
-      size:workbookBuffer.byteLength,
-      type:meta.contentType||workbookContentType({name:fileName}),
-      lastModified:Date.now(),
-      arrayBuffer:async()=>workbookBuffer
-    };
-    drlLoadingSharedWorkbook=true; drlPendingSharedMeta=meta;
-    await handleFile({target:{files:[sharedWorkbookFile],value:''}});
-    return meta;
-  }catch(err){ drlLoadingSharedWorkbook=false; drlPendingSharedMeta=null; if(!silent) setLivePublishStatus(err.message||'Could not load the shared workbook.','warn'); return false; }
-}
-async function initializeLiveSlate(){
-  updateLiveAdminUI(!!drlPublishToken);
-  const loaded=await fetchLatestLiveSlate({apply:true,silent:true});
-  if(!loaded){
-    loadCachedData();
-    if(!playerData.length && !window.__DRL_LIVE_ERROR__) setLivePublishStatus('No Cloudflare workbook has been published yet; local upload still works.','muted');
-    drlSplashRelease(playerData.length?'Cached workbook loaded':'Site ready');
-  }
-  drlLivePollTimer=setInterval(checkForNewLiveSlate,600000);
-}
-function updateLiveAdminUI(signed){
-  const pub=document.getElementById('livePublishBtn'), login=document.getElementById('liveLoginBtn'), logout=document.getElementById('liveLogoutBtn');
-  if(pub) pub.disabled=!signed;
-  if(login) login.style.display=signed?'none':'';
-  if(logout) logout.style.display=signed?'':'none';
-  document.getElementById('publishTeamWorkbookBtn')?.toggleAttribute('data-publishing-unlocked',signed);
-  document.getElementById('publishNrfiWorkbookBtn')?.toggleAttribute('data-publishing-unlocked',signed);
-  if(signed) setLivePublishStatus('Cloudflare publishing unlocked. Upload a workbook, review it, then publish.','good');
-}
-async function cloudflarePublish(path,file,meta=null){
-  if(!drlPublishToken) throw new Error('Enter the Cloudflare publish token and unlock publishing first.');
-  const headers={'Authorization':`Bearer ${drlPublishToken}`,'Content-Type':workbookContentType(file),'X-DRL-Filename':encodeURIComponent(file.name||path)};
-  if(meta) headers['X-DRL-Meta']=btoa(unescape(encodeURIComponent(JSON.stringify(meta))));
-  const response=await fetch(`${DRL_PUBLISH_WORKER_URL}/publish/${encodeURIComponent(path)}`,{method:'PUT',headers,body:file});
-  let payload={}; try{ payload=await response.json(); }catch(_e){}
-  if(!response.ok) throw new Error(payload.error||`Cloudflare publish failed (${response.status}).`);
-  return payload;
-}
-async function liveSlateSignIn(){
-  const password=document.getElementById('liveAdminPassword')?.value||'';
-  if(!password.trim()){ setLivePublishStatus('Enter the Cloudflare publish token.','bad'); return; }
-  drlPublishToken=password.trim(); sessionStorage.setItem('drlPublishToken',drlPublishToken);
-  const pw=document.getElementById('liveAdminPassword'); if(pw) pw.value='';
-  updateLiveAdminUI(true);
-}
-async function liveSlateSignOut(){
-  drlPublishToken=''; sessionStorage.removeItem('drlPublishToken'); updateLiveAdminUI(false);
-  setLivePublishStatus('Publishing locked. Public viewing remains active.');
-}
-async function publishLiveSlate(){
-  const btn=document.getElementById('livePublishBtn');
-  try{
-    if(btn) btn.disabled=true;
-    if(!drlOriginalWorkbookFile) throw new Error('Upload today’s Excel workbook before publishing.');
-    if(!Array.isArray(playerData)||!playerData.length) throw new Error('Wait for the workbook to finish loading before publishing.');
-    const file=drlOriginalWorkbookFile, meta=buildWorkbookMeta(file), sizeMB=file.size/1024/1024;
-    setLivePublishStatus(`Publishing ${sizeMB.toFixed(2)} MB to Cloudflare R2…`);
-    const published=await cloudflarePublish(DRL_LATEST_WORKBOOK_PATH,file,meta);
-    drlLoadedPublishedAt=published.publishedAt||meta.publishedAt;
-    setLivePublishStatus(`✓ Live workbook published • ${new Date(drlLoadedPublishedAt).toLocaleString()} • ${sizeMB.toFixed(2)} MB`,'good');
-    const title=document.getElementById('uploadFileName'); if(title) title.innerHTML=`${file.name} <span class="live-slate-badge">LIVE</span>`;
-  }catch(err){ console.error('Live workbook publish failed:',err); setLivePublishStatus(`Publish failed: ${err.message}`,'bad'); }
-  finally{ if(btn) btn.disabled=!drlPublishToken; }
-}
-async function checkForNewLiveSlate(){
-  if(document.hidden) return;
-  const meta=await fetchLatestLiveSlate({apply:false,silent:true});
-  if(meta && meta.publishedAt && drlLoadedPublishedAt && meta.publishedAt!==drlLoadedPublishedAt){
-    document.getElementById('liveUpdateToast')?.classList.add('show');
-  }
-}
-async function reloadLatestLiveSlate(){
-  document.getElementById('liveUpdateToast')?.classList.remove('show');
-  await fetchLatestLiveSlate({apply:true,silent:false});
-}
-/* ======================= END LIVE SHARED SLATE ======================= */
+function liveSlateConfigured(){ return false; }
+/* ======================= END MANUAL WORKBOOK MODE ======================= */
 
 drlOnReady(() => {
 updateDateDisplay();
 setInterval(updateCountdown, 1000);
-setInterval(() => { if (!drlUsingSharedSlate && gameMatchups && gameMatchups.length) refreshOpenWeatherAndRerender(); }, 10 * 60 * 1000);
+setInterval(() => { if (gameMatchups && gameMatchups.length) refreshOpenWeatherAndRerender(); }, 10 * 60 * 1000);
 document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModalDirect(); });
 
-// Load the latest shared Cloudflare workbook automatically.
-// The downloader now passes one ArrayBuffer directly into the parser to avoid
-// the previous Blob/File/ArrayBuffer duplication that exhausted browser memory.
-initializeLiveSlate();
+loadCachedData();
+drlSplashRelease(playerData.length ? 'Cached workbook loaded' : 'Site ready — upload a workbook');
 });
 document.getElementById('excelFile').addEventListener('change', handleFile, false);
 function normalizeName(s) {
@@ -10438,17 +10268,6 @@ document.getElementById('graphicsPanel').style.display = 'block';
   const fileNameEl = document.getElementById('uploadFileName');
   if (fileNameEl) fileNameEl.textContent = f && f.name ? f.name : 'Workbook loaded';
 
-  if (drlLoadingSharedWorkbook && drlPendingSharedMeta) {
-    const meta = drlPendingSharedMeta;
-    drlUsingSharedSlate = true;
-    drlLoadedPublishedAt = meta.publishedAt || '';
-    const when = meta.publishedAt ? new Date(meta.publishedAt).toLocaleString() : 'Unknown time';
-    if (fileNameEl) fileNameEl.innerHTML = `Today’s published workbook <span class="live-slate-badge">LIVE • ${when}</span>`;
-    setLivePublishStatus(`Live workbook loaded • ${when} • ${meta.originalName || f.name}`,'good');
-    drlLoadingSharedWorkbook = false;
-    drlPendingSharedMeta = null;
-  }
-
   // FAST LOAD PATH v2:
   // 1) Calculate/store all BBI scores immediately using spreadsheet weather.
   // 2) Render Home right away so upload never waits on OpenWeather/network.
@@ -10473,8 +10292,6 @@ document.getElementById('graphicsPanel').style.display = 'block';
   }, 350);
 }
 } catch (err) {
-  drlLoadingSharedWorkbook = false;
-  drlPendingSharedMeta = null;
   console.error('Workbook file read failed:', err);
   drlSplashRelease('Workbook load failed');
   alert('Could not read that workbook file. Please make sure it is a normal .xlsx/.xls/.csv file and try again.');
@@ -20253,8 +20070,6 @@ drlOnReady( () => {
 <script id="team-edge-center-script">
 (function(){
 'use strict';
-const TEAM_LIVE_PATH='latest-team-workbook.xlsx';
-const NRFI_LIVE_PATH='latest-nrfi-workbook.xlsx';
 let teamBettingGames=[], teamSelectedFile=null, teamStatMap={}, nrfiGames=[], nrfiSelectedFile=null;
 const COLORS={ARI:'#a71930',ATL:'#ce1141',BAL:'#df4601',BOS:'#bd3039',CHC:'#0e3386',CHW:'#c4ced4',CIN:'#c6011f',CLE:'#e31937',COL:'#33006f',DET:'#fa4616',HOU:'#eb6e1f',KCR:'#004687',LAA:'#ba0021',LAD:'#005a9c',MIA:'#00a3e0',MIL:'#ffc52f',MIN:'#002b5c',NYM:'#ff5910',NYY:'#003087',ATH:'#003831',PHI:'#e81828',PIT:'#fdb827',SDP:'#2f241d',SEA:'#0c2c56',SFG:'#fd5a1e',STL:'#c41e3a',TBR:'#8fbce6',TEX:'#003278',TOR:'#134a8e',WSN:'#ab0003'};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -20262,11 +20077,6 @@ function num(v){if(typeof v==='number'&&Number.isFinite(v))return v;const n=pars
 const fmt=(v,d=1)=>Number.isFinite(v)?Number(v).toFixed(d):'--';
 const odds=v=>{const n=num(v);return n===null?'--':(n>0?`+${Math.round(n)}`:`${Math.round(n)}`);};
 const logo=t=>{const k=String(t||'').trim().toUpperCase();return (typeof teamLogos!=='undefined'&&teamLogos[k])||'';};
-function publicUrl(path){return typeof publicLiveSlateUrl==='function'?publicLiveSlateUrl(path):`https://data.dailyrunline.com/${String(path||'').split('/').map(encodeURIComponent).join('/')}`;}
-async function workbookFromArrayBuffer(data){return XLSX.read(data,{type:'array',cellFormula:true,cellDates:true});}
-async function fetchWorkbook(path){const r=await fetch(publicUrl(path),{cache:'no-cache'});if(!r.ok)throw new Error(r.status===404?'No published workbook yet.':`Download failed (${r.status})`);return workbookFromArrayBuffer(await r.arrayBuffer());}
-async function fileWorkbook(file){return workbookFromArrayBuffer(await file.arrayBuffer());}
-async function publishFile(path,file,statusEl){if(!file)throw new Error('Choose a workbook first.');if(typeof cloudflarePublish!=='function')throw new Error('Cloudflare publisher is not initialized.');statusEl.textContent='Publishing to Cloudflare R2…';await cloudflarePublish(path,file);statusEl.textContent='Published live. Visitors will load this workbook automatically.';statusEl.className=statusEl.className.replace(' bad','')+' good';}
 
 /* TEAM EDGE */
 function sideEdge(model,line,over='OVER',under='UNDER'){if(!Number.isFinite(model)||!Number.isFinite(line))return null;const diff=model-line;return{pick:diff>=0?over:under,edge:Math.abs(diff),line};}
@@ -20303,9 +20113,8 @@ function buildMarkets(g){const a=g.away,h=g.home,as=teamStatMap[a.team]||{},hs=t
   const f5=sideEdge(f5Proj,a.f5Total??h.f5Total);if(f5)markets.push({label:'First 5 Total',pick:`${f5.pick} ${fmt(f5.line,1)}`,edge:f5.edge,meta:`Model ${fmt(f5Proj,2)} • Line ${fmt(f5.line,1)}`,support:support([[`${a.team} F5 RPG`,Number.isFinite(as.f5rpg)?fmt(as.f5rpg,2):'--'],[`${h.team} F5 RPG`,Number.isFinite(hs.f5rpg)?fmt(hs.f5rpg,2):'--']])});
   const awayTT=sideEdge(a.proj,a.tt),homeTT=sideEdge(h.proj,h.tt);if(awayTT)markets.push({label:`${a.team} Team Total`,pick:`${a.team} ${awayTT.pick} ${fmt(awayTT.line,1)}`,edge:awayTT.edge,meta:`Model ${fmt(a.proj,2)} • Line ${fmt(awayTT.line,1)}`,support:''});if(homeTT)markets.push({label:`${h.team} Team Total`,pick:`${h.team} ${homeTT.pick} ${fmt(homeTT.line,1)}`,edge:homeTT.edge,meta:`Model ${fmt(h.proj,2)} • Line ${fmt(homeTT.line,1)}`,support:''});
   const awayF5TT=sideEdge(a.f5,a.f5tt),homeF5TT=sideEdge(h.f5,h.f5tt);if(awayF5TT)markets.push({label:`${a.team} F5 Team Total`,pick:`${a.team} ${awayF5TT.pick} ${fmt(awayF5TT.line,1)}`,edge:awayF5TT.edge,meta:`Model ${fmt(a.f5,2)} • Line ${fmt(awayF5TT.line,1)}`,support:support([['F5 RPG',Number.isFinite(as.f5rpg)?fmt(as.f5rpg,2):'--']])});if(homeF5TT)markets.push({label:`${h.team} F5 Team Total`,pick:`${h.team} ${homeF5TT.pick} ${fmt(homeF5TT.line,1)}`,edge:homeF5TT.edge,meta:`Model ${fmt(h.f5,2)} • Line ${fmt(homeF5TT.line,1)}`,support:support([['F5 RPG',Number.isFinite(hs.f5rpg)?fmt(hs.f5rpg,2):'--']])});return{markets,totalProj,f5Proj,fav,marginAbs};}
-function renderTeam(){const box=document.getElementById('teamEdgeGames'),sum=document.getElementById('teamEdgeSummary'),top=document.getElementById('teamEdgeTopPlays');if(!box)return;if(!teamBettingGames.length){box.innerHTML='<div class="team-edge-empty">No published Team Edge slate is available yet.</div>';sum.style.display='none';top.style.display='none';return;}const all=[];box.innerHTML=teamBettingGames.map(g=>{const b=buildMarkets(g);b.markets.forEach(m=>all.push({...m,matchup:`${g.away.team} @ ${g.home.team}`}));const al=logo(g.away.team),hl=logo(g.home.team);return `<div class="team-game-card" style="--away-color:${COLORS[g.away.team]||'#38bdf8'};--home-color:${COLORS[g.home.team]||'#e10600'}"><div class="team-game-header"><div class="team-game-team">${al?`<img class="team-game-logo" src="${al}">`:''}<div class="team-game-abbr">${esc(g.away.team)}</div><div class="team-game-proj-label">Projected Runs</div><div class="team-game-proj">${fmt(g.away.proj,2)}</div></div><div class="team-game-middle"><div class="team-game-at">Away @ Home</div><div class="team-game-total-label">Projected Total</div><div class="team-game-total">${fmt(b.totalProj,2)}</div><div class="team-game-favorite">${esc(b.fav.team)} by ${fmt(b.marginAbs,2)}<br>F5 total ${fmt(b.f5Proj,2)}</div></div><div class="team-game-team">${hl?`<img class="team-game-logo" src="${hl}">`:''}<div class="team-game-abbr">${esc(g.home.team)}</div><div class="team-game-proj-label">Projected Runs</div><div class="team-game-proj">${fmt(g.home.proj,2)}</div></div></div><div class="team-market-grid">${b.markets.map(m=>marketCard(m.label,m.pick,m.edge,m.meta,m.support||'')).join('')}</div></div>`;}).join('');all.sort((a,b)=>b.edge-a.edge);const top5=all.filter(m=>m.edge>0).slice(0,5);top.style.display='block';top.innerHTML=`<div class="team-edge-top-title">🔥 Largest Projection Edges</div><div class="team-edge-top-grid">${top5.map((m,i)=>`<div class="team-edge-top-card"><div class="team-edge-top-rank">#${i+1}</div><div class="team-edge-top-market">${esc(m.pick)}</div><div class="team-edge-top-matchup">${esc(m.label)} • ${esc(m.matchup)}</div><div class="team-edge-top-value">+${fmt(m.edge,2)} runs</div></div>`).join('')}</div>`;const strongest=all.find(m=>m.edge>0),avg=all.reduce((z,m)=>z+Math.abs(m.edge),0)/(all.length||1);sum.style.display='grid';sum.innerHTML=`<div class="team-edge-summary-card" style="--summary-color:#38bdf8"><div class="team-edge-summary-label">Games Loaded</div><div class="team-edge-summary-value">${teamBettingGames.length}</div></div><div class="team-edge-summary-card" style="--summary-color:#10b981"><div class="team-edge-summary-label">Edges ≥ 0.50</div><div class="team-edge-summary-value">${all.filter(m=>m.edge>=.5).length}</div></div><div class="team-edge-summary-card" style="--summary-color:#facc15"><div class="team-edge-summary-label">Largest Edge</div><div class="team-edge-summary-value">${strongest?`+${fmt(strongest.edge,2)}`:'--'}</div><div class="team-edge-summary-sub">${strongest?esc(strongest.pick):''}</div></div><div class="team-edge-summary-card" style="--summary-color:#a855f7"><div class="team-edge-summary-label">Average Edge</div><div class="team-edge-summary-value">${fmt(avg,2)}</div></div>`;}
+function renderTeam(){const box=document.getElementById('teamEdgeGames'),sum=document.getElementById('teamEdgeSummary'),top=document.getElementById('teamEdgeTopPlays');if(!box)return;if(!teamBettingGames.length){box.innerHTML='<div class="team-edge-empty">Upload a Team Edge workbook to begin.</div>';sum.style.display='none';top.style.display='none';return;}const all=[];box.innerHTML=teamBettingGames.map(g=>{const b=buildMarkets(g);b.markets.forEach(m=>all.push({...m,matchup:`${g.away.team} @ ${g.home.team}`}));const al=logo(g.away.team),hl=logo(g.home.team);return `<div class="team-game-card" style="--away-color:${COLORS[g.away.team]||'#38bdf8'};--home-color:${COLORS[g.home.team]||'#e10600'}"><div class="team-game-header"><div class="team-game-team">${al?`<img class="team-game-logo" src="${al}">`:''}<div class="team-game-abbr">${esc(g.away.team)}</div><div class="team-game-proj-label">Projected Runs</div><div class="team-game-proj">${fmt(g.away.proj,2)}</div></div><div class="team-game-middle"><div class="team-game-at">Away @ Home</div><div class="team-game-total-label">Projected Total</div><div class="team-game-total">${fmt(b.totalProj,2)}</div><div class="team-game-favorite">${esc(b.fav.team)} by ${fmt(b.marginAbs,2)}<br>F5 total ${fmt(b.f5Proj,2)}</div></div><div class="team-game-team">${hl?`<img class="team-game-logo" src="${hl}">`:''}<div class="team-game-abbr">${esc(g.home.team)}</div><div class="team-game-proj-label">Projected Runs</div><div class="team-game-proj">${fmt(g.home.proj,2)}</div></div></div><div class="team-market-grid">${b.markets.map(m=>marketCard(m.label,m.pick,m.edge,m.meta,m.support||'')).join('')}</div></div>`;}).join('');all.sort((a,b)=>b.edge-a.edge);const top5=all.filter(m=>m.edge>0).slice(0,5);top.style.display='block';top.innerHTML=`<div class="team-edge-top-title">🔥 Largest Projection Edges</div><div class="team-edge-top-grid">${top5.map((m,i)=>`<div class="team-edge-top-card"><div class="team-edge-top-rank">#${i+1}</div><div class="team-edge-top-market">${esc(m.pick)}</div><div class="team-edge-top-matchup">${esc(m.label)} • ${esc(m.matchup)}</div><div class="team-edge-top-value">+${fmt(m.edge,2)} runs</div></div>`).join('')}</div>`;const strongest=all.find(m=>m.edge>0),avg=all.reduce((z,m)=>z+Math.abs(m.edge),0)/(all.length||1);sum.style.display='grid';sum.innerHTML=`<div class="team-edge-summary-card" style="--summary-color:#38bdf8"><div class="team-edge-summary-label">Games Loaded</div><div class="team-edge-summary-value">${teamBettingGames.length}</div></div><div class="team-edge-summary-card" style="--summary-color:#10b981"><div class="team-edge-summary-label">Edges ≥ 0.50</div><div class="team-edge-summary-value">${all.filter(m=>m.edge>=.5).length}</div></div><div class="team-edge-summary-card" style="--summary-color:#facc15"><div class="team-edge-summary-label">Largest Edge</div><div class="team-edge-summary-value">${strongest?`+${fmt(strongest.edge,2)}`:'--'}</div><div class="team-edge-summary-sub">${strongest?esc(strongest.pick):''}</div></div><div class="team-edge-summary-card" style="--summary-color:#a855f7"><div class="team-edge-summary-label">Average Edge</div><div class="team-edge-summary-value">${fmt(avg,2)}</div></div>`;}
 async function loadTeamWorkbook(wb,label){teamBettingGames=parseTeamGames(wb);const st=document.getElementById('teamBettingUploadStatus');st.className='team-edge-upload-status good';st.textContent=`${label} • ${teamBettingGames.length} games`;renderTeam();}
-async function autoLoadTeam(){const st=document.getElementById('teamBettingUploadStatus');try{await loadTeamWorkbook(await fetchWorkbook(TEAM_LIVE_PATH),'Live team model loaded');}catch(e){st.className='team-edge-upload-status bad';st.textContent=e.message;teamBettingGames=[];renderTeam();}}
 
 /* NRFI */
 function pct(v){const n=num(v);if(n===null)return null;return n>1?n/100:n;}
@@ -20313,11 +20122,31 @@ function implied(o){const n=num(o);if(n===null||n===0)return null;return n<0?(-n
 function fairOdds(p){if(!Number.isFinite(p)||p<=0||p>=1)return null;return p>=.5?-100*p/(1-p):100*(1-p)/p;}
 function parseNrfi(wb){const name=wb.SheetNames.find(n=>String(n).trim().toLowerCase()==='sheet2')||wb.SheetNames[1]||wb.SheetNames[0];const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{defval:null,raw:true});const clean=rows.map(r=>({team:String(r.Team??'').trim().toUpperCase(),teamPct:pct(r['NRF I%']??r['NRFI %']??r['NRF I %']),pitcher:String(r['OPP Pitcher']??''),pitcherRec:String(r['P NRFI Rec']??''),pitcherPct:pct(r['P NRF I%']??r['P NRFI %']??r['P NRF I %']),streak:String(r.Streak??''),cm:pct(r['CM NRFI']),nrfiOdds:num(r['NRFI Odds']??r.Odds)})).filter(r=>r.team);const games=[];for(let i=0;i+1<clean.length;i+=2){const a=clean[i],h=clean[i+1];let model=(Number.isFinite(a.cm)?a.cm:null)??(Number.isFinite(h.cm)?h.cm:null);if(!Number.isFinite(model)){const vals=[a.teamPct,h.teamPct,a.pitcherPct,h.pitcherPct].filter(Number.isFinite);model=vals.length?vals.reduce((x,y)=>x+y,0)/vals.length:null;}const offered=Number.isFinite(a.nrfiOdds)?a.nrfiOdds:h.nrfiOdds,imp=implied(offered),edge=Number.isFinite(model)&&Number.isFinite(imp)?model-imp:null;games.push({away:a,home:h,model,offered,implied:imp,edge,fair:fairOdds(model)});}return games;}
 function nrfiTeamBlock(t){const l=logo(t.team);return `<div class="nrfi-team-block">${l?`<img class="nrfi-logo" src="${l}">`:''}<div class="nrfi-team-name">${esc(t.team)}</div><div class="nrfi-mini-grid"><div><span>Team NRFI</span><b>${Number.isFinite(t.teamPct)?fmt(t.teamPct*100,1)+'%':'--'}</b></div><div><span>Opp Pitcher</span><b>${esc(t.pitcher||'--')}</b></div><div><span>Pitcher NRFI</span><b>${Number.isFinite(t.pitcherPct)?fmt(t.pitcherPct*100,1)+'%':'--'}</b></div><div><span>Record</span><b>${esc(t.pitcherRec||'--')}</b></div><div><span>Streak</span><b>${esc(t.streak||'--')}</b></div></div></div>`;}
-function renderNrfi(){const box=document.getElementById('nrfiGames'),sum=document.getElementById('nrfiSummary');if(!box)return;if(!nrfiGames.length){box.innerHTML='<div class="nrfi-empty">No published NRFI slate is available yet.</div>';sum.style.display='none';return;}const ranked=[...nrfiGames].sort((a,b)=>(b.edge??-9)-(a.edge??-9));box.innerHTML=ranked.map((g,i)=>{const edgePts=Number.isFinite(g.edge)?g.edge*100:null;const tone=edgePts>=5?'elite':edgePts>=2?'good':edgePts>=0?'lean':'bad';return `<div class="nrfi-card ${tone}"><div class="nrfi-rank">#${i+1}</div><div class="nrfi-matchup">${nrfiTeamBlock(g.away)}<div class="nrfi-center"><div class="nrfi-vs">NRFI</div><div class="nrfi-model">${Number.isFinite(g.model)?fmt(g.model*100,1)+'%':'--'}</div><div class="nrfi-model-label">Model Probability</div><div class="nrfi-edge ${tone}">${Number.isFinite(edgePts)?(edgePts>=0?'+':'')+fmt(edgePts,1)+'%':'--'}</div><div class="nrfi-edge-label">Probability Edge</div></div>${nrfiTeamBlock(g.home)}</div><div class="nrfi-market-row"><div><span>Odds</span><b>${odds(g.offered)}</b></div><div><span>Implied</span><b>${Number.isFinite(g.implied)?fmt(g.implied*100,1)+'%':'--'}</b></div><div><span>Fair Odds</span><b>${odds(g.fair)}</b></div><div><span>CM NRFI</span><b>${Number.isFinite(g.model)?fmt(g.model*100,1)+'%':'--'}</b></div></div></div>`;}).join('');const best=ranked[0],positive=ranked.filter(g=>Number.isFinite(g.edge)&&g.edge>0).length,avg=ranked.filter(g=>Number.isFinite(g.edge)).reduce((z,g)=>z+g.edge,0)/(ranked.filter(g=>Number.isFinite(g.edge)).length||1);sum.style.display='grid';sum.innerHTML=`<div class="nrfi-summary-card"><span>Games</span><b>${ranked.length}</b></div><div class="nrfi-summary-card"><span>Positive Edges</span><b>${positive}</b></div><div class="nrfi-summary-card"><span>Best Edge</span><b>${best&&Number.isFinite(best.edge)?'+'+fmt(best.edge*100,1)+'%':'--'}</b></div><div class="nrfi-summary-card"><span>Average Edge</span><b>${fmt(avg*100,1)}%</b></div>`;}
+function renderNrfi(){const box=document.getElementById('nrfiGames'),sum=document.getElementById('nrfiSummary');if(!box)return;if(!nrfiGames.length){box.innerHTML='<div class="nrfi-empty">Upload an NRFI workbook to begin.</div>';sum.style.display='none';return;}const ranked=[...nrfiGames].sort((a,b)=>(b.edge??-9)-(a.edge??-9));box.innerHTML=ranked.map((g,i)=>{const edgePts=Number.isFinite(g.edge)?g.edge*100:null;const tone=edgePts>=5?'elite':edgePts>=2?'good':edgePts>=0?'lean':'bad';return `<div class="nrfi-card ${tone}"><div class="nrfi-rank">#${i+1}</div><div class="nrfi-matchup">${nrfiTeamBlock(g.away)}<div class="nrfi-center"><div class="nrfi-vs">NRFI</div><div class="nrfi-model">${Number.isFinite(g.model)?fmt(g.model*100,1)+'%':'--'}</div><div class="nrfi-model-label">Model Probability</div><div class="nrfi-edge ${tone}">${Number.isFinite(edgePts)?(edgePts>=0?'+':'')+fmt(edgePts,1)+'%':'--'}</div><div class="nrfi-edge-label">Probability Edge</div></div>${nrfiTeamBlock(g.home)}</div><div class="nrfi-market-row"><div><span>Odds</span><b>${odds(g.offered)}</b></div><div><span>Implied</span><b>${Number.isFinite(g.implied)?fmt(g.implied*100,1)+'%':'--'}</b></div><div><span>Fair Odds</span><b>${odds(g.fair)}</b></div><div><span>CM NRFI</span><b>${Number.isFinite(g.model)?fmt(g.model*100,1)+'%':'--'}</b></div></div></div>`;}).join('');const best=ranked[0],positive=ranked.filter(g=>Number.isFinite(g.edge)&&g.edge>0).length,avg=ranked.filter(g=>Number.isFinite(g.edge)).reduce((z,g)=>z+g.edge,0)/(ranked.filter(g=>Number.isFinite(g.edge)).length||1);sum.style.display='grid';sum.innerHTML=`<div class="nrfi-summary-card"><span>Games</span><b>${ranked.length}</b></div><div class="nrfi-summary-card"><span>Positive Edges</span><b>${positive}</b></div><div class="nrfi-summary-card"><span>Best Edge</span><b>${best&&Number.isFinite(best.edge)?'+'+fmt(best.edge*100,1)+'%':'--'}</b></div><div class="nrfi-summary-card"><span>Average Edge</span><b>${fmt(avg*100,1)}%</b></div>`;}
 async function loadNrfiWorkbook(wb,label){nrfiGames=parseNrfi(wb);const st=document.getElementById('nrfiUploadStatus');st.className='nrfi-upload-status good';st.textContent=`${label} • ${nrfiGames.length} games`;renderNrfi();}
-async function autoLoadNrfi(){const st=document.getElementById('nrfiUploadStatus');try{await loadNrfiWorkbook(await fetchWorkbook(NRFI_LIVE_PATH),'Live NRFI model loaded');}catch(e){st.className='nrfi-upload-status bad';st.textContent=e.message;nrfiGames=[];renderNrfi();}}
 
-function init(){const ti=document.getElementById('teamBettingWorkbookInput'),ni=document.getElementById('nrfiWorkbookInput'),tp=document.getElementById('publishTeamWorkbookBtn'),np=document.getElementById('publishNrfiWorkbookBtn');if(ti&&!ti.dataset.bound){ti.dataset.bound='1';ti.addEventListener('change',async e=>{teamSelectedFile=e.target.files?.[0]||null;tp.disabled=!teamSelectedFile;if(teamSelectedFile)try{await loadTeamWorkbook(await fileWorkbook(teamSelectedFile),`Testing ${teamSelectedFile.name}`);}catch(err){document.getElementById('teamBettingUploadStatus').textContent=err.message;}});}if(ni&&!ni.dataset.bound){ni.dataset.bound='1';ni.addEventListener('change',async e=>{nrfiSelectedFile=e.target.files?.[0]||null;np.disabled=!nrfiSelectedFile;if(nrfiSelectedFile)try{await loadNrfiWorkbook(await fileWorkbook(nrfiSelectedFile),`Testing ${nrfiSelectedFile.name}`);}catch(err){document.getElementById('nrfiUploadStatus').textContent=err.message;}});}tp?.addEventListener('click',async()=>{try{await publishFile(TEAM_LIVE_PATH,teamSelectedFile,document.getElementById('teamBettingUploadStatus'));}catch(e){const st=document.getElementById('teamBettingUploadStatus');st.className='team-edge-upload-status bad';st.textContent=e.message;}});np?.addEventListener('click',async()=>{try{await publishFile(NRFI_LIVE_PATH,nrfiSelectedFile,document.getElementById('nrfiUploadStatus'));}catch(e){const st=document.getElementById('nrfiUploadStatus');st.className='nrfi-upload-status bad';st.textContent=e.message;}});autoLoadTeam();autoLoadNrfi();}
+function init(){
+  const ti=document.getElementById('teamBettingWorkbookInput');
+  const ni=document.getElementById('nrfiWorkbookInput');
+  if(ti&&!ti.dataset.bound){
+    ti.dataset.bound='1';
+    ti.addEventListener('change',async e=>{
+      teamSelectedFile=e.target.files?.[0]||null;
+      if(teamSelectedFile) try{ await loadTeamWorkbook(await fileWorkbook(teamSelectedFile),`Loaded ${teamSelectedFile.name}`); }
+      catch(err){ const st=document.getElementById('teamBettingUploadStatus'); st.className='team-edge-upload-status bad'; st.textContent=err.message; }
+    });
+  }
+  if(ni&&!ni.dataset.bound){
+    ni.dataset.bound='1';
+    ni.addEventListener('change',async e=>{
+      nrfiSelectedFile=e.target.files?.[0]||null;
+      if(nrfiSelectedFile) try{ await loadNrfiWorkbook(await fileWorkbook(nrfiSelectedFile),`Loaded ${nrfiSelectedFile.name}`); }
+      catch(err){ const st=document.getElementById('nrfiUploadStatus'); st.className='nrfi-upload-status bad'; st.textContent=err.message; }
+    });
+  }
+  renderTeam();
+  renderNrfi();
+}
 drlOnReady(init);window.renderTeamEdgeCenter=renderTeam;window.renderNrfiCenter=renderNrfi;
 })();
 </script>
