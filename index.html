@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line</title>
 <!-- DRL v64.9: Phase 5 unused CSS cleanup.
-     Canonical buckets: Power 23, Batted Ball 19, Pitcher 17, Pitch Lab 8,
-     Attack Zone 20, BvP 8, Weather 3, Park 2. Synergy cap: +7.50.
+     Canonical buckets: Power 32, Batted Ball 21, Pitcher 10, Pitch Lab 4,
+     Attack Zone 18, BvP 5, Weather 6, Park 4. Synergy cap: +7.50.
      Consolidation: Phases 2-4 preserved; unused CSS selectors with no HTML or JavaScript references removed; dynamic modifiers and cascade order preserved. -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script id="drl-phase4-ready-dispatcher">
@@ -2347,14 +2347,14 @@ tbody tr.cody-diamond-row:hover td{
 .bbi-wheel{
   width:250px; height:250px; border-radius:50%;
   background: conic-gradient(
-    rgba(168,85,247,var(--pow-a,.85)) 0deg 93.6deg,
-    rgba(239,68,68,var(--bat-a,.85)) 93.6deg 180deg,
-    rgba(251,113,133,var(--pit-a,.85)) 180deg 234deg,
-    rgba(56,189,248,var(--lab-a,.85)) 234deg 277.2deg,
-    rgba(16,185,129,var(--form-a,.85)) 277.2deg 309.6deg,
-    rgba(250,204,21,var(--bvp-a,.85)) 309.6deg 338.4deg,
-    rgba(14,165,233,var(--weather-a,.85)) 338.4deg 352.8deg,
-    rgba(148,163,184,var(--park-a,.85)) 352.8deg 360deg
+    rgba(168,85,247,var(--pow-a,.85)) 0deg 115.2deg,
+    rgba(239,68,68,var(--bat-a,.85)) 115.2deg 190.8deg,
+    rgba(251,113,133,var(--pit-a,.85)) 190.8deg 226.8deg,
+    rgba(56,189,248,var(--lab-a,.85)) 226.8deg 241.2deg,
+    rgba(16,185,129,var(--form-a,.85)) 241.2deg 306deg,
+    rgba(250,204,21,var(--bvp-a,.85)) 306deg 324deg,
+    rgba(14,165,233,var(--weather-a,.85)) 324deg 345.6deg,
+    rgba(148,163,184,var(--park-a,.85)) 345.6deg 360deg
   );
   box-shadow:0 0 0 8px rgba(255,255,255,.035), 0 0 34px rgba(225,6,0,.16);
   position:relative;
@@ -12641,16 +12641,16 @@ function parseUsageValue(raw) { let v = cleanNumber(raw); if (!v) return 0; if (
 const DRL_SYNERGY_CAP = 7.5; // Phase 7 canonical applied synergy ceiling (+7.50 BBI)
 const HYBRID_CATEGORY_WEIGHTS = {
   // Official bucket weights. Must always total exactly 100%.
-  // Power 23, Batted Ball 19, Pitcher 17, Pitch Lab 8, Attack Zone 20, BvP 8, Weather 3, Park 2.
+  // Power 32, Batted Ball 21, Pitcher 10, Pitch Lab 4, Attack Zone 18, BvP 5, Weather 6, Park 4.
   // Pitch Lab is the real pitcher-usage-weighted pitch-mix matchup score.
-  power: 0.23,
-  battedBall: 0.19,
-  pitcher: 0.17,
-  pitchLevel: 0.08,
-  attackZone: 0.20,
-  bvp: 0.08,
-  weather: 0.03,
-  park: 0.02
+  power: 0.32,
+  battedBall: 0.21,
+  pitcher: 0.10,
+  pitchLevel: 0.04,
+  attackZone: 0.18,
+  bvp: 0.05,
+  weather: 0.06,
+  park: 0.04
 };
 const MODEL_SANDBOX_WEIGHT_META = [
   { key:'power', label:'Hitter Power' },
@@ -17888,14 +17888,14 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
 <script id="v40-restart-fixes-script">
 (function(){
   const WEIGHTS_40 = [
-    { key:'power', label:'💪 Power', weight:27, color:'#a855f7' },
-    { key:'batted', label:'🚀 Batted Ball', weight:23, color:'#ef4444' },
-    { key:'pitcher', label:'⚾ Pitcher Vuln', weight:14, color:'#fb7185' },
-    { key:'pitchlab', label:'🎯 Pitch Lab', weight:5, color:'#38bdf8' },
-    { key:'attackZone', label:'🎯 Attack Zone', weight:20, color:'#f97316' },
+    { key:'power', label:'💪 Power', weight:32, color:'#a855f7' },
+    { key:'batted', label:'🚀 Batted Ball', weight:21, color:'#ef4444' },
+    { key:'pitcher', label:'⚾ Pitcher Vuln', weight:10, color:'#fb7185' },
+    { key:'pitchlab', label:'🎯 Pitch Lab', weight:4, color:'#38bdf8' },
+    { key:'attackZone', label:'🎯 Attack Zone', weight:18, color:'#f97316' },
     { key:'bvp', label:'🤝 BvP', weight:5, color:'#facc15' },
-    { key:'weather', label:'🌦 Weather', weight:4, color:'#0ea5e9' },
-    { key:'park', label:'🏟 Park', weight:2, color:'#94a3b8' }
+    { key:'weather', label:'🌦 Weather', weight:6, color:'#0ea5e9' },
+    { key:'park', label:'🏟 Park', weight:4, color:'#94a3b8' }
   ];
   function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
   function num(v){ try { return typeof cleanNumber === 'function' ? cleanNumber(v) : Number(v || 0); } catch(e){ return Number(v || 0) || 0; } }
@@ -19808,7 +19808,7 @@ function runDRLPhase7Audit() {
     modelVersion: BACKTEST_MODEL_VERSION,
     bucketWeightTotal: Math.round(weightTotal * 10000) / 100,
     canonicalWeights: { ...HYBRID_CATEGORY_WEIGHTS },
-    pitchLabActiveAtEightPct: Math.abs((HYBRID_CATEGORY_WEIGHTS.pitchLevel || 0) - 0.08) < 1e-9,
+    pitchLabActiveAtFourPct: Math.abs((HYBRID_CATEGORY_WEIGHTS.pitchLevel || 0) - 0.04) < 1e-9,
     realPitchLabPassedToSynergy: scorer.includes('pitchLevel: adjustedPitchLevel'),
     fakePitchLabAttackZoneMappingAbsent: !scorer.includes('pitchLevel: attackZone'),
     synergyCap: DRL_SYNERGY_CAP,
@@ -19819,7 +19819,7 @@ function runDRLPhase7Audit() {
     standaloneEdgeTabRemoved: !document.getElementById('tab-edge') && !document.querySelector('[data-tab="edge"]')
   };
   findings.passed = findings.bucketWeightTotal === 100 &&
-    findings.pitchLabActiveAtEightPct && findings.realPitchLabPassedToSynergy &&
+    findings.pitchLabActiveAtFourPct && findings.realPitchLabPassedToSynergy &&
     findings.fakePitchLabAttackZoneMappingAbsent && findings.rawAndAppliedSynergyTracked &&
     findings.appliedSynergyUsesNamedCap && findings.finalScoreOpenEnded &&
     findings.pitchLabBacktestFieldsPresent && findings.standaloneEdgeTabRemoved;
