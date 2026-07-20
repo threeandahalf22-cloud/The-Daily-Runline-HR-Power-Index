@@ -6938,7 +6938,7 @@ body::after{display:none!important;}
 .drl-page-hidden *{animation-play-state:paused!important}
 
 /* ===== CONSOLIDATED SECTION: drl-v620-unified-attack-map-style ===== */
-#tab-pitchlab{ display:none !important; }
+#tab-pitchlab{ display:none; }
 .unified-attack-body{display:grid!important;grid-template-columns:minmax(390px,1.35fr) minmax(250px,.65fr)!important;gap:16px!important;align-items:stretch!important;overflow:visible!important;}
 .unified-zone-map{position:relative;overflow:visible!important;border-color:rgba(225,6,0,.30)!important;background:linear-gradient(180deg,#151719,#0d0f12)!important;}
 .zone-map-subtitle{margin:-4px 0 12px;color:#8f949c;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.55px;}
@@ -8191,6 +8191,119 @@ body.drl-splash-active .container{visibility:hidden!important;}
 @keyframes drl-weather-vector-pulse{0%,100%{opacity:.62}50%{opacity:1}}
 @keyframes drl-weather-arrow-pulse{0%,100%{filter:drop-shadow(0 0 6px rgba(239,68,68,.45))}50%{filter:drop-shadow(0 0 16px rgba(239,68,68,.95))}}
 
+
+/* ===== PITCH LAB RESTORED TO PLAYER MODAL ===== */
+.modal-pitchlab-shell{
+  border:1px solid rgba(255,255,255,.08);
+  border-left:4px solid var(--espn-red,var(--accent));
+  border-radius:12px;
+  padding:14px;
+  background:linear-gradient(180deg,#171a1f,#101214);
+}
+.modal-pitchlab-top{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+  margin-bottom:12px;
+}
+.modal-pitchlab-kicker{
+  color:var(--espn-red,var(--accent));
+  font-size:10px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+.modal-pitchlab-matchup{
+  margin-top:4px;
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
+}
+.modal-pitchlab-summary{
+  margin-top:4px;
+  color:var(--text-muted);
+  font-size:10px;
+  font-weight:800;
+  line-height:1.35;
+}
+.modal-pitchlab-scorebox{
+  min-width:86px;
+  text-align:center;
+  border:1px solid rgba(225,6,0,.34);
+  border-radius:10px;
+  padding:9px 10px;
+  background:rgba(225,6,0,.07);
+}
+.modal-pitchlab-scorelabel{
+  color:var(--text-muted);
+  font-size:8px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+}
+.modal-pitchlab-score{
+  margin-top:3px;
+  color:#fff;
+  font-family:monospace;
+  font-size:28px;
+  font-weight:1000;
+  line-height:1;
+}
+.modal-pitchlab-pitches{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(155px,1fr));
+  gap:8px;
+}
+.modal-pitchlab-pitch{
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;
+  padding:9px;
+  background:rgba(255,255,255,.03);
+}
+.modal-pitchlab-pitch.best{
+  border-color:rgba(250,204,21,.52);
+  background:rgba(250,204,21,.07);
+}
+.modal-pitchlab-pitchhead{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
+}
+.modal-pitchlab-pitchname{
+  color:#fff;
+  font-size:11px;
+  font-weight:1000;
+  text-transform:uppercase;
+}
+.modal-pitchlab-edge{
+  color:var(--espn-red,var(--accent));
+  font-family:monospace;
+  font-size:15px;
+  font-weight:1000;
+}
+.modal-pitchlab-pitchmeta{
+  margin-top:6px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:4px 8px;
+  color:var(--text-muted);
+  font-size:9px;
+  font-weight:800;
+}
+.modal-pitchlab-pitchmeta b{ color:#fff; font-family:monospace; }
+@media(max-width:650px){
+  .modal-pitchlab-top{grid-template-columns:1fr;}
+  .modal-pitchlab-scorebox{width:100%;box-sizing:border-box;}
+  .modal-pitchlab-pitches{grid-template-columns:1fr;}
+}
+
+
+/* ===== FINAL PITCH LAB VISIBILITY FIX ===== */
+#tab-pitchlab.tab-content{ display:none; }
+#tab-pitchlab.tab-content.active{ display:block !important; }
+
 </style>
 </head>
 <body class="drl-splash-active">
@@ -8282,6 +8395,7 @@ body.drl-splash-active .container{visibility:hidden!important;}
 <button class="nav-tab" onclick="switchTab('stats', this)">📊 Stats</button>
 <button class="nav-tab" onclick="switchTab('odds', this)">💰 Odds</button>
 <button class="nav-tab" onclick="switchTab('pitchers', this)">🎯 Pitchers</button>
+<button class="nav-tab" onclick="switchTab('pitchlab', this)">🧪 Pitch Lab</button>
 <button class="nav-tab" onclick="switchTab('strikeouts', this); renderStrikeoutCenter();">🔥 Strikeout Center</button>
 <button class="nav-tab" onclick="switchTab('hotbat', this)">🔥 Hot Bat</button>
 <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
@@ -10712,6 +10826,57 @@ if (!tickerEl) return;
 updateCountdown();
 }
 
+
+function renderModalPitchLab(player) {
+  try {
+    const profile = player.pitchLabProfile || buildPitchLabProfile(player);
+    if (!profile) {
+      return `<div><div class="modal-section-title">🧪 PITCH LAB</div><div class="modal-pitchlab-shell"><div class="modal-pitchlab-summary">No mapped pitch arsenal was available for this matchup.</div></div></div>`;
+    }
+    player.pitchLabProfile = profile;
+    const rows = Array.isArray(profile.rows) ? profile.rows.slice(0, 6) : [];
+    const pitchCards = rows.map((row, idx) => {
+      const usage = Number(row.usage || 0) * 100;
+      const batter = Number(row.bat && row.bat.score);
+      const pitcher = Number(row.pitcherDamage && row.pitcherDamage.score);
+      const stuff = Number(row.stuff);
+      const edge = Number(row.edge || 0);
+      return `<div class="modal-pitchlab-pitch ${idx === 0 ? 'best' : ''}">
+        <div class="modal-pitchlab-pitchhead">
+          <div class="modal-pitchlab-pitchname">${row.label || row.key || row.group || 'Pitch'}${idx === 0 ? ' • BEST' : ''}</div>
+          <div class="modal-pitchlab-edge">${isFinite(edge) ? edge.toFixed(0) : '--'}</div>
+        </div>
+        <div class="modal-pitchlab-pitchmeta">
+          <span>Usage <b>${usage > 0 ? usage.toFixed(0)+'%' : '--'}</b></span>
+          <span>Batter <b>${isFinite(batter) ? batter.toFixed(0) : '--'}</b></span>
+          <span>Pitcher <b>${isFinite(pitcher) ? pitcher.toFixed(0) : '--'}</b></span>
+          <span>Stuff+ <b>${isFinite(stuff) ? stuff.toFixed(0) : '--'}</b></span>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div>
+      <div class="modal-section-title">🧪 PITCH LAB</div>
+      <div class="modal-pitchlab-shell">
+        <div class="modal-pitchlab-top">
+          <div>
+            <div class="modal-pitchlab-kicker">Batter vs Pitcher Arsenal</div>
+            <div class="modal-pitchlab-matchup">${player.Name || 'Hitter'} vs ${profile.pitcherName || player['Opp Pitcher'] || 'Starter'}</div>
+            <div class="modal-pitchlab-summary">Usage-weighted pitch matchup. Each pitch score combines hitter HR damage, pitcher damage allowed and pitch quality, then weights it by how often the pitcher throws it.</div>
+          </div>
+          <div class="modal-pitchlab-scorebox">
+            <div class="modal-pitchlab-scorelabel">Pitch Lab Score</div>
+            <div class="modal-pitchlab-score">${Number(profile.score || 0).toFixed(0)}</div>
+          </div>
+        </div>
+        <div class="modal-pitchlab-pitches">${pitchCards || '<div class="modal-pitchlab-summary">No pitch rows available.</div>'}</div>
+      </div>
+    </div>`;
+  } catch (err) {
+    console.error('Modal Pitch Lab failed:', err);
+    return `<div><div class="modal-section-title">🧪 PITCH LAB</div><div class="modal-pitchlab-shell"><div class="modal-pitchlab-summary">Pitch Lab data could not be rendered for this player.</div></div></div>`;
+  }
+}
+
 function openPlayerModal(player) {
 try {
 if (!player) return;
@@ -10777,6 +10942,7 @@ html += section('⚙️ VOLUME CHECK', stat('PA', pa) + stat('Total HR', totalHR
 html += section('📊 BATTED BALL', stat('Barrel %', barrel+'%', barrel>=14.5?'green':'') + stat('Hard Hit %', hh+'%', hh>=35?'green':'') + stat('Avg EV', ev+' mph') + stat('ISO', iso));
 html += section('⬅️ LAUNCH PROFILE', stat('Pulled Air %', pullAir+'%', pullAir>=25?'green':'') + stat('Fly Ball %', fbRate+'%') + stat('Sweet Spot %', sweetSpot+'%') + stat('Pull %', pullRate+'%'));
 html += section('🎯 PITCHER MATCHUP', stat('HR/9', pHR9, pHR9>=1.3?'red':'') + stat('Barrel Allowed', pBarrel+'%') + stat('Hard Hit Allowed', pHH+'%') + stat('FB %', pFB+'%') + stat('GB %', pGB+'%'));
+html += renderModalPitchLab(player);
 html += section('🚀 MULTIPLIERS', stat('Game Total Mod', envMod+'x', envMod>=1.05?'green':'') + stat('PA/Game Mod', paMod+'x') + stat('xHR Vol Bonus', xhrMod+'x', xhrMod>1?'green':'') + stat('VAA (Rel Z) Mod', vaaMod+'x', vaaMod>=1.1?'green':vaaMod<1?'red':'') + stat('Power Mod', powerMod+'x') + stat('PVF Ratio', pvfMod+'x', pvfMod>=1.2?'red':'') + stat('Synergy Bonus', synergyPts+' pts / '+synergyMod+'x', synergyPts >= 6 ? 'green' : synergyPts >= 3 ? 'yellow' : ''));
 html += renderHRBlueprint(player);
 html += `<div><div class="modal-section-title">🤝 SYNERGY METER</div>${renderSynergyMeter(player)}</div>`;
