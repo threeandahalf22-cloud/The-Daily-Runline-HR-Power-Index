@@ -8603,6 +8603,15 @@ body.drl-splash-active .container{visibility:hidden!important;}
   text-transform:uppercase;
   letter-spacing:.85px;
 }
+.game-pitcher-throws{
+  margin-top:5px;
+  color:#f8fafc;
+  font-size:10px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:.65px;
+}
+
 .game-pitcher-card .pitcher-card-top{
   grid-template-columns:58px minmax(0,1fr) 82px !important;
 }
@@ -16206,6 +16215,28 @@ function changeGameRankingSort(gameKey, mode) {
 }
 
 
+function getGamePitcherThrowsFromTop5(pitcherName) {
+  const target = typeof normalizeName === 'function'
+    ? normalizeName(pitcherName)
+    : String(pitcherName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!target) return '';
+
+  const rows = Array.isArray(window.top5SheetData) ? window.top5SheetData : [];
+  const row = rows.find(item => {
+    const rawName = String(safeGet(item, 'Pitcher', 'Pitcher Name', 'Name', 'Player', 'A') || '').trim();
+    const key = typeof normalizeName === 'function'
+      ? normalizeName(rawName)
+      : rawName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return key === target;
+  });
+  if (!row) return '';
+
+  const raw = String(safeGet(row, 'Throws', 'Throw', 'Hand', 'Pitcher Hand', 'L/R', 'LR') || '').trim().toUpperCase();
+  if (raw.startsWith('L')) return 'Left';
+  if (raw.startsWith('R')) return 'Right';
+  return '';
+}
+
 function renderGamePitcherCardHTML(pitcherName, teamCode, sideLabel) {
   const name = String(pitcherName || 'Starter').trim();
   const team = String(teamCode || '').trim().toUpperCase();
@@ -16245,6 +16276,7 @@ function renderGamePitcherCardHTML(pitcherName, teamCode, sideLabel) {
   const logo = window.teamLogos && teamLogos[team]
     ? `<img class="team-logo-img" src="${teamLogos[team]}" style="width:18px;height:18px;margin-right:5px;">`
     : '';
+  const throwsHand = getGamePitcherThrowsFromTop5(name);
 
   const badges = [];
   if (num(st.barrel) >= .10 || num(st.barrel) >= 10) badges.push('💣 Barrel Prone');
@@ -16264,6 +16296,7 @@ function renderGamePitcherCardHTML(pitcherName, teamCode, sideLabel) {
       <div style="min-width:0;">
         <div class="pitcher-card-name">${name}</div>
         <div class="pitcher-card-meta">${logo}${team || '-'}</div>
+        ${throwsHand ? `<div class="game-pitcher-throws">Throws: ${throwsHand}</div>` : ''}
       </div>
       <div class="pitcher-risk-box">
         <div class="pitcher-risk-label">HR Damage</div>
