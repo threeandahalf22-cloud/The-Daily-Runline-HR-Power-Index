@@ -8667,7 +8667,7 @@ body.drl-splash-active .container{visibility:hidden!important;}
 <div id="tab-backtest" class="tab-content">
   <div class="panel">
     <h2>📊 Backtest / Model Research Lab</h2>
-    <p class="backtest-note">This tab keeps adding finalized slate snapshots over time and studies which scoring inputs actually separate HR hitters from non-HR hitters. Suggested weights are reference-only and never change the live model.</p>
+    <p class="backtest-note">This tab keeps finalized slate snapshots and profiles the players who actually homered. It compares HR hitters with all misses and with misses that had similar BBI scores. No suggested-weight optimizer is used.</p>
     <div class="backtest-tools">
       <button class="backtest-tool-btn" onclick="renderBacktestLab()">🔄 Refresh Lab</button>
       <button class="backtest-tool-btn" onclick="resetLastBacktestUpload()">↩ Reset Last Upload</button>
@@ -16059,6 +16059,7 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Home_Park_Team: visual.homeTeam || '',
     Ballpark: visual.name || '',
     BBI: backtestNum(p.calculatedBBI),
+    MLI: backtestNum(p.calculatedMLI),
     HR_Probability: backtestNum(p.calculatedHRProbability),
     Best_Odds: p.bettingOdds || '',
     Best_Book: p.bettingBook || '',
@@ -17182,102 +17183,179 @@ function renderPhase5Validation(rows) {
 `;
 }
 
+
+function backtestProfileNumeric(rows, key) {
+  return rows.map(r => {
+    const raw = r ? r[key] : null;
+    if (raw === '' || raw === null || raw === undefined) return null;
+    const n = Number(raw);
+    return isFinite(n) ? n : null;
+  }).filter(v => v !== null);
+}
+function backtestPercentile(values, pct) {
+  const nums = (values || []).map(Number).filter(Number.isFinite).sort((a,b) => a-b);
+  if (!nums.length) return null;
+  if (nums.length === 1) return nums[0];
+  const pos = (nums.length - 1) * pct;
+  const lo = Math.floor(pos);
+  const hi = Math.ceil(pos);
+  if (lo === hi) return nums[lo];
+  return nums[lo] + (nums[hi] - nums[lo]) * (pos - lo);
+}
+function backtestProfileStats(rows, key) {
+  const vals = backtestProfileNumeric(rows, key);
+  return {
+    count: vals.length,
+    avg: mean(vals),
+    median: backtestPercentile(vals, .50),
+    p25: backtestPercentile(vals, .25),
+    p75: backtestPercentile(vals, .75),
+    min: vals.length ? Math.min(...vals) : null,
+    max: vals.length ? Math.max(...vals) : null
+  };
+}
+function backtestMetricFormat(value, metric) {
+  if (value === null || value === undefined || !isFinite(Number(value))) return '-';
+  const n = Number(value);
+  const digits = metric && metric.digits !== undefined ? metric.digits : 1;
+  const prefix = metric && metric.signed && n > 0 ? '+' : '';
+  const suffix = metric && metric.suffix ? metric.suffix : '';
+  return `${prefix}${n.toFixed(digits)}${suffix}`;
+}
+function backtestComparisonRow(metric, hitRows, missRows, similarRows) {
+  const h = backtestProfileStats(hitRows, metric.key);
+  const m = backtestProfileStats(missRows, metric.key);
+  const s = backtestProfileStats(similarRows, metric.key);
+  const diffAll = h.avg !== null && m.avg !== null ? h.avg - m.avg : null;
+  const diffSimilar = h.avg !== null && s.avg !== null ? h.avg - s.avg : null;
+  const clsAll = diffAll === null ? '' : (diffAll > 0 ? 'signal-positive' : diffAll < 0 ? 'signal-negative' : 'signal-neutral');
+  const clsSimilar = diffSimilar === null ? '' : (diffSimilar > 0 ? 'signal-positive' : diffSimilar < 0 ? 'signal-negative' : 'signal-neutral');
+  return `<tr>
+    <td>${metric.label}</td>
+    <td>${h.count}</td>
+    <td>${backtestMetricFormat(h.avg, metric)}</td>
+    <td>${backtestMetricFormat(m.avg, metric)}</td>
+    <td class="${clsAll}">${backtestMetricFormat(diffAll, {...metric, signed:true})}</td>
+    <td>${backtestMetricFormat(s.avg, metric)}</td>
+    <td class="${clsSimilar}">${backtestMetricFormat(diffSimilar, {...metric, signed:true})}</td>
+  </tr>`;
+}
+function backtestDistributionRow(metric, hitRows) {
+  const h = backtestProfileStats(hitRows, metric.key);
+  return `<tr>
+    <td>${metric.label}</td>
+    <td>${h.count}</td>
+    <td>${backtestMetricFormat(h.avg, metric)}</td>
+    <td>${backtestMetricFormat(h.median, metric)}</td>
+    <td>${backtestMetricFormat(h.p25, metric)}</td>
+    <td>${backtestMetricFormat(h.p75, metric)}</td>
+    <td>${backtestMetricFormat(h.min, metric)}</td>
+    <td>${backtestMetricFormat(h.max, metric)}</td>
+  </tr>`;
+}
+function backtestSlateCoverage(rows, metrics) {
+  const bySlate = new Map();
+  rows.forEach(r => {
+    const id = String((r && r.Slate_ID) || 'Unknown');
+    if (!bySlate.has(id)) bySlate.set(id, []);
+    bySlate.get(id).push(r);
+  });
+  return Array.from(bySlate.entries()).map(([id, slateRows]) => {
+    const finalized = slateRows[0] && slateRows[0].Finalized_At ? new Date(slateRows[0].Finalized_At).toLocaleDateString() : id;
+    const hits = slateRows.filter(r => Number(r.HR_Result) === 1).length;
+    const stored = metrics.filter(metric => slateRows.some(r => r && r[metric.key] !== '' && r[metric.key] !== null && r[metric.key] !== undefined && isFinite(Number(r[metric.key])))).length;
+    return `<tr><td>${finalized}</td><td>${slateRows.length}</td><td>${hits}</td><td>${stored}/${metrics.length}</td></tr>`;
+  }).join('');
+}
 function renderBacktestLab() {
   const container = document.getElementById('backtestLabContainer');
   if (!container) return;
   try {
-  const rows = getBacktestRows();
-  if (!rows.length) {
-    container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No finalized backtests yet. Mark HR hitters with 💣 on the rankings page, then click Finalize Today's Backtest at the bottom.</div>`;
-    return;
-  }
-  const slates = backtestHistory.length;
-  const hrs = rows.filter(r => Number(r.HR_Result) === 1).length;
-  const hitRate = rows.length ? (hrs / rows.length) * 100 : 0;
-  const latest = backtestHistory[backtestHistory.length - 1];
+    const rows = getBacktestRows();
+    if (!rows.length) {
+      container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No finalized backtests yet. Mark HR hitters with 💣 on the rankings page, then click Finalize Today's Backtest at the bottom.</div>`;
+      return;
+    }
 
-  const categoryMetrics = [
-    { key:'Category_Power', label:'Power category', format:'score', type:'Category score' },
-    { key:'Category_PitchLab', label:'Pitch Lab category', format:'score', type:'Category score' },
-    { key:'Category_AttackZone', label:'Attack Zone category', format:'score', type:'Category score' },
-    { key:'Category_Pitcher', label:'Pitcher category', format:'score', type:'Category score' },
-    { key:'Category_BattedBall', label:'Batted-ball category', format:'score', type:'Category score' },
-    { key:'Category_Weather', label:'Weather category', format:'score', type:'Category score' },
-    { key:'Category_Park', label:'Park category', format:'score', type:'Category score' },
-    { key:'Category_BVP', label:'BVP category', format:'score', type:'Category score' },
-    { key:'Category_Bullpen', label:'Bullpen category', format:'score', type:'Category score' },
-    { key:'Category_Discipline', label:'Discipline category', format:'score', type:'Category score' }
-  ];
+    const hitRows = rows.filter(r => Number(r.HR_Result) === 1);
+    const missRows = rows.filter(r => Number(r.HR_Result) !== 1);
+    const hitBBIs = backtestProfileNumeric(hitRows, 'BBI');
+    const similarRows = missRows.filter(r => {
+      const bbi = Number(r && r.BBI);
+      if (!isFinite(bbi)) return false;
+      return hitBBIs.some(hitBBI => Math.abs(bbi - hitBBI) <= 10);
+    });
 
-  const categorySignals = categoryMetrics
-    .map(metric => ({ label: metric.label, type: metric.type, ...getSignalStats(rows, metric.key, metric) }))
-    .filter(s => s.count >= 10 && s.hitCount > 0 && s.missCount > 0)
-    .sort((a,b) => (b.strength - a.strength));
+    const slates = backtestHistory.length;
+    const hitRate = rows.length ? (hitRows.length / rows.length) * 100 : 0;
+    const latest = backtestHistory[backtestHistory.length - 1];
 
-  // Weighted raw stat scan: only stats that feed the live weighted scoring buckets are evaluated here.
-  // This reads the existing saved backtest rows, so past finalized slates are preserved.
-  const dynamicMetrics = buildWeightedBacktestMetrics(rows);
-  const rawSignals = dynamicMetrics
-    .map((metric, idx) => ({ label: metric.label, type: metric.type, bucket: metric.bucket, sourceOrder: idx, ...getSignalStats(rows, metric.key, metric) }))
-    .filter(s => s.count > 0)
-    .sort((a,b) => (a.sourceOrder - b.sourceOrder));
+    const profileMetrics = [
+      { key:'BBI', label:'BBI', digits:1 },
+      { key:'MLI', label:'MLI', digits:1, signed:true },
+      { key:'HR_Probability', label:'HR Probability', digits:2, suffix:'%' },
+      { key:'Betting_Edge', label:'Betting Edge', digits:2, suffix:'%', signed:true },
+      { key:'Category_PitchLab', label:'Pitch Lab', digits:1 },
+      { key:'Category_AttackZone', label:'Attack Zone', digits:1 },
+      { key:'Category_Power', label:'Hitter Power', digits:1 },
+      { key:'Category_BattedBall', label:'Batted Ball Shape', digits:1 },
+      { key:'Category_Pitcher', label:'Pitcher Vulnerability', digits:1 },
+      { key:'Category_BVP', label:'BvP', digits:1 },
+      { key:'Category_Weather', label:'Weather', digits:1 },
+      { key:'Category_Park', label:'Park', digits:1 },
+      { key:'Lineup_Spot', label:'Lineup Spot', digits:1 }
+    ];
 
-  const weights = getSuggestedWeights(rows);
-  const weightRows = weights.categories.map(meta => {
-    const cat = meta.cat;
-    const cur = (weights.current[cat] || 0) * 100;
-    const sug = (weights.suggested[cat] || 0) * 100;
-    const delta = sug - cur;
-    const stat = getSignalStats(weights.analysisRows || rows, weights.keyMap[cat], { format:'score' });
-    const cls = delta > 0.75 ? 'signal-positive' : delta < -0.75 ? 'signal-negative' : 'signal-neutral';
-    const sepCls = stat.diff > 0 ? 'signal-positive' : stat.diff < 0 ? 'signal-negative' : 'signal-neutral';
-    return `<tr><td>${meta.label}</td><td>${fmtBack(cur,1,'%')}</td><td>${fmtBack(sug,1,'%')}</td><td class="${cls}">${delta >= 0 ? '+' : ''}${fmtBack(delta,1,'%')}</td><td>${fmtBack(stat.hitAvg,2)}</td><td>${fmtBack(stat.missAvg,2)}</td><td class="${sepCls}">${stat.diff >= 0 ? '+' : ''}${fmtBack(stat.diff,2)}</td><td>${Math.round(stat.predictiveness || 0)}</td><td>${weights.confidenceByCategory && weights.confidenceByCategory[cat] ? weights.confidenceByCategory[cat] : stat.confidence}</td></tr>`;
-  }).join('');
-  const curPerf = weights.currentPerformance || {};
-  const sugPerf = weights.suggestedPerformance || {};
-  const optimizerSummaryRows = `
-    <tr><td>Current Live Weights</td><td>${fmtBack(curPerf.objective,2)}</td><td>${fmtBack(curPerf.top5RatePct,2,'%')}</td><td>${fmtBack(curPerf.top10RatePct,2,'%')}</td><td>${fmtBack(curPerf.top25RatePct,2,'%')}</td><td>${curPerf.top10Lift ? curPerf.top10Lift.toFixed(2)+'x' : '-'}</td><td>${fmtBack(curPerf.avgHrRank,1)}</td><td>${fmtBack(curPerf.avgRankPercentile,1,'%')}</td><td>${fmtBack(curPerf.ndcg,3)}</td></tr>
-    <tr><td>Category Signal Suggested Weights</td><td class="signal-positive">${fmtBack(sugPerf.objective,2)}</td><td>${fmtBack(sugPerf.top5RatePct,2,'%')}</td><td>${fmtBack(sugPerf.top10RatePct,2,'%')}</td><td>${fmtBack(sugPerf.top25RatePct,2,'%')}</td><td>${sugPerf.top10Lift ? sugPerf.top10Lift.toFixed(2)+'x' : '-'}</td><td>${fmtBack(sugPerf.avgHrRank,1)}</td><td>${fmtBack(sugPerf.avgRankPercentile,1,'%')}</td><td>${fmtBack(sugPerf.ndcg,3)}</td></tr>`;
+    const distributionRows = profileMetrics.map(m => backtestDistributionRow(m, hitRows)).join('');
+    const comparisonRows = profileMetrics.map(m => backtestComparisonRow(m, hitRows, missRows, similarRows)).join('');
 
-  const categoryRows = renderBacktestSignalRows(categorySignals, 18);
-  const rawRows = renderBacktestRawStatWeightRows(rawSignals, 120);
+    const dynamicMetrics = buildWeightedBacktestMetrics(rows);
+    const rawHitRows = dynamicMetrics.map(metric => {
+      const stat = backtestProfileStats(hitRows, metric.key);
+      if (!stat.count) return '';
+      return `<tr>
+        <td>${metric.label}</td>
+        <td>${metric.type || '-'}</td>
+        <td>${metric.bucket || '-'}</td>
+        <td>${stat.count}</td>
+        <td>${fmtSignalValue(stat.avg, metric)}</td>
+        <td>${fmtSignalValue(stat.median, metric)}</td>
+        <td>${fmtSignalValue(stat.p25, metric)}</td>
+        <td>${fmtSignalValue(stat.p75, metric)}</td>
+      </tr>`;
+    }).filter(Boolean).join('');
 
-  const strongestRaw = rawSignals[0];
-  const strongestCategory = categorySignals[0];
+    const coverageRows = backtestSlateCoverage(rows, profileMetrics);
+    const storedMLI = rows.filter(r => r.MLI !== '' && r.MLI !== null && r.MLI !== undefined && isFinite(Number(r.MLI))).length;
 
-  container.innerHTML = `
-    <div class="backtest-kpi-grid">
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Finalized slates</div><div class="backtest-kpi-value">${slates}</div><div class="backtest-kpi-sub">Latest: ${latest ? new Date(latest.finalizedAt).toLocaleString() : '-'}</div></div>
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Player snapshots</div><div class="backtest-kpi-value">${rows.length.toLocaleString()}</div><div class="backtest-kpi-sub">Every scoring input frozen</div></div>
-      <div class="backtest-kpi"><div class="backtest-kpi-label">HR winners marked</div><div class="backtest-kpi-value">${hrs}</div><div class="backtest-kpi-sub">Hit rate ${fmtBack(hitRate,2,'%')}</div></div>
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Strongest raw signal</div><div class="backtest-kpi-value" style="font-size:18px;">${strongestRaw ? strongestRaw.label : '-'}</div><div class="backtest-kpi-sub">Predictiveness ${strongestRaw ? Math.round(strongestRaw.predictiveness || 0) + '/100' : '-'}</div></div>
-    </div>
+    container.innerHTML = `
+      <div class="backtest-kpi-grid">
+        <div class="backtest-kpi"><div class="backtest-kpi-label">Finalized slates</div><div class="backtest-kpi-value">${slates}</div><div class="backtest-kpi-sub">Latest: ${latest ? new Date(latest.finalizedAt).toLocaleString() : '-'}</div></div>
+        <div class="backtest-kpi"><div class="backtest-kpi-label">Player snapshots</div><div class="backtest-kpi-value">${rows.length.toLocaleString()}</div><div class="backtest-kpi-sub">Frozen at finalization</div></div>
+        <div class="backtest-kpi"><div class="backtest-kpi-label">HR hitters</div><div class="backtest-kpi-value">${hitRows.length}</div><div class="backtest-kpi-sub">Overall hit rate ${fmtBack(hitRate,2,'%')}</div></div>
+        <div class="backtest-kpi"><div class="backtest-kpi-label">Similar-BBI misses</div><div class="backtest-kpi-value">${similarRows.length.toLocaleString()}</div><div class="backtest-kpi-sub">Misses within ±10 BBI of at least one HR hitter</div></div>
+      </div>
 
-    ${renderPhase5Validation(rows)}
+      <h2>💣 HR Hitter Profile</h2>
+      <p class="backtest-note">This section uses only players marked as home-run hitters. It shows the actual distribution of their stored model scores and inputs at the time each slate was finalized.</p>
+      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Metric</th><th>Stored HR Rows</th><th>Average</th><th>Median</th><th>25th Percentile</th><th>75th Percentile</th><th>Minimum</th><th>Maximum</th></tr></thead><tbody>${distributionRows}</tbody></table></div>
 
-    <h2>🧠 Current vs Category-Signal Suggested Weights</h2>
-    <p class="backtest-note">Suggested weights now roll up directly from the Category Signal Board: HR Avg vs Miss Avg, top-vs-bottom HR-rate separation, 0-100 Predictiveness, and sample confidence. No separate category optimizer is used. Same history = same suggested weights. Reference-only: this never changes live BBI scoring or zone scoring.</p>
-    <div class="backtest-kpi-grid">
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Signal sample</div><div class="backtest-kpi-value">${Number(weights.usableRows || 0).toLocaleString()}</div><div class="backtest-kpi-sub">HR + Top ${weights.candidateRankCutoff || 60} candidates • HR rows: ${weights.hrCount} • ${weights.confidence}</div></div>
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Historical movement</div><div class="backtest-kpi-value">${fmtBack(weights.improvementPct,1,'%')}</div><div class="backtest-kpi-sub">Suggested vs current AUC check</div></div>
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Suggested Top 10 Lift</div><div class="backtest-kpi-value">${weights.suggestedPerformance.top10Lift ? weights.suggestedPerformance.top10Lift.toFixed(2)+'x' : '-'}</div><div class="backtest-kpi-sub">vs overall HR baseline</div></div>
-      <div class="backtest-kpi"><div class="backtest-kpi-label">Avg HR Rank</div><div class="backtest-kpi-value">${fmtBack(weights.suggestedPerformance.avgHrRank,1)}</div><div class="backtest-kpi-sub">Lower is better</div></div>
-    </div>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Tested System</th><th>HR Separation AUC</th><th>Top 5 HR%</th><th>Top 10 HR%</th><th>Top 25 HR%</th><th>Top 10 Lift</th><th>Avg HR Rank</th><th>Avg Rank %</th><th>NDCG</th></tr></thead><tbody>${optimizerSummaryRows}</tbody></table></div>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Category</th><th>Current Weight</th><th>Suggested Weight</th><th>Difference</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Separation</th><th>Predictiveness</th><th>Confidence</th></tr></thead><tbody>${weightRows}</tbody></table></div>
+      <h2>⚖️ HR vs Non-HR Comparison</h2>
+      <p class="backtest-note">The first comparison uses every non-HR player. The similar-BBI comparison uses only misses within ±10 BBI of at least one HR hitter, which helps show what separated hitters who had comparable overall model scores.</p>
+      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Metric</th><th>HR Rows</th><th>HR Average</th><th>All Miss Average</th><th>HR Difference</th><th>Similar-BBI Miss Average</th><th>HR Difference vs Similar</th></tr></thead><tbody>${comparisonRows}</tbody></table></div>
 
-    <h2>📊 Category Signal Board</h2>
-    <p class="backtest-note">This is only the broad model-category view. It explains how the major scoring buckets are separating HR hitters from misses, but it is not enough by itself to change weights.</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Difference</th><th>Direction</th><th>Top/Bottom HR Gap</th><th>Predictiveness</th><th>Rating</th><th>Sample</th></tr></thead><tbody>${categoryRows || '<tr><td colspan="13" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before category signals are useful.</td></tr>'}</tbody></table></div>
+      <h2>🔬 HR-Only Raw Stat Profile</h2>
+      <p class="backtest-note">Only individual workbook inputs that were actually stored in finalized snapshots are shown. No suggested-weight calculation or optimizer is run.</p>
+      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Bucket</th><th>Stored HR Rows</th><th>Average</th><th>Median</th><th>25th Percentile</th><th>75th Percentile</th></tr></thead><tbody>${rawHitRows || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:18px;">No stored raw-stat values are available in finalized HR rows yet.</td></tr>'}</tbody></table></div>
 
-    <h2>🔬 Individual Raw Stat Analysis</h2>
-    <p class="backtest-note">This shows only the individual stats that directly feed the live scoring buckets. Current/suggested raw-stat weights were removed because the raw-stat optimizer was creating misleading recommendations. Use this table as a clean signal audit. HR Avg, Miss Avg, and Avg Difference are unchanged. Predictiveness is a 0-100 blend of top-vs-bottom HR-rate separation (40%), standardized average difference (25%), rank correlation with HR results (20%), and sample confidence (15%).</p>
-    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Bucket</th><th>Rows</th><th>HRs</th><th>HR Rate</th><th>HR Avg</th><th>Miss Avg</th><th>Avg Difference</th><th>Direction</th><th>Top/Bottom HR Gap</th><th>Predictiveness ▼</th><th>Rating</th><th>Sample</th></tr></thead><tbody>${rawRows || '<tr><td colspan="14" style="text-align:center;color:var(--text-muted);padding:18px;">Need more finalized rows before raw stat analysis is useful.</td></tr>'}</tbody></table></div>
-  `;
-  initSortableSignalTables(container);
+      <h2>🗂️ Historical Data Coverage</h2>
+      <p class="backtest-note">Older finalized slates are not backfilled with values that were never stored. MLI is saved on new finalizations only; ${storedMLI.toLocaleString()} existing player snapshots currently contain it.</p>
+      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Slate</th><th>Players</th><th>HR Hitters</th><th>Profile Metrics Stored</th></tr></thead><tbody>${coverageRows}</tbody></table></div>
+    `;
+    initSortableSignalTables(container);
   } catch (err) {
     console.error('Backtest Lab render failed:', err);
-    container.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;line-height:1.45;"><b>Backtest Lab error:</b> ${err && err.message ? err.message : err}<br><span style="color:var(--text-muted);">The page stayed functional. Export your backup JSON if needed, then re-open after this patch.</span></div>`;
+    container.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;line-height:1.45;"><b>Backtest Lab error:</b> ${err && err.message ? err.message : err}<br><span style="color:var(--text-muted);">The rest of the site was not changed by this backtesting-only update.</span></div>`;
   }
 }
 
