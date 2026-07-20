@@ -8304,6 +8304,223 @@ body.drl-splash-active .container{visibility:hidden!important;}
 #tab-pitchlab.tab-content{ display:none; }
 #tab-pitchlab.tab-content.active{ display:block !important; }
 
+
+
+
+
+/* ===== GAME RANKINGS ACCORDION — GAME CENTER AND TOP 12 UNCHANGED ===== */
+.game-rankings-accordion{
+  width:100%;
+  margin:0 0 22px;
+  border:1px solid var(--espn-line,#2c3037);
+  border-radius:12px;
+  background:linear-gradient(180deg,#151719,#101214);
+  overflow:hidden;
+  box-shadow:0 12px 24px rgba(0,0,0,.26);
+}
+.game-rankings-heading{
+  padding:17px 20px;
+  border-bottom:1px solid var(--espn-line,#2c3037);
+  background:#121417;
+}
+.game-rankings-title{
+  color:#fff;
+  font-size:16px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+.game-rankings-sub{
+  margin-top:4px;
+  color:#9197a1;
+  font-size:10px;
+  font-weight:800;
+}
+.game-rankings-list{ display:flex; flex-direction:column; }
+.game-rankings-item{
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:#111316;
+}
+.game-rankings-item:last-child{ border-bottom:0; }
+.game-rankings-item.open{ background:#15181c; }
+.game-rankings-line{
+  width:100%;
+  min-width:0;
+  border:0;
+  background:transparent;
+  color:#fff;
+  padding:13px 16px;
+  display:grid;
+  grid-template-columns:minmax(190px,1fr) minmax(230px,1.25fr) minmax(190px,1fr) 28px;
+  gap:14px;
+  align-items:center;
+  cursor:pointer;
+  text-align:left;
+}
+.game-rankings-line:hover{ background:#191c20; }
+.game-rankings-pitcher{
+  min-width:0;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+}
+.game-rankings-pitcher.home{
+  grid-template-columns:minmax(0,1fr) 46px;
+  text-align:right;
+}
+.game-rankings-face{
+  width:44px;
+  height:44px;
+  overflow:hidden;
+}
+.game-rankings-face .player-headshot,
+.game-rankings-face .player-headshot-lg{
+  width:42px !important;
+  height:42px !important;
+  min-width:42px !important;
+  min-height:42px !important;
+  margin:0 !important;
+}
+.game-rankings-pitcher-copy{ min-width:0; }
+.game-rankings-pitcher-name{
+  color:#fff;
+  font-size:12px;
+  font-weight:1000;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.game-rankings-pitcher-team{
+  margin-top:3px;
+  color:#858b95;
+  font-size:8px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.55px;
+}
+.game-rankings-matchup{
+  min-width:0;
+  text-align:center;
+}
+.game-rankings-teams{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  color:#fff;
+  font-size:17px;
+  font-weight:1000;
+  white-space:nowrap;
+}
+.game-rankings-teams img{
+  width:26px !important;
+  height:26px !important;
+  margin:0 !important;
+}
+.game-rankings-at{
+  color:var(--espn-red,#e10600);
+  font-size:10px;
+}
+.game-rankings-meta{
+  margin-top:5px;
+  color:#8d939d;
+  font-size:9px;
+  font-weight:900;
+  text-transform:uppercase;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.game-rankings-chevron{
+  color:var(--espn-red,#e10600);
+  font-size:20px;
+  font-weight:1000;
+  transition:transform .2s ease;
+}
+.game-rankings-item.open .game-rankings-chevron{ transform:rotate(180deg); }
+.game-rankings-expand{
+  padding:0 14px 15px;
+  background:#0e1013;
+}
+.game-rankings-expand[hidden]{ display:none !important; }
+.game-specific-table-wrapper{
+  margin:0 !important;
+  border-radius:8px !important;
+  overflow-x:auto !important;
+}
+.game-specific-table-wrapper table{ min-width:980px; }
+.game-specific-table-wrapper .backtest-finalize-wrap{ display:none !important; }
+.game-rankings-empty{
+  padding:28px;
+  color:#8e949e;
+  text-align:center;
+  font-style:italic;
+}
+@media(max-width:900px){
+  .game-rankings-line{
+    grid-template-columns:1fr;
+    text-align:center;
+  }
+  .game-rankings-pitcher,
+  .game-rankings-pitcher.home{
+    grid-template-columns:46px minmax(0,1fr);
+    text-align:left;
+  }
+  .game-rankings-pitcher.home .game-rankings-pitcher-copy{ order:2; }
+  .game-rankings-pitcher.home .game-rankings-face{ order:1; }
+  .game-rankings-chevron{ justify-self:center; }
+}
+
+
+
+.full-slate-rankings-item{
+  margin-top:0;
+  border-top:1px solid rgba(255,255,255,.07);
+  border-bottom:0;
+}
+.full-slate-rankings-line{
+  grid-template-columns:minmax(0,1fr) 28px !important;
+  padding:16px 18px !important;
+}
+.full-slate-rankings-copy{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.full-slate-rankings-icon{
+  width:38px;
+  height:38px;
+  min-width:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+  border:1px solid rgba(225,6,0,.28);
+  background:rgba(225,6,0,.08);
+  font-size:18px;
+}
+.full-slate-rankings-title{
+  color:#fff;
+  font-size:14px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:.9px;
+}
+.full-slate-rankings-sub{
+  margin-top:3px;
+  color:#8d939d;
+  font-size:9px;
+  font-weight:900;
+}
+.full-slate-rankings-content{
+  margin-top:14px;
+}
+.full-slate-rankings-content[hidden]{
+  display:none !important;
+}
+
 </style>
 </head>
 <body class="drl-splash-active">
@@ -8453,6 +8670,32 @@ body.drl-splash-active .container{visibility:hidden!important;}
 
 
 
+
+<div id="gameRankingsAccordion" class="game-rankings-accordion">
+  <div class="game-rankings-heading">
+    <div>
+      <div class="game-rankings-title">Full Slate Rankings</div>
+      <div class="game-rankings-sub">Select a matchup to expand the normal rankings table for that game.</div>
+    </div>
+  </div>
+  <div id="gameRankingsAccordionList" class="game-rankings-list">
+    <div class="game-rankings-empty">Upload today’s workbook to load game rankings.</div>
+  </div>
+</div>
+<section id="fullSlateRankingsAccordion" class="game-rankings-item full-slate-rankings-item">
+  <button type="button" class="game-rankings-line full-slate-rankings-line" aria-expanded="false" onclick="toggleFullSlateRankings()">
+    <div class="full-slate-rankings-copy">
+      <div class="full-slate-rankings-icon">📋</div>
+      <div>
+        <div class="full-slate-rankings-title">Full Slate Rankings</div>
+        <div class="full-slate-rankings-sub">Click to view every active hitter across the full slate.</div>
+      </div>
+    </div>
+    <div class="game-rankings-chevron">⌄</div>
+  </button>
+</section>
+<div id="fullSlateRankingsContent" class="full-slate-rankings-content" hidden>
+
 <div class="controls-bar">
 <div class="filter-group team-filter-future-wrap"><label>Filter Team 1</label><div class="team-filter-future" data-filter="1"><select id="teamFilter1" class="select-input-sm native-team-select" onchange="syncTeamLogoDropdown(1); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button type="button" id="teamFilterTrigger" class="team-filter-trigger" onclick="toggleTeamLogoDropdown(event, 1)"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel">All Teams</span><span class="team-filter-chevron">▾</span></button><div id="teamLogoDropdown" class="team-logo-dropdown"></div></div></div>
 <div class="filter-group team-filter-future-wrap"><label>Filter Team 2</label><div class="team-filter-future" data-filter="2"><select id="teamFilter2" class="select-input-sm native-team-select" onchange="syncTeamLogoDropdown(2); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button type="button" id="teamFilterTrigger2" class="team-filter-trigger" onclick="toggleTeamLogoDropdown(event, 2)"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel2">All Teams</span><span class="team-filter-chevron">▾</span></button><div id="teamLogoDropdown2" class="team-logo-dropdown"></div></div></div>
@@ -8474,6 +8717,7 @@ body.drl-splash-active .container{visibility:hidden!important;}
 <div class="backtest-finalize-wrap">
   <div class="backtest-finalize-copy"><b>Backtest workflow:</b> mark HR hitters with 💣 and use 🚫 for anyone who did not play. Removed players are excluded completely; everyone else saves normally.</div>
   <button type="button" class="btn-finalize-backtest" onclick="finalizeTodayBacktest()">✅ Finalize Today's Backtest</button>
+</div>
 </div>
 </div>
 <div class="model-sandbox-panel" id="modelSandboxPanel">
@@ -9440,6 +9684,7 @@ function renderWhyRankBox(player) {
   if (!items.length) items.push(['✅', 'Balanced profile across the model categories']);
   return `<div class="why-rank-box" style="${teamVisualStyle(player.Team)}"><div class="modal-section-title" style="margin-bottom:12px; border-bottom:none; padding-bottom:0;">🔥 WHY HE RANKS HERE</div><div class="why-rank-list">${items.slice(0,6).map(([icon,text]) => `<div class="why-rank-item"><span class="why-rank-icon">${icon}</span><span>${text}</span></div>`).join('')}</div></div>`;
 }
+
 function filterRankingsToSlateGame(awayTeam, homeTeam) {
   const away = String(awayTeam || '').trim().toUpperCase();
   const home = String(homeTeam || '').trim().toUpperCase();
@@ -15540,6 +15785,7 @@ betQualified.sort(compareHomeBBIRank);
 updateHomeRankSortUI();
 if (typeof renderBetFinderResults === 'function') renderBetFinderResults(filtered, betQualified, betDetailsMap);
 renderBBITierStats(filtered.length);
+renderGameRankingsAccordion(filtered, overallRankMap);
 renderMainTableBoard(filtered, overallRankMap);
 renderPregameSlateBoard();
 renderTopTargetHero();
@@ -15685,6 +15931,199 @@ function renderMainTableBoard(data, overallRankMap = null) {
   });
   tbody.innerHTML = rows.join('');
 }
+
+function renderGameTableBoard(data, targetBodyId, overallRankMap = null) {
+  const tbody = document.getElementById(targetBodyId);
+  if (!tbody) return;
+  if (data.length === 0) { renderBBITierStats(0); tbody.innerHTML = `<tr><td colspan="11" style="padding: 40px; color: var(--text-muted); font-style: italic;">No standard profiles matching selected parameters...</td></tr>`; return; }
+  const globalSlateSorted = (window.__drlMaxEvSortedActive && window.__drlMaxEvSortedActive.length)
+    ? window.__drlMaxEvSortedActive
+    : [...playerData].filter(p => !p.isRemoved).sort((a, b) => cleanNumber(b['Max EV'] || b['MAX EV'] || b['MaxEV']) - cleanNumber(a['Max EV'] || a['MAX EV'] || a['MaxEV']));
+  const jackpotTop4Names = new Set(globalSlateSorted.slice(0, 4).map(p => p.Name));
+  const rows = data.map((p, idx) => {
+    let climateString = 'Closed Dome 🏟️';
+    let w = weatherSettings[p.gameId];
+    if (w && !w.isDome) climateString = `${w.temp}°F // Wind ${w.windSpeed} MPH ${String(w.windDir || '').toUpperCase()}`;
+    const bBarrel = cleanNumber(p['Barrel %']) * 100;
+    const isoVal = cleanNumber(p['ISO']);
+    const pulledAir = cleanNumber(p['Pulled Air %'] || p['Pull Air %'] || p['Air Pull %'] || 0) * 100;
+    const pHR9 = cleanNumber(p['Pitcher HR/9'] || p['P HR/9']);
+    const pullRate = cleanNumber(p['Pulled Air %'] || p['Pull %'] || p['Pull%'] || p['PullRate'] || 0.0) * 100;
+    const flyBallRate = cleanNumber(p['Fly Ball Rate'] || p['FB%'] || p['Fly Ball %']) * 100;
+    let badgeHtml = '';
+    if (bBarrel >= 14.5) badgeHtml += `<span class="metric-badge badge-barrel">️‍💀 Barrel Master </span>`;
+    if (isoVal >= 0.240) badgeHtml += `<span class="metric-badge badge-power">💣 BOMB SQUAD</span>`;
+    if (pulledAir >= 25) badgeHtml += `<span class="metric-badge badge-pulledair">  Pull Power</span>`;
+    if ((p.calculatedPitcherFB || 1.0) > 1.25) badgeHtml += `<span class="metric-badge badge-meatball">🍝 PITCHER FLY BALL</span>`;
+    if (flyBallRate >= 40 && pullRate >= 40) badgeHtml += `<span class="metric-badge badge-angle">📐 LAUNCH ANGLE KING</span>`;
+    if (pHR9 >= 1.6) badgeHtml += `<span class="metric-badge badge-gopher">⚠️ PITCHER TARGET</span>`;
+    if (jackpotTop4Names.has(p.Name)) badgeHtml += `<span class="metric-badge badge-jackpot">🎯 FANATICS JACKPOT TARGET</span>`;
+    if ((p.weatherScoreUsed || 50) >= 70) badgeHtml += `<span class="metric-badge badge-env">🌬️ ${p.weatherSideUsed || ''} WEATHER</span>`;
+    if (p.envMultiplier >= 1.04) badgeHtml += `<span class="metric-badge badge-env">🌤️ CARRY</span>`;
+    if (p.releaseModifier >= 1.15) badgeHtml += `<span class="metric-badge badge-gopher">📉 VAA TARGET</span>`;
+    if (p.matchupHR >= 1) badgeHtml += `<span class="metric-badge badge-jackpot">🎯 ${p.matchupHR} HR vs Pitcher</span>`;
+    if (p.matchupHR >= 2) badgeHtml += `<span class="metric-badge badge-bvp">🩸 BLOOD IN THE WATER</span>`;
+    const breakingXwoba = cleanNumber(safeGet(p, 'Breaking xwOBA', 'SL xwOBA', 'CV xwOBA', 'Brk xwOBA'));
+    if (breakingXwoba >= 0.400) badgeHtml += `<span class="metric-badge badge-pitch-brk">🪃 HANGING BREAKER</span>`;
+    const normalizedPlayer = normalizeName(p.Name);
+    const lw = lastWeekMap[normalizedPlayer] || {};
+    const lwHRs = cleanNumber(safeGet(lw, 'HRs', 'HRsLastWeek', 'HR'));
+    const lwwOBA = cleanNumber(safeGet(lw, 'wOBA', 'wOBA Last Week', 'wOBA%'));
+    if (lwHRs >= 3 || lwwOBA >= 0.450) badgeHtml += `<span class="metric-badge badge-barrel">🔥 HOT BAT</span>`;
+    const xwoba = cleanNumber(safeGet(p, 'xwOBA', 'xWOBA', 'Expected wOBA'));
+    const woba = cleanNumber(safeGet(p, 'wOBA', 'WOBA'));
+    if (xwoba >= 0.360 && woba <= 0.300 && woba > 0) badgeHtml += `<span class="metric-badge badge-lowvolume">🍀 UNLUCKY ELITE</span>`;
+    const pitcherFBPct = cleanNumber(safeGet(p, 'Pitcher FB%', 'Pitcher FB Rate', 'Pitcher FB Rate %')) * 100;
+    if (pitcherFBPct >= 60) badgeHtml += `<span class="metric-badge badge-pitch-fb"> FASTBALL HEAVY</span>`;
+    const pitcherGBPct = cleanNumber(safeGet(p, 'Pitcher GB %', 'Pitcher GB%', 'GB%', 'Pitcher GB')) * 100;
+    if (pitcherGBPct <= 35) badgeHtml += `<span class="metric-badge badge-meatball">🎈 AIR RAID PITCHER</span>`;
+    const vaaReleaseZ = cleanNumber(safeGet(p, 'release_pos_z', 'Release Z', 'Rel Z', 'releaseZ'));
+    const vaaFB = cleanNumber(safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')) * 100;
+    if (vaaReleaseZ > 0 && vaaReleaseZ <= 5.8 && vaaFB >= 38) badgeHtml += `<span class="metric-badge badge-gopher">📉 THE VAA VULTURE</span>`;
+    const isCodyDiamond = codysDiamondsData.some(d => String(d.name || '').toLowerCase() === String(p.Name || '').toLowerCase());
+    const isNuclearPlay = (p.calculatedBBI || 0) >= 70;
+    if (isCodyDiamond) badgeHtml += `<span class="metric-badge diamond-row-badge">💎 CODY'S DIAMOND</span>`;
+    if (isNuclearPlay) badgeHtml += `<span class="metric-badge nuclear-badge">☢ NUCLEAR PLAY</span>`;
+    if (lwHRs >= 3) badgeHtml += `<span class="metric-badge badge-barrel"> ${lwHRs} HRs Last 7 Games </span>`;
+    const credibility = p.calculatedCredibility || 1.0;
+    if (credibility < 1.0) { const credPercent = (credibility * 100).toFixed(0); badgeHtml += `<span class="metric-badge badge-lowvolume">📊 ${credPercent}% CRED</span>`; }
+    const pFactor = cleanNumber(p.pf) || 100;
+    let pfBadge = `<span class="pf-badge pf-neutral">PF ${pFactor}</span>`;
+    if (pFactor >= 106) pfBadge = `<span class="pf-badge pf-green">PF ${pFactor}✓</span>`;
+    else if (pFactor <= 94) pfBadge = `<span class="pf-badge pf-red">PF ${pFactor}✗</span>`;
+    const logoUrl = teamLogos[p.Team] || '';
+    const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="" loading="lazy" decoding="async">` : '';
+    const stadiumPill = renderStadiumParkPill(p);
+    const bombActive = isBacktestBombed(p) ? ' active' : '';
+    const bombBtn = `<button class="btn-bomb${bombActive}" title="Mark HR for backtest" onclick="event.stopPropagation(); toggleBacktestBomb('${escJSString(p.Name)}','${escJSString(p.Team)}')">💣</button>`;
+    const dnpBtn = `<button class="btn-dnp" title="Did not play — remove from rankings and backtest" onclick="event.stopPropagation(); toggleDidNotPlayPlayer('${escJSString(p.Name)}','${escJSString(p.Team)}')">🚫</button>`;
+    const headshotHtml = createHeadshotHtml(p.Name, 'sm', p.Team).replace('<img ', '<img loading="lazy" decoding="async" ');
+    const batterHand = getBatterHandDisplay(p);
+    const orbitClass = idx < 10 ? ' orbit-ready' : '';
+    const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
+    const displayRank = idx + 1;
+    const safeNameAttr = String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}${dnpBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}">${homeRankSortMode === 'MLI' ? `<span class="index-score mli-score ${Number(p.calculatedMLI || 0) >= 0 ? 'mli-positive' : 'mli-negative'}">${Number.isFinite(Number(p.calculatedMLI)) ? `${Number(p.calculatedMLI) >= 0 ? '+' : ''}${Number(p.calculatedMLI).toFixed(1)}` : '--'}</span><div class="mli-bbi-context">BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : `<span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}`}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td></tr>`;
+  });
+  tbody.innerHTML = rows.join('');
+}
+
+
+let openGameRankingKey = '';
+
+function gameRankingKeySafe(value) {
+  return String(value || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+function getGamePitcherName(players, battingTeam) {
+  const row = players.find(p => String(p.Team || '').toUpperCase() === String(battingTeam || '').toUpperCase());
+  return row ? String(row['Opp Pitcher'] || row['Opp Pitcher Name'] || 'Starter') : 'Starter';
+}
+function toggleGameRankingAccordion(key) {
+  openGameRankingKey = openGameRankingKey === key ? '' : key;
+  document.querySelectorAll('.game-rankings-item').forEach(item => {
+    const isOpen = item.dataset.gameKey === openGameRankingKey;
+    item.classList.toggle('open', isOpen);
+    const body = item.querySelector('.game-rankings-expand');
+    const button = item.querySelector('.game-rankings-line');
+    if (body) body.hidden = !isOpen;
+    if (button) button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+}
+
+function toggleFullSlateRankings() {
+  const item = document.getElementById('fullSlateRankingsAccordion');
+  const content = document.getElementById('fullSlateRankingsContent');
+  if (!item || !content) return;
+  const isOpen = !content.hidden;
+  content.hidden = isOpen;
+  item.classList.toggle('open', !isOpen);
+  const button = item.querySelector('.full-slate-rankings-line');
+  if (button) button.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+  if (!isOpen) {
+    setTimeout(() => item.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
+  }
+}
+
+function renderGameRankingsAccordion(filteredData, overallRankMap) {
+  const list = document.getElementById('gameRankingsAccordionList');
+  if (!list) return;
+
+  const active = (Array.isArray(filteredData) ? filteredData : playerData).filter(p => p && !p.isRemoved && p.Team);
+  if (!active.length) {
+    list.innerHTML = `<div class="game-rankings-empty">No active hitters match the current filters.</div>`;
+    return;
+  }
+
+  const games = new Map();
+  active.forEach(p => {
+    const home = getHomeTeamForPlayer(p) || p.Team;
+    const key = p.gameId || `${home}_${p.Team}`;
+    if (!games.has(key)) games.set(key, []);
+    games.get(key).push(p);
+  });
+
+  list.innerHTML = Array.from(games.entries()).map(([rawKey, players], index) => {
+    const top = [...players].sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0))[0] || players[0];
+    const home = String(getHomeTeamForPlayer(top) || players[0].Team || 'TBD').toUpperCase();
+    const teams = Array.from(new Set(players.map(p => String(p.Team || '').toUpperCase()).filter(Boolean)));
+    const away = teams.find(t => t !== home) || teams[0] || 'TBD';
+    const awayPitcher = getGamePitcherName(players, home);
+    const homePitcher = getGamePitcherName(players, away);
+    const safeKey = gameRankingKeySafe(`${rawKey}_${away}_${home}_${index}`);
+    const bodyId = `gameRankingBody_${safeKey}`;
+    const isOpen = openGameRankingKey === safeKey;
+    const gameTime = top.GameTime || top['Game Time'] || top.gameTime || '';
+    const visual = getStadiumVisualForPlayer(top);
+    const awayFace = createHeadshotHtml(awayPitcher, 'sm', away) || '';
+    const homeFace = createHeadshotHtml(homePitcher, 'sm', home) || '';
+
+    return `<section class="game-rankings-item${isOpen ? ' open' : ''}" data-game-key="${safeKey}">
+      <button type="button" class="game-rankings-line" aria-expanded="${isOpen ? 'true' : 'false'}" onclick="toggleGameRankingAccordion('${safeKey}')">
+        <div class="game-rankings-pitcher away">
+          <div class="game-rankings-face">${awayFace}</div>
+          <div class="game-rankings-pitcher-copy">
+            <div class="game-rankings-pitcher-name">${awayPitcher}</div>
+            <div class="game-rankings-pitcher-team">${away} starter</div>
+          </div>
+        </div>
+        <div class="game-rankings-matchup">
+          <div class="game-rankings-teams">${renderTeamLogo(away,26)}<span>${away}</span><span class="game-rankings-at">@</span><span>${home}</span>${renderTeamLogo(home,26)}</div>
+          <div class="game-rankings-meta">${gameTime ? `${gameTime} • ` : ''}${visual.name}</div>
+        </div>
+        <div class="game-rankings-pitcher home">
+          <div class="game-rankings-pitcher-copy">
+            <div class="game-rankings-pitcher-name">${homePitcher}</div>
+            <div class="game-rankings-pitcher-team">${home} starter</div>
+          </div>
+          <div class="game-rankings-face">${homeFace}</div>
+        </div>
+        <div class="game-rankings-chevron">⌄</div>
+      </button>
+      <div class="game-rankings-expand" ${isOpen ? '' : 'hidden'}>
+        <div class="table-wrapper game-specific-table-wrapper">
+          <table>
+            <thead><tr><th class="rank-col" id="homeRankHeader">BBI Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col" id="homeScoreHeader">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="edge-col">Edge</th></tr></thead>
+            <tbody id="${bodyId}"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>`;
+  }).join('');
+
+  Array.from(games.entries()).forEach(([rawKey, players], index) => {
+    const top = [...players].sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0))[0] || players[0];
+    const home = String(getHomeTeamForPlayer(top) || players[0].Team || 'TBD').toUpperCase();
+    const teams = Array.from(new Set(players.map(p => String(p.Team || '').toUpperCase()).filter(Boolean)));
+    const away = teams.find(t => t !== home) || teams[0] || 'TBD';
+    const safeKey = gameRankingKeySafe(`${rawKey}_${away}_${home}_${index}`);
+    renderGameTableBoard(
+      [...players].sort(homeRankSortMode === 'ZONE' ? compareHomeZoneRank : (homeRankSortMode === 'EDGE' ? compareHomeEdgeRank : (homeRankSortMode === 'MLI' ? compareHomeMLIRank : compareHomeBBIRank))),
+      `gameRankingBody_${safeKey}`,
+      overallRankMap
+    );
+  });
+}
+
 function renderTodayTeamsFilter(teams) {
 const list = document.getElementById('todayTeamsList');
 if(!list) return;
@@ -21442,6 +21881,8 @@ if(typeof drlOnReady==='function'){
 }
 })();
 </script>
+
+
 
 </body>
 </html>
