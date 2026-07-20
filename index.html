@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line</title>
 <!-- DRL v64.9: Phase 5 unused CSS cleanup.
-     Canonical buckets: Power 30, Attack Zone 17, Batted Ball 18, Pitcher 15,
-     Pitch Lab 10, Weather 5, BvP 3, Park 2. Synergy cap: +7.50.
+     Backtest-reweighted buckets: Power 30, Batted Ball 24, Attack Zone 16, Pitcher 10,
+     Pitch Lab 7, Weather 5, BvP 4, Park 4. Synergy cap: +7.50.
      Consolidation: Phases 2-4 preserved; unused CSS selectors with no HTML or JavaScript references removed; dynamic modifiers and cascade order preserved. -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script id="drl-phase4-ready-dispatcher">
@@ -2347,13 +2347,13 @@ tbody tr.cody-diamond-row:hover td{
 .bbi-wheel{
   width:250px; height:250px; border-radius:50%;
   background: conic-gradient(
-    rgba(168,85,247,var(--pow-a,.85)) 0deg 115.2deg,
-    rgba(239,68,68,var(--bat-a,.85)) 115.2deg 190.8deg,
-    rgba(251,113,133,var(--pit-a,.85)) 190.8deg 226.8deg,
-    rgba(56,189,248,var(--lab-a,.85)) 226.8deg 241.2deg,
-    rgba(16,185,129,var(--form-a,.85)) 241.2deg 306deg,
-    rgba(250,204,21,var(--bvp-a,.85)) 306deg 324deg,
-    rgba(14,165,233,var(--weather-a,.85)) 324deg 345.6deg,
+    rgba(168,85,247,var(--pow-a,.85)) 0deg 108deg,
+    rgba(239,68,68,var(--bat-a,.85)) 108deg 194.4deg,
+    rgba(251,113,133,var(--pit-a,.85)) 194.4deg 230.4deg,
+    rgba(56,189,248,var(--lab-a,.85)) 230.4deg 255.6deg,
+    rgba(249,115,22,var(--zone-a,.85)) 255.6deg 313.2deg,
+    rgba(250,204,21,var(--bvp-a,.85)) 313.2deg 327.6deg,
+    rgba(14,165,233,var(--weather-a,.85)) 327.6deg 345.6deg,
     rgba(148,163,184,var(--park-a,.85)) 345.6deg 360deg
   );
   box-shadow:0 0 0 8px rgba(255,255,255,.035), 0 0 34px rgba(225,6,0,.16);
@@ -13254,14 +13254,24 @@ function parseUsageValue(raw) { let v = cleanNumber(raw); if (!v) return 0; if (
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const DRL_SYNERGY_CAP = 7.5; // Phase 7 canonical applied synergy ceiling (+7.50 BBI)
 const HYBRID_CATEGORY_WEIGHTS = {
-  // Official DRL bucket weights. Total = 100%.
+  // Backtest-reweighted official DRL bucket weights. Total = 100%.
   power: 0.30,
-  attackZone: 0.17,
+  battedBall: 0.24,
+  attackZone: 0.16,
+  pitcher: 0.10,
+  pitchLevel: 0.07,
+  bvp: 0.04,
+  weather: 0.05,
+  park: 0.04
+};
+const DRL_PREVIOUS_CATEGORY_WEIGHTS = {
+  power: 0.30,
   battedBall: 0.18,
+  attackZone: 0.17,
   pitcher: 0.15,
   pitchLevel: 0.10,
-  weather: 0.05,
   bvp: 0.03,
+  weather: 0.05,
   park: 0.02
 };
 const MODEL_SANDBOX_WEIGHT_META = [
@@ -13630,21 +13640,22 @@ function buildAttackZoneDamageScore(row, side) {
   const launchAngleScore = drlZoneLaunchAngleScore(s.la, sample);
   if (isPitcher) {
     return hybridWeightedAvg([
-      { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.40 },
-      { value: drlZoneISOScore(s.iso, sample), weight: 0.25 },
-      { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.15 },
+      // Backtest-guided zone reweight using the raw fields actually preserved in the workbook.
+      { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.37 },
+      { value: drlZoneISOScore(s.iso, sample), weight: 0.26 },
+      { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.11 },
       { value: launchAngleScore, weight: 0.10 },
-      { value: drlZoneHRScore(s.hr, sample), weight: 0.05 },
-      { value: drlZoneBatSpeedScore(s.batSpeed, sample), weight: 0.05 }
+      { value: drlZoneHRScore(s.hr, sample), weight: 0.13 },
+      { value: drlZoneBatSpeedScore(s.batSpeed, sample), weight: 0.03 }
     ]);
   }
   return hybridWeightedAvg([
-    { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.40 },
-    { value: drlZoneISOScore(s.iso, sample), weight: 0.30 },
-    { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.10 },
+    { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.37 },
+    { value: drlZoneISOScore(s.iso, sample), weight: 0.26 },
+    { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.11 },
     { value: launchAngleScore, weight: 0.10 },
-    { value: drlZoneHRScore(s.hr, sample), weight: 0.05 },
-    { value: drlZoneBatSpeedScore(s.batSpeed, sample), weight: 0.05 }
+    { value: drlZoneHRScore(s.hr, sample), weight: 0.09 },
+    { value: drlZoneBatSpeedScore(s.batSpeed, sample), weight: 0.07 }
   ]);
 }
 function zoneBucketLabel(bucket) {
@@ -15209,23 +15220,25 @@ function scoreHybridPlayer(p, ranges) {
   const powerEV90Season = drlPowerEV90Score(r.ev90, powerPA);
   const powerHardHitSeason = drlPowerHardHitScore(r.hardHit, powerPA);
   const power = hybridWeightedAvg([
-    // v60.8 open-ended Hitter Power. No 100 ceiling and no diminishing-returns
-    // compression. Every metric uses its own tuned scale and PA regression.
-    { value: drlMultiWindowBlendOpenEnded(powerBarrelSeason, r.d30Barrel, r.d14Barrel, r.lwBarrel, drlPowerBarrelScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.35 },
-    { value: drlMultiWindowBlendOpenEnded(powerEV90Season, r.d30EV90, r.d14EV90, r.lwEV90, drlPowerEV90Score, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.25 },
-    { value: drlMultiWindowBlendOpenEnded(powerHardHitSeason, r.d30HardHit, r.d14HardHit, r.lwHardHit, drlPowerHardHitScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.15 },
-    { value: drlPowerXHRScore(r.xHR, powerPA), weight: 0.15 },
-    { value: drlPowerSweetSpotScore(r.sweetSpot, powerPA), weight: 0.10 }
+    // Backtest reweight: EV90 and Barrel lead; Max EV adds ceiling; Sweet Spot removed.
+    { value: drlMultiWindowBlendOpenEnded(powerEV90Season, r.d30EV90, r.d14EV90, r.lwEV90, drlPowerEV90Score, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.30 },
+    { value: drlMultiWindowBlendOpenEnded(powerBarrelSeason, r.d30Barrel, r.d14Barrel, r.lwBarrel, drlPowerBarrelScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.25 },
+    { value: drlPowerXHRScore(r.xHR, powerPA), weight: 0.18 },
+    { value: hybridScoreMetric(r,ranges,'maxEV'), weight: 0.15 },
+    { value: drlMultiWindowBlendOpenEnded(powerHardHitSeason, r.d30HardHit, r.d14HardHit, r.lwHardHit, drlPowerHardHitScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.12 }
   ]);
   // v61.0 open-ended Pitcher Vulnerability. No 100 ceiling and no slate-only
   // normalization. Each metric uses its own tuned scale and pitcher exposure.
   const pitcherIP = Math.max(0, Number(r.pitcherIP) || 0);
   const pitcherBF = Math.max(0, Number(r.pitcherBF) || 0);
   const pitcherMetricBase = hybridWeightedAvg([
-    { value: drlPitcherSweetSpotScore(r.pitcherSweet, pitcherBF, pitcherIP), weight: 0.30 },
-    { value: drlPitcherBarrelAllowedScore(r.pitcherBarrel, pitcherBF, pitcherIP), weight: 0.25 },
-    { value: drlPitcher95AllowedScore(r.pitcher95, pitcherBF, pitcherIP), weight: 0.25 },
-    { value: drlPitcherHR9Score(r.pitcherHR9, pitcherIP), weight: 0.20 }
+    // Backtest reweight: actual HR/air-ball damage leads; correlated contact stats are reduced.
+    { value: drlPitcherHR9Score(r.pitcherHR9, pitcherIP), weight: 0.30 },
+    { value: hybridScoreMetric(r,ranges,'pitcherFB'), weight: 0.22 },
+    { value: hybridScoreMetric(r,ranges,'pitcherHRFB'), weight: 0.18 },
+    { value: drlPitcherSweetSpotScore(r.pitcherSweet, pitcherBF, pitcherIP), weight: 0.12 },
+    { value: drlPitcherBarrelAllowedScore(r.pitcherBarrel, pitcherBF, pitcherIP), weight: 0.10 },
+    { value: drlPitcher95AllowedScore(r.pitcher95, pitcherBF, pitcherIP), weight: 0.08 }
   ]);
   const pitchLabScore = p.pitchLabProfile ? cleanNumber(p.pitchLabProfile.score) : null;
   const pitchLevel = hybridWeightedAvg([
@@ -15268,32 +15281,25 @@ function scoreHybridPlayer(p, ranges) {
   const recent = null;
   const battedBallPA = Math.max(0, Number(r.pa) || 0);
   const battedBall = hybridWeightedAvg([
-    // Pulled Air is restored because it identifies pull-side airborne contact that is most HR-relevant.
-    { value: drlBattedBallHRFBScore(r.hrFb, battedBallPA), weight: 0.30 },
-    { value: drlBattedBallLaunchAngleScore(r.launchAngle, battedBallPA), weight: 0.20 },
-    { value: drlBattedBallFlyBallScore(r.flyBall, battedBallPA), weight: 0.15 },
-    { value: drlBattedBallPullScore(r.pull, battedBallPA), weight: 0.15 },
-    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.20 }
+    // Backtest reweight: HR/FB and pulled-air shape lead; raw fly-ball rate is only a small input.
+    { value: drlBattedBallHRFBScore(r.hrFb, battedBallPA), weight: 0.40 },
+    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.22 },
+    { value: drlBattedBallPullScore(r.pull, battedBallPA), weight: 0.18 },
+    { value: drlBattedBallLaunchAngleScore(r.launchAngle, battedBallPA), weight: 0.15 },
+    { value: drlBattedBallFlyBallScore(r.flyBall, battedBallPA), weight: 0.05 }
   ]);
   let bvp = null;
-  // Adaptive BvP: the stat only uses as much of the 3% BvP bucket as the PA sample earns.
+  // Adaptive BvP: no influence at 5 PA or fewer, then smoothly earns confidence through 35 PA.
   // Unused weight moves only to Hitter Power and Attack Zone.
   const bvpPA = Number(r.bvpPA || 0);
-  let bvpConfidence = 0;
-  if (bvpPA >= 13) bvpConfidence = 1.00;
-  else if (bvpPA >= 9) bvpConfidence = 0.75;
-  else if (bvpPA >= 6) bvpConfidence = 0.50;
-  else if (bvpPA >= 3) bvpConfidence = 0.25;
+  let bvpConfidence = Math.max(0, Math.min(1, (bvpPA - 5) / 30));
   if (bvpConfidence > 0) {
     const bvpRaw = hybridWeightedAvg([
-      { value: drlBvPHRScore(r.bvpHR, bvpPA), weight: 0.18 },
-      { value: drlBvPBAScore(r.bvpBA, bvpPA), weight: 0.10 },
-      { value: drlBvPXSLGScore(r.bvpXSLG, bvpPA), weight: 0.18 },
-      { value: drlBvPXWOBAScore(r.bvpXWOBA, bvpPA), weight: 0.15 },
-      { value: drlBvPEVScore(r.bvpEV, bvpPA), weight: 0.15 },
-      { value: drlBvPLaunchAngleScore(r.bvpLA, bvpPA), weight: 0.08 },
-      { value: drlBvPKScore(r.bvpK, bvpPA), weight: 0.08 },
-      { value: drlBvPWhiffScore(r.bvpWhiff, bvpPA), weight: 0.08 }
+      { value: drlBvPXSLGScore(r.bvpXSLG, bvpPA), weight: 0.30 },
+      { value: drlBvPXWOBAScore(r.bvpXWOBA, bvpPA), weight: 0.25 },
+      { value: drlBvPEVScore(r.bvpEV, bvpPA), weight: 0.20 },
+      { value: drlBvPHRScore(r.bvpHR, bvpPA), weight: 0.15 },
+      { value: drlBvPLaunchAngleScore(r.bvpLA, bvpPA), weight: 0.10 }
     ]);
     bvp = bvpRaw !== null && !isNaN(bvpRaw) ? bvpRaw : null;
     p.calculatedBvPRawScore = bvpRaw;
@@ -18228,6 +18234,26 @@ function backtestSlateCoverage(rows, metrics) {
     return `<tr><td>${finalized}</td><td>${slateRows.length}</td><td>${hits}</td><td>${stored}/${metrics.length}</td></tr>`;
   }).join('');
 }
+function renderBacktestWeightComparisonPanel() {
+  const labels = {
+    power:'Hitter Power', battedBall:'Batted Ball Shape', attackZone:'HR Attack Zone',
+    pitcher:'Pitcher Vulnerability', pitchLevel:'Pitch Lab', bvp:'BvP', weather:'Weather', park:'Park'
+  };
+  const order = ['power','battedBall','attackZone','pitcher','pitchLevel','bvp','weather','park'];
+  const rows = order.map(key => {
+    const previous = Math.round((Number(DRL_PREVIOUS_CATEGORY_WEIGHTS[key]) || 0) * 100);
+    const suggested = Math.round((Number(HYBRID_CATEGORY_WEIGHTS[key]) || 0) * 100);
+    const delta = suggested - previous;
+    const deltaText = delta > 0 ? `+${delta}` : String(delta);
+    const deltaClass = delta > 0 ? 'signal-positive' : delta < 0 ? 'signal-negative' : 'signal-neutral';
+    return `<tr><td>${labels[key]}</td><td>${previous}%</td><td><b>${suggested}%</b></td><td class="${deltaClass}">${deltaText} pts</td></tr>`;
+  }).join('');
+  return `
+    <h2>⚖️ Bucket Weight Comparison</h2>
+    <p class="backtest-note">The previous official model is shown beside the backtest-suggested weights now active in live BBI scoring.</p>
+    <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Bucket</th><th>Previous Weight</th><th>Suggested / Active</th><th>Change</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
 function renderBacktestLab() {
   const container = document.getElementById('backtestLabContainer');
   if (!container) return;
@@ -18297,6 +18323,8 @@ function renderBacktestLab() {
         <div class="backtest-kpi"><div class="backtest-kpi-label">Similar-BBI misses</div><div class="backtest-kpi-value">${similarRows.length.toLocaleString()}</div><div class="backtest-kpi-sub">Misses within ±10 BBI of at least one HR hitter</div></div>
       </div>
 
+      ${renderBacktestWeightComparisonPanel()}
+
       <h2>💣 HR Hitter Profile</h2>
       <p class="backtest-note">This section uses only players marked as home-run hitters. It shows the actual distribution of their stored model scores and inputs at the time each slate was finalized.</p>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Metric</th><th>Stored HR Rows</th><th>Average</th><th>Median</th><th>25th Percentile</th><th>75th Percentile</th><th>Minimum</th><th>Maximum</th></tr></thead><tbody>${distributionRows}</tbody></table></div>
@@ -18306,7 +18334,7 @@ function renderBacktestLab() {
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Metric</th><th>HR Rows</th><th>HR Average</th><th>All Miss Average</th><th>HR Difference</th><th>Similar-BBI Miss Average</th><th>HR Difference vs Similar</th></tr></thead><tbody>${comparisonRows}</tbody></table></div>
 
       <h2>🔬 HR-Only Raw Stat Profile</h2>
-      <p class="backtest-note">Only individual workbook inputs that were actually stored in finalized snapshots are shown. No suggested-weight calculation or optimizer is run.</p>
+      <p class="backtest-note">Only individual workbook inputs that were actually stored in finalized snapshots are shown. The comparison above documents the backtest-suggested bucket weights now active in the model.</p>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Stat / Input</th><th>Type</th><th>Bucket</th><th>Stored HR Rows</th><th>Average</th><th>Median</th><th>25th Percentile</th><th>75th Percentile</th></tr></thead><tbody>${rawHitRows || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:18px;">No stored raw-stat values are available in finalized HR rows yet.</td></tr>'}</tbody></table></div>
 
       <h2>🗂️ Historical Data Coverage</h2>
@@ -19003,13 +19031,13 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
 <script id="v40-restart-fixes-script">
 (function(){
   const WEIGHTS_40 = [
-    { key:'power', label:'💪 Power', weight:32, color:'#a855f7' },
-    { key:'batted', label:'🚀 Batted Ball', weight:21, color:'#ef4444' },
+    { key:'power', label:'💪 Power', weight:30, color:'#a855f7' },
+    { key:'batted', label:'🚀 Batted Ball', weight:24, color:'#ef4444' },
     { key:'pitcher', label:'⚾ Pitcher Vuln', weight:10, color:'#fb7185' },
-    { key:'pitchlab', label:'🎯 Pitch Lab', weight:4, color:'#38bdf8' },
-    { key:'attackZone', label:'🎯 Attack Zone', weight:18, color:'#f97316' },
-    { key:'bvp', label:'🤝 BvP', weight:5, color:'#facc15' },
-    { key:'weather', label:'🌦 Weather', weight:6, color:'#0ea5e9' },
+    { key:'pitchlab', label:'🎯 Pitch Lab', weight:7, color:'#38bdf8' },
+    { key:'attackZone', label:'🎯 Attack Zone', weight:16, color:'#f97316' },
+    { key:'bvp', label:'🤝 BvP', weight:4, color:'#facc15' },
+    { key:'weather', label:'🌦 Weather', weight:5, color:'#0ea5e9' },
     { key:'park', label:'🏟 Park', weight:4, color:'#94a3b8' }
   ];
   function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
