@@ -8521,6 +8521,66 @@ body.drl-splash-active .container{visibility:hidden!important;}
   display:none !important;
 }
 
+
+
+/* ===== PER-GAME RANKING SORT CONTROLS ===== */
+.game-sort-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  margin:0 0 10px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;
+  background:#15181c;
+}
+.game-sort-label{
+  color:#9da3ad;
+  font-size:10px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+}
+.game-sort-buttons{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.game-sort-btn{
+  border:1px solid #343840;
+  border-radius:6px;
+  background:#0d0f12;
+  color:#c8ccd2;
+  padding:8px 12px;
+  font-size:10px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:.55px;
+  cursor:pointer;
+}
+.game-sort-btn:hover{
+  border-color:#e10600;
+  color:#fff;
+}
+.game-sort-btn.active{
+  border-color:#ff3939;
+  background:#e10600;
+  color:#fff;
+}
+@media(max-width:650px){
+  .game-sort-toolbar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .game-sort-buttons{
+    width:100%;
+  }
+  .game-sort-btn{
+    flex:1 1 0;
+  }
+}
+
 </style>
 </head>
 <body class="drl-splash-active">
@@ -16044,6 +16104,37 @@ function toggleFullSlateRankings() {
   }
 }
 
+
+const gameRankingSortState = new Map();
+const gameRankingRows = new Map();
+let gameRankingOverallRankMap = null;
+
+function sortGameRankingRows(rows, mode) {
+  const copy = [...(rows || [])];
+  if (mode === 'EDGE') return copy.sort(compareHomeEdgeRank);
+  if (mode === 'MLI') return copy.sort(compareHomeMLIRank);
+  return copy.sort(compareHomeBBIRank);
+}
+
+function changeGameRankingSort(gameKey, mode) {
+  const safeMode = ['BBI', 'EDGE', 'MLI'].includes(mode) ? mode : 'BBI';
+  gameRankingSortState.set(gameKey, safeMode);
+
+  const rows = gameRankingRows.get(gameKey) || [];
+  renderGameTableBoard(
+    sortGameRankingRows(rows, safeMode),
+    `gameRankingBody_${gameKey}`,
+    gameRankingOverallRankMap
+  );
+
+  const item = document.querySelector(`.game-rankings-item[data-game-key="${gameKey}"]`);
+  if (item) {
+    item.querySelectorAll('.game-sort-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.sortMode === safeMode);
+    });
+  }
+}
+
 function renderGameRankingsAccordion(filteredData, overallRankMap) {
   const list = document.getElementById('gameRankingsAccordionList');
   if (!list) return;
@@ -16100,6 +16191,14 @@ function renderGameRankingsAccordion(filteredData, overallRankMap) {
         <div class="game-rankings-chevron">⌄</div>
       </button>
       <div class="game-rankings-expand" ${isOpen ? '' : 'hidden'}>
+        <div class="game-sort-toolbar">
+          <div class="game-sort-label">Sort this game</div>
+          <div class="game-sort-buttons">
+            <button type="button" class="game-sort-btn active" data-sort-mode="BBI" onclick="changeGameRankingSort('${safeKey}','BBI')">HR Model</button>
+            <button type="button" class="game-sort-btn" data-sort-mode="EDGE" onclick="changeGameRankingSort('${safeKey}','EDGE')">Edge</button>
+            <button type="button" class="game-sort-btn" data-sort-mode="MLI" onclick="changeGameRankingSort('${safeKey}','MLI')">MLI</button>
+          </div>
+        </div>
         <div class="table-wrapper game-specific-table-wrapper">
           <table>
             <thead><tr><th class="rank-col" id="homeRankHeader">BBI Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col" id="homeScoreHeader">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="edge-col">Edge</th></tr></thead>
@@ -16110,17 +16209,28 @@ function renderGameRankingsAccordion(filteredData, overallRankMap) {
     </section>`;
   }).join('');
 
+  gameRankingOverallRankMap = overallRankMap;
   Array.from(games.entries()).forEach(([rawKey, players], index) => {
     const top = [...players].sort((a,b)=>(b.calculatedBBI||0)-(a.calculatedBBI||0))[0] || players[0];
     const home = String(getHomeTeamForPlayer(top) || players[0].Team || 'TBD').toUpperCase();
     const teams = Array.from(new Set(players.map(p => String(p.Team || '').toUpperCase()).filter(Boolean)));
     const away = teams.find(t => t !== home) || teams[0] || 'TBD';
     const safeKey = gameRankingKeySafe(`${rawKey}_${away}_${home}_${index}`);
+    const mode = gameRankingSortState.get(safeKey) || 'BBI';
+
+    gameRankingRows.set(safeKey, [...players]);
     renderGameTableBoard(
-      [...players].sort(homeRankSortMode === 'ZONE' ? compareHomeZoneRank : (homeRankSortMode === 'EDGE' ? compareHomeEdgeRank : (homeRankSortMode === 'MLI' ? compareHomeMLIRank : compareHomeBBIRank))),
+      sortGameRankingRows(players, mode),
       `gameRankingBody_${safeKey}`,
       overallRankMap
     );
+
+    const item = document.querySelector(`.game-rankings-item[data-game-key="${safeKey}"]`);
+    if (item) {
+      item.querySelectorAll('.game-sort-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sortMode === mode);
+      });
+    }
   });
 }
 
