@@ -8153,6 +8153,44 @@ body.drl-splash-active .container{visibility:hidden!important;}
 #tab-home.mli-rank-mode .mli-positive{color:#34d399}
 #tab-home.mli-rank-mode .mli-negative{color:#fb7185}
 #tab-home.mli-rank-mode .mli-bbi-context{margin-top:3px;font:800 10px/1.1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text-muted);letter-spacing:.02em}
+
+/* ===== DRL WEATHER MOTION RESTORE ===== */
+#tab-tools.active .weather-lab-wind-layer i,
+#tab-tools .weather-lab-field-wrap .weather-lab-wind-layer i{
+  animation-name: drl-weather-wind-moving !important;
+  animation-duration: var(--dur, 2.4s) !important;
+  animation-timing-function: linear !important;
+  animation-iteration-count: infinite !important;
+  animation-delay: var(--delay, 0s) !important;
+  will-change: transform, opacity;
+}
+#tab-tools.active .weather-lab-field-wrap.wind-cross .weather-lab-wind-layer i,
+#tab-tools .weather-lab-field-wrap.wind-cross .weather-lab-wind-layer i{
+  animation-name: drl-weather-crosswind-moving !important;
+}
+#tab-tools.active .weather-lab-field-wrap::before,
+#tab-tools .weather-lab-field-wrap::before{
+  animation: drl-weather-vector-pulse 1.7s ease-in-out infinite !important;
+}
+#tab-tools.active .weather-lab-field-wrap::after,
+#tab-tools .weather-lab-field-wrap::after{
+  animation: drl-weather-arrow-pulse 1.7s ease-in-out infinite !important;
+}
+@keyframes drl-weather-wind-moving{
+  0%{transform:translateX(-105px);opacity:0}
+  14%{opacity:.72}
+  86%{opacity:.72}
+  100%{transform:translateX(105px);opacity:0}
+}
+@keyframes drl-weather-crosswind-moving{
+  0%{transform:translateX(-95px);opacity:0}
+  12%{opacity:.9}
+  88%{opacity:.9}
+  100%{transform:translateX(520px);opacity:0}
+}
+@keyframes drl-weather-vector-pulse{0%,100%{opacity:.62}50%{opacity:1}}
+@keyframes drl-weather-arrow-pulse{0%,100%{filter:drop-shadow(0 0 6px rgba(239,68,68,.45))}50%{filter:drop-shadow(0 0 16px rgba(239,68,68,.95))}}
+
 </style>
 </head>
 <body class="drl-splash-active">
@@ -8947,6 +8985,8 @@ let batTrackingMaps = { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
 let statSheetMaps = {};
 let oddsMap = {};
 let oddsBookColumns = [];
+let kOddsRows = [];
+let kProjections = [];
 let pitchLabData = [];
 let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = [];
 let pitcherTeamMap = {};
@@ -10112,7 +10152,7 @@ try {
 const data = await f.arrayBuffer();
 const workbook = XLSX.read(data, {type:'array', cellStyles:false, cellNF:false, cellHTML:false, bookVBA:false});
 window.drlCurrentWorkbook = workbook;
-let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], day14Raw = [], day30Raw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [];
+let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], day14Raw = [], day30Raw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [], pOddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
 let batTrackingSheetNames = {}; 
 teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; day14Map = {}; day30Map = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = []; pitcherTeamMap = {}; batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} }; zoneBMap = {}; zonePMap = {};
@@ -10137,6 +10177,7 @@ if (['BULLPEN','BULLPENEV','BULLPENL7','BULLPENEVL7'].includes(nameClean)) statS
 if (nameClean === 'PARKFACTORL') parkFactorLMap = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm','Park Team','Home Team']));
 if (nameClean === 'PARKFACTORR') parkFactorRMap = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm','Park Team','Home Team']));
 if (nameClean === 'ODDS') oddsRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name']);
+if (nameClean === 'PODDS') pOddsRaw = sheetToJsonSmart(workbook, sheetName, ['Pitcher','Player','Name']);
 if (nameClean === 'HR' || nameClean === 'HOMERUN') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'SHEET1' && (!hrRaw || hrRaw.length === 0)) hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 if (nameClean === 'VSPITCHER' || nameClean === 'BVP') {
@@ -10196,6 +10237,8 @@ if (nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES'
 });
 oddsRaw.forEach(row => { const nm = getNameFromRow(row); addNameAlias(oddsMap, nm, row); });
 oddsBookColumns = detectOddsBookColumns(oddsRaw);
+kOddsRows = Array.isArray(pOddsRaw) ? pOddsRaw : [];
+window.drlPOddsRows = kOddsRows;
 window.top5SheetData = top5Raw;
 if (idRaw && idRaw.length > 0) {
 idRaw.forEach(row => {
@@ -20897,5 +20940,342 @@ function exportZoneScoresToExcel() {
 }
 </script>
 <script id="drl-strikeout-center-engine">(function(){'use strict';const BOOKS=['bet365','PrizePicks','BetMGM','DraftKings','Caesars','FanDuel','Fanatics','Sleeper','Underdog','Rivers'];const C=(v,a,b)=>Math.max(a,Math.min(b,v));const N=v=>typeof normalizeName==='function'?normalizeName(v):String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function rows(w,n){if(!w)return[];const x=w.SheetNames.find(s=>s.trim().toUpperCase()===n.toUpperCase());return x?XLSX.utils.sheet_to_json(w.Sheets[x],{defval:null,raw:true}):[]}function val(r,...ks){if(!r)return null;for(const k of ks)if(r[k]!=null&&r[k]!=='')return r[k];const m={};Object.keys(r).forEach(k=>m[k.toLowerCase().replace(/[^a-z0-9]/g,'')]=k);for(const k of ks){const h=m[k.toLowerCase().replace(/[^a-z0-9]/g,'')];if(h&&r[h]!=null&&r[h]!=='')return r[h]}return null}function map(rs,ks=['Name','Player']){const o={};rs.forEach(r=>{let n='';for(const k of ks)if(val(r,k)){n=String(val(r,k)).trim();break}if(!n)return;o[N(n)]=r;if(n.includes(',')){const p=n.split(',').map(x=>x.trim());o[N(`${p.slice(1).join(' ')} ${p[0]}`)]=r}});return o}function pct(v){let n=Number(v);if(!isFinite(n))return null;return Math.abs(n)<=1?n*100:n}function zc(r){if(!r)return null;let a=0,b=0;[['H-Contact%','H-Zone%'],['S-Contact%','S-Zone%'],['C-Contact%','C-Zone%'],['W-Contact%','W-Zone%']].forEach(x=>{const c=pct(val(r,x[0])),w=pct(val(r,x[1]));if(isFinite(c)){const q=isFinite(w)&&w>0?w:25;a+=c*q;b+=q}});return b?a/b:null}function bag(rs,name){let u=0,w=0,id='';rs.forEach(r=>{let n=String(val(r,'last_name, first_name','Name','Player')||'').trim();if(n.includes(',')){const p=n.split(',').map(x=>x.trim());n=`${p.slice(1).join(' ')} ${p[0]}`}if(N(n)!==N(name))return;const q=Number(val(r,'pitch_usage','Pitch Usage','Usage'))||0,wh=Number(val(r,'whiff_percent','Whiff%'));if(!id)id=String(val(r,'player_id','ID')||'');if(q>0&&isFinite(wh)){u+=q;w+=q*wh}});return{whiff:u?w/u:null,id}}function initials(n){const p=String(n||'?').trim().split(/\s+/);return((p[0]?.[0]||'?')+(p.length>1?p[p.length-1][0]:'')).toUpperCase()}function color(t){try{const m=String(teamVisualStyle(t)).match(/--team-color:\s*([^;]+)/);return m?m[1]:'#e10600'}catch(e){return'#e10600'}}function photo(r,small=false){const c=color(r.team),sz=small?'':'',id=r.id||(window.playerIdMap&&playerIdMap[N(r.name)]);return id?`<img class="k-headshot" style="--k-team:${c}" src="https://img.mlbstatic.com/mlb-photos/image/upload/v1/people/${id}/headshot/67/current" alt="${E(r.name)}" loading="lazy" onerror="this.outerHTML='<div class=&quot;k-headshot-fallback&quot; style=&quot;--k-team:${c}&quot;>${initials(r.name)}</div>'">`:`<div class="k-headshot-fallback" style="--k-team:${c}">${initials(r.name)}</div>`}function build(){const w=window.drlCurrentWorkbook;if(!w)return[];const O=rows(w,'POdds'),P=map(rows(w,'Pitcher')),S=map(rows(w,'Stuff')),B=rows(w,'PitchBag'),Z=map(rows(w,'ZoneP')),I=map(rows(w,'ID')),H=Array.isArray(window.playerData)?window.playerData:[];return O.map(o=>{const name=String(val(o,'Player','Name')||'').trim(),p=P[N(name)];if(!name||!p)return null;const ls=[];BOOKS.forEach(book=>{const x=Number(val(o,book));if(isFinite(x)&&x>0)ls.push({book,line:x})});if(!ls.length)return null;const lineup=H.filter(h=>N(val(h,'Opp Pitcher','Opp Pitcher Name'))===N(name)).sort((a,b)=>(Number(val(a,'BO','Batting Order'))||9)-(Number(val(b,'BO','Batting Order'))||9));let ak=0,aw=0,az=0,zw=0;lineup.forEach((h,i)=>{const bo=Number(val(h,'BO','Batting Order'))||i+1,wt=C(1.14-(bo-1)*.035,.86,1.14),k=pct(val(h,'K %','K%'));if(isFinite(k)){ak+=k*wt;aw+=wt}const z=window.zoneBMap&&zoneBMap[N(val(h,'Name','Player'))],ct=zc(z);if(isFinite(ct)){az+=(100-ct)*wt;zw+=wt}});const lineupK=aw?ak/aw:22.5,hz=zw?az/zw:24,k9=Number(val(p,'K/9'))||7.8,avg=Number(val(p,'Avg Inn'))||(Number(val(p,'IP'))/Math.max(1,Number(val(p,'GS'))||1)),st=S[N(name)]||{},stuff=Number(val(st,'Stuff+'))||100,pplus=Number(val(st,'Pitching+'))||100,lplus=Number(val(st,'Location+'))||100,bg=bag(B,name),wh=isFinite(bg.whiff)?bg.whiff:22,pzc=zc(Z[N(name)]),pz=isFinite(pzc)?100-pzc:22,zblend=hz*.58+pz*.42,proj=C((k9*avg/9)*C(1+(lineupK-22.5)*.020,.78,1.28)*C(1+(wh-22)*.012,.86,1.20)*C(1+(stuff-100)*.0018+(pplus-100)*.0012+(lplus-100)*.0007,.88,1.15)*C(1+(zblend-23)*.008,.90,1.12),.5,14.5),med=[...ls].sort((a,b)=>a.line-b.line)[Math.floor(ls.length/2)].line,side=proj>=med?'OVER':'UNDER',best=side==='OVER'?ls.reduce((a,b)=>b.line<a.line?b:a):ls.reduce((a,b)=>b.line>a.line?b:a),edge=Math.abs(proj-best.line),conf=C(55+edge*15+[lineup.length>=7,isFinite(bg.whiff),stuff!==100,isFinite(pzc),avg>0].filter(Boolean).length*4,55,97),team=String(val(p,'Team')||'').toUpperCase(),opp=lineup[0]?String(val(lineup[0],'Team')||'').toUpperCase():'',id=String((I[N(name)]&&val(I[N(name)],'ID','PlayerID'))||bg.id||(window.playerIdMap&&playerIdMap[N(name)])||'');return{name,team,opp,id,side,book:best.book,line:best.line,projection:proj,edge,confidence:conf,avgInn:avg,k9,lineupK,bagWhiff:wh,stuffPlus:stuff,zoneWhiff:zblend,lineCount:ls.length}}).filter(Boolean).sort((a,b)=>b.edge-a.edge)}function card(r,i){const c=color(r.team);return`<div class="k-feature-card" style="--k-team:${c}"><div class="k-feature-rank">${i+1}</div><div class="k-feature-top">${photo(r)}<div><div class="k-feature-name">${E(r.name)}</div><div class="k-feature-meta">${E(r.team)}${r.opp?` vs ${E(r.opp)}`:''}</div><div class="k-pick-pill">${r.side} ${r.line} • ${E(r.book)}</div></div></div><div class="k-feature-numbers"><div class="k-num"><span>MODEL</span><b>${r.projection.toFixed(1)}</b></div><div class="k-num"><span>EDGE</span><b class="edge">${r.edge.toFixed(1)}</b></div><div class="k-num"><span>CONFIDENCE</span><b>${r.confidence.toFixed(0)}%</b></div></div><div class="k-signal"><i style="width:${r.confidence}%"></i></div></div>`}window.renderStrikeoutCenter=function(){const tb=document.getElementById('kTableBody');if(!tb)return;let r=build(),side=document.getElementById('kSideFilter')?.value||'ALL',min=Number(document.getElementById('kEdgeFilter')?.value||0),q=(document.getElementById('kSearchFilter')?.value||'').toLowerCase(),sort=document.getElementById('kSortFilter')?.value||'EDGE';r=r.filter(x=>(side==='ALL'||x.side===side)&&x.edge>=min&&(!q||x.name.toLowerCase().includes(q)));if(sort==='PROJ')r.sort((a,b)=>b.projection-a.projection);else if(sort==='CONF')r.sort((a,b)=>b.confidence-a.confidence);else if(sort==='NAME')r.sort((a,b)=>a.name.localeCompare(b.name));else r.sort((a,b)=>b.edge-a.edge);const sm=document.getElementById('kSummaryGrid'),fg=document.getElementById('kFeatureGrid');if(!r.length){sm.innerHTML='<div class="k-summary-card" style="grid-column:1/-1"><div class="k-summary-label">STATUS</div><div class="k-summary-value">--</div><div class="k-summary-note">Upload a workbook with POdds and Pitcher sheets.</div></div>';fg.innerHTML='';tb.innerHTML='<tr><td colspan="14" class="k-empty">No strikeout edges match the current filters.</td></tr>';return}const o=r.filter(x=>x.side==='OVER').length,u=r.length-o,b=r[0];sm.innerHTML=`<div class="k-summary-card"><div class="k-summary-label">PITCHERS PRICED</div><div class="k-summary-value">${r.length}</div><div class="k-summary-note">POdds markets matched</div></div><div class="k-summary-card" style="--k-color:#22c55e"><div class="k-summary-label">OVER EDGES</div><div class="k-summary-value">${o}</div><div class="k-summary-note">Model above market</div></div><div class="k-summary-card" style="--k-color:#ff4b4b"><div class="k-summary-label">UNDER EDGES</div><div class="k-summary-value">${u}</div><div class="k-summary-note">Model below market</div></div><div class="k-summary-card" style="--k-color:#f6c343"><div class="k-summary-label">BEST EDGE</div><div class="k-summary-value">${b.edge.toFixed(1)} K</div><div class="k-summary-note">${E(b.name)} ${b.side} ${b.line}</div></div>`;fg.innerHTML=r.slice(0,3).map(card).join('');tb.innerHTML=r.map((x,i)=>`<tr><td>${i+1}</td><td class="k-pitcher-cell"><div class="k-pitcher-line" style="--k-team:${color(x.team)}">${photo(x,true)}<div><div class="k-pitcher-name">${E(x.name)}</div><div class="k-pitcher-meta">${E(x.team)}${x.opp?` vs ${E(x.opp)}`:''} • ${x.lineCount} books</div></div></div></td><td><span class="k-side ${x.side.toLowerCase()}">${x.side}</span></td><td><span class="k-book">${E(x.book)}</span></td><td>${x.line.toFixed(1)}</td><td class="k-model">${x.projection.toFixed(1)}</td><td class="${x.edge>=1?'k-edge-pos':'k-edge-low'}">${x.edge.toFixed(1)}</td><td class="k-confidence">${x.confidence.toFixed(0)}%</td><td>${x.avgInn.toFixed(2)}</td><td>${x.k9.toFixed(2)}</td><td>${x.lineupK.toFixed(1)}%</td><td>${x.bagWhiff.toFixed(1)}%</td><td>${x.stuffPlus.toFixed(0)}</td><td>${x.zoneWhiff.toFixed(1)}%</td></tr>`).join('')};const old=window.switchTab;window.switchTab=function(n,b){const x=old.apply(this,arguments);if(n==='strikeouts')setTimeout(renderStrikeoutCenter,0);return x}})();</script>
+
+<script id="drl-strikeout-engine-v2">
+(function(){
+'use strict';
+
+function kEsc(v){
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function kNum(v){
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  const s = String(v).replace(/,/g,'').replace(/%/g,'').trim();
+  const m = s.match(/-?\d+(?:\.\d+)?/);
+  return m ? Number(m[0]) : null;
+}
+function kPct(v){
+  const n = kNum(v);
+  if (n === null) return null;
+  return Math.abs(n) <= 1 ? n * 100 : n;
+}
+function kGet(row, keys){
+  if (!row) return null;
+  for (const key of keys){
+    if (Object.prototype.hasOwnProperty.call(row,key) && row[key] !== '' && row[key] !== null && row[key] !== undefined) return row[key];
+  }
+  const normalized = {};
+  Object.keys(row).forEach(k => normalized[String(k).toLowerCase().replace(/[^a-z0-9]/g,'')] = row[k]);
+  for (const key of keys){
+    const v = normalized[String(key).toLowerCase().replace(/[^a-z0-9]/g,'')];
+    if (v !== '' && v !== null && v !== undefined) return v;
+  }
+  return null;
+}
+function kName(row){
+  return String(kGet(row,['Pitcher','Pitcher Name','Player','Name','PLAYER','PITCHER']) || '').trim();
+}
+function kAliasRows(name){
+  const key = typeof normalizeName === 'function' ? normalizeName(name) : String(name||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const rows = [];
+  const add = row => { if (row && !rows.includes(row)) rows.push(row); };
+  try { add(pitchTypeMap[key]); } catch(e){}
+  try { add(stuffMap[key]); } catch(e){}
+  try { add(pitchEVMap[key]); } catch(e){}
+  try { add(pitchWinMap[key]); } catch(e){}
+  try { add(zonePMap[key]); } catch(e){}
+  try {
+    Object.values(statSheetMaps || {}).forEach(map => {
+      if (!map) return;
+      add(map[key]);
+      if (!map[key]) {
+        const found = Object.values(map).find(r => {
+          const nm = kName(r);
+          return nm && (typeof normalizeName === 'function' ? normalizeName(nm) : nm.toLowerCase()) === key;
+        });
+        add(found);
+      }
+    });
+  } catch(e){}
+  return rows;
+}
+function kFirstFromRows(rows, keys, percent=false){
+  for (const row of rows){
+    const raw = kGet(row, keys);
+    const n = percent ? kPct(raw) : kNum(raw);
+    if (n !== null && isFinite(n)) return n;
+  }
+  return null;
+}
+function kProjectedInnings(rows){
+  let direct = kFirstFromRows(rows,[
+    'Projected Innings','Projected IP','Proj Innings','Proj IP','Expected Innings','Expected IP',
+    'IP Projection','Innings Projection','Avg Innings','Average Innings','IP/G','IP per Game','IP/GS'
+  ]);
+  if (direct !== null && direct > 0 && direct <= 12) return Math.max(2.5,Math.min(8.5,direct));
+
+  const ip = kFirstFromRows(rows,['IP','Innings Pitched','Innings']);
+  const gs = kFirstFromRows(rows,['GS','Games Started','Starts']);
+  const g = kFirstFromRows(rows,['G','Games','Appearances']);
+  const divisor = gs && gs > 0 ? gs : g;
+  if (ip !== null && divisor && divisor > 0){
+    const avg = ip/divisor;
+    if (avg > 0) return Math.max(2.5,Math.min(8.5,avg));
+  }
+  return 5.4;
+}
+function kPitcherK9(rows){
+  let k9 = kFirstFromRows(rows,['K/9','SO/9','Strikeouts per 9','Strikeout Rate per 9','K9']);
+  if (k9 !== null && k9 > 0) return Math.min(15,k9);
+  const so = kFirstFromRows(rows,['SO','K','Strikeouts']);
+  const ip = kFirstFromRows(rows,['IP','Innings Pitched','Innings']);
+  if (so !== null && ip && ip > 0) return Math.min(15,(so/ip)*9);
+  const kpct = kFirstFromRows(rows,['K%','SO%','Strikeout %','Strikeout Rate'],true);
+  if (kpct !== null && kpct > 0) return Math.min(15,kpct*0.39);
+  return 8.4;
+}
+function kPitchWhiff(rows){
+  return kFirstFromRows(rows,['Whiff%','Whiff %','Swinging Strike %','SwStr%','SwStr','Pitch Whiff%','CSW%'],true);
+}
+function kStuff(rows){
+  return kFirstFromRows(rows,['Stuff+','Stuff Plus','Stuff','STUFF+']);
+}
+function kZoneWhiff(rows){
+  const direct = kFirstFromRows(rows,['Zone Whiff','Zone Whiff%','Zone K%','In-Zone Whiff%','IZ Whiff%'],true);
+  if (direct !== null) return direct;
+  const vals=[];
+  rows.forEach(row => {
+    Object.keys(row||{}).forEach(key => {
+      if (/z[1-9].*(whiff|k%|strikeout)|zone.?[1-9].*(whiff|k%|strikeout)/i.test(key)){
+        const n=kPct(row[key]); if(n!==null) vals.push(n);
+      }
+    });
+  });
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+}
+function kHitterKRate(hitter, hand){
+  const h = String(hand||'R').toUpperCase().startsWith('L') ? 'L' : 'R';
+  const keys = h === 'L'
+    ? ['K% vs LHP','K vs LHP','K% LHP','K-L','K% vs L','SO% vs LHP','Strikeout % vs LHP','LHP K%']
+    : ['K% vs RHP','K vs RHP','K% RHP','K-R','K% vs R','SO% vs RHP','Strikeout % vs RHP','RHP K%'];
+  let n = kPct(kGet(hitter,keys));
+  if (n === null) n = kPct(kGet(hitter,['K%','SO%','Strikeout %','Strikeout Rate','K Rate']));
+  if (n === null){
+    try {
+      const nm = String(hitter.Name||hitter.Player||'');
+      const key = normalizeName(nm);
+      const maps = [lastWeekMap,day14Map,day30Map];
+      for (const map of maps){
+        const row=map && map[key];
+        n=kPct(kGet(row,keys.concat(['K%','SO%','Strikeout %'])));
+        if(n!==null) break;
+      }
+    } catch(e){}
+  }
+  return n === null ? 22.5 : Math.max(5,Math.min(45,n));
+}
+function kLineupForPitcher(name){
+  const key = typeof normalizeName === 'function' ? normalizeName(name) : String(name||'').toLowerCase();
+  const hitters = (Array.isArray(playerData)?playerData:[]).filter(p => {
+    const opp = String(kGet(p,['Opp Pitcher','Opposing Pitcher','Pitcher','Opponent Pitcher'])||'').trim();
+    const oppKey = typeof normalizeName === 'function' ? normalizeName(opp) : opp.toLowerCase();
+    return opp && oppKey === key && !p.isRemoved;
+  });
+  hitters.sort((a,b)=>(kNum(kGet(a,['Lineup Spot','Batting Order','Order','Spot']))||99)-(kNum(kGet(b,['Lineup Spot','Batting Order','Order','Spot']))||99));
+  return hitters.slice(0,9);
+}
+function kOpponentTeam(lineup){
+  return lineup.length ? String(lineup[0].Team||lineup[0].TEAM||'').toUpperCase() : '';
+}
+function kPitcherHand(lineup,rows){
+  const fromLineup = lineup.length ? kGet(lineup[0],['Pitcher Hand','P Hand','Opp Pitcher Hand','Throws']) : null;
+  const fromRows = kFirstFromRows(rows,['Throws','Hand','Pitcher Hand']);
+  const raw = fromLineup || fromRows || 'R';
+  return String(raw).toUpperCase().startsWith('L') ? 'L' : 'R';
+}
+function kParseMarketCell(raw,columnName){
+  if (raw === null || raw === undefined || raw === '') return [];
+  const text = String(raw).trim();
+  const lower = `${String(columnName||'')} ${text}`.toLowerCase();
+  const nums = (text.match(/-?\d+(?:\.\d+)?/g)||[]).map(Number);
+  const line = nums.find(n => n >= 0.5 && n <= 15.5 && Math.abs(n*2-Math.round(n*2))<.001);
+  if (line === undefined) return [];
+  let side = null;
+  if (/\bover\b|(^|[^a-z])o\s*\d/i.test(lower)) side='OVER';
+  if (/\bunder\b|(^|[^a-z])u\s*\d/i.test(lower)) side='UNDER';
+  const american = nums.find(n => Math.abs(n)>=100 && Math.abs(n)<=1000);
+  return [{line,side,odds:american,book:String(columnName||'Book')}];
+}
+function kMarketsForPitcher(name){
+  const key = typeof normalizeName === 'function' ? normalizeName(name) : String(name||'').toLowerCase();
+  const rows = (Array.isArray(kOddsRows)?kOddsRows:[]).filter(r => {
+    const nm=kName(r);
+    return nm && (typeof normalizeName === 'function' ? normalizeName(nm) : nm.toLowerCase())===key;
+  });
+  const markets=[];
+  rows.forEach(row => {
+    Object.keys(row).forEach(col => {
+      if (/pitcher|player|name|team/i.test(col)) return;
+      kParseMarketCell(row[col],col).forEach(m=>markets.push(m));
+    });
+    const directLine=kNum(kGet(row,['Line','Strikeout Line','K Line','SO Line','Prop Line']));
+    if(directLine!==null && directLine>=.5 && directLine<=15.5){
+      const sideRaw=String(kGet(row,['Side','Over/Under','O/U'])||'').toUpperCase();
+      const side=sideRaw.startsWith('O')?'OVER':sideRaw.startsWith('U')?'UNDER':null;
+      const book=String(kGet(row,['Book','Sportsbook'])||'POdds');
+      const odds=kNum(kGet(row,['Odds','Price','American Odds']));
+      markets.push({line:directLine,side,book,odds});
+    }
+  });
+  const seen=new Set();
+  return markets.filter(m=>{
+    const id=[m.book,m.line,m.side,m.odds].join('|');
+    if(seen.has(id)) return false; seen.add(id); return true;
+  });
+}
+function kBestPlay(proj,markets){
+  if(!markets.length) return {side:'NO LINE',line:null,edge:null,book:'POdds',odds:null};
+  const choices=[];
+  markets.forEach(m=>{
+    const inferred=m.side || (proj>=m.line?'OVER':'UNDER');
+    const edge=inferred==='OVER'?proj-m.line:m.line-proj;
+    choices.push({...m,side:inferred,edge});
+  });
+  choices.sort((a,b)=>b.edge-a.edge || ((b.odds||-999)-(a.odds||-999)));
+  return choices[0];
+}
+function kBuildProjection(name){
+  const rows=kAliasRows(name);
+  const lineup=kLineupForPitcher(name);
+  const hand=kPitcherHand(lineup,rows);
+  const innings=kProjectedInnings(rows);
+  const k9=kPitcherK9(rows);
+  const lineupRates=lineup.map(h=>kHitterKRate(h,hand));
+  const lineupK=lineupRates.length?lineupRates.reduce((a,b)=>a+b,0)/lineupRates.length:22.5;
+  const whiff=kPitchWhiff(rows);
+  const stuff=kStuff(rows);
+  const zone=kZoneWhiff(rows);
+
+  const base=k9*innings/9;
+  const lineupMult=Math.max(.72,Math.min(1.32,lineupK/22.5));
+  const whiffMult=whiff===null?1:Math.max(.88,Math.min(1.14,1+(whiff-25)*.009));
+  const stuffMult=stuff===null?1:Math.max(.90,Math.min(1.12,1+(stuff-100)*.004));
+  const zoneMult=zone===null?1:Math.max(.92,Math.min(1.10,1+(zone-22)*.005));
+  const projection=Math.max(1.5,Math.min(13.5,base*lineupMult*whiffMult*stuffMult*zoneMult));
+  const markets=kMarketsForPitcher(name);
+  const play=kBestPlay(projection,markets);
+  const dataPoints=[lineup.length===9,innings!==5.4,k9!==8.4,whiff!==null,stuff!==null,zone!==null,markets.length>0].filter(Boolean).length;
+  const confidence=Math.round(Math.min(96,48+dataPoints*6+(lineup.length===9?6:0)));
+  let team='';
+  try { team=String(pitcherTeamMap[normalizeName(name)]||'').toUpperCase(); } catch(e){}
+  return {
+    name,team,opponent:kOpponentTeam(lineup),hand,lineup,lineupCount:lineup.length,
+    innings,k9,lineupK,whiff,stuff,zone,projection,play,confidence,markets
+  };
+}
+function kPitcherNames(){
+  const names=new Map();
+  (Array.isArray(playerData)?playerData:[]).forEach(p=>{
+    const n=String(kGet(p,['Opp Pitcher','Opposing Pitcher','Pitcher','Opponent Pitcher'])||'').trim();
+    if(n) names.set(typeof normalizeName==='function'?normalizeName(n):n.toLowerCase(),n);
+  });
+  (Array.isArray(kOddsRows)?kOddsRows:[]).forEach(r=>{
+    const n=kName(r); if(n) names.set(typeof normalizeName==='function'?normalizeName(n):n.toLowerCase(),n);
+  });
+  return Array.from(names.values());
+}
+function kFmt(n,d=1){ return n===null||n===undefined||!isFinite(Number(n))?'—':Number(n).toFixed(d); }
+function kHeadshot(name,team){
+  let url='';
+  try { url=getHeadshotUrl(name)||''; } catch(e){}
+  return url?`<img class="player-headshot" src="${url}" alt="${kEsc(name)}" loading="lazy" onerror="this.style.display='none'" style="${typeof teamVisualStyle==='function'?teamVisualStyle(team):''}">`:'';
+}
+window.renderStrikeoutCenter=function(){
+  const body=document.getElementById('kTableBody');
+  const summary=document.getElementById('kSummaryGrid');
+  const features=document.getElementById('kFeatureGrid');
+  if(!body) return;
+  try{
+    const names=kPitcherNames();
+    kProjections=names.map(kBuildProjection);
+    window.drlStrikeoutProjections=kProjections;
+
+    const side=(document.getElementById('kSideFilter')||{}).value||'ALL';
+    const minEdge=Number((document.getElementById('kEdgeFilter')||{}).value||0);
+    const search=String((document.getElementById('kSearchFilter')||{}).value||'').toLowerCase();
+    const sort=(document.getElementById('kSortFilter')||{}).value||'EDGE';
+    let rows=kProjections.filter(p=>{
+      if(search && !p.name.toLowerCase().includes(search)) return false;
+      if(side!=='ALL' && p.play.side!==side) return false;
+      if(p.play.edge!==null && p.play.edge<minEdge) return false;
+      return true;
+    });
+    if(sort==='PROJ') rows.sort((a,b)=>b.projection-a.projection);
+    else if(sort==='CONF') rows.sort((a,b)=>b.confidence-a.confidence);
+    else if(sort==='NAME') rows.sort((a,b)=>a.name.localeCompare(b.name));
+    else rows.sort((a,b)=>(b.play.edge??-999)-(a.play.edge??-999));
+
+    const withLines=kProjections.filter(p=>p.play.line!==null);
+    const best=withLines.slice().sort((a,b)=>(b.play.edge??-999)-(a.play.edge??-999))[0];
+    const avgProj=kProjections.length?kProjections.reduce((s,p)=>s+p.projection,0)/kProjections.length:0;
+    const complete=kProjections.filter(p=>p.lineupCount===9).length;
+    if(summary) summary.innerHTML=`
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Pitchers Modeled</div><div class="backtest-kpi-value">${kProjections.length}</div><div class="backtest-kpi-sub">${complete} with all 9 hitters</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">POdds Matches</div><div class="backtest-kpi-value">${withLines.length}</div><div class="backtest-kpi-sub">Sheet: POdds</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Average Projection</div><div class="backtest-kpi-value">${kFmt(avgProj,1)}</div><div class="backtest-kpi-sub">Projected strikeouts</div></div>
+      <div class="backtest-kpi"><div class="backtest-kpi-label">Best Edge</div><div class="backtest-kpi-value">${best?kFmt(best.play.edge,1):'—'}</div><div class="backtest-kpi-sub">${best?kEsc(best.name+' '+best.play.side):'No POdds line matched'}</div></div>`;
+    if(features){
+      const top=kProjections.slice().sort((a,b)=>(b.play.edge??-999)-(a.play.edge??-999)).slice(0,3);
+      features.innerHTML=top.map((p,i)=>`<div class="backtest-kpi"><div class="backtest-kpi-label">#${i+1} Strikeout Edge</div><div class="backtest-kpi-value">${kEsc(p.name)}</div><div class="backtest-kpi-sub">${p.play.line===null?'Projection '+kFmt(p.projection,1):`${p.play.side} ${kFmt(p.play.line,1)} • Model ${kFmt(p.projection,1)} • Edge ${kFmt(p.play.edge,1)}`}</div></div>`).join('');
+    }
+    if(!rows.length){
+      body.innerHTML=`<tr><td colspan="14" class="k-empty">${kProjections.length?'No strikeout plays match the selected filters.':'No pitchers were found. The HR sheet must contain each hitter’s opposing pitcher, and POdds must contain pitcher prop lines.'}</td></tr>`;
+      return;
+    }
+    body.innerHTML=rows.map((p,i)=>{
+      const edgeClass=p.play.edge===null?'signal-neutral':p.play.edge>=1?'signal-positive':p.play.edge<0?'signal-negative':'signal-neutral';
+      const lineupNames=p.lineup.map(h=>h.Name||h.Player).filter(Boolean).join(', ');
+      const playText=p.play.line===null?'NO LINE':p.play.side;
+      return `<tr title="${kEsc(lineupNames)}">
+        <td>${i+1}</td>
+        <td style="text-align:left;min-width:260px"><div class="stats-player-mini">${kHeadshot(p.name,p.team)}<div class="stats-player-mini-copy"><div class="stats-player-mini-name">${kEsc(p.name)}</div><div class="stats-player-mini-meta">${kEsc(p.team||'P')} vs ${kEsc(p.opponent||'—')} • ${p.hand}HP • ${p.lineupCount}/9 hitters</div></div></div></td>
+        <td class="${p.play.side==='OVER'?'signal-positive':p.play.side==='UNDER'?'signal-negative':'signal-neutral'}">${playText}</td>
+        <td>${kEsc(p.play.book||'POdds')}${p.play.odds?`<div style="font-size:9px;color:var(--text-muted)">${p.play.odds>0?'+':''}${p.play.odds}</div>`:''}</td>
+        <td>${p.play.line===null?'—':kFmt(p.play.line,1)}</td>
+        <td class="full-edge-score">${kFmt(p.projection,2)}</td>
+        <td class="${edgeClass}">${p.play.edge===null?'—':(p.play.edge>0?'+':'')+kFmt(p.play.edge,2)}</td>
+        <td>${p.confidence}%</td>
+        <td>${kFmt(p.innings,2)}</td>
+        <td>${kFmt(p.k9,2)}</td>
+        <td>${kFmt(p.lineupK,1)}%</td>
+        <td>${p.whiff===null?'—':kFmt(p.whiff,1)+'%'}</td>
+        <td>${p.stuff===null?'—':kFmt(p.stuff,0)}</td>
+        <td>${p.zone===null?'—':kFmt(p.zone,1)+'%'}</td>
+      </tr>`;
+    }).join('');
+  }catch(err){
+    console.error('Strikeout Center failed:',err);
+    body.innerHTML=`<tr><td colspan="14" class="k-empty" style="color:#fecaca"><b>Strikeout engine error:</b> ${kEsc(err&&err.message?err.message:err)}</td></tr>`;
+  }
+};
+
+if(typeof drlOnReady==='function'){
+  drlOnReady(function(){
+    const oldSwitch=window.switchTab;
+    if(typeof oldSwitch==='function' && !oldSwitch.__kWrapped){
+      const wrapped=function(tab){
+        const result=oldSwitch.apply(this,arguments);
+        if(tab==='strikeouts') setTimeout(()=>window.renderStrikeoutCenter(),0);
+        return result;
+      };
+      wrapped.__kWrapped=true;
+      window.switchTab=wrapped;
+    }
+  });
+}
+})();
+</script>
+
 </body>
 </html>
