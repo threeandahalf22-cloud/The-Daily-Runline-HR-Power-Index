@@ -8581,6 +8581,76 @@ body.drl-splash-active .container{visibility:hidden!important;}
   }
 }
 
+
+
+/* ===== STARTING PITCHER CARDS INSIDE EACH GAME ACCORDION ===== */
+.game-pitcher-cards-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin:0 0 12px;
+}
+.game-pitcher-card{
+  min-width:0;
+  padding:14px !important;
+  margin:0 !important;
+}
+.game-pitcher-side-label{
+  margin-bottom:10px;
+  color:var(--risk-color,#e10600);
+  font-size:9px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:.85px;
+}
+.game-pitcher-card .pitcher-card-top{
+  grid-template-columns:58px minmax(0,1fr) 82px !important;
+}
+.game-pitcher-card .pitcher-kpi-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:7px !important;
+}
+.game-pitcher-card .pitcher-split-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:8px !important;
+}
+.game-pitcher-card .pitcher-bottom-grid{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+}
+.game-pitcher-card .pitcher-risk-box{
+  padding:9px 6px !important;
+}
+.game-pitcher-card .pitcher-risk-value{
+  font-size:24px !important;
+}
+.game-pitcher-card .pitcher-kpi-label{
+  font-size:8px !important;
+}
+.game-pitcher-card .pitcher-kpi-val{
+  font-size:12px !important;
+}
+.game-pitcher-card .pitcher-split-card{
+  padding:10px !important;
+}
+.game-pitcher-card .pitcher-mini-line{
+  font-size:10px !important;
+}
+@media(max-width:1050px){
+  .game-pitcher-cards-grid{ grid-template-columns:1fr; }
+}
+@media(max-width:560px){
+  .game-pitcher-card .pitcher-card-top{
+    grid-template-columns:50px minmax(0,1fr) 72px !important;
+  }
+  .game-pitcher-card .pitcher-kpi-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .game-pitcher-card .pitcher-split-grid{
+    grid-template-columns:1fr !important;
+  }
+}
+
 </style>
 </head>
 <body class="drl-splash-active">
@@ -16135,6 +16205,102 @@ function changeGameRankingSort(gameKey, mode) {
   }
 }
 
+
+function renderGamePitcherCardHTML(pitcherName, teamCode, sideLabel) {
+  const name = String(pitcherName || 'Starter').trim();
+  const team = String(teamCode || '').trim().toUpperCase();
+  let st = null;
+
+  try {
+    if (typeof window.getGamePitcherCardStats === 'function') {
+      st = window.getGamePitcherCardStats(name);
+    }
+  } catch (e) {
+    console.error('Game pitcher card stats failed for', name, e);
+  }
+
+  const num = value => {
+    const parsed = Number(String(value ?? '').replace('%','').replace(',','').trim());
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+  const pct = value => {
+    const n = num(value);
+    if (!n) return '-';
+    return n <= 1 ? `${(n * 100).toFixed(1)}%` : `${n.toFixed(1)}%`;
+  };
+  const val = (value, digits = 1) => {
+    const n = num(value);
+    return n ? n.toFixed(digits) : '-';
+  };
+
+  st = st || {};
+  const lRisk = num(st.lRisk ?? st.lSide);
+  const rRisk = num(st.rRisk ?? st.rSide);
+  const damage = num(st.risk || st.damage);
+  const risk = Math.max(lRisk, rRisk, damage);
+  const riskColor = risk >= 75 ? '#ef4444' : risk >= 55 ? '#facc15' : '#e10600';
+  const face = typeof createHeadshotHtml === 'function'
+    ? createHeadshotHtml(name, 'sm', team)
+    : '';
+  const logo = window.teamLogos && teamLogos[team]
+    ? `<img class="team-logo-img" src="${teamLogos[team]}" style="width:18px;height:18px;margin-right:5px;">`
+    : '';
+
+  const badges = [];
+  if (num(st.barrel) >= .10 || num(st.barrel) >= 10) badges.push('💣 Barrel Prone');
+  if (num(st.hardHit) >= .42 || num(st.hardHit) >= 42) badges.push('🚀 Hard Contact');
+  if (num(st.evAllowed) >= 90 || num(st.ev) >= 90) badges.push('⚡ High EV Allowed');
+  if (num(st.lHR9) >= 1.1) badges.push('👈 LHB HR/9 Risk');
+  if (num(st.rHR9) >= 1.1) badges.push('👉 RHB HR/9 Risk');
+  const badgeHTML = (badges.length ? badges : ['⚾ Neutral HR Profile'])
+    .slice(0, 3)
+    .map((badge, index) => `<span class="pitcher-auto-badge ${index < 2 ? 'hot' : ''}">${badge}</span>`)
+    .join('');
+
+  return `<div class="pitcher-card-v40 focused game-pitcher-card" style="--risk-color:${riskColor}">
+    <div class="game-pitcher-side-label">${sideLabel}</div>
+    <div class="pitcher-card-top">
+      <div class="pitcher-card-face">${face}</div>
+      <div style="min-width:0;">
+        <div class="pitcher-card-name">${name}</div>
+        <div class="pitcher-card-meta">${logo}${team || '-'}</div>
+      </div>
+      <div class="pitcher-risk-box">
+        <div class="pitcher-risk-label">HR Damage</div>
+        <div class="pitcher-risk-value">${risk ? risk.toFixed(0) : '-'}</div>
+      </div>
+    </div>
+    <div class="pitcher-kpi-grid">
+      <div class="pitcher-kpi"><div class="pitcher-kpi-label">IP</div><div class="pitcher-kpi-val">${val(st.ip,1)}</div><div class="pitcher-source-note">Pitcher</div></div>
+      <div class="pitcher-kpi"><div class="pitcher-kpi-label">Barrel</div><div class="pitcher-kpi-val">${pct(st.barrel)}</div><div class="pitcher-source-note">PitcherBB</div></div>
+      <div class="pitcher-kpi"><div class="pitcher-kpi-label">Hard Hit</div><div class="pitcher-kpi-val">${pct(st.hardHit)}</div><div class="pitcher-source-note">PitcherBB</div></div>
+      <div class="pitcher-kpi"><div class="pitcher-kpi-label">Avg EV</div><div class="pitcher-kpi-val">${val(st.ev || st.evAllowed,1)}</div><div class="pitcher-source-note">PitcherBB</div></div>
+      <div class="pitcher-kpi"><div class="pitcher-kpi-label">EV90</div><div class="pitcher-kpi-val">${val(st.ev90,1)}</div><div class="pitcher-source-note">PitcherBB</div></div>
+      <div class="pitcher-kpi"><div class="pitcher-kpi-label">Max EV</div><div class="pitcher-kpi-val">${val(st.maxev || st.maxEV,1)}</div><div class="pitcher-source-note">PitcherBB</div></div>
+    </div>
+    <div class="pitcher-split-grid">
+      <div class="pitcher-split-card">
+        <div class="pitcher-split-title">vs Left-Handed Batters</div>
+        <div class="pitcher-mini-line"><span>HR/9</span><b>${val(st.lHR9,2)}</b></div>
+        <div class="pitcher-mini-line"><span>HR/FB</span><b>${pct(st.lHRFB)}</b></div>
+        <div class="pitcher-mini-line"><span>FB%</span><b>${pct(st.lFB)}</b></div>
+      </div>
+      <div class="pitcher-split-card">
+        <div class="pitcher-split-title">vs Right-Handed Batters</div>
+        <div class="pitcher-mini-line"><span>HR/9</span><b>${val(st.rHR9,2)}</b></div>
+        <div class="pitcher-mini-line"><span>HR/FB</span><b>${pct(st.rHRFB)}</b></div>
+        <div class="pitcher-mini-line"><span>FB%</span><b>${pct(st.rFB)}</b></div>
+      </div>
+    </div>
+    <div class="pitcher-bottom-grid">
+      <div class="pitcher-split-card">
+        <div class="pitcher-split-title">HR Damage Tags</div>
+        <div class="pitcher-pill-wrap">${badgeHTML}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderGameRankingsAccordion(filteredData, overallRankMap) {
   const list = document.getElementById('gameRankingsAccordionList');
   if (!list) return;
@@ -16191,6 +16357,10 @@ function renderGameRankingsAccordion(filteredData, overallRankMap) {
         <div class="game-rankings-chevron">⌄</div>
       </button>
       <div class="game-rankings-expand" ${isOpen ? '' : 'hidden'}>
+        <div class="game-pitcher-cards-grid">
+          ${renderGamePitcherCardHTML(awayPitcher, away, `${away} Starting Pitcher`)}
+          ${renderGamePitcherCardHTML(homePitcher, home, `${home} Starting Pitcher`)}
+        </div>
         <div class="game-sort-toolbar">
           <div class="game-sort-label">Sort this game</div>
           <div class="game-sort-buttons">
@@ -19507,6 +19677,16 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
     const risk = Math.max(0, Math.min(100, (Math.max(lSide,rSide)*.62 + damage*.38)));
     return {ip,lHR9,rHR9,barrel,hardHit,ev,ev90,maxev,lHRFB,rHRFB,lFB,rFB,damage,lSide,rSide,risk};
   }
+  window.getGamePitcherCardStats = function(name){
+    const s = statsFor(name);
+    return {
+      ...s,
+      lRisk: s.lSide,
+      rRisk: s.rSide,
+      evAllowed: s.ev,
+      maxEV: s.maxev
+    };
+  };
   function badges(s){
     const out=[];
     if (rate(s.barrel) >= .10) out.push('💣 Barrel Prone');
