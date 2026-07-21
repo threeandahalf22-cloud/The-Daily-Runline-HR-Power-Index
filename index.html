@@ -12213,7 +12213,7 @@ function getStatsValue(player, key, rank) {
     case 'iso': { const n = firstNumber(r.iso, safeGet(isoHandRow,'ISO'), safeGet(isoRow,'ISO'), safeGet(player,'ISO')); return val(n, fmtRate(n), pctClass(n, .240, .170)); }
     case 'slg': { const n = firstNumber(r.slg, safeGet(barrellRow,'SLG'), safeGet(isoHandRow,'SLG'), safeGet(isoRow,'SLG'), safeGet(player,'SLG','Slugging')); return val(n, fmtRate(n), pctClass(n, .500, .430)); }
     case 'pitchLabScore': return val(profile ? profile.score : null, profile ? profile.score.toFixed(0) : '-', profile && profile.score >= 70 ? 'stats-good' : profile && profile.score >= 55 ? 'stats-mid' : 'stats-bad');
-    case 'attackZoneScore': { const n = player.attackZoneProfile && player.attackZoneProfile.score !== null ? Number(player.attackZoneProfile.score) : null; return val(n, n === null ? '-' : n.toFixed(0), n >= 72 ? 'stats-good' : n >= 55 ? 'stats-mid' : 'stats-bad'); }
+    case 'attackZoneScore': { const qualified = player.attackZoneQualified !== false; const n = qualified && player.calculatedAttackZoneScore !== null && player.calculatedAttackZoneScore !== undefined ? Number(player.calculatedAttackZoneScore) : null; return val(n, n === null ? 'N/Q' : n.toFixed(0), n === null ? 'stats-neutral' : n >= 72 ? 'stats-good' : n >= 55 ? 'stats-mid' : 'stats-bad'); }
     case 'attackZoneTop': return {raw: player.attackZoneProfile && player.attackZoneProfile.topZone ? player.attackZoneProfile.topZone.zone : -999, display: player.attackZoneProfile && player.attackZoneProfile.summary ? player.attackZoneProfile.summary : '-', cls:'stats-neutral'};
     case 'topPitch': return {raw: profile && profile.top ? profile.top.edge : -999, display: profile && profile.top ? profile.top.label : '-', cls:'stats-neutral'};
     case 'topPitchEdge': return val(profile && profile.top ? profile.top.edge : null, profile && profile.top ? profile.top.edge.toFixed(0) : '-', profile && profile.top && profile.top.edge >= 70 ? 'stats-good' : profile && profile.top && profile.top.edge >= 55 ? 'stats-mid' : 'stats-bad');
@@ -15238,6 +15238,154 @@ function hybridClampLow(value, floor) {
   if (value === null || value === undefined || isNaN(value)) return null;
   return Math.max(value, floor);
 }
+
+// Minimum-sample protection for pitcher-driven scoring buckets.
+// A pitcher with little or no data must never create a real zero for every opposing hitter.
+// Unqualified buckets become null, and the existing weighted-average engine automatically
+// reallocates their weight across the qualified buckets for that hitter.
+const DRL_PITCHER_SAMPLE_MINIMUMS = Object.freeze({
+  attackZonePitches: 250,
+  pitchLabPitches: 250,
+  pitcherBF: 100,
+  pitcherIP: 25
+});
+
+function drlAttackZonePitcherPitchSample(profile) {
+  if (!profile) return 0;
+  let total = 0;
+  let foundBucketData = false;
+
+  // Preferred source: sum the three non-overlapping pitcher pitch-family maps.
+  if (profile.bucketProfiles) {
+    ['FB','BR','OS'].forEach(bucket => {
+      const bucketProfile = profile.bucketProfiles[bucket];
+      if (!bucketProfile || !Array.isArray(bucketProfile.zones)) return;
+      bucketProfile.zones.forEach(z => {
+        const pitches = Number(
+          z && z.pitcherStats && z.pitcherStats.pitches !== undefined
+            ? z.pitcherStats.pitches
+            : z && z.pitcherPitches
+        );
+        if (Number.isFinite(pitches) && pitches > 0) {
+          total += pitches;
+          foundBucketData = true;
+        }
+      });
+    });
+  }
+
+  // Fallback for workbooks that only contain the generic/weighted PZ sheets.
+  if (!foundBucketData && Array.isArray(profile.zones)) {
+    profile.zones.forEach(z => {
+      const pitches = Number(
+        z && z.pitcherStats && z.pitcherStats.pitches !== undefined
+          ? z.pitcherStats.pitches
+          : z && z.pitcherPitches
+      );
+      if (Number.isFinite(pitches) && pitches > 0) total += pitches;
+    });
+  }
+  return Math.max(0, total);
+}
+
+
+function drlPitchLabPitcherSample(profile, raw) {
+  if (!profile) return {
+    observed: 0,
+    estimated: 0,
+    effective: 0,
+    source: 'none',
+    hasArsenal: false
+  };
+
+  const rows = Array.isArray(profile.rows) ? profile.rows : [];
+  let observed = 0;
+  let hasArsenal = false;
+
+  rows.forEach(row => {
+    const usage = Number(row && row.usage);
+    if (Number.isFinite(usage) && usage >= 0.01) hasArsenal = true;
+
+    // PitchBag exports may label the exposure column PA, BF, events, or pitches.
+    // Each row is a distinct pitch family, so summing the rows gives total
+    // pitch-family exposure without counting the same pitch twice.
+    const sample = Number(
+      row && row.pitcherDamage && row.pitcherDamage.pa !== undefined
+        ? row.pitcherDamage.pa
+        : 0
+    );
+    if (Number.isFinite(sample) && sample > 0) observed += sample;
+  });
+
+  const bf = Math.max(0, Number(raw && raw.pitcherBF) || 0);
+  const ip = Math.max(0, Number(raw && raw.pitcherIP) || 0);
+
+  // When the pitch-family sheet does not expose a pitch count, estimate workload
+  // conservatively from BF/IP. This is only a qualification gate; it never changes
+  // the actual Pitch Lab score.
+  const estimatedFromBF = bf > 0 ? bf * 3.8 : 0;
+  const estimatedFromIP = ip > 0 ? ip * 16 : 0;
+  const estimated = Math.max(estimatedFromBF, estimatedFromIP);
+  const effective = observed > 0 ? observed : estimated;
+
+  return {
+    observed,
+    estimated,
+    effective,
+    source: observed > 0 ? 'pitch-family sample' : estimated > 0 ? 'workload estimate' : 'none',
+    hasArsenal
+  };
+}
+
+function drlPitcherBucketQualification(player, raw, attackZoneProfile) {
+  const zonePitches = drlAttackZonePitcherPitchSample(attackZoneProfile);
+  const pitcherBF = Math.max(0, Number(raw && raw.pitcherBF) || 0);
+  const pitcherIP = Math.max(0, Number(raw && raw.pitcherIP) || 0);
+
+  const attackZoneQualified =
+    zonePitches >= DRL_PITCHER_SAMPLE_MINIMUMS.attackZonePitches;
+
+  const pitchLabSample = drlPitchLabPitcherSample(
+    player && player.pitchLabProfile,
+    raw
+  );
+  const pitchLabQualified =
+    pitchLabSample.hasArsenal &&
+    pitchLabSample.effective >= DRL_PITCHER_SAMPLE_MINIMUMS.pitchLabPitches;
+
+  // Either a reasonable BF total or a reasonable IP total qualifies the broader
+  // pitcher-vulnerability bucket. This protects call-ups/openers without requiring
+  // both fields to exist in every workbook.
+  const pitcherQualified =
+    pitcherBF >= DRL_PITCHER_SAMPLE_MINIMUMS.pitcherBF ||
+    pitcherIP >= DRL_PITCHER_SAMPLE_MINIMUMS.pitcherIP;
+
+  const result = {
+    attackZoneQualified,
+    pitchLabQualified,
+    pitcherQualified,
+    zonePitches,
+    pitchLabPitches: pitchLabSample.effective,
+    pitchLabObservedPitches: pitchLabSample.observed,
+    pitchLabEstimatedPitches: pitchLabSample.estimated,
+    pitchLabSampleSource: pitchLabSample.source,
+    pitcherBF,
+    pitcherIP,
+    minimums: { ...DRL_PITCHER_SAMPLE_MINIMUMS }
+  };
+
+  if (player) {
+    player.pitcherSampleQualification = result;
+    player.attackZoneQualified = attackZoneQualified;
+    player.attackZonePitchSample = zonePitches;
+    player.pitchLabQualified = pitchLabQualified;
+    player.pitchLabPitchSample = pitchLabSample.effective;
+    player.pitchLabSampleSource = pitchLabSample.source;
+    player.pitcherVulnerabilityQualified = pitcherQualified;
+  }
+  return result;
+}
+
 function hybridMatchPair(a, b) {
   // Rewards actual hitter/pitcher alignment instead of giving every hitter the same pitcher bump.
   // High barrel hitter + high barrel allowed pitcher, high FB hitter + high FB pitcher, etc.
@@ -15251,6 +15399,7 @@ function hybridMatchPair(a, b) {
 }
 function scoreHybridPlayer(p, ranges) {
   const r = p.hybridRaw;
+  const pitcherSample = drlPitcherBucketQualification(p, r, p.attackZoneProfile);
   const powerPA = Math.max(0, Number(r.pa) || 0);
   const powerBarrelSeason = drlPowerBarrelScore(r.barrel, powerPA);
   const powerEV90Season = drlPowerEV90Score(r.ev90, powerPA);
@@ -15276,11 +15425,15 @@ function scoreHybridPlayer(p, ranges) {
     { value: drlPitcherBarrelAllowedScore(r.pitcherBarrel, pitcherBF, pitcherIP), weight: 0.10 },
     { value: drlPitcher95AllowedScore(r.pitcher95, pitcherBF, pitcherIP), weight: 0.08 }
   ]);
-  const pitchLabScore = p.pitchLabProfile ? cleanNumber(p.pitchLabProfile.score) : null;
-  const pitchLevel = hybridWeightedAvg([
+  const rawPitchLabScore = p.pitchLabProfile ? cleanNumber(p.pitchLabProfile.score) : null;
+  const pitchLevelBeforeSampleGate = hybridWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'pitchLevelEV'), weight: 0.20 },
-    { value: (pitchLabScore && pitchLabScore > 0) ? pitchLabScore : null, weight: 0.80 }
+    { value: (rawPitchLabScore && rawPitchLabScore > 0) ? rawPitchLabScore : null, weight: 0.80 }
   ]);
+  const pitchLevel = pitcherSample.pitchLabQualified ? pitchLevelBeforeSampleGate : null;
+  p.pitchLabSampleStatus = pitcherSample.pitchLabQualified
+    ? `QUALIFIED (${Math.round(pitcherSample.pitchLabPitches)} pitches)`
+    : `WEIGHT REALLOCATED (${Math.round(pitcherSample.pitchLabPitches)}/${DRL_PITCHER_SAMPLE_MINIMUMS.pitchLabPitches} pitches)`;
   const pitcherBase = pitcherMetricBase;
   const hitterPitcherContactMatch = hybridWeightedAvg([
     { value: hybridMatchPair(hybridScoreMetric(r,ranges,'barrel'), hybridScoreMetric(r,ranges,'pitcherBarrel')), weight: 0.28 },
@@ -15321,12 +15474,13 @@ function scoreHybridPlayer(p, ranges) {
     hybridScoreMetric(r,ranges,'bullpenBarrel'),
     hybridScoreMetric(r,ranges,'bullpenHardHit')
   ]);
-  const pitcher = r.isBullpenGame
+  const pitcherBeforeSampleGate = r.isBullpenGame
     ? hybridWeightedAvg([
         { value: starterPitcherVulnerability, weight: 2 / 9 },
         { value: bullpenVulnerability, weight: 7 / 9 }
       ])
     : starterPitcherVulnerability;
+  const pitcher = pitcherSample.pitcherQualified ? pitcherBeforeSampleGate : null;
   p.isBullpenGame = !!r.isBullpenGame;
   p.projectedStarterInnings = r.isBullpenGame ? 2 : null;
   p.projectedBullpenInnings = r.isBullpenGame ? 7 : null;
@@ -15373,7 +15527,11 @@ function scoreHybridPlayer(p, ranges) {
   // 0-100 breakpoint normalization. Visual bars remain capped elsewhere.
   const park = drlParkFactorScore(r.parkFactor);
   const weather = drlWeatherScore(r.weatherScore);
-  const attackZone = (r.attackZone !== null && r.attackZone !== undefined && !isNaN(r.attackZone)) ? Number(r.attackZone) : null;
+  const rawAttackZone = (r.attackZone !== null && r.attackZone !== undefined && !isNaN(r.attackZone)) ? Number(r.attackZone) : null;
+  const attackZone = pitcherSample.attackZoneQualified ? rawAttackZone : null;
+  p.attackZoneSampleStatus = pitcherSample.attackZoneQualified
+    ? `QUALIFIED (${Math.round(pitcherSample.zonePitches)} pitches)`
+    : `WEIGHT REALLOCATED (${Math.round(pitcherSample.zonePitches)}/${DRL_PITCHER_SAMPLE_MINIMUMS.attackZonePitches} pitches)`;
   const paReliability = hybridWeightedAvg([
     { value: hybridScoreMetric(r,ranges,'pa'), weight: 0.45 },
     { value: hybridScoreMetric(r,ranges,'paPg'), weight: 0.35 },
@@ -15383,7 +15541,9 @@ function scoreHybridPlayer(p, ranges) {
   // Cap negative drag for true power bats. They can still rank lower,
   // but one cold/missing category should not bury an elite HR profile.
   const elitePowerCore = (power !== null && power >= 70) || (r.iso !== null && r.iso >= 0.230) || (r.barrel !== null && r.barrel >= 0.120) || (r.maxEV !== null && r.maxEV >= 112) || (r.xHR !== null && r.xHR >= 15);
-  const adjustedPitchLevel = elitePowerCore ? hybridClampLow(pitchLevel, 40) : pitchLevel;
+  const adjustedPitchLevel = pitchLevel === null || pitchLevel === undefined || !Number.isFinite(Number(pitchLevel))
+    ? null
+    : (elitePowerCore ? hybridClampLow(pitchLevel, 40) : pitchLevel);
   const adjustedRecent = null;
   const adjustedPark = elitePowerCore ? hybridClampLow(park, 38) : park;
   const adjustedBullpen = elitePowerCore ? hybridClampLow(bullpen, 40) : bullpen;
@@ -15433,7 +15593,34 @@ function scoreHybridPlayer(p, ranges) {
     effectiveCategoryWeights.power = (effectiveCategoryWeights.power || 0) + (bvpUnusedWeight * (2/3));
     effectiveCategoryWeights.attackZone = (effectiveCategoryWeights.attackZone || 0) + (bvpUnusedWeight * (1/3));
   }
+  // Explicitly shift the weight from every unavailable/unqualified bucket to the
+  // remaining qualified buckets in proportion to their official active weights.
+  // This produces the same fair 100% total without allowing a missing-data zero
+  // to bury an entire lineup.
+  const unavailableBuckets = [];
+  let unavailableWeight = 0;
+  Object.keys(effectiveCategoryWeights).forEach(cat => {
+    const value = p.category[cat];
+    if ((effectiveCategoryWeights[cat] || 0) > 0 &&
+        (value === null || value === undefined || !Number.isFinite(Number(value)))) {
+      unavailableBuckets.push(cat);
+      unavailableWeight += effectiveCategoryWeights[cat] || 0;
+      effectiveCategoryWeights[cat] = 0;
+    }
+  });
+  const qualifiedBaseWeight = Object.values(effectiveCategoryWeights).reduce((s,w)=>s+(Number(w)||0),0);
+  if (unavailableWeight > 0 && qualifiedBaseWeight > 0) {
+    Object.keys(effectiveCategoryWeights).forEach(cat => {
+      const current = Number(effectiveCategoryWeights[cat]) || 0;
+      if (current > 0) {
+        effectiveCategoryWeights[cat] = current + (unavailableWeight * (current / qualifiedBaseWeight));
+      }
+    });
+  }
   p.hybridEffectiveCategoryWeights = { ...effectiveCategoryWeights };
+  p.reallocatedScoringBuckets = unavailableBuckets;
+  p.reallocatedScoringWeight = unavailableWeight;
+
   let total = 0, usedWeight = 0;
   Object.keys(effectiveCategoryWeights).forEach(cat => {
     if (effectiveCategoryWeights[cat] > 0 && p.category[cat] !== null && p.category[cat] !== undefined && !isNaN(p.category[cat])) {
