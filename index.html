@@ -7914,6 +7914,23 @@ body::after,
   .nrfi-games{grid-template-columns:1fr !important;}
 }
 
+
+.bet-match-rank{
+  flex:0 0 auto;
+  min-width:30px;
+  height:30px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+  background:rgba(225,6,0,.12);
+  border:1px solid rgba(225,6,0,.30);
+  color:#fff;
+  font-family:monospace;
+  font-size:11px;
+  font-weight:1000;
+}
+
 </style>
 
 
@@ -16423,6 +16440,43 @@ function toggleFullSlateRankings() {
   const content = document.getElementById('fullSlateRankingsContent');
   if (!item || !content) return;
   const isOpen = !content.hidden;
+
+  if (!isOpen) {
+    // "Full Slate Rankings" must always mean every active hitter.
+    // Clear any filters that could make the full table stop early or show only
+    // one game/team/tier, then rebuild the table from the complete playerData set.
+    selectedBBITierFilter = 'ALL';
+    selectedQuickTeamFilter = 'ALL';
+    window.betFinderActive = false;
+
+    const team1 = document.getElementById('teamFilter1');
+    const team2 = document.getElementById('teamFilter2');
+    const bats = document.getElementById('batsFilter');
+    const search = document.getElementById('searchFilter');
+    const showRemoved = document.getElementById('showRemovedCheck');
+
+    if (team1) team1.value = 'ALL';
+    if (team2) team2.value = 'ALL';
+    if (bats) bats.value = 'ALL';
+    if (search) search.value = '';
+    if (showRemoved) showRemoved.checked = false;
+
+    syncTeamLogoDropdown(1);
+    syncTeamLogoDropdown(2);
+
+    const overallRankMap = getOverallBBIRankMap(false);
+    const fullSlate = [...playerData]
+      .filter(p => p && !p.isRemoved)
+      .sort(homeRankSortMode === 'ZONE'
+        ? compareHomeZoneRank
+        : (homeRankSortMode === 'EDGE'
+          ? compareHomeEdgeRank
+          : (homeRankSortMode === 'MLI' ? compareHomeMLIRank : compareHomeBBIRank)));
+
+    renderMainTableBoard(fullSlate, overallRankMap);
+    renderBBITierStats(fullSlate.length);
+  }
+
   content.hidden = isOpen;
   item.classList.toggle('open', !isOpen);
   const button = item.querySelector('.full-slate-rankings-line');
@@ -20259,8 +20313,8 @@ function renderBetFinderResults(allFiltered, qualified, detailsMap){
   const count=document.getElementById('betFinderCount'); if(count) count.innerHTML=`<b>${qualified.length}</b> ${qualified.length===1?'Player Matches':'Players Match'}`;
   const box=document.getElementById('betFinderResults'); if(!box) return; box.classList.add('active');
   if(!qualified.length){ box.innerHTML='<div class="bet-finder-empty">No players match this build. Lower one of the four sliders and hit Apply again.</div>'; return; }
-  const top=qualified.slice(0,8).map(p=>{ const d=detailsMap.get(p)||{reasons:[]}; const rows=d.reasons.map(r=>`<div class="bet-pass-row"><span>${r.ok?'✅':'❌'} ${r.label}</span><b>${Number(r.got).toFixed(1)} <span style="color:var(--text-muted)">(Needed ${r.need})</span></b></div>`).join(''); return `<div class="bet-match-card" style="${teamVisualStyle(p.Team)}" onclick="scrollToPlayer('${escJSString(p.Name)}')"><div class="bet-match-top">${createHeadshotHtml(p.Name,'sm',p.Team)}<div style="min-width:0"><div class="bet-match-name">${p.Name}</div><div class="bet-match-meta">${p.Team || ''} • vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</div></div><div class="bet-match-score">${(p.calculatedBBI||0).toFixed(1)}</div></div><div class="bet-pass-list">${rows}</div></div>`; }).join('');
-  box.innerHTML=`<div class="bet-finder-sub"><b style="color:#fff">${qualified.length} PLAYERS MATCH YOUR FILTERS</b> — BBI, Pitcher Score, Pitch Level, and Zone Score only.</div><div class="bet-match-list">${top}</div>`;
+  const allMatches=qualified.map((p,index)=>{ const d=detailsMap.get(p)||{reasons:[]}; const rows=d.reasons.map(r=>`<div class="bet-pass-row"><span>${r.ok?'✅':'❌'} ${r.label}</span><b>${Number(r.got).toFixed(1)} <span style="color:var(--text-muted)">(Needed ${r.need})</span></b></div>`).join(''); return `<div class="bet-match-card" style="${teamVisualStyle(p.Team)}" onclick="scrollToPlayer('${escJSString(p.Name)}')"><div class="bet-match-top"><div class="bet-match-rank">#${index+1}</div>${createHeadshotHtml(p.Name,'sm',p.Team)}<div style="min-width:0"><div class="bet-match-name">${p.Name}</div><div class="bet-match-meta">${p.Team || ''} • vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</div></div><div class="bet-match-score">${(p.calculatedBBI||0).toFixed(1)}</div></div><div class="bet-pass-list">${rows}</div></div>`; }).join('');
+  box.innerHTML=`<div class="bet-finder-sub"><b style="color:#fff">${qualified.length} PLAYERS MATCH YOUR FILTERS</b> — every matching player is listed below in BBI order.</div><div class="bet-match-list">${allMatches}</div>`;
 }
 drlOnReady( initBetFinder);
 </script>
