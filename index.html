@@ -21361,7 +21361,7 @@ function parseNrfi(wb){
   return games;
 }
 function nrfiTeamBlock(t){const l=logo(t.team);return `<div class="nrfi-team-block">${l?`<img class="nrfi-logo" src="${l}">`:''}<div class="nrfi-team-name">${esc(t.team)}</div><div class="nrfi-mini-grid"><div><span>Team NRFI</span><b>${Number.isFinite(t.teamPct)?fmt(t.teamPct*100,1)+'%':'--'}</b></div><div><span>Opp Pitcher</span><b>${esc(t.pitcher||'--')}</b></div><div><span>Pitcher NRFI</span><b>${Number.isFinite(t.pitcherPct)?fmt(t.pitcherPct*100,1)+'%':'--'}</b></div><div><span>Record</span><b>${esc(t.pitcherRec||'--')}</b></div><div><span>Streak</span><b>${esc(t.streak||'--')}</b></div></div></div>`;}
-function renderNrfi(){const box=document.getElementById('nrfiGames'),sum=document.getElementById('nrfiSummary');if(!box)return;if(!nrfiGames.length){box.innerHTML='<div class="nrfi-empty">Upload an NRFI workbook to begin.</div>';sum.style.display='none';return;}const ranked=[...nrfiGames].sort((a,b)=>(b.edge??-9)-(a.edge??-9));box.innerHTML=ranked.map((g,i)=>{const edgePts=Number.isFinite(g.edge)?g.edge*100:null;const tone=edgePts>=5?'elite':edgePts>=2?'good':edgePts>=0?'lean':'bad';return `<div class="nrfi-card ${tone}"><div class="nrfi-rank">#${i+1}</div><div class="nrfi-matchup">${nrfiTeamBlock(g.away)}<div class="nrfi-center"><div class="nrfi-vs">NRFI</div><div class="nrfi-model">${Number.isFinite(g.model)?fmt(g.model*100,1)+'%':'--'}</div><div class="nrfi-model-label">Model Probability</div><div class="nrfi-edge ${tone}">${Number.isFinite(edgePts)?(edgePts>=0?'+':'')+fmt(edgePts,1)+'%':'--'}</div><div class="nrfi-edge-label">Probability Edge</div></div>${nrfiTeamBlock(g.home)}</div><div class="nrfi-market-row"><div><span>Odds</span><b>${odds(g.offered)}</b></div><div><span>Implied</span><b>${Number.isFinite(g.implied)?fmt(g.implied*100,1)+'%':'--'}</b></div><div><span>Fair Odds</span><b>${odds(g.fair)}</b></div><div><span>CM NRFI</span><b>${Number.isFinite(g.model)?fmt(g.model*100,1)+'%':'--'}</b></div></div></div>`;}).join('');const best=ranked[0],positive=ranked.filter(g=>Number.isFinite(g.edge)&&g.edge>0).length,avg=ranked.filter(g=>Number.isFinite(g.edge)).reduce((z,g)=>z+g.edge,0)/(ranked.filter(g=>Number.isFinite(g.edge)).length||1);sum.style.display='grid';sum.innerHTML=`<div class="nrfi-summary-card"><span>Games</span><b>${ranked.length}</b></div><div class="nrfi-summary-card"><span>Positive Edges</span><b>${positive}</b></div><div class="nrfi-summary-card"><span>Best Edge</span><b>${best&&Number.isFinite(best.edge)?'+'+fmt(best.edge*100,1)+'%':'--'}</b></div><div class="nrfi-summary-card"><span>Average Edge</span><b>${fmt(avg*100,1)}%</b></div>`;}
+function renderNrfi(){const box=document.getElementById('nrfiGames'),sum=document.getElementById('nrfiSummary');if(!box)return;if(!nrfiGames.length){box.innerHTML='<div class="nrfi-empty">Upload an NRFI workbook to begin.</div>';sum.style.display='none';return;}const ranked=[...nrfiGames].sort((a,b)=>(b.edge??-9)-(a.edge??-9));box.innerHTML=ranked.map((g,i)=>{const edgePts=Number.isFinite(g.edge)?g.edge*100:null;const tone=edgePts>=5?'elite':edgePts>=2?'good':edgePts>=0?'lean':'bad';return `<div class="nrfi-card ${tone}"><div class="nrfi-rank">#${i+1}</div><div class="nrfi-matchup">${nrfiTeamBlock(g.away)}<div class="nrfi-center"><div class="nrfi-vs">NRFI</div><div class="nrfi-model">${Number.isFinite(g.model)?fmt(g.model*100,1)+'%':'--'}</div><div class="nrfi-model-label">Model Probability</div><div class="nrfi-edge ${tone}">${Number.isFinite(edgePts)?(edgePts>=0?'+':'')+fmt(edgePts,1)+'%':'--'}</div><div class="nrfi-edge-label">Probability Edge</div></div>${nrfiTeamBlock(g.home)}</div><div class="nrfi-market-row"><div><span>Odds</span><b>${odds(g.offered)}</b></div><div><span>Implied</span><b>${Number.isFinite(g.implied)?fmt(g.implied*100,1)+'%':'--'}</b></div><div><span>Fair Odds</span><b>${odds(g.fair)}</b></div><div><span>CM NRFI</span><b>${Number.isFinite(g.model)?fmt(g.model*100,1)+'%':'--'}</b></div></div></div>`;}).join('');const best=ranked[0],positive=ranked.filter(g=>Number.isFinite(g.edge)&&g.edge>0).length,avg=ranked.filter(g=>Number.isFinite(g.edge)).reduce((z,g)=>z+g.edge,0)/(ranked.filter(g=>Number.isFinite(g.edge)).length||1);sum.style.display='grid';sum.innerHTML=`<div class="nrfi-summary-card"><span>Games</span><b>${ranked.length}</b></div><div class="nrfi-summary-card"><span>Positive Edges</span><b>${positive}</b></div><div class="nrfi-summary-card"><span>Best Edge</span><b>${best&&Number.isFinite(best.edge)?'+'+fmt(best.edge*100,1)+'%':'--'}</b></div><div class="nrfi-summary-card"><span>Average Edge</span><b>${fmt(avg*100,1)}%</b></div>`;setTimeout(()=>{if(typeof window.drlRefreshSectionFinalizeControls==='function')window.drlRefreshSectionFinalizeControls();},0);}
 async function loadNrfiWorkbook(wb,label){nrfiGames=parseNrfi(wb);const st=document.getElementById('nrfiUploadStatus');st.className='nrfi-upload-status good';st.textContent=`${label} • ${nrfiGames.length} games`;renderNrfi();}
 
 function init(){
@@ -21666,6 +21666,7 @@ drlOnReady(init);window.renderTeamEdgeCenter=renderTeam;window.renderNrfiCenter=
     body.querySelectorAll('[data-delete-key]').forEach(b=>b.onclick=()=>{const k=b.dataset.deleteKey;saveRows(records().filter(r=>keyFor(r)!==k));renderCombinedBacktest()});
   }
   const obs=new MutationObserver(()=>{clearTimeout(window.__drlSectionFinalizeTimer);window.__drlSectionFinalizeTimer=setTimeout(decorate,120)});obs.observe(document.documentElement,{childList:true,subtree:true});
+  window.drlRefreshSectionFinalizeControls = decorate;
   function init(){decorate();renderCombinedBacktest();setTimeout(decorate,300);setTimeout(decorate,1200)}
   drlOnReady(init);
 })();
@@ -22275,6 +22276,25 @@ if(typeof drlOnReady==='function'){
 </script>
 
 
+
+
+<script id="drl-nrfi-log-controls-watchdog">
+(function(){
+  'use strict';
+  function refresh(){
+    const cards=document.querySelectorAll('#nrfiGames .nrfi-card');
+    const missing=[...cards].some(card=>!card.querySelector('.bet-result-tools'));
+    if(cards.length && missing && typeof window.drlRefreshSectionFinalizeControls==='function'){
+      cards.forEach(card=>{ if(!card.querySelector('.bet-result-tools')) delete card.dataset.sectionFinalize; });
+      window.drlRefreshSectionFinalizeControls();
+    }
+  }
+  drlOnReady(function(){
+    refresh();
+    setInterval(refresh,1000);
+  });
+})();
+</script>
 
 </body>
 </html>
