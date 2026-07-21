@@ -6,6 +6,7 @@
 <title>The Daily Run Line</title>
 <!-- DRL v64.9: Phase 5 unused CSS cleanup.
      Backtest-reweighted buckets: Power 30, Batted Ball 24, Attack Zone 16, Pitcher 10,
+     BP Game: Compare Y uses 2 starter IP / 7 bullpen IP; N/blank preserves normal logic.
      Pitch Lab 7, Weather 5, BvP 4, Park 4. Synergy cap: +7.50.
      Consolidation: Phases 2-4 preserved; unused CSS selectors with no HTML or JavaScript references removed; dynamic modifiers and cascade order preserved. -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -9451,6 +9452,7 @@ let lastWeekMap = {};
 let day14Map = {};
 let day30Map = {};
 let bullpenData = {};
+let bullpenGameByTeam = {}; // Compare sheet BP Game flag: Y = 2 starter IP / 7 bullpen IP
 let gameMatchups = [];
 let weatherSettings = {};
 let teamToGameIdMap = {};
@@ -10472,7 +10474,7 @@ function resolvePitcherOwnTeam(pitcherName, fallbackTeam) {
   return mapped || String(fallbackTeam || '').trim().toUpperCase();
 }
 function saveCachedData() {
-const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, day14Map, day30Map, bullpenData, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, pitchEVMap, pitchWinMap, pitchBagMap, onlyHomersData, onlyHomersProfiles, batterPitchMaps, zoneBMap, zonePMap, batTrackingMaps, pitcherTeamMap };
+const cacheData = { playerData, vsPitcherData, plDataMap, lastWeekMap, day14Map, day30Map, bullpenData, bullpenGameByTeam, gameMatchups, weatherSettings, teamToGameIdMap, teamHomeParkMap, parkFactorMap, parkFactorLMap, parkFactorRMap, selectedQuickTeamFilter, codysDiamondsData, longshotData, hrDueData, playerIdMap, pitchTypeMap, stuffMap, pitchEVMap, pitchWinMap, pitchBagMap, onlyHomersData, onlyHomersProfiles, batterPitchMaps, zoneBMap, zonePMap, batTrackingMaps, pitcherTeamMap };
 localStorage.setItem('bbiDashboardCache', JSON.stringify(cacheData));
 }
 function loadCachedData() {
@@ -10487,6 +10489,7 @@ lastWeekMap = cacheData.lastWeekMap || {};
 day14Map = cacheData.day14Map || {};
 day30Map = cacheData.day30Map || {};
 bullpenData = cacheData.bullpenData || {};
+bullpenGameByTeam = cacheData.bullpenGameByTeam || {};
 gameMatchups = cacheData.gameMatchups || [];
 weatherSettings = cacheData.weatherSettings || {};
 teamToGameIdMap = cacheData.teamToGameIdMap || {};
@@ -10653,7 +10656,7 @@ window.drlCurrentWorkbook = workbook;
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], day14Raw = [], day30Raw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [], pOddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
 let batTrackingSheetNames = {}; 
-teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; day14Map = {}; day30Map = {}; bullpenData = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = []; pitcherTeamMap = {}; batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} }; zoneBMap = {}; zonePMap = {};
+teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; day14Map = {}; day30Map = {}; bullpenData = {}; bullpenGameByTeam = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = []; pitcherTeamMap = {}; batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} }; zoneBMap = {}; zonePMap = {};
 workbook.SheetNames.forEach(sheetName => {
 let nameClean = sheetName.toUpperCase().trim();
 if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
@@ -13172,6 +13175,19 @@ let explicitAway = String(row.Away || row.AWAY || row.AwayTeam || row['Away Team
 let homeTeam = explicitHome || String(row.Team1 || row.TEAM1 || '').trim().toUpperCase();
 let awayTeam = explicitAway || String(row.Team2 || row.TEAM2 || '').trim().toUpperCase();
 registerHomeAwayGame(homeTeam, awayTeam);
+
+// BP Game belongs to the team whose pitching staff is being described on this row.
+// Supports the common Compare layouts: Team, Home/Away, Team1/Team2.
+const bpFlag = String(safeGet(row, 'BP Game', 'BPGame', 'Bullpen Game', 'BullpenGame') || '').trim().toUpperCase();
+const rowTeam = String(safeGet(row, 'Team', 'TEAM', 'Tm', 'Pitcher Team', 'Pitching Team') || '').trim().toUpperCase();
+if (bpFlag === 'Y' || bpFlag === 'N') {
+  if (rowTeam) bullpenGameByTeam[rowTeam] = bpFlag;
+  else {
+    // When one Compare row represents one game, apply the flag to whichever explicit team is present.
+    const singleTeam = explicitHome || explicitAway || homeTeam || awayTeam;
+    if (singleTeam) bullpenGameByTeam[singleTeam] = bpFlag;
+  }
+}
 });
 }
 function assignFallbackGameIds(data) {
@@ -14606,7 +14622,10 @@ function hybridRaw(p) {
   const pitcherFBRow = lookupStat('PITCHERFB', pitcherName);
   const lastStartRow = lookupStat('LASTST', pitcherName);
   const rzRow = lookupStat('RZ', pitcherName);
-  const bullpenEvRow = findByTeam('BULLPENEV', getOpponentTeamForPlayer(p));
+  const bullpenTeam = getOpponentTeamForPlayer(p);
+  const bullpenRow = bullpenData[bullpenTeam] || bullpenData[String(bullpenTeam || '').trim().toUpperCase()] || findByTeam('BULLPEN', bullpenTeam) || {};
+  const bullpenEvRow = findByTeam('BULLPENEV', bullpenTeam);
+  const isBullpenGame = String(bullpenGameByTeam[String(bullpenTeam || '').trim().toUpperCase()] || 'N').trim().toUpperCase() === 'Y';
   const rawWeatherForGame = weatherSettings[p.gameId] || null;
   // v45: Weather scoring is API-only. Spreadsheet/manual weather rows are ignored for scoring.
   // Dome presets remain valid because they are stadium logic, not manual weather fallback.
@@ -14709,11 +14728,13 @@ function hybridRaw(p) {
     batSpeed: firstNumber(safeGet(p, 'BatSpd', 'Bat Speed')),
     sqUpCon: firstRate(safeGet(p, 'SqUpCon%', 'SqUpCon', 'Square-Up Con%', 'Square Up %')),
     blastCon: firstRate(safeGet(p, 'BlastCon%', 'BlastCon')),
-    bullpenHR9: firstNumber(safeGet(p, 'Bullpen HR/9')),
-    bullpenFIP: firstNumber(safeGet(p, 'Bullpen FIP')),
-    bullpenBarrel: firstRate(safeGet(bullpenEvRow, 'Barrel %', 'Barrel%'), safeGet(p, 'Bullpen Barrel %')),
-    bullpenHardHit: firstRate(safeGet(bullpenEvRow, 'HardHit%', 'Hard Hit %'), safeGet(p, 'Bullpen Hard Hit %')),
-    bullpenEV: firstNumber(safeGet(bullpenEvRow, 'EV', 'Avg EV')),
+    bullpenHR9: firstNumber(safeGet(bullpenRow, 'HR/9', 'Bullpen HR/9', 'HR9'), safeGet(p, 'Bullpen HR/9')),
+    bullpenFIP: firstNumber(safeGet(bullpenRow, 'FIP', 'Bullpen FIP'), safeGet(p, 'Bullpen FIP')),
+    bullpenBarrel: firstRate(safeGet(bullpenEvRow, 'Barrel %', 'Barrel%'), safeGet(bullpenRow, 'Barrel %', 'Barrel%'), safeGet(p, 'Bullpen Barrel %')),
+    bullpenHardHit: firstRate(safeGet(bullpenEvRow, 'HardHit%', 'Hard Hit %'), safeGet(bullpenRow, 'HardHit%', 'Hard Hit %'), safeGet(p, 'Bullpen Hard Hit %')),
+    bullpenEV: firstNumber(safeGet(bullpenEvRow, 'EV', 'Avg EV'), safeGet(bullpenRow, 'EV', 'Avg EV')),
+    bullpenTeam: bullpenTeam,
+    isBullpenGame: isBullpenGame,
     parkFactor: wxParkFactor,
     pullFence: pullFence,
     cf: positiveOrFallback(parkDims.cf, positiveOrFallback(rawNumber(p, 'CF'), 400)),
@@ -15271,11 +15292,31 @@ function scoreHybridPlayer(p, ranges) {
     { value: hybridMatchPair(hybridScoreMetric(r,ranges,'flyBall'), hybridScoreMetric(r,ranges,'pitcherFB')), weight: 0.15 }
   ]);
   // Reconnected hitter/pitcher intersections: 50% pitcher metrics, 30% contact match, 20% air match.
-  const pitcher = hybridWeightedAvg([
+  const starterPitcherVulnerability = hybridWeightedAvg([
     { value: pitcherMetricBase, weight: 0.50 },
     { value: hitterPitcherContactMatch, weight: 0.30 },
     { value: hitterPitcherAirMatch, weight: 0.20 }
   ]);
+  // Compare sheet BP Game override:
+  // N/blank = preserve the existing starter-only Pitcher Vulnerability exactly.
+  // Y = opener is fixed at 2 innings and bullpen owns the remaining 7 innings.
+  const bullpenVulnerability = hybridAvg([
+    hybridScoreMetric(r,ranges,'bullpenHR9'),
+    hybridScoreMetric(r,ranges,'bullpenFIP'),
+    hybridScoreMetric(r,ranges,'bullpenBarrel'),
+    hybridScoreMetric(r,ranges,'bullpenHardHit')
+  ]);
+  const pitcher = r.isBullpenGame
+    ? hybridWeightedAvg([
+        { value: starterPitcherVulnerability, weight: 2 / 9 },
+        { value: bullpenVulnerability, weight: 7 / 9 }
+      ])
+    : starterPitcherVulnerability;
+  p.isBullpenGame = !!r.isBullpenGame;
+  p.projectedStarterInnings = r.isBullpenGame ? 2 : null;
+  p.projectedBullpenInnings = r.isBullpenGame ? 7 : null;
+  p.starterPitcherVulnerability = starterPitcherVulnerability;
+  p.bullpenPitcherVulnerability = bullpenVulnerability;
   // Pitcher Vulnerability now includes the two hitter/pitcher matchup intersections.
   // Pitch Lab remains separate so pitch-type arsenal information is not double-counted.
   const recent = null;
@@ -15311,7 +15352,7 @@ function scoreHybridPlayer(p, ranges) {
   const activeBvPBaseWeight = getActiveHybridCategoryWeights().bvp || HYBRID_CATEGORY_WEIGHTS.bvp;
   p.calculatedBvPActiveWeight = activeBvPBaseWeight * bvpConfidence;
   p.calculatedBvPRedistributedWeight = activeBvPBaseWeight - p.calculatedBvPActiveWeight;
-  const bullpen = hybridAvg([hybridScoreMetric(r,ranges,'bullpenHR9'),hybridScoreMetric(r,ranges,'bullpenFIP'),hybridScoreMetric(r,ranges,'bullpenBarrel'),hybridScoreMetric(r,ranges,'bullpenHardHit')]);
+  const bullpen = bullpenVulnerability;
   // v61.3 open-ended Environment scoring. Park Factor and Weather are both
   // centered at 50, tuned independently, and no longer passed through capped
   // 0-100 breakpoint normalization. Visual bars remain capped elsewhere.
