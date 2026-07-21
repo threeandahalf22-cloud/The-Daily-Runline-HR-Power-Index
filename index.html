@@ -20271,7 +20271,7 @@ function betFinderMetricValue(p,key){
 function initBetFinder(){
   const wrap = document.getElementById('betFinderSliders'); if(!wrap || wrap.dataset.ready) return;
   wrap.dataset.ready = '1';
-  wrap.innerHTML = BET_FINDER_METRICS.map(m => `<div class="bet-slider-card" id="bfCard_${m.key}"><div class="bet-slider-top"><span class="bet-slider-label">${m.label}</span><span class="bet-slider-value" id="bfVal_${m.key}">${m.def}</span></div><input class="bet-slider" type="range" min="0" max="100" step="1" id="bf_${m.key}" value="${m.def}" oninput="betFinderSliderChanged('${m.key}')"></div>`).join('');
+  wrap.innerHTML = BET_FINDER_METRICS.map(m => `<div class="bet-slider-card" id="bfCard_${m.key}"><div class="bet-slider-top"><span class="bet-slider-label">${m.label}</span><span class="bet-slider-value" id="bfVal_${m.key}">${m.def}</span></div><input class="bet-slider" type="range" min="0" max="200" step="1" id="bf_${m.key}" value="${m.def}" oninput="betFinderSliderChanged('${m.key}')"></div>`).join('');
   applyBetFinderPreset('cody', null, false);
 }
 function betFinderSliderChanged(key){ window.betFinderActive = false; updateBetFinderLabels(); renderBetFinderInactiveMessage(); }
