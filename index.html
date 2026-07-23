@@ -7971,6 +7971,24 @@ body::after,
   font-weight:1000;
 }
 
+
+/* ===== H2H complete BvP sortable table ===== */
+#tab-h2h .table-wrapper{ overflow:auto !important; }
+.h2h-full-table{ min-width:2260px; table-layout:auto; }
+.h2h-full-table th{ position:sticky; top:0; z-index:4; cursor:pointer; user-select:none; white-space:nowrap; padding:12px 11px; }
+.h2h-full-table th:hover{ color:#fff !important; background:rgba(225,6,0,.10) !important; }
+.h2h-full-table th.h2h-sort-active{ color:#fff !important; background:rgba(225,6,0,.12) !important; box-shadow:inset 0 -3px 0 var(--espn-red,var(--accent)); }
+.h2h-full-table th.h2h-sort-active::after{ content:attr(data-sort-arrow); color:var(--espn-red,var(--accent)); margin-left:6px; font-family:monospace; }
+.h2h-full-table td{ white-space:nowrap; padding:11px 11px; font-size:12px; font-weight:800; }
+.h2h-full-table .h2h-sticky-col{ position:sticky; left:0; z-index:6; min-width:250px; background:#101214 !important; box-shadow:8px 0 18px rgba(0,0,0,.28); }
+.h2h-full-table td.h2h-sticky-col{ z-index:3; text-align:left; }
+.h2h-full-table tbody tr:hover td.h2h-sticky-col{ background:#171a1f !important; }
+.h2h-priority-stat{ color:#fff; font-family:monospace; font-weight:1000; }
+.h2h-power-stat{ color:var(--espn-red,var(--accent)); font-family:monospace; font-weight:1000; }
+.h2h-quality-stat{ color:#f6c343; font-family:monospace; font-weight:1000; }
+.h2h-rate-stat{ color:#38bdf8; font-family:monospace; font-weight:1000; }
+.h2h-muted-stat{ color:#cbd5e1; font-family:monospace; }
+
 </style>
 
 
@@ -8789,6 +8807,12 @@ body.drl-splash-active .container{visibility:hidden!important;}
 }
 
 </style>
+
+<style id="drl-betting-edge-analyzer-style">
+.bet-edge-analyzer{border:1px solid var(--espn-line,#2b2f35);border-left:4px solid var(--espn-red,#e10600);border-radius:14px;padding:18px;background:linear-gradient(180deg,#151719,#101214);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 24px rgba(0,0,0,.26)}
+.bet-edge-analyzer-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}.bet-edge-analyzer-kicker{color:var(--espn-red,#e10600);font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:1.3px}.bet-edge-analyzer-title{color:#fff;font-size:20px;font-weight:1000;text-transform:uppercase;margin-top:4px}.bet-edge-analyzer-sub{color:var(--text-muted,#94a3b8);font-size:11px;font-weight:750;margin-top:5px;max-width:760px}.bet-edge-filter{min-width:190px}.bet-edge-filter .select-input-sm{width:100%}.bet-edge-best{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}.bet-edge-best-card{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;background:#171a1f}.bet-edge-best-card span{display:block;color:var(--text-muted,#94a3b8);font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px}.bet-edge-best-card b{display:block;color:#fff;font-family:monospace;font-size:20px;margin-top:5px}.bet-edge-best-card.hot b{color:#22c55e}.bet-edge-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.bet-edge-panel-title{color:#fff;font-size:12px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;margin:0 0 8px}.bet-edge-panel .signal-table-wrapper{margin-bottom:0;max-height:390px}.bet-edge-best-row td{background:rgba(34,197,94,.07)!important;color:#fff}.bet-edge-analyzer .signal-table td:first-child{font-family:monospace;font-weight:1000}.bet-edge-analyzer .backtest-note{margin:12px 0 0}.bet-edge-empty{padding:22px!important;color:var(--text-muted,#94a3b8)!important;font-style:italic;text-align:center!important}
+@media(max-width:850px){.bet-edge-grid{grid-template-columns:1fr}.bet-edge-analyzer-head{align-items:stretch}}
+</style>
 </head>
 <body class="drl-splash-active">
 
@@ -9082,6 +9106,40 @@ body.drl-splash-active .container{visibility:hidden!important;}
       <div class="bet-backtest-actions"><button type="button" class="backtest-tool-btn" onclick="drlExportBetBacktest()">Export CSV</button><button type="button" class="backtest-tool-btn backtest-warning-btn" onclick="drlClearBetBacktest()">Clear Records</button></div>
     </div>
     <div id="betBacktestSummary" class="bet-backtest-summary"></div>
+    <section id="betEdgeAnalyzer" class="bet-edge-analyzer">
+      <div class="bet-edge-analyzer-head">
+        <div>
+          <div class="bet-edge-analyzer-kicker">Edge Performance Analyzer</div>
+          <div class="bet-edge-analyzer-title">Which edge levels actually win?</div>
+          <div class="bet-edge-analyzer-sub">Uses finalized Team Edge bets only. NRFI remains percentage-based and is excluded from these raw edge buckets.</div>
+        </div>
+        <div class="filter-group bet-edge-filter">
+          <label for="betEdgeMarketFilter">Market</label>
+          <select id="betEdgeMarketFilter" class="select-input-sm">
+            <option value="ALL">All Team Markets</option>
+            <option value="Moneyline">Moneyline</option>
+            <option value="Run Line">Run Line</option>
+            <option value="Game Total">Game Total</option>
+            <option value="First 5 Total">First 5 Total</option>
+            <option value="Team Total">Team Total</option>
+            <option value="F5 Team Total">F5 Team Total</option>
+          </select>
+        </div>
+      </div>
+      <div id="betEdgeBestCutoff" class="bet-edge-best"></div>
+      <div class="bet-edge-grid">
+        <div class="bet-edge-panel">
+          <div class="bet-edge-panel-title">Edge Range Performance</div>
+          <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Edge Range</th><th>Bets</th><th>Record</th><th>Win %</th></tr></thead><tbody id="betEdgeRangeRows"></tbody></table></div>
+        </div>
+        <div class="bet-edge-panel">
+          <div class="bet-edge-panel-title">Minimum Edge Cutoffs</div>
+          <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Minimum Edge</th><th>Bets</th><th>Record</th><th>Win %</th></tr></thead><tbody id="betEdgeCutoffRows"></tbody></table></div>
+        </div>
+      </div>
+      <div id="betEdgeAnalyzerNote" class="backtest-note"></div>
+    </section>
+
     <div class="table-wrapper bet-backtest-table-wrap"><table class="bet-backtest-table"><thead><tr><th>Date</th><th>Matchup</th><th>Market</th><th>Model Projection / Pick</th><th>Edge</th><th>Result</th><th>Action</th></tr></thead><tbody id="betBacktestRows"></tbody></table></div>
   </div>
 </div>
@@ -9260,16 +9318,39 @@ body.drl-splash-active .container{visibility:hidden!important;}
 <div class="table-wrapper">
 <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(9, 18, 34, 0.9);">
 <h2 style="margin:0; border:none; padding:0; font-size: 16px;">⚔️ Head-to-Head Matchups</h2>
-<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Every BVP matchup from the uploaded workbook, sorted by SLG/HR</p>
+<p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 12px;">Every BvP matchup and available stat from the uploaded workbook. Click any column heading to sort.</p>
 </div>
 <div class="h2h-team-scroller-wrap">
 <div class="h2h-team-scroller-title">Team Scroll Filter</div>
 <div class="h2h-team-scroller" id="h2hTeamsScroller"><div class="h2h-team-empty">Upload today's workbook to load BVP teams.</div></div>
 </div>
 <div style="padding: 12px 20px;"><input type="text" class="h2h-search" id="h2hSearch" placeholder="🔍 Search batter or pitcher name..." oninput="filterH2HTable()" /></div>
-<table>
-<thead><tr><th style="text-align: left; padding-left: 20px;">Batter</th><th>Team</th><th>Opposing Pitcher</th><th>PAs</th><th>SLG</th><th>HR</th><th>EV</th><th>Launch Angle</th></tr></thead>
-<tbody id="h2hFullTableBody"><tr><td colspan="7" style="padding: 40px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
+<table id="h2hFullTable" class="h2h-full-table">
+<thead><tr>
+<th class="h2h-sticky-col" data-h2h-sort="batter" style="text-align:left; padding-left:20px;">Batter</th>
+<th data-h2h-sort="team">Team</th>
+<th data-h2h-sort="pitcher">Opposing Pitcher</th>
+<th data-h2h-sort="matchupXslg">Matchup xSLG</th>
+<th data-h2h-sort="la">LA</th>
+<th data-h2h-sort="matchupEv">Matchup EV</th>
+<th data-h2h-sort="matchupHr">Matchup HR</th>
+<th data-h2h-sort="ba">BA</th>
+<th data-h2h-sort="vspPa">vspPA</th>
+<th data-h2h-sort="ab">AB</th>
+<th data-h2h-sort="h">H</th>
+<th data-h2h-sort="double">2B</th>
+<th data-h2h-sort="triple">3B</th>
+<th data-h2h-sort="so">SO</th>
+<th data-h2h-sort="kPct">K%</th>
+<th data-h2h-sort="whiffPct">Whiff%</th>
+<th data-h2h-sort="bb">BB</th>
+<th data-h2h-sort="bbPct">BB%</th>
+<th data-h2h-sort="woba">wOBA</th>
+<th data-h2h-sort="xba">xBA</th>
+<th data-h2h-sort="xslg">xSLG</th>
+<th data-h2h-sort="xwoba">xwOBA</th>
+</tr></thead>
+<tbody id="h2hFullTableBody"><tr><td colspan="22" style="padding:40px; color:var(--text-muted); font-style:italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 </div>
 </div>
@@ -9614,6 +9695,8 @@ let playerIdMap = {};
 let allPitchersData = [];
 let h2hFullData = [];
 let selectedH2HTeamFilter = 'ALL';
+let h2hSortKey = 'matchupXslg';
+let h2hSortDirection = 'desc';
 let hotBatData = [];
 let fanaticsJackpotData = [];
 let pitchTypeMap = {};
@@ -12957,11 +13040,38 @@ function h2hDisplayValue(value, decimals = 1, suffix = '') {
 if (value === null || value === undefined || value === '' || isNaN(value)) return '-';
 return `${Number(value).toFixed(decimals)}${suffix}`;
 }
+function h2hPercentValue(value) {
+if (value === null || value === undefined || value === '' || isNaN(value)) return '-';
+let n = Number(value);
+if (Math.abs(n) <= 1) n *= 100;
+return `${n.toFixed(1)}%`;
+}
 function getH2HRowHtml(row) {
 const logoUrl = teamLogos[row.team] || '';
 const logoImg = logoUrl ? `<img class="team-logo-img" src="${logoUrl}" alt="">` : '';
 const headshotHtml = createHeadshotHtml(row.batter, 'sm');
-return `<td style="text-align:left; padding-left:20px;"><div class="player-name-with-headshot">${headshotHtml}<span style="font-weight:700; color:#fff;">${row.batter}</span></div></td><td style="color:#cbd5e1;">${logoImg}${row.team || '-'}</td><td style="color:#94a3b8; font-weight:600; font-size:13px;">${row.pitcher || 'Starter'}</td><td style="font-family:monospace; color:#38bdf8;">${h2hDisplayValue(row.pa, 0)}</td><td style="font-family:monospace; font-weight:900; color:var(--accent);">${h2hDisplayValue(row.slg, 3)}</td><td style="font-family:monospace; font-weight:700; color:#eab308;">${h2hDisplayValue(row.hr, 0)}</td><td style="font-family:monospace; color:#f1f5f9;">${h2hDisplayValue(row.ev, 1, ' mph')}</td><td style="font-family:monospace; color:#c084fc; font-weight:800;">${h2hDisplayValue(row.la, 1, '°')}</td>`;
+return `<td class="h2h-sticky-col" style="padding-left:20px;"><div class="player-name-with-headshot">${headshotHtml}<span style="font-weight:800; color:#fff;">${row.batter}</span></div></td>`+
+`<td style="color:#cbd5e1;">${logoImg}${row.team || '-'}</td>`+
+`<td style="color:#94a3b8; font-weight:700;">${row.pitcher || 'Starter'}</td>`+
+`<td class="h2h-power-stat">${h2hDisplayValue(row.matchupXslg,3)}</td>`+
+`<td class="h2h-priority-stat">${h2hDisplayValue(row.la,1,'°')}</td>`+
+`<td class="h2h-priority-stat">${h2hDisplayValue(row.matchupEv,1,' mph')}</td>`+
+`<td class="h2h-quality-stat">${h2hDisplayValue(row.matchupHr,0)}</td>`+
+`<td class="h2h-power-stat">${h2hDisplayValue(row.ba,3)}</td>`+
+`<td class="h2h-rate-stat">${h2hDisplayValue(row.vspPa,0)}</td>`+
+`<td class="h2h-muted-stat">${h2hDisplayValue(row.ab,0)}</td>`+
+`<td class="h2h-muted-stat">${h2hDisplayValue(row.h,0)}</td>`+
+`<td class="h2h-muted-stat">${h2hDisplayValue(row.double,0)}</td>`+
+`<td class="h2h-muted-stat">${h2hDisplayValue(row.triple,0)}</td>`+
+`<td class="h2h-muted-stat">${h2hDisplayValue(row.so,0)}</td>`+
+`<td class="h2h-rate-stat">${h2hPercentValue(row.kPct)}</td>`+
+`<td class="h2h-rate-stat">${h2hPercentValue(row.whiffPct)}</td>`+
+`<td class="h2h-muted-stat">${h2hDisplayValue(row.bb,0)}</td>`+
+`<td class="h2h-rate-stat">${h2hPercentValue(row.bbPct)}</td>`+
+`<td class="h2h-priority-stat">${h2hDisplayValue(row.woba,3)}</td>`+
+`<td class="h2h-priority-stat">${h2hDisplayValue(row.xba,3)}</td>`+
+`<td class="h2h-power-stat">${h2hDisplayValue(row.xslg,3)}</td>`+
+`<td class="h2h-priority-stat">${h2hDisplayValue(row.xwoba,3)}</td>`;
 }
 function h2hNumber(value) {
 if (value === null || value === undefined || value === '') return null;
@@ -12969,14 +13079,56 @@ if (typeof value === 'string' && value.trim() === '') return null;
 const n = cleanNumber(value);
 return isNaN(n) ? null : n;
 }
+function h2hSortValue(row, key) {
+const value = row ? row[key] : null;
+if (['batter','team','pitcher'].includes(key)) return String(value || '').toLowerCase();
+return (value === null || value === undefined || isNaN(value)) ? null : Number(value);
+}
+function sortH2HRows(rows) {
+const key = h2hSortKey || 'matchupXslg';
+const direction = h2hSortDirection === 'asc' ? 1 : -1;
+return [...rows].sort((a,b) => {
+const av = h2hSortValue(a,key), bv = h2hSortValue(b,key);
+if (av === null && bv === null) return String(a.batter || '').localeCompare(String(b.batter || ''));
+if (av === null) return 1;
+if (bv === null) return -1;
+let cmp = 0;
+if (typeof av === 'string' || typeof bv === 'string') cmp = String(av).localeCompare(String(bv));
+else cmp = av - bv;
+if (cmp === 0) cmp = String(a.batter || '').localeCompare(String(b.batter || ''));
+return cmp * direction;
+});
+}
+function updateH2HSortHeaders() {
+document.querySelectorAll('#h2hFullTable th[data-h2h-sort]').forEach(th => {
+const active = th.dataset.h2hSort === h2hSortKey;
+th.classList.toggle('h2h-sort-active', active);
+th.setAttribute('data-sort-arrow', active ? (h2hSortDirection === 'asc' ? '▲' : '▼') : '');
+th.setAttribute('aria-sort', active ? (h2hSortDirection === 'asc' ? 'ascending' : 'descending') : 'none');
+});
+}
+function bindH2HSorting() {
+document.querySelectorAll('#h2hFullTable th[data-h2h-sort]').forEach(th => {
+if (th.dataset.h2hSortBound === '1') return;
+th.dataset.h2hSortBound = '1';
+th.addEventListener('click', () => {
+const key = th.dataset.h2hSort;
+if (h2hSortKey === key) h2hSortDirection = h2hSortDirection === 'desc' ? 'asc' : 'desc';
+else {
+h2hSortKey = key;
+h2hSortDirection = ['batter','team','pitcher'].includes(key) ? 'asc' : 'desc';
+}
+filterH2HTable();
+});
+});
+updateH2HSortHeaders();
+}
 function renderH2HFullTable() {
 const tbody = document.getElementById('h2hFullTableBody');
 if (!tbody) return;
 let h2hData = [];
 const seen = new Set();
-const sourceRows = (bvpRawRows && bvpRawRows.length)
-  ? bvpRawRows
-  : Object.keys(vsPitcherData || {}).map(key => vsPitcherData[key]);
+const sourceRows = (bvpRawRows && bvpRawRows.length) ? bvpRawRows : Object.keys(vsPitcherData || {}).map(key => vsPitcherData[key]);
 (sourceRows || []).forEach((vsp, idx) => {
 if (!vsp || typeof vsp !== 'object') return;
 const batter = String(safeGet(vsp, 'Player', 'Name', 'Batter', 'Hitter', 'Batter Name', 'Hitter Name', 'player_name', 'batter_name', 'hitter_name', 'last_name, first_name') || getNameFromRow(vsp) || '').trim();
@@ -12988,25 +13140,36 @@ const team = String(safeGet(vsp, 'Team', 'TEAM', 'Batter Team', 'BatterTeam', 'T
 const uniqueKey = `${normName}|${normalizeName(pitcher)}|${team}|${idx}`;
 if (seen.has(uniqueKey)) return;
 seen.add(uniqueKey);
-const pa = h2hNumber(safeGet(vsp, 'PA', 'PAs', 'AB', 'Matchup PA', 'BVP PA', 'vspPA', 'vsP PA'));
-const slg = h2hNumber(safeGet(vsp, 'SLG', 'Slugging', 'BVP SLG', 'Matchup SLG', 'SLG vs Pitcher', 'SLG vs P', 'xSLG', 'Matchup xSLG', 'xSLG vs P', 'xSLG vs'));
-const hr = h2hNumber(safeGet(vsp, 'HR', 'HRs', 'Matchup HR', 'Matchup HRs', 'HR vs Pitcher', 'HR vs P', 'BVP HR', 'vsP HR'));
-const ev = h2hNumber(safeGet(vsp, 'EV', 'Avg EV', 'Exit Velocity', 'Average Exit Velocity', 'BVP EV', 'Matchup EV', 'vsP EV'));
-const la = h2hNumber(safeGet(vsp, 'LA', 'Launch Angle', 'Avg LA', 'Average Launch Angle', 'LaunchAngle', 'BVP LA', 'Matchup LA'));
-const hasAnyBvpStat = [pa, slg, hr, ev, la].some(v => v !== null && v !== undefined && !isNaN(v));
-if (!hasAnyBvpStat && !pitcher && !team) return;
-h2hData.push({ batter, team, pitcher, pa, slg, hr, ev, la });
-});
-h2hData.sort((a, b) => {
-const slgDiff = (b.slg || 0) - (a.slg || 0);
-if (Math.abs(slgDiff) > 0.0001) return slgDiff;
-const hrDiff = (b.hr || 0) - (a.hr || 0);
-if (hrDiff) return hrDiff;
-return (b.ev || 0) - (a.ev || 0);
+const row = {
+batter, team, pitcher,
+vspPa: h2hNumber(safeGet(vsp, 'vspPA', 'vsP PA', 'PA', 'PAs', 'Matchup PA', 'BVP PA')),
+ab: h2hNumber(safeGet(vsp, 'AB', 'At Bats', 'At-Bats')),
+h: h2hNumber(safeGet(vsp, 'H', 'Hits')),
+double: h2hNumber(safeGet(vsp, '2B', 'Doubles')),
+triple: h2hNumber(safeGet(vsp, '3B', 'Triples')),
+matchupHr: h2hNumber(safeGet(vsp, 'Matchup HR', 'Matchup HRs', 'HR', 'HRs', 'HR vs Pitcher', 'HR vs P', 'BVP HR', 'vsP HR')),
+so: h2hNumber(safeGet(vsp, 'SO', 'K', 'Strikeouts')),
+kPct: h2hNumber(safeGet(vsp, 'K%', 'SO%', 'Strikeout %', 'Strikeout Rate')),
+whiffPct: h2hNumber(safeGet(vsp, 'Whiff%', 'Whiff %', 'Whiff Rate')),
+bb: h2hNumber(safeGet(vsp, 'BB', 'Walks')),
+bbPct: h2hNumber(safeGet(vsp, 'BB%', 'Walk %', 'Walk Rate')),
+ba: h2hNumber(safeGet(vsp, 'BA', 'AVG', 'Batting Average')),
+matchupXslg: h2hNumber(safeGet(vsp, 'Matchup xSLG', 'BVP xSLG', 'xSLG vs Pitcher', 'xSLG vs P', 'SLG vs Pitcher', 'Matchup SLG')),
+woba: h2hNumber(safeGet(vsp, 'wOBA', 'WOBA')),
+xba: h2hNumber(safeGet(vsp, 'xBA', 'Expected BA')),
+xslg: h2hNumber(safeGet(vsp, 'xSLG', 'Expected SLG')),
+xwoba: h2hNumber(safeGet(vsp, 'xwOBA', 'Expected wOBA')),
+matchupEv: h2hNumber(safeGet(vsp, 'Matchup EV', 'BVP EV', 'vsP EV', 'EV', 'Avg EV', 'Exit Velocity', 'Average Exit Velocity')),
+la: h2hNumber(safeGet(vsp, 'LA', 'Launch Angle', 'Avg LA', 'Average Launch Angle', 'LaunchAngle', 'BVP LA', 'Matchup LA'))
+};
+const statKeys = ['vspPa','ab','h','double','triple','matchupHr','so','kPct','whiffPct','bb','bbPct','ba','matchupXslg','woba','xba','xslg','xwoba','matchupEv','la'];
+if (!statKeys.some(key => row[key] !== null && row[key] !== undefined && !isNaN(row[key]))) return;
+h2hData.push(row);
 });
 h2hFullData = h2hData;
 renderH2HTeamScroller();
-if (h2hFullData.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No BVP matchups found. Upload a VsPitcher or BVP sheet with batter, pitcher, SLG, HR, EV, and Launch Angle columns.</td></tr>`; return; }
+bindH2HSorting();
+if (h2hFullData.length === 0) { tbody.innerHTML = `<tr><td colspan="22" style="padding:40px; color:var(--text-muted); font-style:italic;">No BvP matchups found. Upload a BVP/VsPitcher sheet containing batter matchup statistics.</td></tr>`; return; }
 filterH2HTable();
 }
 function renderH2HTeamScroller() {
@@ -13047,11 +13210,11 @@ const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
 const tbody = document.getElementById('h2hFullTableBody');
 if (!tbody) return;
 let filtered = h2hFullData;
-if (selectedH2HTeamFilter && selectedH2HTeamFilter !== 'ALL') {
-filtered = filtered.filter(r => String(r.team || '').trim().toUpperCase() === selectedH2HTeamFilter);
-}
+if (selectedH2HTeamFilter && selectedH2HTeamFilter !== 'ALL') filtered = filtered.filter(r => String(r.team || '').trim().toUpperCase() === selectedH2HTeamFilter);
 if (searchVal) filtered = filtered.filter(r => String(r.batter || '').toLowerCase().includes(searchVal) || String(r.pitcher || '').toLowerCase().includes(searchVal) || String(r.team || '').toLowerCase().includes(searchVal));
-if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="padding: 40px; color: var(--text-muted); font-style: italic;">No BVP matchups match your team/search filter...</td></tr>`; return; }
+filtered = sortH2HRows(filtered);
+updateH2HSortHeaders();
+if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="22" style="padding:40px; color:var(--text-muted); font-style:italic;">No BvP matchups match your team/search filter.</td></tr>`; return; }
 tbody.innerHTML = '';
 filtered.forEach(row => {
 const tr = document.createElement('tr');
@@ -22904,5 +23067,46 @@ if(typeof drlOnReady==='function'){
 })();
 </script>
 
+
+<script id="drl-betting-edge-analyzer-js">
+(function(){
+  const STORE='drl_betting_backtest_v1';
+  const rangeDefs=[
+    {min:0,max:.25,label:'0.00–0.24'},
+    {min:.25,max:.50,label:'0.25–0.49'},
+    {min:.50,max:.75,label:'0.50–0.74'},
+    {min:.75,max:1.00,label:'0.75–0.99'},
+    {min:1.00,max:1.25,label:'1.00–1.24'},
+    {min:1.25,max:1.50,label:'1.25–1.49'},
+    {min:1.50,max:Infinity,label:'1.50+'}
+  ];
+  const cutoffs=[0,.25,.50,.75,1.00,1.25,1.50,2.00];
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function records(){try{return JSON.parse(localStorage.getItem(STORE)||'[]')}catch(e){return[]}}
+  function edgeNum(v){const m=String(v||'').replace(/,/g,'').match(/[-+]?\d+(?:\.\d+)?/);return m?Number(m[0]):NaN}
+  function marketMatches(row,filter){if(filter==='ALL')return true;const m=String(row.market||'');if(filter==='Team Total')return /Team Total/i.test(m)&&!/F5|First 5/i.test(m);return m.toLowerCase()===filter.toLowerCase()}
+  function summarize(rows){const wins=rows.filter(r=>r.result==='win').length,losses=rows.filter(r=>r.result==='loss').length,pushes=rows.filter(r=>r.result==='push').length,decisions=wins+losses;return{bets:rows.length,wins,losses,pushes,pct:decisions?wins/decisions*100:NaN}}
+  function recordText(s){return s.wins+'-'+s.losses+(s.pushes?' ('+s.pushes+'P)':'')}
+  function pctText(v){return Number.isFinite(v)?v.toFixed(1)+'%':'--'}
+  function render(){
+    const rangeBody=document.getElementById('betEdgeRangeRows'),cutBody=document.getElementById('betEdgeCutoffRows'),best=document.getElementById('betEdgeBestCutoff'),note=document.getElementById('betEdgeAnalyzerNote'),filterEl=document.getElementById('betEdgeMarketFilter');
+    if(!rangeBody||!cutBody||!best)return;
+    const filter=filterEl?filterEl.value:'ALL';
+    const rows=records().filter(r=>String(r.market||'').toUpperCase()!=='NRFI'&&marketMatches(r,filter)).map(r=>({...r,_edge:edgeNum(r.edge)})).filter(r=>Number.isFinite(r._edge)&&r._edge>=0&&['win','loss','push'].includes(r.result));
+    if(!rows.length){const empty='<tr><td colspan="4" class="bet-edge-empty">No finalized Team Edge bets with numeric edges for this filter yet.</td></tr>';rangeBody.innerHTML=empty;cutBody.innerHTML=empty;best.innerHTML='';if(note)note.textContent='Finalize Team Edge results to populate this analyzer.';return;}
+    const rangeStats=rangeDefs.map(d=>({def:d,stats:summarize(rows.filter(r=>r._edge>=d.min&&r._edge<d.max))}));
+    rangeBody.innerHTML=rangeStats.map(x=>'<tr><td>'+esc(x.def.label)+'</td><td>'+x.stats.bets+'</td><td>'+recordText(x.stats)+'</td><td class="'+(x.stats.pct>=55?'signal-positive':x.stats.pct<50?'signal-negative':'signal-neutral')+'">'+pctText(x.stats.pct)+'</td></tr>').join('');
+    const cutoffStats=cutoffs.map(c=>({cutoff:c,stats:summarize(rows.filter(r=>r._edge>=c))}));
+    const eligible=cutoffStats.filter(x=>x.stats.wins+x.stats.losses>=5&&Number.isFinite(x.stats.pct));
+    const bestRow=eligible.slice().sort((a,b)=>b.stats.pct-a.stats.pct||b.stats.bets-a.stats.bets)[0]||null;
+    cutBody.innerHTML=cutoffStats.map(x=>'<tr class="'+(bestRow&&x.cutoff===bestRow.cutoff?'bet-edge-best-row':'')+'"><td>≥ '+x.cutoff.toFixed(2)+'</td><td>'+x.stats.bets+'</td><td>'+recordText(x.stats)+'</td><td class="'+(x.stats.pct>=55?'signal-positive':x.stats.pct<50?'signal-negative':'signal-neutral')+'">'+pctText(x.stats.pct)+'</td></tr>').join('');
+    const all=summarize(rows),edges=rows.map(r=>r._edge).sort((a,b)=>a-b),median=edges.length%2?edges[(edges.length-1)/2]:(edges[edges.length/2-1]+edges[edges.length/2])/2;
+    best.innerHTML='<div class="bet-edge-best-card hot"><span>Best Historical Cutoff</span><b>'+(bestRow?'≥ '+bestRow.cutoff.toFixed(2):'Need 5 Bets')+'</b></div><div class="bet-edge-best-card"><span>Cutoff Record</span><b>'+(bestRow?recordText(bestRow.stats):'--')+'</b></div><div class="bet-edge-best-card"><span>Cutoff Win Rate</span><b>'+(bestRow?pctText(bestRow.stats.pct):'--')+'</b></div><div class="bet-edge-best-card"><span>Median Edge</span><b>'+median.toFixed(2)+'</b></div><div class="bet-edge-best-card"><span>Filtered Record</span><b>'+recordText(all)+'</b></div>';
+    if(note)note.textContent='Best cutoff requires at least 5 graded decisions. Win rate excludes pushes. ROI and units are not shown because the current betting backtest does not save sportsbook odds.';
+  }
+  function init(){const f=document.getElementById('betEdgeMarketFilter');if(f&&!f.dataset.bound){f.dataset.bound='1';f.addEventListener('change',render)}render();const body=document.getElementById('betBacktestRows');if(body)new MutationObserver(()=>render()).observe(body,{childList:true,subtree:true});window.addEventListener('storage',e=>{if(e.key===STORE)render()});window.drlRenderBetEdgeAnalyzer=render;}
+  if(window.drlOnReady)window.drlOnReady(init);else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
 </body>
 </html>
