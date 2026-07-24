@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line</title>
+<!-- Attack Zone V7: all nine batter zones weighted by opposing pitcher PZ pitch_percent. -->
 <!-- Pitch Lab V2 stats display fix: cards show PitchBagB fields actually used by the score. -->
 <!-- Pitch Lab V2 HR-predictive update: PitchBagB exact-pitch production + pitcher vulnerability + intersection + usage/sample regression. -->
 <!-- DRL v64.9: Phase 5 unused CSS cleanup.
@@ -14219,21 +14220,25 @@ function attackZoneInteractionEdge(batterDamage, pitcherVulnerability, batterSta
 }
 function attackZoneMatrixScore(zones) {
   if (!Array.isArray(zones) || !zones.length) return null;
-  const qualified = zones.filter(z => z && z.attackScoreQualified !== false && Number.isFinite(Number(z.scoringOpportunity)));
+  const qualified = zones.filter(z =>
+    z &&
+    z.attackScoreQualified !== false &&
+    Number.isFinite(Number(z.batterDamage)) &&
+    Number.isFinite(Number(z.pitchPct)) &&
+    Number(z.pitchPct) > 0
+  );
   if (!qualified.length) return null;
 
-  // Low-sample pitcher zones are excluded from scoring only. The cards remain unchanged.
-  const rawAttackIndex = qualified.reduce((sum,z)=>sum + Math.max(0,Number(z.scoringOpportunity)||0),0);
-  const top3 = qualified.slice().sort((a,b)=>(Number(b.scoringOpportunity)||0)-(Number(a.scoringOpportunity)||0)).slice(0,3);
-  const top3Usage = top3.reduce((sum,z)=>sum + Math.max(0,Number(z.pitchPct)||0),0);
-  const exposureConfidence = Math.max(0.20,Math.min(1,top3Usage/0.36));
+  // Pitcher-driven Attack Zone engine:
+  // every batter is graded in all locations the opposing pitcher actually uses.
+  // A zone's influence is exactly the pitcher's PZ pitch_percent for that zone.
+  const totalPitcherUsage = qualified.reduce((sum,z)=>sum + Math.max(0,Number(z.pitchPct)||0),0);
+  if (!(totalPitcherUsage > 0)) return null;
+  const usageWeightedBatterDamage = qualified.reduce((sum,z)=>
+    sum + (Number(z.batterDamage) * Math.max(0,Number(z.pitchPct)||0)), 0
+  ) / totalPitcherUsage;
 
-  // Stable 100-centered scale. Cross-slate normalization is applied later when a full slate is available;
-  // this local transform prevents a single card render from changing the visible zone values.
-  const normalizedIndex = (Math.log1p(rawAttackIndex*900)-2.45)/0.75;
-  const attackScore = 100 + normalizedIndex*25;
-  const finalScore = 100 + (attackScore-100)*exposureConfidence;
-  return Math.max(0,Math.min(175,finalScore));
+  return Math.max(0, Math.min(175, usageWeightedBatterDamage));
 }
 function attackZoneDisplayPeak(zones) {
   let peak = null;
@@ -14278,15 +14283,16 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
     const edge = attackZoneInteractionEdge(batterDamage,pitcherVulnerability,batterStats,pitcherStats,leagueDanger);
     if (edge === null || edge === undefined || isNaN(edge)) continue;
 
-    // New scoring-only opportunity formula.
+    // Pitcher-driven scoring formula. The pitcher chooses the test by where he throws;
+    // the batter is graded in every used zone and weighted only by the pitcher's PZ usage.
     const hitterZ = attackZoneHitterComposite(batterStats);
-    const pitcherZ = attackZonePitcherComposite(pitcherStats);
+    const pitcherZ = attackZonePitcherComposite(pitcherStats); // retained for display/diagnostics only
     const pitcherUsage = Number.isFinite(Number(pitchPct)) ? Math.max(0,Number(pitchPct)) : 0;
-    const hitterExposure = Number.isFinite(Number(batterStats.pitchPct)) ? Math.max(0,Number(batterStats.pitchPct)) : (1/9);
-    const zoneWeight = ATTACK_ZONE_LOGICAL_HR_WEIGHT[logicalZone] || 0.25;
-    const attackScoreQualified = !!hasP && attackZonePitcherZoneQualified(pitcherStats) && pitcherUsage>0;
+    const hitterExposure = Number.isFinite(Number(batterStats.pitchPct)) ? Math.max(0,Number(batterStats.pitchPct)) : null;
+    const zoneWeight = 1; // location importance now comes from actual pitcher usage, not a fixed zone bonus
+    const attackScoreQualified = !!hasB && !!hasP && pitcherUsage > 0 && Number.isFinite(Number(batterDamage));
     const scoringOpportunity = attackScoreQualified
-      ? attackZonePositiveFactor(hitterZ)*pitcherUsage*attackZonePositiveFactor(pitcherZ)*zoneWeight*hitterExposure
+      ? Number(batterDamage) * pitcherUsage
       : null;
 
     zones.push({
@@ -14310,7 +14316,7 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   const scoringTop = zones.filter(z=>z.attackScoreQualified!==false&&Number.isFinite(Number(z.scoringOpportunity))).sort((a,b)=>Number(b.scoringOpportunity)-Number(a.scoringOpportunity))[0];
   const topZone = scoringTop || attackZoneDisplayPeak(zones);
   const summary = topZone ? zoneBuildSummary(hitterName,pitcherName,topZone) : `No ${bucketName} qualified scoring zones`;
-  return {score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,weightedAvgEdge,batSide,scoringEngine:'HANDEDNESS_EXPOSURE_V6'};
+  return {score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,weightedAvgEdge,batSide,scoringEngine:'PITCHER_USAGE_WEIGHTED_V7'};
 }
 function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   const hitterName = player && player.Name;
@@ -14513,7 +14519,7 @@ function zoneRecomputeProfileScore(profile, hitterName, pitcherName) {
   profile.weightedAvgEdge = weightedAvgEdge;
   const matrixScore = attackZoneMatrixScore(profile.zones);
   profile.score = matrixScore === null || matrixScore === undefined || isNaN(Number(matrixScore)) ? profile.score : matrixScore;
-  profile.scoringEngine = profile.scoringEngine || 'HANDEDNESS_EXPOSURE_V6';
+  profile.scoringEngine = profile.scoringEngine || 'PITCHER_USAGE_WEIGHTED_V7';
   if (profile.topZone) profile.summary = zoneBuildSummary(hitterName, pitcherName, profile.topZone);
   return profile;
 }
@@ -14556,8 +14562,8 @@ function calculateAttackZoneProfile(player) {
     weighted.mix = { FB:0, BR:0, OS:0 };
     weighted.bucketProfiles = {};
     weighted.activeView = 'WEIGHTED';
-    weighted.formula = 'Handedness-aware hitter damage × pitcher usage × pitcher vulnerability × zone HR weight × hitter exposure. Low-sample pitcher zones remain visible but are excluded from scoring.';
-    weighted.scoringEngine = 'HANDEDNESS_EXPOSURE_V6';
+    weighted.formula = 'All nine batter zones scored by hitter damage and weighted by the opposing pitcher’s PZ pitch_percent. The pitcher’s most-used zones naturally drive the matchup score.';
+    weighted.scoringEngine = 'PITCHER_USAGE_WEIGHTED_V7';
     return weighted;
   } catch (err) {
     console.warn('Attack Zone calculation failed for', player && player.Name, err);
