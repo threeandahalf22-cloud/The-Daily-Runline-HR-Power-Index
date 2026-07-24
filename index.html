@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line</title>
+<!-- Pitch Lab V2 stats display fix: cards show PitchBagB fields actually used by the score. -->
 <!-- Pitch Lab V2 HR-predictive update: PitchBagB exact-pitch production + pitcher vulnerability + intersection + usage/sample regression. -->
 <!-- DRL v64.9: Phase 5 unused CSS cleanup.
      Backtest-reweighted buckets: Power 30, Batted Ball 24, Attack Zone 16, Pitcher 10,
@@ -8814,10 +8815,6 @@ body.drl-splash-active .container{visibility:hidden!important;}
 .bet-edge-analyzer-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}.bet-edge-analyzer-kicker{color:var(--espn-red,#e10600);font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:1.3px}.bet-edge-analyzer-title{color:#fff;font-size:20px;font-weight:1000;text-transform:uppercase;margin-top:4px}.bet-edge-analyzer-sub{color:var(--text-muted,#94a3b8);font-size:11px;font-weight:750;margin-top:5px;max-width:760px}.bet-edge-filter{min-width:190px}.bet-edge-filter .select-input-sm{width:100%}.bet-edge-best{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}.bet-edge-best-card{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;background:#171a1f}.bet-edge-best-card span{display:block;color:var(--text-muted,#94a3b8);font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px}.bet-edge-best-card b{display:block;color:#fff;font-family:monospace;font-size:20px;margin-top:5px}.bet-edge-best-card.hot b{color:#22c55e}.bet-edge-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.bet-edge-panel-title{color:#fff;font-size:12px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;margin:0 0 8px}.bet-edge-panel .signal-table-wrapper{margin-bottom:0;max-height:390px}.bet-edge-best-row td{background:rgba(34,197,94,.07)!important;color:#fff}.bet-edge-analyzer .signal-table td:first-child{font-family:monospace;font-weight:1000}.bet-edge-analyzer .backtest-note{margin:12px 0 0}.bet-edge-empty{padding:22px!important;color:var(--text-muted,#94a3b8)!important;font-style:italic;text-align:center!important}
 @media(max-width:850px){.bet-edge-grid{grid-template-columns:1fr}.bet-edge-analyzer-head{align-items:stretch}}
 </style>
-
-<style id="odds-rank-style">
-.odds-rank-shell{padding:22px!important}.odds-rank-hero{border-left:4px solid var(--espn-gold,#f6c343);padding:4px 0 16px 16px;margin-bottom:16px}.odds-rank-kicker{color:var(--espn-gold,#f6c343);font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:1.2px}.odds-rank-title{font-size:25px!important;color:#fff!important;margin-top:5px!important}.odds-rank-sub{color:var(--text-muted);font-size:12px;font-weight:750;line-height:1.45;margin:7px 0 0}.odds-rank-controls{display:flex;flex-direction:column;gap:14px;margin-bottom:16px}.odds-rank-buckets{display:flex;gap:8px;flex-wrap:wrap}.odds-rank-bucket{border:1px solid #3a3e45;background:#111419;color:#cbd5e1;border-radius:8px;padding:10px 13px;font-size:11px;font-weight:1000;cursor:pointer}.odds-rank-bucket:hover,.odds-rank-bucket.active{border-color:var(--espn-gold,#f6c343);color:#111;background:var(--espn-gold,#f6c343)}.odds-rank-tools{display:flex;gap:12px;flex-wrap:wrap;align-items:end}.odds-rank-summary{margin-left:auto;border:1px solid #343840;background:#0d0f12;color:var(--text-muted);border-radius:8px;padding:10px 12px;font-size:11px;font-weight:900;text-transform:uppercase}.odds-rank-summary b{color:var(--espn-gold,#f6c343);font-family:monospace}.odds-rank-table-wrap{max-height:760px;overflow:auto}.odds-rank-table{min-width:1040px}.odds-rank-table th{position:sticky;top:0;z-index:3;background:#111419;color:#aeb3bc;white-space:nowrap}.odds-rank-table td{white-space:nowrap;font-size:12px;font-weight:850}.odds-rank-player{display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer}.odds-rank-player .player-headshot{width:42px!important;height:42px!important;margin:0!important}.odds-rank-player-name{color:#fff;font-size:13px;font-weight:1000}.odds-rank-player-meta{color:var(--stadium-lights);font-size:9px;font-weight:900;text-transform:uppercase;margin-top:3px}.odds-rank-position{font-family:monospace;font-size:18px;font-weight:1000;color:var(--espn-gold,#f6c343)}.odds-rank-bbi{font-family:monospace;font-size:17px;font-weight:1000;color:var(--accent)}.odds-rank-price{font-family:monospace;font-size:15px;font-weight:1000;color:var(--espn-gold,#f6c343)}.odds-rank-empty{padding:45px!important;text-align:center;color:var(--text-muted);font-style:italic}@media(max-width:700px){.odds-rank-summary{margin-left:0}.odds-rank-bucket{flex:1 1 calc(50% - 8px)}}
-</style>
 </head>
 <body class="drl-splash-active">
 
@@ -8907,7 +8904,6 @@ body.drl-splash-active .container{visibility:hidden!important;}
 <button class="nav-tab" onclick="switchTab('betbacktest', this)">📒 Betting Backtest</button>
 <button class="nav-tab" onclick="switchTab('stats', this)">📊 Stats</button>
 <button class="nav-tab" onclick="switchTab('odds', this)">💰 Odds</button>
-<button class="nav-tab" onclick="switchTab('oddsrank', this)">🏆 Odds Rank</button>
 <button class="nav-tab" onclick="switchTab('pitchers', this)">🎯 Pitchers</button>
 <button class="nav-tab" onclick="switchTab('pitchlab', this)">🧪 Pitch Lab</button>
 <button class="nav-tab" onclick="switchTab('strikeouts', this); renderLongestHRCenter();">📏 Longest HR Center</button>
@@ -9269,38 +9265,6 @@ body.drl-splash-active .container{visibility:hidden!important;}
 </div>
 </div>
 
-<div id="tab-oddsrank" class="tab-content">
-  <div class="panel odds-rank-shell">
-    <div class="odds-rank-hero">
-      <div class="odds-rank-kicker">🏆 Market-Tier Model Rankings</div>
-      <h2 class="odds-rank-title" style="border:none;padding:0;margin:0;">Odds Rank</h2>
-      <p class="odds-rank-sub">Compare players only against hitters carrying a similar home-run price. Each odds tier is ranked by BBI by default.</p>
-    </div>
-    <div class="odds-rank-controls">
-      <div class="odds-rank-buckets" id="oddsRankBuckets">
-        <button type="button" class="odds-rank-bucket active" data-min="100" data-max="200" onclick="setOddsRankBucket(100,200,this)">+100–+200</button>
-        <button type="button" class="odds-rank-bucket" data-min="201" data-max="300" onclick="setOddsRankBucket(201,300,this)">+201–+300</button>
-        <button type="button" class="odds-rank-bucket" data-min="301" data-max="400" onclick="setOddsRankBucket(301,400,this)">+301–+400</button>
-        <button type="button" class="odds-rank-bucket" data-min="401" data-max="500" onclick="setOddsRankBucket(401,500,this)">+401–+500</button>
-        <button type="button" class="odds-rank-bucket" data-min="501" data-max="600" onclick="setOddsRankBucket(501,600,this)">+501–+600</button>
-        <button type="button" class="odds-rank-bucket" data-min="601" data-max="99999" onclick="setOddsRankBucket(601,99999,this)">+601+</button>
-      </div>
-      <div class="odds-rank-tools">
-        <div class="filter-group"><label>Search Player</label><input id="oddsRankSearch" class="search-input" type="text" placeholder="Type player name..." oninput="renderOddsRank()"></div>
-        <div class="filter-group"><label>Team</label><select id="oddsRankTeam" class="select-input-sm" style="width:150px" onchange="renderOddsRank()"><option value="ALL">All Teams</option></select></div>
-        <div class="filter-group"><label>Sort Within Tier</label><select id="oddsRankSort" class="select-input-sm" style="width:175px" onchange="renderOddsRank()"><option value="BBI">BBI</option><option value="HR">HR Probability</option><option value="EDGE">Market Edge</option><option value="ODDS">Highest Odds</option><option value="ALPHA">Player A-Z</option></select></div>
-        <div class="odds-rank-summary" id="oddsRankSummary">Players: <b>0</b></div>
-      </div>
-    </div>
-    <div class="table-wrapper odds-rank-table-wrap">
-      <table class="odds-rank-table">
-        <thead><tr><th>Tier Rank</th><th>Player</th><th>Team</th><th>Opp Pitcher</th><th>BBI</th><th>HR %</th><th>Best Odds</th><th>Book</th><th>Edge</th></tr></thead>
-        <tbody id="oddsRankBody"><tr><td colspan="9" class="odds-rank-empty">Upload a workbook with Odds data to load tier rankings.</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
 
 <div id="tab-strikeouts" class="tab-content">
 <div class="longest-hr-shell">
@@ -9602,7 +9566,6 @@ if (btn) btn.classList.add('active');
 const run = () => {
   if (tabName === 'stats') renderStatsTable();
   if (tabName === 'odds') renderOddsBoard();
-  if (tabName === 'oddsrank') renderOddsRank();
   if (tabName === 'pitchers') renderAllPitchers();
   if (tabName === 'environment' && window.renderHREnvironmentTable40) window.renderHREnvironmentTable40();
   if (tabName === 'hotbat') renderHotBatTable();
@@ -12702,10 +12665,15 @@ function renderPitchLab10Card(profile, idx) {
 
   const pitchCards = rows.map(r => {
     const color = pitchLab10Color(r.key || r.group || r.label);
-    const evVal = pitchLab10StatEV(r);
-    const pullVal = pitchLab10StatRate(r.bat && r.bat.shape ? r.bat.shape.pull : r.bat ? r.bat.pull : null);
-    const barrelVal = (r.bat && r.bat.shape && r.bat.shape.barrel !== null && r.bat.shape.barrel !== undefined && !isNaN(Number(r.bat.shape.barrel))) ? Number(r.bat.shape.barrel).toFixed(1) + '%' : '--';
-    const xslgVal = r.bat && r.bat.shape && r.bat.shape.xslg !== null && r.bat.shape.xslg !== undefined && !isNaN(Number(r.bat.shape.xslg)) ? Number(r.bat.shape.xslg).toFixed(3) : '--';
+    const batShape = (r.bat && r.bat.shape) ? r.bat.shape : {};
+    const fmtNum = (v, d=1) => (v !== null && v !== undefined && isFinite(Number(v))) ? Number(v).toFixed(d) : '--';
+    const fmtPct = v => (v !== null && v !== undefined && isFinite(Number(v))) ? Number(v).toFixed(1) + '%' : '--';
+    const rv100Val = fmtNum(r.bat && (r.bat.rv100 ?? batShape.rv100), 1);
+    const xslgVal = fmtNum(r.bat && (r.bat.xslg ?? batShape.xslg), 3);
+    const hardHitVal = fmtPct(r.bat && (r.bat.hard ?? batShape.hard));
+    const whiffVal = fmtPct(r.bat && (r.bat.whiff ?? batShape.whiff));
+    const kVal = fmtPct(r.bat && (r.bat.k ?? batShape.k));
+    const paVal = fmtNum(r.bat && (r.bat.pa ?? r.bat.bbe), 0);
     const batDamage = r.bat && isFinite(r.bat.score) ? Number(r.bat.score).toFixed(0) : '--';
     const pitcherWeak = r.pitcherDamage && isFinite(r.pitcherDamage.score) ? Number(r.pitcherDamage.score).toFixed(0) : '--';
     const edge = isFinite(r.edge) ? Number(r.edge).toFixed(0) : '--';
@@ -12717,10 +12685,11 @@ function renderPitchLab10Card(profile, idx) {
         ${pitchLab10Mini('Pitcher Usage', usage)}
         ${pitchLab10Mini('Hitter Damage', batDamage)}
         ${pitchLab10Mini('Pitcher Weakness', pitcherWeak)}
-        ${pitchLab10Mini('EV', evVal)}
-        ${pitchLab10Mini('Barrel%', barrelVal)}
+        ${pitchLab10Mini('RV/100', rv100Val)}
         ${pitchLab10Mini('xSLG', xslgVal)}
-        ${pitchLab10Mini('Pull%', pullVal)}
+        ${pitchLab10Mini('Hard Hit%', hardHitVal)}
+        ${pitchLab10Mini('Whiff% / K%', `${whiffVal} / ${kVal}`)}
+        ${pitchLab10Mini('PA vs Pitch', paVal)}
         ${pitchLab10Mini('Matchup', pitchLab10Tier(r.edge))}
       </div>
     </div>`;
@@ -13493,76 +13462,6 @@ function renderOddsBoard() {
         <span>HR Prob <b>${hrProb}</b></span>
       </div>
     </article>`;
-  }).join('');
-}
-
-
-let oddsRankMin = 100;
-let oddsRankMax = 200;
-function setOddsRankBucket(min, max, btn) {
-  oddsRankMin = Number(min);
-  oddsRankMax = Number(max);
-  document.querySelectorAll('.odds-rank-bucket').forEach(x => x.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderOddsRank();
-}
-function getOddsRankNumber(p) {
-  const direct = cleanNumber(String((p && p.bettingOdds) || '').replace('+',''));
-  if (Number.isFinite(direct) && direct > 0) return direct;
-  const detail = getOddsDetailForPlayer(p);
-  return detail && detail.best && Number.isFinite(detail.best.profit) ? detail.best.profit : null;
-}
-function populateOddsRankTeamFilter() {
-  const sel = document.getElementById('oddsRankTeam');
-  if (!sel) return;
-  const current = sel.value || 'ALL';
-  const teams = [...new Set((playerData || []).filter(p => !p.isRemoved).map(p => p.Team).filter(Boolean))].sort();
-  sel.innerHTML = '<option value="ALL">All Teams</option>' + teams.map(t => `<option value="${t}">${t}</option>`).join('');
-  if (teams.includes(current)) sel.value = current;
-}
-function renderOddsRank() {
-  populateOddsRankTeamFilter();
-  const body = document.getElementById('oddsRankBody');
-  const summary = document.getElementById('oddsRankSummary');
-  if (!body) return;
-  const search = String(document.getElementById('oddsRankSearch')?.value || '').toLowerCase().trim();
-  const team = document.getElementById('oddsRankTeam')?.value || 'ALL';
-  const sort = document.getElementById('oddsRankSort')?.value || 'BBI';
-  let rows = (playerData || []).filter(p => !p.isRemoved).map(p => {
-    const oddsNum = getOddsRankNumber(p);
-    const detail = getOddsDetailForPlayer(p);
-    return { p, oddsNum, detail };
-  }).filter(x => Number.isFinite(x.oddsNum) && x.oddsNum >= oddsRankMin && x.oddsNum <= oddsRankMax);
-  if (search) rows = rows.filter(x => String(x.p.Name || '').toLowerCase().includes(search));
-  if (team !== 'ALL') rows = rows.filter(x => x.p.Team === team);
-  if (sort === 'HR') rows.sort((a,b) => Number(b.p.calculatedHRProbability || 0) - Number(a.p.calculatedHRProbability || 0));
-  else if (sort === 'EDGE') rows.sort((a,b) => Number(b.p.bettingEdge ?? -9999) - Number(a.p.bettingEdge ?? -9999));
-  else if (sort === 'ODDS') rows.sort((a,b) => b.oddsNum - a.oddsNum);
-  else if (sort === 'ALPHA') rows.sort((a,b) => String(a.p.Name || '').localeCompare(String(b.p.Name || '')));
-  else rows.sort((a,b) => Number(b.p.calculatedBBI || 0) - Number(a.p.calculatedBBI || 0));
-  const tierLabel = oddsRankMax >= 99999 ? `+${oddsRankMin}+` : `+${oddsRankMin}–+${oddsRankMax}`;
-  if (summary) summary.innerHTML = `Tier <b>${tierLabel}</b> &nbsp; Players: <b>${rows.length}</b>`;
-  if (!rows.length) {
-    body.innerHTML = `<tr><td colspan="9" class="odds-rank-empty">No active players are priced in the ${tierLabel} range.</td></tr>`;
-    return;
-  }
-  body.innerHTML = rows.map((x, i) => {
-    const p = x.p;
-    const pitcher = p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter';
-    const detail = x.detail || {};
-    const bestBook = detail.best ? detail.best.book : (p.bettingBook || '-');
-    const bestOdds = detail.best ? formatAmericanOdds(detail.best.raw) : formatAmericanOdds(p.bettingOdds);
-    const headshot = createHeadshotHtml(p.Name, 'sm', p.Team || '');
-    return `<tr style="${teamVisualStyle(p.Team)}">
-      <td><span class="odds-rank-position">#${i+1}</span></td>
-      <td><div class="odds-rank-player" onclick="openPlayerModalByName('${escJSString(p.Name)}')">${headshot}<div><div class="odds-rank-player-name">${p.Name || '-'}</div><div class="odds-rank-player-meta">${p.Team || '-'} • vs ${pitcher}</div></div></div></td>
-      <td>${p.Team || '-'}</td><td>${pitcher}</td>
-      <td><span class="odds-rank-bbi">${Number(p.calculatedBBI || 0).toFixed(1)}</span></td>
-      <td>${formatPlainPct(p.calculatedHRProbability)}</td>
-      <td><span class="odds-rank-price">${bestOdds || '-'}</span></td>
-      <td>${bestBook ? (renderBookBadge(bestBook) || bestBook) : '-'}</td>
-      <td class="${Number(p.bettingEdge || 0) >= 0 ? 'signal-positive' : 'signal-negative'}">${formatPctValue(p.bettingEdge)}</td>
-    </tr>`;
   }).join('');
 }
 
