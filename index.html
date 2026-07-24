@@ -8904,7 +8904,7 @@ body.drl-splash-active .container{visibility:hidden!important;}
 <button class="nav-tab" onclick="switchTab('odds', this)">💰 Odds</button>
 <button class="nav-tab" onclick="switchTab('pitchers', this)">🎯 Pitchers</button>
 <button class="nav-tab" onclick="switchTab('pitchlab', this)">🧪 Pitch Lab</button>
-<button class="nav-tab" onclick="switchTab('strikeouts', this); renderStrikeoutCenter();">🔥 Strikeout Center</button>
+<button class="nav-tab" onclick="switchTab('strikeouts', this); renderLongestHRCenter();">📏 Longest HR Center</button>
 <button class="nav-tab" onclick="switchTab('hotbat', this)">🔥 Hot Bat</button>
 <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
 <button class="nav-tab" onclick="switchTab('zoneprofile', this)">🎯 HR Attack Map</button>
@@ -9264,8 +9264,28 @@ body.drl-splash-active .container{visibility:hidden!important;}
 </div>
 
 
-<div id="tab-strikeouts" class="tab-content"><div class="k-center-shell"><div class="k-hero"><div class="k-kicker">Daily Run Line // Pitcher Prop Engine</div><div class="k-title">🔥 Strikeout Center</div><div class="k-sub">Projected strikeouts from expected innings, pitcher K ability, opponent lineup strikeout rates, pitch-mix whiffs, Stuff+, and zone contact. Every projection is compared with all available POdds lines to find the strongest over or under edge.</div><div id="kSummaryGrid" class="k-summary-grid"></div></div><div id="kFeatureGrid" class="k-feature-grid"></div><div class="controls-bar k-tools"><div class="filter-group"><label>Side</label><select id="kSideFilter" class="select-input-sm" onchange="renderStrikeoutCenter()"><option value="ALL">All Plays</option><option value="OVER">Overs</option><option value="UNDER">Unders</option></select></div><div class="filter-group"><label>Minimum Edge</label><select id="kEdgeFilter" class="select-input-sm" onchange="renderStrikeoutCenter()"><option value="0">All Edges</option><option value=".5">0.5+ Ks</option><option value="1">1.0+ Ks</option><option value="1.5">1.5+ Ks</option></select></div><div class="filter-group"><label>Search Pitcher</label><input id="kSearchFilter" class="search-input" placeholder="Type pitcher name..." oninput="renderStrikeoutCenter()"></div><div class="filter-group"><label>Sort</label><select id="kSortFilter" class="select-input-sm" onchange="renderStrikeoutCenter()" style="width:155px"><option value="EDGE">Best Edge</option><option value="PROJ">Projected Ks</option><option value="CONF">Confidence</option><option value="NAME">Pitcher</option></select></div></div><div class="table-wrapper k-table-wrap"><table class="k-table"><thead><tr><th>Rank</th><th>Pitcher / Matchup</th><th>Play</th><th>Book</th><th>Line</th><th>Model</th><th>Edge</th><th>Confidence</th><th>Avg Inn</th><th>K/9</th><th>Lineup K%</th><th>Pitch Whiff%</th><th>Stuff+</th><th>Zone Whiff</th></tr></thead><tbody id="kTableBody"><tr><td colspan="14" class="k-empty">Upload today’s workbook to build strikeout edges.</td></tr></tbody></table></div></div></div>
-<div id="tab-pitchers" class="tab-content">
+<div id="tab-strikeouts" class="tab-content">
+<div class="longest-hr-shell">
+  <div class="longest-hr-hero">
+    <div class="longest-hr-kicker">Daily Run Line // Fanatics Longest Home Run</div>
+    <div class="longest-hr-title">📏 Longest HR Center</div>
+    <div class="longest-hr-sub">This model answers one question: if each hitter homers today, whose ball is most likely to travel the farthest? It uses only real workbook inputs from SS and PSS — hitter and pitcher average/max HR distance, average/max exit velocity — plus today’s weather carry.</div>
+    <div id="longestHrStatus" class="longest-hr-status">Waiting for today’s workbook data.</div>
+    <div id="longestHrSummary" class="longest-hr-summary"></div>
+  </div>
+  <div class="controls-bar longest-hr-tools">
+    <div class="filter-group"><label>Search Player</label><input id="longestHrSearch" class="search-input" placeholder="Type player or pitcher..." oninput="renderLongestHRCenter()"></div>
+    <div class="filter-group"><label>Team</label><select id="longestHrTeam" class="select-input-sm" onchange="renderLongestHRCenter()"><option value="ALL">All Teams</option></select></div>
+    <div class="filter-group"><label>Data Filter</label><select id="longestHrSample" class="select-input-sm" onchange="renderLongestHRCenter()"><option value="valid">Complete Distance Profiles</option><option value="all">Show Missing Data</option></select></div>
+    <div class="filter-group"><label>Sort</label><select id="longestHrSort" class="select-input-sm" style="width:200px" onchange="renderLongestHRCenter()"><option value="projected">Projected Distance</option><option value="ceiling">Ceiling</option><option value="hAvg">Hitter Avg Distance</option><option value="hMax">Hitter Max Distance</option><option value="pAvgDistance">Pitcher Avg Distance</option><option value="pMaxDistance">Pitcher Max Distance</option><option value="carry">Weather Carry</option><option value="name">Player Name</option></select></div>
+    
+  </div>
+  <div class="longest-hr-note"><b>Projected</b> blends the hitter’s distance profile with the opposing pitcher’s distance allowed, then adjusts for EV and weather. <b>Ceiling</b> uses the hitter and pitcher max-distance profiles. No launch-angle, barrel, hard-hit, or other unavailable fields are shown or scored.</div>
+  <div class="table-wrapper longest-hr-table-wrap"><table class="longest-hr-table" style="min-width:1900px">
+<thead><tr>
+<th>Rank</th><th class="longest-player-sticky">Player / Matchup</th><th>Projected Distance</th><th>Ceiling</th><th>Weather Carry</th><th>H Avg Distance</th><th>H Max Distance</th><th>P Avg Distance Allowed</th><th>P Max Distance Allowed</th><th>H Avg EV</th><th>H Max EV</th><th>P Avg EV Allowed</th><th>P Max EV Allowed</th><th>Confidence</th>
+</tr></thead><tbody id="longestHrBody"><tr><td colspan="30" class="longest-hr-empty">Upload today’s workbook to rank every hitter on the HR page.</td></tr></tbody></table></div>
+</div></div><div id="tab-pitchers" class="tab-content">
   <div class="pitcher-dashboard-shell">
     <div class="pitcher-dash-hero">
       <div>
@@ -23108,5 +23128,112 @@ if(typeof drlOnReady==='function'){
   if(window.drlOnReady)window.drlOnReady(init);else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+
+<style id="drl-longest-hr-center-style">
+.longest-hr-shell{display:flex;flex-direction:column;gap:16px}.longest-hr-hero{border:1px solid #2b2f36;border-left:5px solid #e10600;border-radius:12px;padding:22px;background:linear-gradient(135deg,#171a1f,#0d0f12);box-shadow:0 18px 38px rgba(0,0,0,.34)}.longest-hr-kicker{color:#ff4b4b;font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:1.5px}.longest-hr-title{margin-top:5px;color:#fff;font-size:27px;font-weight:1000;text-transform:uppercase}.longest-hr-sub{margin-top:7px;max-width:1020px;color:#aeb4bd;font-size:12px;font-weight:750;line-height:1.5}.longest-hr-status{margin-top:12px;display:inline-flex;padding:7px 10px;border:1px solid rgba(255,255,255,.09);border-radius:7px;background:#111419;color:#c7cbd1;font-size:10px;font-weight:900}.longest-hr-status.good{color:#22c55e;border-color:rgba(34,197,94,.28)}.longest-hr-status.warn{color:#f6c343;border-color:rgba(246,195,67,.32)}.longest-hr-status.bad{color:#ff5b5b;border-color:rgba(255,75,75,.32)}.longest-hr-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}.longest-summary-card{border:1px solid rgba(255,255,255,.08);border-top:3px solid var(--sum-color,#e10600);border-radius:9px;padding:12px;background:#111419}.longest-summary-label{color:#8f96a0;font-size:8px;font-weight:1000;text-transform:uppercase}.longest-summary-value{margin-top:5px;color:#fff;font:1000 23px/1 monospace}.longest-summary-note{margin-top:5px;color:#c7cbd1;font-size:9px;font-weight:800}.longest-hr-tools{display:flex;gap:12px;flex-wrap:wrap;align-items:end}.longest-refresh-btn{width:auto!important;padding:10px 14px!important}.longest-hr-note{color:#aeb4bd;font-size:11px;font-weight:800;line-height:1.4}.longest-hr-note b{color:#fff}.longest-hr-table-wrap{max-height:790px;overflow:auto}.longest-hr-table{min-width:3150px;table-layout:auto}.longest-hr-table th{position:sticky;top:0;z-index:4;white-space:nowrap;cursor:pointer}.longest-hr-table td{white-space:nowrap;font-size:12px;font-weight:850;padding:11px 12px}.longest-player-sticky{position:sticky!important;left:0!important;z-index:6!important;background:#111419!important;min-width:300px;text-align:left!important}.longest-hr-table td.longest-player-sticky{z-index:3!important;background:#101214!important;box-shadow:8px 0 16px rgba(0,0,0,.24)}.longest-player-card{display:grid;grid-template-columns:46px minmax(0,1fr);gap:10px;align-items:center;text-align:left}.longest-player-card img,.longest-player-fallback{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--team-color,#e10600);background:#090b0e}.longest-player-fallback{display:flex;align-items:center;justify-content:center;color:#fff;font:1000 13px monospace}.longest-player-name{color:#fff;font-size:13px;font-weight:1000}.longest-player-meta{margin-top:3px;color:#9da3ad;font-size:9px;font-weight:900;text-transform:uppercase}.longest-projected{color:#fff;font:1000 17px monospace}.longest-ceiling{color:#f6c343;font:1000 15px monospace}.longest-score{color:#e10600;font:1000 15px monospace}.longest-positive{color:#22c55e!important}.longest-negative{color:#ff5b5b!important}.longest-muted{color:#717782!important}.longest-confidence{display:inline-flex;padding:4px 7px;border-radius:5px;font-size:9px;font-weight:1000}.longest-confidence.high{background:rgba(34,197,94,.12);color:#22c55e}.longest-confidence.med{background:rgba(246,195,67,.12);color:#f6c343}.longest-confidence.low{background:rgba(255,75,75,.12);color:#ff5b5b}.longest-hr-empty{padding:48px!important;color:#969da7;text-align:center;font-style:italic}.longest-small-sample{display:inline-flex;margin-left:5px;padding:2px 5px;border-radius:4px;background:rgba(246,195,67,.11);color:#f6c343;font-size:7px;font-weight:1000}.longest-ft{font-family:monospace;font-weight:1000}@media(max-width:980px){.longest-hr-summary{grid-template-columns:1fr 1fr}}@media(max-width:560px){.longest-hr-summary{grid-template-columns:1fr}.longest-hr-title{font-size:22px}}
+</style>
+
+<script id="drl-longest-hr-center-engine">
+(function(){'use strict';
+const state={rankings:[]};
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{const n=Number(String(v??'').replace(/[^0-9.\-]/g,''));return Number.isFinite(n)?n:null};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=(v,d=1,s='')=>Number.isFinite(v)?v.toFixed(d)+s:'--';
+const norm=v=>typeof normalizeName==='function'?normalizeName(v):String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const aliases={WSH:'WSN',KC:'KCR',AZ:'ARI',SD:'SDP',SF:'SFG',TB:'TBR',CWS:'CHW'};
+function teamCode(v){const t=String(v||'').trim().toUpperCase();return aliases[t]||t}
+function first(...vals){for(const v of vals){const n=num(v);if(Number.isFinite(n))return n}return null}
+function field(p,...keys){for(const k of keys){if(p&&p[k]!==undefined&&p[k]!==null&&p[k]!=='')return p[k]}return null}
+function stat(sheet,name){try{return typeof lookupStat==='function'?(lookupStat(sheet,name)||{}):{}}catch(e){return {}}}
+function metric(row,type){
+ if(!row)return null;
+ const specs={
+  avgDist:{min:250,max:500,tests:[k=>/(avg|average).*(hr|homerun|distance|dist)/.test(k),k=>/(hr|homerun|distance|dist).*(avg|average)/.test(k),k=>/^(avg|average)$/.test(k)]},
+  maxDist:{min:280,max:550,tests:[k=>/(max|maximum|longest).*(hr|homerun|distance|dist)/.test(k),k=>/(hr|homerun|distance|dist).*(max|maximum|longest)/.test(k),k=>/^(max|maximum|longest)$/.test(k)]},
+  avgEV:{min:70,max:115,tests:[k=>/(avg|average).*(ev|exitvelo)/.test(k),k=>/(ev|exitvelo).*(avg|average)/.test(k),k=>/^(ev|exitvelo|avg|average)$/.test(k)]},
+  maxEV:{min:85,max:135,tests:[k=>/(max|maximum).*(ev|exitvelo)/.test(k),k=>/(ev|exitvelo).*(max|maximum)/.test(k),k=>/^(max|maxev|maximum)$/.test(k)]}
+ }[type];
+ if(!specs)return null;
+ const entries=Object.entries(row).map(([key,value])=>({key:String(key).toLowerCase().replace(/[^a-z0-9]/g,''),value:num(value)})).filter(x=>Number.isFinite(x.value)&&x.value>=specs.min&&x.value<=specs.max);
+ for(const test of specs.tests){const hit=entries.find(x=>test(x.key));if(hit)return hit.value}
+ return null;
+}
+
+function carryFeet(p){
+ let feet=0;const w=(window.weatherSettings&&p.gameId)?window.weatherSettings[p.gameId]:null;
+ if(w&&!w.isDome){
+   const temp=num(w.temp);if(Number.isFinite(temp))feet+=clamp((temp-72)*.14,-5,6);
+   const sp=num(w.windSpeed)||0,dir=String(w.windDir||w.windDetail||'').toLowerCase();
+   if(/out|to cf|to lf|to rf|blowing out/.test(dir))feet+=clamp(sp*.60,0,11);
+   else if(/in|from cf|from lf|from rf|blowing in/.test(dir))feet-=clamp(sp*.55,0,10);
+ }
+ const mult=num(p.weatherImpactMultiplier);if(Number.isFinite(mult))feet+=clamp(410*(mult-1),-9,9);
+ return clamp(feet,-15,17);
+}
+function getPlayers(){try{if(typeof playerData!=='undefined'&&Array.isArray(playerData))return playerData}catch(e){}return Array.isArray(window.playerData)?window.playerData:[]}
+function buildRankings(){
+ const players=getPlayers().filter(p=>!p.isRemoved);
+ state.rankings=players.map(p=>{
+   const name=String(field(p,'Name','Player')||'').trim();
+   const pitcher=String(field(p,'Opp Pitcher','Opp Pitcher Name','Pitcher')||'').trim();
+   const ss=stat('SS',name),pss=stat('PSS',pitcher);
+   const hAvg=first(metric(ss,'avgDist'),metric(p,'avgDist'));
+   const hMax=first(metric(ss,'maxDist'),metric(p,'maxDist'));
+   const hAvgEV=first(metric(ss,'avgEV'),metric(p,'avgEV'));
+   const hMaxEV=first(metric(ss,'maxEV'),metric(p,'maxEV'));
+   const pAvgDistance=metric(pss,'avgDist');
+   const pMaxDistance=metric(pss,'maxDist');
+   const pAvgEV=metric(pss,'avgEV');
+   const pMaxEV=metric(pss,'maxEV');
+   const hSample=first(field(ss,'HR','Home Runs','BBE','Batted Ball Events','PA'));
+   const pSample=first(field(pss,'HR','Home Runs','BBE','Batted Ball Events','BF','TBF'));
+   const carry=carryFeet(p);
+   // Distance is required to rank. EV is supplemental and may be absent in some workbook versions.
+   const complete=[hAvg,hMax,pAvgDistance,pMaxDistance].every(Number.isFinite);
+   let projected=null,ceiling=null;
+   if(complete){
+     const distanceBase=(hAvg*.64)+(pAvgDistance*.36);
+     const distanceUpside=Math.max(0,hMax-hAvg)*.12+Math.max(0,pMaxDistance-pAvgDistance)*.08;
+     const safeHAvgEV=Number.isFinite(hAvgEV)?hAvgEV:89;
+     const safePAvgEV=Number.isFinite(pAvgEV)?pAvgEV:89;
+     const safeHMaxEV=Number.isFinite(hMaxEV)?hMaxEV:112;
+     const safePMaxEV=Number.isFinite(pMaxEV)?pMaxEV:112;
+     const avgEVBlend=(safeHAvgEV*.64)+(safePAvgEV*.36);
+     const maxEVBlend=(safeHMaxEV*.64)+(safePMaxEV*.36);
+     const evLift=(avgEVBlend-89)*.72+(maxEVBlend-112)*.34;
+     projected=clamp(distanceBase+distanceUpside+evLift+carry,340,490);
+     const maxDistanceBlend=(hMax*.64)+(pMaxDistance*.36);
+     const maxEVLift=(maxEVBlend-112)*.55;
+     ceiling=clamp(Math.max(projected+5,maxDistanceBlend+maxEVLift+carry),projected+5,510);
+   }
+   let confidence='MEDIUM';
+   if(Number.isFinite(hSample)&&Number.isFinite(pSample)){confidence=(hSample>=20&&pSample>=40)?'HIGH':(hSample<8||pSample<20)?'LOW':'MEDIUM'}
+   else if(!complete)confidence='MISSING';
+   return{player:p,name,team:teamCode(field(p,'Team')),pitcher,hAvg,hMax,hAvgEV,hMaxEV,pAvgDistance,pMaxDistance,pAvgEV,pMaxEV,hSample,pSample,carry,projected,ceiling,complete,confidence};
+ }).sort((a,b)=>(b.projected??-Infinity)-(a.projected??-Infinity));
+}
+function setStatus(text,cls=''){const el=document.getElementById('longestHrStatus');if(el){el.textContent=text;el.className='longest-hr-status '+cls}}
+function headshot(r){const id=(window.playerIdMap&&playerIdMap[norm(r.name)])||r.player.ID||r.player.PlayerID||'';const initials=r.name.split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();return id?`<img src="https://img.mlbstatic.com/mlb-photos/image/upload/v1/people/${id}/headshot/67/current" loading="lazy">`:`<div class="longest-player-fallback">${initials}</div>`}
+function td(v,d=1,s=''){return `<td class="longest-ft ${Number.isFinite(v)?'':'longest-muted'}">${fmt(v,d,s)}</td>`}
+window.renderLongestHRCenter=function(){
+ const body=document.getElementById('longestHrBody');if(!body)return;buildRankings();const all=state.rankings.slice();
+ const teamSel=document.getElementById('longestHrTeam');if(teamSel&&teamSel.options.length<=1)[...new Set(all.map(x=>x.team).filter(Boolean))].sort().forEach(t=>teamSel.add(new Option(t,t)));
+ const q=String(document.getElementById('longestHrSearch')?.value||'').toLowerCase(),team=document.getElementById('longestHrTeam')?.value||'ALL',filter=document.getElementById('longestHrSample')?.value||'valid',sort=document.getElementById('longestHrSort')?.value||'projected';
+ let rows=all.filter(x=>(team==='ALL'||x.team===team)&&(!q||x.name.toLowerCase().includes(q)||x.pitcher.toLowerCase().includes(q))&&(filter==='all'||x.complete));
+ if(sort==='name')rows.sort((a,b)=>a.name.localeCompare(b.name));else rows.sort((a,b)=>(b[sort]??-Infinity)-(a[sort]??-Infinity));
+ const valid=all.filter(x=>x.complete),best=valid[0],summary=document.getElementById('longestHrSummary');
+ if(summary)summary.innerHTML=`<div class="longest-summary-card"><div class="longest-summary-label">Rankable Profiles</div><div class="longest-summary-value">${valid.length}</div><div class="longest-summary-note">of ${all.length} slate hitters</div></div><div class="longest-summary-card" style="--sum-color:#f6c343"><div class="longest-summary-label">Top Projection</div><div class="longest-summary-value">${best?fmt(best.projected,1,' ft'):'--'}</div><div class="longest-summary-note">${best?esc(best.name):'No complete profile'}</div></div><div class="longest-summary-card" style="--sum-color:#ff4b4b"><div class="longest-summary-label">Distance Blend</div><div class="longest-summary-value">64 / 36</div><div class="longest-summary-note">Hitter / pitcher allowed</div></div><div class="longest-summary-card" style="--sum-color:#38bdf8"><div class="longest-summary-label">Inputs Used</div><div class="longest-summary-value">SS + PSS</div><div class="longest-summary-note">Distance required; EV optional</div></div>`;
+ setStatus(valid.length?`Ranked ${valid.length} hitters using SS + PSS distance profiles. EV is used when available; missing EV stays neutral. ${all.length-valid.length} hitters are missing required distance data.`:`No hitters have the four required SS + PSS distance fields. Check the Avg HR / Max columns and pitcher-name matching.`,valid.length?'good':'bad');
+ if(!all.length){body.innerHTML='<tr><td colspan="14" class="longest-hr-empty">Upload today’s workbook to load the slate.</td></tr>';return}
+ if(!rows.length){body.innerHTML='<tr><td colspan="14" class="longest-hr-empty">No complete profiles match the current filters.</td></tr>';return}
+ body.innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td class="longest-player-sticky"><div class="longest-player-card">${headshot(r)}<div><div class="longest-player-name">${esc(r.name)}</div><div class="longest-player-meta">${esc(r.team)} • vs ${esc(r.pitcher||'Starter')}</div></div></div></td>${td(r.projected,1,' ft')}${td(r.ceiling,1,' ft')}<td class="longest-ft ${r.carry>0?'longest-positive':r.carry<0?'longest-negative':''}">${r.carry>=0?'+':''}${fmt(r.carry,1,' ft')}</td>${td(r.hAvg,1,' ft')}${td(r.hMax,1,' ft')}${td(r.pAvgDistance,1,' ft')}${td(r.pMaxDistance,1,' ft')}${td(r.hAvgEV,1,' mph')}${td(r.hMaxEV,1,' mph')}${td(r.pAvgEV,1,' mph')}${td(r.pMaxEV,1,' mph')}<td><span class="longest-confidence ${r.confidence==='HIGH'?'high':r.confidence==='LOW'||r.confidence==='MISSING'?'low':'med'}">${r.confidence}</span></td></tr>`).join('');
+};
+window.refreshOnlyHomersData=function(){setStatus('This center uses workbook data only: SS, PSS, and today’s weather.','warn')};
+window.renderStrikeoutCenter=window.renderLongestHRCenter;
+drlOnReady(()=>{setTimeout(window.renderLongestHRCenter,500);let n=-1;setInterval(()=>{const c=getPlayers().filter(p=>!p.isRemoved).length;if(c!==n){n=c;window.renderLongestHRCenter()}},1200)});
+})();
+</script>
+
 </body>
 </html>
