@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line</title>
-<!-- HR Attack Map V6: scoring-only handedness/exposure/min-sample fix. Original visual zone values preserved. -->
+<!-- Pitch Lab V2 HR-predictive update: PitchBagB exact-pitch production + pitcher vulnerability + intersection + usage/sample regression. -->
 <!-- DRL v64.9: Phase 5 unused CSS cleanup.
      Backtest-reweighted buckets: Power 30, Batted Ball 24, Attack Zone 16, Pitcher 10,
      BP Game: Compare Y uses 2 starter IP / 7 bullpen IP; N/blank preserves normal logic.
@@ -9725,6 +9725,7 @@ let stuffMap = {};
 let pitchEVMap = {};
 let pitchWinMap = {};
 let pitchBagMap = {};
+let pitchBagBMap = {};
 let onlyHomersData = [];
 let onlyHomersProfiles = { batters:{}, pitchers:{}, league:{}, meta:{} };
 let batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} };
@@ -10904,7 +10905,7 @@ const data = await f.arrayBuffer();
 const workbook = XLSX.read(data, {type:'array', cellStyles:false, cellNF:false, cellHTML:false, bookVBA:false});
 window.drlCurrentWorkbook = workbook;
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], day14Raw = [], day30Raw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [], pOddsRaw = [];
-let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
+let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], pitchBagBRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
 let batTrackingSheetNames = {}; 
 teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; day14Map = {}; day30Map = {}; bullpenData = {}; bullpenGameByTeam = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = []; pitcherTeamMap = {}; batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} }; zoneBMap = {}; zonePMap = {};
 workbook.SheetNames.forEach(sheetName => {
@@ -10953,6 +10954,7 @@ if (nameClean === 'STUFF') stuffRaw = XLSX.utils.sheet_to_json(workbook.Sheets[s
 if (nameClean === 'PITCHEV') pitchEVRaw = sheetToJsonSmart(workbook, sheetName, ['Name','Player']);
 if (nameClean === 'PW') pitchWinRaw = sheetToJsonSmart(workbook, sheetName, ['Name','Player']);
 if (nameClean === 'PITCHBAG') pitchBagRaw = sheetToJsonSmart(workbook, sheetName, ['last_name, first_name','pitch_type']);
+if (nameClean === 'PITCHBAGB') pitchBagBRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name','last_name, first_name','pitch_type','Pitch']);
 if (nameClean === 'VSFBR') vsFBRRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
 if (nameClean === 'VSFBL') vsFBLRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
 if (nameClean === 'VSCHR') vsCHRRaw = sheetToJsonSmart(workbook, sheetName, ['Player']);
@@ -11008,6 +11010,7 @@ stuffMap = buildPitchTypeMap(stuffRaw);
 pitchEVMap = mapRowsByName(pitchEVRaw);
 pitchWinMap = mapRowsByName(pitchWinRaw);
 pitchBagMap = buildPitchBagMap(pitchBagRaw);
+pitchBagBMap = buildPitchBagBMap(pitchBagBRaw);
 batterPitchMaps = { FB: { R: mapRowsByName(vsFBRRaw), L: mapRowsByName(vsFBLRaw) }, CH: { R: mapRowsByName(vsCHRRaw), L: mapRowsByName(vsCHLRaw) }, CV: { R: mapRowsByName(vsCVRRaw), L: mapRowsByName(vsCVLRaw) }, SL: { R: mapRowsByName(vsSLRRaw), L: mapRowsByName(vsSLLRaw) }, CU: { R: mapRowsByName(vsCURRaw), L: mapRowsByName(vsCULRaw) } };
 batTrackingMaps = { FBL:{}, FBR:{}, BBL:{}, BBR:{}, OSL:{}, OSR:{} };
 ['FBL','FBR','BBL','BBR','OSL','OSR'].forEach(k => { if (batTrackingSheetNames[k]) batTrackingMaps[k] = buildBatTrackingMap(workbook, batTrackingSheetNames[k]); });
@@ -11803,6 +11806,59 @@ function getPitchBagRow(pitcherName, pt) {
   for (const a of aliases) if (byPitcher[a]) return byPitcher[a];
   return null;
 }
+
+// PitchBagB = hitter results by exact pitch type. This is the primary hitter side
+// for Pitch Lab V2; old pitch-shape sheets remain as a fallback only.
+function buildPitchBagBMap(rows) {
+  const out = {};
+  (rows || []).forEach(row => {
+    const hitter = String(safeGet(row, 'Player', 'Name', 'Batter', 'last_name, first_name', 'player_name') || '').replace(/\u00a0/g,' ').trim();
+    const pitch = pitchKeyFromOnlyHomersPitch(safeGet(row, 'pitch_type', 'Pitch Type', 'pitch_name', 'Pitch'));
+    if (!hitter || !pitch) return;
+    const key = normalizeName(hitter);
+    if (!out[key]) out[key] = {};
+    out[key][pitch] = row;
+  });
+  return out;
+}
+function getPitchBagBRow(hitterName, pt) {
+  const byHitter = pitchBagBMap[normalizeName(hitterName)] || {};
+  const aliases = pitchCodeAliases(pt.key, pt.group);
+  for (const a of aliases) if (byHitter[a]) return byHitter[a];
+  return null;
+}
+function pitchLabV2Reliability(pa) {
+  const n = Math.max(0, Number(pa) || 0);
+  return n / (n + 25);
+}
+function pitchLabV2Regress(raw, avg, pa) {
+  if (raw === null || raw === undefined || isNaN(Number(raw))) return avg;
+  const r = pitchLabV2Reliability(pa);
+  return Number(raw) * r + Number(avg) * (1-r);
+}
+function pitchLabV2Z(raw, avg, spread, pa, inverse=false) {
+  const adj = pitchLabV2Regress(raw, avg, pa);
+  const z = (adj - avg) / Math.max(0.000001, spread);
+  return Math.max(0, 50 + (inverse ? -1 : 1) * z * 18);
+}
+function pitchLabV2PowerFactor(player) {
+  const barrelRow = lookupStat('BARRELL', player.Name) || {};
+  const isoRow = lookupStat('ISO', player.Name) || {};
+  const pxhrRow = lookupStat('PXHR', player.Name) || {};
+  const hr = firstNumber(safeGet(player,'HR','Home Runs'), safeGet(isoRow,'HR','Home Runs'));
+  const pa = firstNumber(safeGet(player,'PA'), safeGet(isoRow,'PA'), safeGet(barrelRow,'PA'));
+  const hrRate = (hr !== null && pa) ? hr/pa : null;
+  const barrel = firstNumber(safeGet(player,'Barrel %','Barrel%','Brl%'), safeGet(barrelRow,'Barrel %','Barrel%','Brl%','Brls/BBE %'));
+  const iso = firstNumber(safeGet(player,'ISO'), safeGet(isoRow,'ISO'));
+  const xhr = firstNumber(safeGet(player,'xHR','XHR'), safeGet(pxhrRow,'xHR','XHR','Projected HR'));
+  const score = pitchLabScoreWeighted([
+    {value:pitchLabV2Z(hrRate, .035, .018, pa || 0), weight:.35},
+    {value:pitchLabV2Z(barrel, 10.0, 4.0, pa || 0), weight:.30},
+    {value:pitchLabV2Z(iso, .170, .075, pa || 0), weight:.25},
+    {value:pitchLabV2Z(xhr, 10, 8, pa || 0), weight:.10}
+  ], 50);
+  return Math.max(.85, Math.min(1.15, 1 + (score-50)/300));
+}
 function pitchLabReadNumber(row, keys) {
   if (!row) return null;
   const requested = (keys || []).map(k => String(k || ''));
@@ -12039,69 +12095,65 @@ function getPitchLabOverallFallback(playerName) {
 }
 function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
   const pt = pitchType || { key: group, group };
-  const row = getBatterPitchShapeRow(playerName, group, pitcherHand);
+  const row = getPitchBagBRow(playerName, pt);
   const ev = getPitchEVScore(playerName, pt);
-  let shape = {
-    score: 50, grade: 'C', bbe: 0,
-    barrel: null, hard: null, xslg: null, ev: ev.value, maxEV: ev.maxValue,
-    pull: null, la: null, hr: null, hrRate: null,
-    note: 'No pitch-shape HR data'
-  };
 
-  if (Object.keys(row).length) {
-    const bbe = pitchLabReadNumber(row, ['BBE','Batted Ball Events','batted_ball_events','BIP','Balls In Play','PA','AB','Pitches','Total Pitches']);
-    const barrel = pitchLabReadNumber(row, ['Barrel %','Barrel%','Barrels %','Brl%','Brls/BBE %','Barrels/BBE','Barrel Rate','barrel_percent']);
-    const hard = pitchLabReadNumber(row, ['Hard Hit %','HardHit%','Hard Hit%','Hard-Hit %','HH%','hard_hit_percent']);
-    const xslg = pitchLabReadNumber(row, ['xSLG','xSLG vs Pitch','xSLG/BBE','Expected SLG','est_slg','expected_slg','xslug']);
-    const pull = pitchLabReadRate(row, ['Pull %','Pull%','Pulled %','Pulled Air %','Pulled-Air %','pull_percent']);
-    const la = pitchLabReadNumber(row, ['Launch Angle','Launch Angle °','LA','Avg LA','launch_angle']);
-    const hr = pitchLabReadNumber(row, ['HR','Home Runs','Homeruns','HR vs Pitch','home_runs']);
-    const hrRate = pitchLabHRRate(hr, bbe);
-    const sample = Math.min(1, (bbe || 0) / 35);
+  if (row) {
+    const pa = pitchLabReadNumber(row, ['PA','pa','Plate Appearances','Pitches','pitches']);
+    const pitches = pitchLabReadNumber(row, ['Pitches','pitches','Pitch Count']);
+    const rv100 = pitchLabReadNumber(row, ['RV/100','Run Value/100','run_value_per_100','RV100']);
+    const runValue = pitchLabReadNumber(row, ['Run Value','run_value','RV']);
+    const slg = pitchLabReadNumber(row, ['SLG','Slugging','slg']);
+    const woba = pitchLabReadNumber(row, ['wOBA','WOBA','woba']);
+    const whiff = pitchLabReadNumber(row, ['Whiff %','Whiff%','whiff_percent']);
+    const k = pitchLabReadNumber(row, ['K %','K%','Strikeout %','k_percent']);
+    const putAway = pitchLabReadNumber(row, ['Put Away %','PutAway%','put_away_percent']);
+    const xslg = pitchLabReadNumber(row, ['xSLG','est_slg','expected_slg']);
+    const xwoba = pitchLabReadNumber(row, ['xwOBA','xWOBA','est_woba','expected_woba']);
+    const hard = pitchLabReadNumber(row, ['Hard Hit %','Hard Hit%','HardHit%','hard_hit_percent']);
 
-    // HR-only hitter pitch damage. Every metric is independently tuned and
-    // regressed by this exact pitch-family sample. No 100 ceiling.
-    const rawDamage = pitchLabScoreWeighted([
-      { value: pitchLabOpenMetric(barrel, 10.0, 4.0, bbe, 45, 22), weight: 0.40 },
-      { value: pitchLabIdealLaunchScore(la, bbe, 50), weight: 0.30 },
-      { value: pitchLabOpenMetric(pull, .42, .06, bbe, 60, 16), weight: 0.30 }
+    // Pitch Lab V2 hitter score: actual/expected power against this exact pitch,
+    // plus the ability to put the pitch in play. All values are regressed by PA/(PA+25).
+    const score = pitchLabScoreWeighted([
+      { value: pitchLabV2Z(xslg, .430, .110, pa), weight: .30 },
+      { value: pitchLabV2Z(hard, 40.0, 8.0, pa), weight: .20 },
+      { value: pitchLabV2Z(rv100, 0.0, 2.5, pa), weight: .15 },
+      { value: pitchLabV2Z(slg, .420, .120, pa), weight: .10 },
+      { value: pitchLabV2Z(xwoba, .320, .070, pa), weight: .10 },
+      { value: pitchLabV2Z(whiff, 25.0, 8.0, pa, true), weight: .07 },
+      { value: pitchLabV2Z(k, 23.0, 8.0, pa, true), weight: .05 },
+      { value: pitchLabV2Z(putAway, 20.0, 7.0, pa, true), weight: .03 }
     ], 50);
-    const score = rawDamage;
-    shape = {
-      score: Math.max(0, score), grade: gradeFromScore(score), bbe,
-      barrel, hard, xslg, ev: ev.value, maxEV: ev.maxValue, pull, la, hr, hrRate,
-      note: `Barrel ${barrel ?? '--'}% / HH ${hard ?? '--'}% / xSLG ${xslg ?? '--'} / EV ${ev.value ?? '--'} / Max ${ev.maxValue ?? '--'} / Pull ${pull !== null ? pctFmt(pull) : '--'} / LA ${la ?? '--'} / HR ${hr ?? '--'}`
-    };
-  } else {
-    const fallback = getPitchLabOverallFallback(playerName);
-    const hrRate = pitchLabHRRate(fallback.hr, fallback.bbe);
-    const fallbackExposure = Math.max(0, Number(fallback.bbe) || 0);
-    const fallbackDamage = pitchLabScoreWeighted([
-      { value: pitchLabOpenMetric(fallback.barrel, 10.0, 4.0, fallbackExposure, 70, 22), weight: 0.40 },
-      { value: pitchLabIdealLaunchScore(fallback.la, fallbackExposure, 75), weight: 0.30 },
-      { value: pitchLabOpenMetric(fallback.pull, .42, .06, fallbackExposure, 85, 16), weight: 0.30 }
-    ], 50);
-    shape = {
-      ...shape,
-      score: fallbackDamage,
-      grade: gradeFromScore(fallbackDamage),
-      bbe: fallback.bbe || 0,
-      barrel: fallback.barrel,
-      hard: fallback.hard,
-      xslg: fallback.xslg,
-      ev: ev.value,
-      maxEV: ev.maxValue,
-      pull: fallback.pull,
-      la: fallback.la,
-      hr: fallback.hr,
-      hrRate,
-      note: `Season fallback // Barrel ${fallback.barrel ?? '--'}% / HH ${fallback.hard ?? '--'}% / xSLG ${fallback.xslg ?? '--'} / EV ${ev.value ?? '--'} / Pull ${fallback.pull !== null && fallback.pull !== undefined ? pctFmt(fallback.pull) : '--'} / LA ${fallback.la ?? '--'} / HR ${fallback.hr ?? '--'}`
+
+    return {
+      score: Math.max(0, score), grade: gradeFromScore(score), bbe: pa || 0, pa, pitches,
+      rv100, runValue, slg, woba, whiff, k, putAway, xslg, xwoba, hard,
+      barrel: null, pull: null, la: null, hr: null, hrRate: null,
+      ev: ev.value, maxEV: ev.maxValue, shape: {xslg, hard, rv100, slg, xwoba, whiff, k, putAway},
+      source: 'PitchBagB', reliability: pitchLabV2Reliability(pa),
+      note: `PitchBagB exact pitch // PA ${pa ?? '--'} / RV100 ${rv100 ?? '--'} / xSLG ${xslg ?? '--'} / HH ${hard ?? '--'}% / Whiff ${whiff ?? '--'}% / K ${k ?? '--'}%`
     };
   }
 
-  return { ...shape, grade: gradeFromScore(shape.score), shape, ev, note: `${shape.note}` };
+  // Backward-compatible fallback when PitchBagB has no exact pitch row.
+  const oldRow = getBatterPitchShapeRow(playerName, group, pitcherHand);
+  const fallback = getPitchLabOverallFallback(playerName);
+  const source = Object.keys(oldRow).length ? oldRow : fallback;
+  const sample = pitchLabReadNumber(source, ['PA','AB','BBE','Pitches']) || fallback.bbe || 0;
+  const xslg = pitchLabReadNumber(source, ['xSLG','Expected SLG','est_slg']) ?? fallback.xslg;
+  const hard = pitchLabReadNumber(source, ['Hard Hit %','HardHit%','HH%']) ?? fallback.hard;
+  const barrel = pitchLabReadNumber(source, ['Barrel %','Barrel%','Brl%']) ?? fallback.barrel;
+  const score = pitchLabScoreWeighted([
+    {value:pitchLabV2Z(xslg, .430, .110, sample), weight:.45},
+    {value:pitchLabV2Z(hard, 40.0, 8.0, sample), weight:.30},
+    {value:pitchLabV2Z(barrel, 10.0, 4.0, sample), weight:.25}
+  ], 50);
+  return {
+    score, grade:gradeFromScore(score), bbe:sample, pa:sample, xslg, hard, barrel,
+    ev:ev.value, maxEV:ev.maxValue, shape:{xslg,hard,barrel}, source:'Fallback', reliability:pitchLabV2Reliability(sample),
+    note:`Fallback pitch family // sample ${sample || 0} / xSLG ${xslg ?? '--'} / HH ${hard ?? '--'}% / Barrel ${barrel ?? '--'}%`
+  };
 }
-
 
 function buildPitchLabProfile(player) {
   if (!player) return null;
@@ -12119,13 +12171,16 @@ function buildPitchLabProfile(player) {
     const pitcherDamage = pitcherPitchDamageScore(pitcherName, pt);
     const stuffWeakness = Math.max(0, 100 + (100 - stuff)); // open-ended: lower Stuff+ helps hitter HR odds
 
-    // Per-pitch HR matchup only: hitter HR damage against this pitch + pitcher HR weakness on this pitch.
-    // Usage is NOT a standalone stat now; it is the multiplier/weight that decides how much this pitch matters.
-    const edge = pitchLabScoreWeighted([
-      { value: bat.score, weight: 0.66 },
-      { value: pitcherDamage.score, weight: 0.29 },
-      { value: stuffWeakness, weight: 0.05 }
+    // Pitch Lab V2: hitter exact-pitch production + pitcher vulnerability + agreement intersection.
+    // Stuff+ is a bounded modifier, not a large standalone bucket.
+    const intersection = Math.sqrt(Math.max(0, bat.score) * Math.max(0, pitcherDamage.score));
+    const baseEdge = pitchLabScoreWeighted([
+      { value: bat.score, weight: 0.55 },
+      { value: pitcherDamage.score, weight: 0.35 },
+      { value: intersection, weight: 0.10 }
     ], 50);
+    const stuffModifier = Math.max(0.95, Math.min(1.05, 1 + (stuffWeakness - 100) / 500));
+    const edge = Math.max(0, baseEdge * stuffModifier);
     const onlyHomers = pitchHrAffinityScore(player.Name, pitcherName, pt);
     rows.push({ ...pt, usage, stuff, stuffWeakness, bat, pitcherDamage, onlyHomers, edge, usageExposure: Math.max(0, Math.min(100, usage * 200)) });
   });
@@ -12174,7 +12229,8 @@ function buildPitchLabProfile(player) {
   const barrelRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.barrel : null);
   const hardHitRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.hard : null);
 
-  const finalScore = Math.max(0, Number(pitchMixScore) || 50);
+  const powerFactor = pitchLabV2PowerFactor(player);
+  const finalScore = Math.max(0, (Number(pitchMixScore) || 50) * powerFactor);
   const top = rows[0] || null;
   return {
     player, pitcherName, pitcherHand, rows,
@@ -12201,7 +12257,8 @@ function buildPitchLabProfile(player) {
     zoneScore: 50,
     zone: null,
     grade: gradeFromScore(finalScore), top,
-    summary: `Usage-weighted HR-only Pitch Lab: each pitch edge is multiplied by the pitcher's actual usage. Metrics: Barrel, Hard Hit, xSLG, EV, Max EV, Pull, Launch Angle, HR.`,
+    powerFactor,
+    summary: `Pitch Lab V2: PitchBagB exact-pitch hitter production, pitcher pitch vulnerability, matchup intersection, pitcher usage, sample regression and bounded power/Stuff+ modifiers.`,
     note: `Usage-weighted ${scoreBarPct(finalScore)} // Barrel ${barrelRateWeighted !== null ? Number(barrelRateWeighted).toFixed(1)+'%' : '--'} / HH ${hardHitRateWeighted !== null ? Number(hardHitRateWeighted).toFixed(1)+'%' : '--'} / xSLG ${xslgWeighted !== null ? Number(xslgWeighted).toFixed(3) : '--'} / EV ${pitchEVValue !== null && pitchEVValue !== undefined && !isNaN(pitchEVValue) ? Number(pitchEVValue).toFixed(1) : '--'} / Max ${maxEVValue !== null && maxEVValue !== undefined && !isNaN(maxEVValue) ? Number(maxEVValue).toFixed(1) : '--'} / Pull ${pullRateWeighted !== null ? pctFmt(pullRateWeighted) : '--'} / LA ${launchAngleWeighted !== null ? Number(launchAngleWeighted).toFixed(1) : '--'}`
   };
 }
