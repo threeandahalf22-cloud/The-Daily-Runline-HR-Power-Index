@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line</title>
+<!-- HR Attack Map V6: scoring-only handedness/exposure/min-sample fix. Original visual zone values preserved. -->
 <!-- DRL v64.9: Phase 5 unused CSS cleanup.
      Backtest-reweighted buckets: Power 30, Batted Ball 24, Attack Zone 16, Pitcher 10,
      BP Game: Compare Y uses 2 starter IP / 7 bullpen IP; N/blank preserves normal logic.
@@ -13854,6 +13855,7 @@ function zoneExtractStats(row) {
     avg: zoneFirstNumber(row, ['ba','BA','AVG','avg','batting_avg','batting_average','batting_average_percent']),
     slg: zoneFirstNumber(row, ['slg','SLG','slugging_percent','Slugging %','slugging','SLG Allowed']),
     xslg: zoneFirstNumber(row, ['xslg','xSLG','estimated_slg_using_speedangle','Expected SLG','est_slg','estimated_slg','xSLG Allowed','estimated_slg_allowed']),
+    xwoba: zoneFirstNumber(row, ['xwoba','xwOBA','estimated_woba_using_speedangle','Expected wOBA','est_woba','estimated_woba','xwOBA Allowed','estimated_woba_allowed']),
     iso: zoneFirstNumber(row, ['iso','ISO']),
     ev: zoneFirstNumber(row, ['launch_speed','Launch Speed','EV','Avg EV','average_ev','avg_exit_velocity','exit_velocity_avg','EV Allowed','launch_speed_allowed']),
     maxev: zoneFirstNumber(row, ['max_hit_speed','Max EV','max_ev','maxEV','Max Exit Velocity','max_exit_velocity','max_hit_speed_allowed','Max EV Allowed']),
@@ -13887,7 +13889,7 @@ function zoneValueIsFilled(v) {
 function zoneMergeDisplayStatsFromPieces(pieces, statKey, preferredStats) {
   const out = { ...(preferredStats || {}) };
   const ordered = (pieces || []).slice().sort((a,b) => (Number(b.w) || 0) - (Number(a.w) || 0));
-  const fields = ['hr','avg','slg','xslg','iso','ev','maxev','barrel','barrelPA','hardhit','sweetspot','pull','fb','gb','la','batSpeed','contact','whiff','pitches','pa','bbe','pitchPct'];
+  const fields = ['hr','avg','slg','xslg','xwoba','iso','ev','maxev','barrel','barrelPA','hardhit','sweetspot','pull','fb','gb','la','batSpeed','contact','whiff','pitches','pa','bbe','pitchPct'];
   fields.forEach(field => {
     if (zoneValueIsFilled(out[field])) return;
     for (const piece of ordered) {
@@ -14088,6 +14090,62 @@ function attackZoneLeagueDanger(bucket, zone) {
   const familyAdjustment = family === 'FB' ? 2 : family === 'BR' ? -1 : family === 'OS' ? 0 : 0;
   return Math.max(20, locationScore + familyAdjustment);
 }
+
+// ===== HR ATTACK MAP V6: scoring-only matchup engine =====
+// The visible zone cards keep the original hitter/pitcher values and heat colors.
+// These helpers affect only the calculated Attack Zone matchup score.
+const ATTACK_ZONE_MIN_PITCHES_PER_ZONE = 20;
+const ATTACK_ZONE_LOGICAL_HR_WEIGHT = Object.freeze({1:0.30,2:0.60,3:0.40,4:0.85,5:1.00,6:0.75,7:0.10,8:0.55,9:0.25});
+function attackZoneExpectedBatSide(player, pitcherName) {
+  let hand = String(safeGet(player,'Bats','Bat Side','Hand','Batting Side') || '').trim().toUpperCase();
+  if (hand.startsWith('S')) {
+    const prow = lookupStat('PITCHER', pitcherName) || lookupStat('PITCHERR', pitcherName) || lookupStat('PITCHERL', pitcherName) || {};
+    const throws = String(safeGet(prow,'Throws','Throwing Hand','Hand','Pitcher Hand') || safeGet(player,'Opp Pitcher Throws','Pitcher Throws') || '').trim().toUpperCase();
+    hand = throws.startsWith('L') ? 'R' : 'L';
+  }
+  return hand.startsWith('L') ? 'L' : 'R';
+}
+function attackZonePhysicalIndex(logicalZone, batSide) {
+  const z = Number(logicalZone);
+  if (String(batSide).toUpperCase() !== 'L') return z;
+  return ({1:3,2:2,3:1,4:6,5:5,6:4,7:9,8:8,9:7})[z] || z;
+}
+function attackZoneZ(v, mean, sd) {
+  const n=Number(v); return Number.isFinite(n) && Number.isFinite(sd) && sd>0 ? (n-mean)/sd : 0;
+}
+function attackZoneRateFromCount(count, stats) {
+  const c=Number(count); if (!Number.isFinite(c)) return null;
+  const sample=Math.max(Number(stats&&stats.pa)||0, Number(stats&&stats.bbe)||0, (Number(stats&&stats.pitches)||0)/3.5);
+  return sample>0 ? c/sample : null;
+}
+function attackZoneHitterComposite(stats) {
+  const s=stats||{};
+  const hrRate=attackZoneRateFromCount(s.hr,s);
+  const barrelRate=Number.isFinite(Number(s.barrel))?Number(s.barrel):(Number.isFinite(Number(s.barrelPA))?Number(s.barrelPA):null);
+  return 0.35*attackZoneZ(hrRate,0.030,0.025)
+       + 0.25*attackZoneZ(barrelRate,0.080,0.055)
+       + 0.15*attackZoneZ(s.xslg,0.430,0.170)
+       + 0.15*attackZoneZ(s.xwoba,0.330,0.095)
+       + 0.05*attackZoneZ(s.ev,89.0,4.5)
+       + 0.05*attackZoneZ(s.la,12.5,10.0);
+}
+function attackZonePitcherComposite(stats) {
+  const s=stats||{};
+  const hrRate=attackZoneRateFromCount(s.hr,s);
+  return 0.40*attackZoneZ(hrRate,0.030,0.025)
+       + 0.25*attackZoneZ(s.xslg,0.430,0.170)
+       + 0.20*attackZoneZ(s.xwoba,0.330,0.095)
+       + 0.10*attackZoneZ(s.ev,89.0,4.5)
+       + 0.05*attackZoneZ(s.la,12.5,10.0);
+}
+function attackZonePositiveFactor(z) {
+  const n=Number(z); return Math.max(0.10, Math.min(3.00, 1 + (Number.isFinite(n)?n:0)*0.35));
+}
+function attackZonePitcherZoneQualified(stats) {
+  const pitches=Number(stats&&stats.pitches);
+  // Only exclude when the sheet actually supplies a pitch count and it is clearly too small.
+  return !Number.isFinite(pitches) || pitches<=0 || pitches>=ATTACK_ZONE_MIN_PITCHES_PER_ZONE;
+}
 function attackZoneInteractionEdge(batterDamage, pitcherVulnerability, batterStats, pitcherStats, leagueDanger = 50) {
   // Usage-only pitcher logic: the pitcher's results/vulnerability in a zone do not affect the score.
   // This value is strictly the hitter's damage rating in that zone. Pitcher zone usage is applied
@@ -14097,49 +14155,21 @@ function attackZoneInteractionEdge(batterDamage, pitcherVulnerability, batterSta
 }
 function attackZoneMatrixScore(zones) {
   if (!Array.isArray(zones) || !zones.length) return null;
-  const valid = zones.filter(z => Number.isFinite(Number(z.edge)));
-  if (!valid.length) return null;
+  const qualified = zones.filter(z => z && z.attackScoreQualified !== false && Number.isFinite(Number(z.scoringOpportunity)));
+  if (!qualified.length) return null;
 
-  // Usage-Only Zone Opportunity Engine:
-  // 1) Each zone's skill value is the batter's zone damage score only.
-  // 2) The pitcher contributes only how often he throws in that zone.
-  // 3) Rank all nine zones by Batter Zone Damage x Pitcher Zone Usage.
-  // 4) Score the matchup from the top three actual opportunities.
-  const rawExposureTotal = valid.reduce((sum, z) => {
-    const usage = Number.isFinite(Number(z.pitchPct)) && Number(z.pitchPct) >= 0
-      ? Number(z.pitchPct)
-      : (1 / 9);
-    return sum + usage;
-  }, 0) || 1;
+  // Low-sample pitcher zones are excluded from scoring only. The cards remain unchanged.
+  const rawAttackIndex = qualified.reduce((sum,z)=>sum + Math.max(0,Number(z.scoringOpportunity)||0),0);
+  const top3 = qualified.slice().sort((a,b)=>(Number(b.scoringOpportunity)||0)-(Number(a.scoringOpportunity)||0)).slice(0,3);
+  const top3Usage = top3.reduce((sum,z)=>sum + Math.max(0,Number(z.pitchPct)||0),0);
+  const exposureConfidence = Math.max(0.20,Math.min(1,top3Usage/0.36));
 
-  const opportunities = valid.map(z => {
-    const rawUsage = Number.isFinite(Number(z.pitchPct)) && Number(z.pitchPct) >= 0
-      ? Number(z.pitchPct)
-      : (1 / 9);
-    const usage = rawUsage / rawExposureTotal;
-    const batterZoneDamage = Math.max(0, Number(z.edge));
-    return {
-      zone: Number(z.zone),
-      edge: batterZoneDamage,
-      exposure: usage,
-      opportunitySignal: batterZoneDamage * usage
-    };
-  });
-
-  const top3 = opportunities
-    .slice()
-    .sort((a, b) => b.opportunitySignal - a.opportunitySignal)
-    .slice(0, 3);
-  if (!top3.length) return null;
-
-  // The selected zones are averaged by the pitcher's relative usage. A great hitter zone with
-  // almost no pitcher traffic therefore contributes very little and normally will not reach top three.
-  const top3Usage = top3.reduce((sum, z) => sum + z.exposure, 0) || 1;
-  const top3Score = top3.reduce((sum, z) => sum + (z.edge * z.exposure), 0) / top3Usage;
-
-  // Require meaningful combined traffic before allowing the full matchup lift.
-  const exposureConfidence = Math.max(0.20, Math.min(1, top3Usage / 0.36));
-  return 50 + ((top3Score - 50) * exposureConfidence);
+  // Stable 100-centered scale. Cross-slate normalization is applied later when a full slate is available;
+  // this local transform prevents a single card render from changing the visible zone values.
+  const normalizedIndex = (Math.log1p(rawAttackIndex*900)-2.45)/0.75;
+  const attackScore = 100 + normalizedIndex*25;
+  const finalScore = 100 + (attackScore-100)*exposureConfidence;
+  return Math.max(0,Math.min(175,finalScore));
 }
 function attackZoneDisplayPeak(zones) {
   let peak = null;
@@ -14162,55 +14192,61 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   const pitcherName = String(safeGet(player, 'Opp Pitcher', 'Opp Pitcher Name', 'Pitcher', 'Pitcher Name') || '').trim();
   const suffix = bucket && bucket !== 'GENERIC' ? bucket : '';
   const bucketName = bucket && bucket !== 'GENERIC' ? zoneBucketLabel(bucket) : 'Generic';
+  const batSide = attackZoneExpectedBatSide(player,pitcherName);
   const zones = [];
-  for (let i = 1; i <= 9; i++) {
-    const bRow = zoneSheetHasData('BZ' + i + suffix, hitterName) || (!suffix ? null : zoneSheetHasData('BZ' + i, hitterName));
-    const pRow = zoneSheetHasData('PZ' + i + suffix, pitcherName) || (!suffix ? null : zoneSheetHasData('PZ' + i, pitcherName));
+  for (let logicalZone = 1; logicalZone <= 9; logicalZone++) {
+    const physicalZone = attackZonePhysicalIndex(logicalZone,batSide);
+    const bRow = zoneSheetHasData('BZ' + physicalZone + suffix, hitterName) || (!suffix ? null : zoneSheetHasData('BZ' + physicalZone, hitterName));
+    const pRow = zoneSheetHasData('PZ' + physicalZone + suffix, pitcherName) || (!suffix ? null : zoneSheetHasData('PZ' + physicalZone, pitcherName));
     const hasB = bRow && Object.keys(bRow).length;
     const hasP = pRow && Object.keys(pRow).length;
     if (!hasB && !hasP) continue;
     const batterStats = zoneEnrichBatterStats(zoneExtractStats(hasB ? bRow : {}), player, hitterName);
     const pitcherStats = zoneEnrichPitcherStats(zoneExtractStats(hasP ? pRow : {}), player, pitcherName);
+
+    // Preserve the original visual scores exactly.
     const batterDamage = hasB ? buildAttackZoneDamageScore(bRow, 'batter') : null;
     const starterPitcherVulnerability = hasP ? buildAttackZoneDamageScore(pRow, 'pitcher') : null;
     const pitcherVulnerability = starterPitcherVulnerability;
-    let starterPitchPct = hasP ? pitcherStats.pitchPct : null;
-    if (starterPitchPct === null && hasP) starterPitchPct = 1 / 9;
-    let pitchPct = starterPitchPct;
+    let pitchPct = hasP ? pitcherStats.pitchPct : null;
     const freqScore = attackZoneScaleScore('freq', pitchPct === null ? 1/9 : pitchPct);
-    const leagueDanger = attackZoneLeagueDanger(bucket || 'GENERIC', i);
-    const edge = attackZoneInteractionEdge(
-      batterDamage,
-      pitcherVulnerability,
-      batterStats,
-      pitcherStats,
-      leagueDanger
-    );
+    const leagueDanger = attackZoneLeagueDanger(bucket || 'GENERIC', logicalZone);
+    const edge = attackZoneInteractionEdge(batterDamage,pitcherVulnerability,batterStats,pitcherStats,leagueDanger);
     if (edge === null || edge === undefined || isNaN(edge)) continue;
+
+    // New scoring-only opportunity formula.
+    const hitterZ = attackZoneHitterComposite(batterStats);
+    const pitcherZ = attackZonePitcherComposite(pitcherStats);
+    const pitcherUsage = Number.isFinite(Number(pitchPct)) ? Math.max(0,Number(pitchPct)) : 0;
+    const hitterExposure = Number.isFinite(Number(batterStats.pitchPct)) ? Math.max(0,Number(batterStats.pitchPct)) : (1/9);
+    const zoneWeight = ATTACK_ZONE_LOGICAL_HR_WEIGHT[logicalZone] || 0.25;
+    const attackScoreQualified = !!hasP && attackZonePitcherZoneQualified(pitcherStats) && pitcherUsage>0;
+    const scoringOpportunity = attackScoreQualified
+      ? attackZonePositiveFactor(hitterZ)*pitcherUsage*attackZonePositiveFactor(pitcherZ)*zoneWeight*hitterExposure
+      : null;
+
     zones.push({
-      zone: i, bucket: bucket || 'GENERIC', bucketLabel: bucketName,
-      batterDamage, pitcherVulnerability, leagueDanger,
-      starterPitcherVulnerability, bullpenPitcherVulnerability:null,
-      bullpenTeam:null,
-      bullpenPitchPct:null,
-      pitchFrequencyScore: freqScore,
-      pitchPct: pitchPct === null ? null : Math.max(0, Math.min(1, Number(pitchPct))),
-      expectedPitchPct: pitchPct === null ? null : Math.max(0, Math.min(1, Number(pitchPct) * (Number(mixWeight) || 0))),
-      edge: Number(edge),
-      weightedEdge: Number(edge),
-      batterPitchPct: hasB ? batterStats.pitchPct : null,
-      pitcherPitches: pitcherStats.pitches,
-      hitterXSLG: batterStats.xslg,
-      pitcherXSLG: pitcherStats.xslg,
-      batterStats, pitcherStats, bullpenStats:{}
+      zone:logicalZone, physicalZone, batSide, bucket:bucket||'GENERIC', bucketLabel:bucketName,
+      batterDamage,pitcherVulnerability,leagueDanger,
+      starterPitcherVulnerability,bullpenPitcherVulnerability:null,bullpenTeam:null,bullpenPitchPct:null,
+      pitchFrequencyScore:freqScore,
+      pitchPct:pitchPct===null?null:Math.max(0,Math.min(1,Number(pitchPct))),
+      expectedPitchPct:pitchPct===null?null:Math.max(0,Math.min(1,Number(pitchPct)*(Number(mixWeight)||0))),
+      edge:Number(edge),weightedEdge:Number(edge),
+      batterPitchPct:hasB?batterStats.pitchPct:null,pitcherPitches:pitcherStats.pitches,
+      hitterXSLG:batterStats.xslg,pitcherXSLG:pitcherStats.xslg,
+      hitterDamageZ:hitterZ,pitcherVulnerabilityZ:pitcherZ,zoneHRWeight:zoneWeight,
+      scoringOpportunity,attackScoreQualified,
+      batterStats,pitcherStats,bullpenStats:{}
     });
   }
-  if (!zones.length) return { score:null, zones:[], topZone:null, bucket: bucket || 'GENERIC', bucketLabel: bucketName, summary:`No ${bucketName} BZ/PZ zone data found.` };
+  if (!zones.length) return {score:null,zones:[],topZone:null,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary:`No ${bucketName} BZ/PZ zone data found.`};
   const weightedAvgEdge = zones.reduce((s,z)=>s+(Number(z.edge)||0)*(Number(z.pitchPct)||(1/zones.length)),0) / zones.reduce((s,z)=>s+(Number(z.pitchPct)||(1/zones.length)),0);
   const score = attackZoneMatrixScore(zones);
-  const topZone = attackZoneDisplayPeak(zones); // Display only; it no longer affects scoring.
-  const summary = topZone ? zoneBuildSummary(hitterName, pitcherName, topZone) : `No ${bucketName} edge`;
-  return { score, zones, topZone, bucket: bucket || 'GENERIC', bucketLabel: bucketName, summary, weightedAvgEdge, scoringEngine:'TOP_3_USAGE_ONLY_V2' };
+  const scoringTop = zones.filter(z=>z.attackScoreQualified!==false&&Number.isFinite(Number(z.scoringOpportunity))).sort((a,b)=>Number(b.scoringOpportunity)-Number(a.scoringOpportunity))[0];
+  const topZone = scoringTop || attackZoneDisplayPeak(zones);
+  const summary = topZone ? zoneBuildSummary(hitterName,pitcherName,topZone) : `No ${bucketName} qualified scoring zones`;
+  return {score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,weightedAvgEdge,batSide,scoringEngine:'HANDEDNESS_EXPOSURE_V6'};
 }
 function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   const hitterName = player && player.Name;
@@ -14413,7 +14449,7 @@ function zoneRecomputeProfileScore(profile, hitterName, pitcherName) {
   profile.weightedAvgEdge = weightedAvgEdge;
   const matrixScore = attackZoneMatrixScore(profile.zones);
   profile.score = matrixScore === null || matrixScore === undefined || isNaN(Number(matrixScore)) ? profile.score : matrixScore;
-  profile.scoringEngine = 'TOP_3_USAGE_ONLY_V2';
+  profile.scoringEngine = profile.scoringEngine || 'HANDEDNESS_EXPOSURE_V6';
   if (profile.topZone) profile.summary = zoneBuildSummary(hitterName, pitcherName, profile.topZone);
   return profile;
 }
@@ -14456,8 +14492,8 @@ function calculateAttackZoneProfile(player) {
     weighted.mix = { FB:0, BR:0, OS:0 };
     weighted.bucketProfiles = {};
     weighted.activeView = 'WEIGHTED';
-    weighted.formula = 'Usage-only zone opportunity engine: rank all 9 batter zone damage scores by starting-pitcher zone usage, then score the top 3 real opportunities. Pitcher zone results and bullpen are excluded.';
-    weighted.scoringEngine = 'TOP_3_USAGE_ONLY_V2';
+    weighted.formula = 'Handedness-aware hitter damage × pitcher usage × pitcher vulnerability × zone HR weight × hitter exposure. Low-sample pitcher zones remain visible but are excluded from scoring.';
+    weighted.scoringEngine = 'HANDEDNESS_EXPOSURE_V6';
     return weighted;
   } catch (err) {
     console.warn('Attack Zone calculation failed for', player && player.Name, err);
