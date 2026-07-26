@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line</title>
 <!-- Attack Zone V7: all nine batter zones weighted by opposing pitcher PZ pitch_percent. -->
+<!-- Targeted hybrid upgrade: old additive model retained; only platoon adjustment,
+     unified Pitch Lab/Attack Zone multiplier, pitcher multiplier, and hitter-specific weather multiplier added. -->
 <!-- Pitch Lab V2 stats display fix: cards show PitchBagB fields actually used by the score. -->
 <!-- Pitch Lab V2 HR-predictive update: PitchBagB exact-pitch production + pitcher vulnerability + intersection + usage/sample regression. -->
 <!-- DRL v64.9: Phase 5 unused CSS cleanup.
@@ -15120,6 +15122,10 @@ function hybridRaw(p) {
     brlsPA: firstRate(safeGet(barrellRow, 'Brls/PA %', 'Barrels/PA %'), safeGet(ssRow, 'Brls/PA %'), safeGet(scastRow, 'Brls/PA %')),
     iso: firstNumber(safeGet(isoHandRow, 'ISO'), safeGet(p, 'ISO', 'Iso')),
     slg: firstNumber(safeGet(p, 'SLG'), safeGet(isoHandRow, 'SLG')),
+    overallISO: firstNumber(safeGet(lookupStat('ISO', p.Name), 'ISO'), safeGet(p, 'ISO', 'Iso')),
+    platoonPA: firstNumber(safeGet(isoHandRow, 'PA', 'PAs', 'Plate Appearances')),
+    platoonHR: firstNumber(safeGet(isoHandRow, 'HR', 'Home Runs', 'Homeruns')),
+    platoonSLG: firstNumber(safeGet(isoHandRow, 'SLG', 'Slugging')),
     xwoba: firstNumber(safeGet(barrellRow, 'xwOBA', 'xWOBA'), safeGet(p, 'xwOBA', 'Expected wOBA', 'xWOBA')),
     xslg: firstNumber(safeGet(barrellRow, 'xSLG'), safeGet(ssRow, 'xSLG'), safeGet(scastRow, 'xSLG'), safeGet(p, 'xSLG', 'Expected SLG')),
     avgEV: firstNumber(safeGet(ssRow, 'Avg', 'Avg EV', 'Average EV'), safeGet(barrellRow, 'EV', 'Avg EV', 'Average EV'), safeGet(scastRow, 'Avg', 'Avg EV', 'Average EV'), safeGet(p, 'Avg EV', 'AVG EV', 'EV')),
@@ -15817,6 +15823,65 @@ function hybridMatchPair(a, b) {
   const mismatchDrag = (Math.max(x, y) - Math.min(x, y) >= 42) ? 8 : 0;
   return Math.max(0, Math.min(100, base + alignmentBonus - mismatchDrag));
 }
+
+// ===== TARGETED HYBRID UPGRADES =====
+// The original additive BBI model remains intact. These four controlled multipliers
+// replace only the duplicated additive effects requested by the user.
+function drlTargetClamp(v, low, high) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.max(low, Math.min(high, n)) : 1;
+}
+function drlTargetScoreMultiplier(score, low, high, neutral=50) {
+  const s = Number(score);
+  if (!Number.isFinite(s)) return 1.0;
+  if (s >= neutral) {
+    const t = Math.max(0, Math.min(1, (Math.min(s, 110) - neutral) / 60));
+    return 1 + (t * (high - 1));
+  }
+  const t = Math.max(0, Math.min(1, (neutral - Math.max(0, s)) / neutral));
+  return 1 - (t * (1 - low));
+}
+function drlTargetPlatoonMultiplier(raw) {
+  const pa = Math.max(0, Number(raw && raw.platoonPA) || 0);
+  if (pa <= 0) return 1.0;
+
+  const iso = Number(raw && raw.iso);
+  const slg = Number(raw && raw.platoonSLG);
+  const hr = Math.max(0, Number(raw && raw.platoonHR) || 0);
+  const hrPA = pa > 0 ? hr / pa : null;
+
+  const parts = [];
+  if (Number.isFinite(iso) && iso > 0) parts.push({ ratio:drlTargetClamp(iso / 0.170, 0.55, 1.55), weight:0.45 });
+  if (Number.isFinite(slg) && slg > 0) parts.push({ ratio:drlTargetClamp(slg / 0.410, 0.65, 1.40), weight:0.30 });
+  if (Number.isFinite(hrPA)) parts.push({ ratio:drlTargetClamp(hrPA / 0.030, 0.45, 1.70), weight:0.25 });
+  if (!parts.length) return 1.0;
+
+  let logTotal = 0, weightTotal = 0;
+  parts.forEach(part => {
+    logTotal += Math.log(Math.max(0.05, part.ratio)) * part.weight;
+    weightTotal += part.weight;
+  });
+  const rawShape = Math.exp(logTotal / Math.max(0.01, weightTotal));
+  const reliability = Math.max(0, Math.min(1, pa / 180));
+  const adjusted = 1 + ((rawShape - 1) * reliability);
+  return drlTargetClamp(adjusted, 0.92, 1.08);
+}
+function drlTargetPitchZoneMultiplier(pitchLabScore, attackZoneScore) {
+  const hasLab = Number.isFinite(Number(pitchLabScore));
+  const hasZone = Number.isFinite(Number(attackZoneScore));
+  if (!hasLab && !hasZone) return 1.0;
+  const lab = hasLab ? drlTargetScoreMultiplier(pitchLabScore, 0.92, 1.08) : null;
+  const zone = hasZone ? drlTargetScoreMultiplier(attackZoneScore, 0.92, 1.08) : null;
+  if (lab !== null && zone !== null) return drlTargetClamp(Math.sqrt(lab * zone), 0.92, 1.08);
+  return drlTargetClamp(lab !== null ? lab : zone, 0.92, 1.08);
+}
+function drlTargetPitcherMultiplier(pitcherScore) {
+  return drlTargetClamp(drlTargetScoreMultiplier(pitcherScore, 0.94, 1.06), 0.94, 1.06);
+}
+function drlTargetWeatherMultiplier(raw) {
+  return drlTargetClamp(Number(raw && raw.weatherImpactMultiplier) || 1.0, 0.96, 1.04);
+}
+
 function scoreHybridPlayer(p, ranges) {
   const r = p.hybridRaw;
   const pitcherSample = drlPitcherBucketQualification(p, r, p.attackZoneProfile);
@@ -16017,10 +16082,17 @@ function scoreHybridPlayer(p, ranges) {
   // remaining qualified buckets in proportion to their official active weights.
   // This produces the same fair 100% total without allowing a missing-data zero
   // to bury an entire lineup.
+  // Pitcher, Pitch Lab, Attack Zone and Weather now influence the old BBI through
+  // controlled multipliers below. Their additive slots stay neutral at 50 so the
+  // original weighting structure and score range remain stable without double counting.
+  const targetedMultiplierBuckets = new Set(['pitcher','pitchLevel','attackZone','weather']);
+  const scoringCategoryValues = { ...p.category };
+  targetedMultiplierBuckets.forEach(cat => { scoringCategoryValues[cat] = 50; });
+
   const unavailableBuckets = [];
   let unavailableWeight = 0;
   Object.keys(effectiveCategoryWeights).forEach(cat => {
-    const value = p.category[cat];
+    const value = scoringCategoryValues[cat];
     if ((effectiveCategoryWeights[cat] || 0) > 0 &&
         (value === null || value === undefined || !Number.isFinite(Number(value)))) {
       unavailableBuckets.push(cat);
@@ -16043,24 +16115,30 @@ function scoreHybridPlayer(p, ranges) {
 
   let total = 0, usedWeight = 0;
   Object.keys(effectiveCategoryWeights).forEach(cat => {
-    if (effectiveCategoryWeights[cat] > 0 && p.category[cat] !== null && p.category[cat] !== undefined && !isNaN(p.category[cat])) {
-      total += p.category[cat] * effectiveCategoryWeights[cat];
+    const scoringValue = scoringCategoryValues[cat];
+    if (effectiveCategoryWeights[cat] > 0 && scoringValue !== null && scoringValue !== undefined && !isNaN(scoringValue)) {
+      total += scoringValue * effectiveCategoryWeights[cat];
       usedWeight += effectiveCategoryWeights[cat];
     }
   });
   let score = usedWeight ? total / usedWeight : 0;
   // Core HR Overlay removed. Final score now stays with the active bucket weights only.
 
-  // Missing headers and UI sliders no longer reduce or rescale the calculated BBI.
+  // Four requested upgrades, all intentionally capped to preserve the old BBI scale.
+  const platoonMultiplier = drlTargetPlatoonMultiplier(r);
+  const pitchZoneMultiplier = drlTargetPitchZoneMultiplier(adjustedPitchLevel, attackZone);
+  const pitcherMultiplier = drlTargetPitcherMultiplier(pitcher);
+  const sideWeatherMultiplier = drlTargetWeatherMultiplier(r);
+  const uncappedTargetedMultiplier = platoonMultiplier * pitchZoneMultiplier * pitcherMultiplier * sideWeatherMultiplier;
+  const targetedMultiplier = drlTargetClamp(uncappedTargetedMultiplier, 0.84, 1.18);
+  score *= targetedMultiplier;
 
-  // Side-specific weather multiplier: small but real. RHB/LHB score was already used as a category;
-  // this lets true wind + hitter shape + pitcher air-contact conditions add a controlled bump.
-  const sideWeatherMultiplier = Math.max(0.94, Math.min(1.07, r.weatherImpactMultiplier || 1));
-  score *= sideWeatherMultiplier;
+  p.calculatedPlatoonMultiplier = platoonMultiplier;
+  p.calculatedPitchZoneMultiplier = pitchZoneMultiplier;
+  p.calculatedPitcherMultiplier = pitcherMultiplier;
+  p.calculatedWeatherMultiplier = sideWeatherMultiplier;
+  p.calculatedTargetedMultiplier = targetedMultiplier;
   p.envMultiplier = sideWeatherMultiplier;
-
-  // Separate HR/9 bonus removed; HR/9 is already weighted at 20% inside the unified Pitcher Vulnerability bucket.
-
 
   const baseScoreBeforeSynergy = score;
   const microSynergy = calculateMicroSynergyBonuses(p, r, { power, pitcher, battedBall, pitchLevel: adjustedPitchLevel, attackZone, weather, park });
@@ -16100,6 +16178,13 @@ function scoreHybridPlayer(p, ranges) {
     p.hybridCategoryContributions[cat] = (v !== null && v !== undefined && !isNaN(v)) ? (v * (p.hybridCategoryWeightsUsed[cat] || 0)) : null;
   });
   p.hybridRawSnapshot = { ...r };
+  p.targetedUpgradeBreakdown = {
+    platoonMultiplier: p.calculatedPlatoonMultiplier,
+    pitchZoneMultiplier: p.calculatedPitchZoneMultiplier,
+    pitcherMultiplier: p.calculatedPitcherMultiplier,
+    weatherMultiplier: p.calculatedWeatherMultiplier,
+    combinedMultiplier: p.calculatedTargetedMultiplier
+  };
   // v61.4 final cleanup: every official bucket is now open-ended internally.
   // Keep only a zero floor; visual meters/colors may still clamp independently.
   return Math.max(0, score);
