@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>The Daily Run Line</title>
-<!-- Attack Zone V7: all nine batter zones weighted by opposing pitcher PZ pitch_percent. -->
+<!-- Attack Zone V10: exact pitch-family/zone usage weighting across every positive-use cell, hitter-handedness pull-side context, pitcher vulnerability, HR-specific formulas, true sample smoothing, and no fixed location matrix. -->
 <!-- Targeted hybrid upgrade: old additive model retained; only platoon adjustment,
      unified Pitch Lab/Attack Zone multiplier, pitcher multiplier, and hitter-specific weather multiplier added. -->
 <!-- Pitch Lab V2 stats display fix: cards show PitchBagB fields actually used by the score. -->
@@ -971,6 +971,23 @@ tbody tr.cody-diamond-row:hover td{
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.espn-bo-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  min-width:38px;
+  padding:3px 6px;
+  border-radius:5px;
+  border:1px solid rgba(246,195,67,.38);
+  background:rgba(246,195,67,.09);
+  color:#f6c343;
+  font-family:monospace;
+  font-size:9px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:.45px;
 }
 .espn-team-pill{
   display: inline-flex;
@@ -9744,7 +9761,7 @@ let kProjections = [];
 let pitchLabData = [];
 let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = [];
 let pitcherTeamMap = {};
-const STAT_MODEL_SHEETS = ["WEATHER", "BARRELL", "SS", "SCASTL", "SCASTR", "PAL", "PAR", "RHPBB", "LHPBB", "ISO", "ISOR", "ISOL", "ISOX", "PXHR", "PITCHERBB", "PSS", "PITCHMAX", "PITCHER", "PITCHERR", "PITCHERL", "PITCHERFB", "PITCHERBBL", "PITCHERBBR", "LASTST", "BULLPEN", "BULLPENEV", "BULLPENL7", "BULLPENEVL7", "LINEUPS", "PA", "PARKFACTOR", "PARKFACTORL", "PARKFACTORR", "RZ", "BZ1", "BZ2", "BZ3", "BZ4", "BZ5", "BZ6", "BZ7", "BZ8", "BZ9", "PZ1", "PZ2", "PZ3", "PZ4", "PZ5", "PZ6", "PZ7", "PZ8", "PZ9", "BZ1FB", "BZ2FB", "BZ3FB", "BZ4FB", "BZ5FB", "BZ6FB", "BZ7FB", "BZ8FB", "BZ9FB", "PZ1FB", "PZ2FB", "PZ3FB", "PZ4FB", "PZ5FB", "PZ6FB", "PZ7FB", "PZ8FB", "PZ9FB", "BZ1BR", "BZ2BR", "BZ3BR", "BZ4BR", "BZ5BR", "BZ6BR", "BZ7BR", "BZ8BR", "BZ9BR", "PZ1BR", "PZ2BR", "PZ3BR", "PZ4BR", "PZ5BR", "PZ6BR", "PZ7BR", "PZ8BR", "PZ9BR", "BZ1OS", "BZ2OS", "BZ3OS", "BZ4OS", "BZ5OS", "BZ6OS", "BZ7OS", "BZ8OS", "BZ9OS", "PZ1OS", "PZ2OS", "PZ3OS", "PZ4OS", "PZ5OS", "PZ6OS", "PZ7OS", "PZ8OS", "PZ9OS"];
+const STAT_MODEL_SHEETS = ["WEATHER", "BARRELL", "SS", "SCASTL", "SCASTR", "PAL", "PAR", "RHPBB", "LHPBB", "ISO", "ISOR", "ISOL", "ISOX", "PXHR", "PITCHERBB", "PSS", "PITCHMAX", "PITCHER", "PITCHERR", "PITCHERL", "PITCHERFB", "PITCHERBBL", "PITCHERBBR", "LASTST", "BULLPEN", "BULLPENEV", "BULLPENL7", "BULLPENEVL7", "LINEUPS", "PA", "PARKFACTOR", "PARKFACTORL", "PARKFACTORR", "RZ", "BZ1", "BZ2", "BZ3", "BZ4", "BZ5", "BZ6", "BZ7", "BZ8", "BZ9", "PZ1", "PZ2", "PZ3", "PZ4", "PZ5", "PZ6", "PZ7", "PZ8", "PZ9", "BZ1FB", "BZ2FB", "BZ3FB", "BZ4FB", "BZ5FB", "BZ6FB", "BZ7FB", "BZ8FB", "BZ9FB", "PZ1FB", "PZ2FB", "PZ3FB", "PZ4FB", "PZ5FB", "PZ6FB", "PZ7FB", "PZ8FB", "PZ9FB", "BZ1BB", "BZ2BB", "BZ3BB", "BZ4BB", "BZ5BB", "BZ6BB", "BZ7BB", "BZ8BB", "BZ9BB", "PZ1BB", "PZ2BB", "PZ3BB", "PZ4BB", "PZ5BB", "PZ6BB", "PZ7BB", "PZ8BB", "PZ9BB", "BZ1BR", "BZ2BR", "BZ3BR", "BZ4BR", "BZ5BR", "BZ6BR", "BZ7BR", "BZ8BR", "BZ9BR", "PZ1BR", "PZ2BR", "PZ3BR", "PZ4BR", "PZ5BR", "PZ6BR", "PZ7BR", "PZ8BR", "PZ9BR", "BZ1OS", "BZ2OS", "BZ3OS", "BZ4OS", "BZ5OS", "BZ6OS", "BZ7OS", "BZ8OS", "BZ9OS", "PZ1OS", "PZ2OS", "PZ3OS", "PZ4OS", "PZ5OS", "PZ6OS", "PZ7OS", "PZ8OS", "PZ9OS"];
 function normalizedKey(k) { return String(k || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function lookupStat(sheetKey, name) { return lookupNameMap(statSheetMaps[String(sheetKey || '').toUpperCase()] || {}, name) || {}; }
 function findByTeam(sheetKey, team) {
@@ -10191,7 +10208,7 @@ function renderTopTargetHero() {
   const weather = w && !w.isDome ? `${w.temp}°F • ${w.windSpeed} MPH ${String(w.windDir || '').toUpperCase()}` : 'Closed Dome / Neutral Weather';
   const chips = getPlayerWhyChips(p).map(c => `<span class="hero-why-chip">${c}</span>`).join('');
   const tier = (p.calculatedBBI || 0) >= 95 ? 'Nuclear' : (p.calculatedBBI || 0) >= 90 ? 'Elite' : 'Top Target';
-  hero.innerHTML = `<div class="hero-inner"><div class="hero-headshot-wrap"><div class="hero-rank-badge">#1</div>${headshot}</div><div><div class="hero-title-kicker">Today's Top Target</div><div class="hero-player-name">${p.Name}</div><div class="hero-meta"><span class="hero-meta-chip">${logo}${p.Team}</span><span class="hero-meta-chip">vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span><span class="hero-meta-chip">🏟️ ${visual.name}</span><span class="hero-meta-chip">🌤️ ${weather}</span></div><div class="hero-why-row">${chips}</div></div><div class="hero-scorebox"><div class="hero-score-label">BBI Score</div><div class="hero-score">${(p.calculatedBBI || 0).toFixed(1)}</div><span class="hero-score-tier">${tier}</span>${renderBBIProbabilityMeter(p)}</div></div>`;
+  hero.innerHTML = `<div class="hero-inner"><div class="hero-headshot-wrap"><div class="hero-rank-badge">#1</div>${headshot}</div><div><div class="hero-title-kicker">Today's Top Target</div><div class="hero-player-name">${p.Name}</div><div class="hero-meta"><span class="hero-meta-chip">${logo}${p.Team}</span><span class="hero-meta-chip">vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span>${Number.isFinite(Number(p.battingOrder ?? p.BO)) ? `<span class="hero-meta-chip">BO ${Math.round(Number(p.battingOrder ?? p.BO))}</span>` : ''}<span class="hero-meta-chip">🏟️ ${visual.name}</span><span class="hero-meta-chip">🌤️ ${weather}</span></div><div class="hero-why-row">${chips}</div></div><div class="hero-scorebox"><div class="hero-score-label">BBI Score</div><div class="hero-score">${(p.calculatedBBI || 0).toFixed(1)}</div><span class="hero-score-tier">${tier}</span>${renderBBIProbabilityMeter(p)}</div></div>`;
   hero.style.display = 'block';
 }
 function renderTodaysStorylines() {
@@ -13929,6 +13946,7 @@ function zoneExtractStats(row) {
     barrel: zoneFirstRate(row, ['barrels_per_bbe_percent','Barrels/BBE %','Barrel %','barrel_percent','barrel_pct','barrel_rate','Barrel Allowed','Barrel % Allowed','barrels_bbe_percent']),
     barrelPA: zoneFirstRate(row, ['barrels_per_pa_percent','Barrels/PA %','barrel_pa_percent','barrel_per_pa']),
     hardhit: zoneFirstRate(row, ['hardhit_percent','HardHit%','Hard Hit %','hard_hit_percent','hard_hit_pct','hardhit_pct','Hard Hit Allowed','Hard Hit % Allowed']),
+    idealLA: zoneFirstRate(row, ['rate_ideal_attack_angle','Ideal Attack Angle Rate','Ideal Attack Angle %','ideal_attack_angle_rate','ideal_attack_angle_percent','ideal_la_rate']),
     sweetspot: zoneFirstRate(row, ['sweet_spot_percent','Sweet Spot %','sweetspot_percent','sweet_spot_pct']),
     pull: zoneFirstRate(row, ['pull_percent','Pull %','pull_pct','pull_rate']),
     fb: zoneFirstRate(row, ['fb_percent','FB %','fly_ball_percent','flyball_percent','fb_pct','fly_ball_pct','FB%']),
@@ -13956,7 +13974,7 @@ function zoneValueIsFilled(v) {
 function zoneMergeDisplayStatsFromPieces(pieces, statKey, preferredStats) {
   const out = { ...(preferredStats || {}) };
   const ordered = (pieces || []).slice().sort((a,b) => (Number(b.w) || 0) - (Number(a.w) || 0));
-  const fields = ['hr','avg','slg','xslg','xwoba','iso','ev','maxev','barrel','barrelPA','hardhit','sweetspot','pull','fb','gb','la','batSpeed','contact','whiff','pitches','pa','bbe','pitchPct'];
+  const fields = ['hr','avg','slg','xslg','xwoba','iso','ev','maxev','barrel','barrelPA','hardhit','idealLA','sweetspot','pull','fb','gb','la','batSpeed','contact','whiff','pitches','pa','bbe','pitchPct'];
   fields.forEach(field => {
     if (zoneValueIsFilled(out[field])) return;
     for (const piece of ordered) {
@@ -14046,30 +14064,36 @@ function drlZoneLaunchAngleScore(raw, sample) {
 }
 // ===============================================================================
 
+function drlZoneIdealLAScore(raw, sample) {
+  const adjusted = drlPitchZoneRegress(raw, 0.300, sample);
+  return drlOpenStatScore(adjusted, 0.300, 0.120, 18);
+}
+function drlZoneXSLGScore(raw, sample) {
+  const adjusted = drlPitchZoneRegress(raw, 0.430, sample);
+  return drlOpenStatScore(adjusted, 0.430, 0.150, 18);
+}
 function buildAttackZoneDamageScore(row, side) {
   if (!row || !Object.keys(row).length) return null;
   const s = zoneExtractStats(row);
   const sample = drlZoneExposure(s);
   const isPitcher = String(side || '').toLowerCase().includes('pitch');
-  const launchAngleScore = drlZoneLaunchAngleScore(s.la, sample);
   if (isPitcher) {
+    // Agreed pitcher HR-vulnerability formula.
     return hybridWeightedAvg([
-      // Backtest-guided zone reweight using the raw fields actually preserved in the workbook.
-      { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.37 },
-      { value: drlZoneISOScore(s.iso, sample), weight: 0.26 },
-      { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.11 },
-      { value: launchAngleScore, weight: 0.10 },
-      { value: drlZoneHRScore(s.hr, sample), weight: 0.13 },
-      { value: drlZoneBatSpeedScore(s.batSpeed, sample), weight: 0.03 }
+      { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.35 },
+      { value: drlZoneISOScore(s.iso, sample), weight: 0.25 },
+      { value: drlZoneIdealLAScore(s.idealLA, sample), weight: 0.20 },
+      { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.15 },
+      { value: drlZoneXSLGScore(s.xslg, sample), weight: 0.05 }
     ]);
   }
+  // Agreed batter HR-damage formula.
   return hybridWeightedAvg([
-    { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.37 },
-    { value: drlZoneISOScore(s.iso, sample), weight: 0.26 },
-    { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.11 },
-    { value: launchAngleScore, weight: 0.10 },
-    { value: drlZoneHRScore(s.hr, sample), weight: 0.09 },
-    { value: drlZoneBatSpeedScore(s.batSpeed, sample), weight: 0.07 }
+    { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.40 },
+    { value: drlZoneISOScore(s.iso, sample), weight: 0.25 },
+    { value: drlZoneIdealLAScore(s.idealLA, sample), weight: 0.20 },
+    { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.10 },
+    { value: drlZoneXSLGScore(s.xslg, sample), weight: 0.05 }
   ]);
 }
 function zoneBucketLabel(bucket) {
@@ -14132,31 +14156,16 @@ function zoneSheetHasData(sheetKey, name) {
 }
 const ATTACK_ZONE_STARTER_WEIGHT = 0.75;
 const ATTACK_ZONE_BULLPEN_WEIGHT = 0.25;
-// HR-location importance. Zone 5 receives the strongest physical HR weight.
-const ATTACK_ZONE_HR_MATRIX = Object.freeze({
-  1: 0.0625, 2: 0.1050, 3: 0.0625,
-  4: 0.1600, 5: 0.2200, 6: 0.1600,
-  7: 0.0625, 8: 0.1050, 9: 0.0625
-});
+// No fixed location bonus: actual opposing-pitcher usage supplies all location weighting.
+const ATTACK_ZONE_HR_MATRIX = Object.freeze({1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1});
 function zoneSampleConfidence(batterStats, pitcherStats) {
-  const b = batterStats || {};
-  const p = pitcherStats || {};
-  const bSample = Math.max(Number(b.bbe) || 0, Number(b.pa) || 0, (Number(b.pitches) || 0) / 3.8);
-  const pSample = Math.max(Number(p.bbe) || 0, Number(p.pa) || 0, (Number(p.pitches) || 0) / 3.8);
-  const bConf = bSample > 0 ? bSample / (bSample + 18) : 0.45;
-  const pConf = pSample > 0 ? pSample / (pSample + 28) : 0.45;
-  return Math.max(0.45, Math.min(1, Math.sqrt(bConf * pConf)));
+  const b = drlZoneExposure(batterStats || {});
+  const p = drlZoneExposure(pitcherStats || {});
+  const bConf = b > 0 ? b / (b + 20) : 0;
+  const pConf = p > 0 ? p / (p + 30) : 0;
+  return Math.max(0, Math.min(1, Math.sqrt(bConf * pConf)));
 }
-function attackZoneLeagueDanger(bucket, zone) {
-  const z = Number(zone);
-  const locationWeight = ATTACK_ZONE_HR_MATRIX[z] || (1 / 9);
-  // Convert the physical HR-location matrix into a centered open score.
-  // Average zone danger stays near 50; the heart of the plate earns the largest baseline.
-  const locationScore = 50 + ((locationWeight - (1 / 9)) / (1 / 9)) * 34;
-  const family = String(bucket || 'GENERIC').toUpperCase();
-  const familyAdjustment = family === 'FB' ? 2 : family === 'BR' ? -1 : family === 'OS' ? 0 : 0;
-  return Math.max(20, locationScore + familyAdjustment);
-}
+function attackZoneLeagueDanger(bucket, zone) { return 50; }
 
 // ===== HR ATTACK MAP V6: scoring-only matchup engine =====
 // The visible zone cards keep the original hitter/pitcher values and heat colors.
@@ -14187,60 +14196,55 @@ function attackZoneRateFromCount(count, stats) {
 }
 function attackZoneHitterComposite(stats) {
   const s=stats||{};
-  const hrRate=attackZoneRateFromCount(s.hr,s);
-  const barrelRate=Number.isFinite(Number(s.barrel))?Number(s.barrel):(Number.isFinite(Number(s.barrelPA))?Number(s.barrelPA):null);
-  return 0.35*attackZoneZ(hrRate,0.030,0.025)
-       + 0.25*attackZoneZ(barrelRate,0.080,0.055)
-       + 0.15*attackZoneZ(s.xslg,0.430,0.170)
-       + 0.15*attackZoneZ(s.xwoba,0.330,0.095)
-       + 0.05*attackZoneZ(s.ev,89.0,4.5)
-       + 0.05*attackZoneZ(s.la,12.5,10.0);
+  return hybridWeightedAvg([
+    {value:drlZoneBarrelPAScore(s.barrelPA,drlZoneExposure(s)),weight:.40},
+    {value:drlZoneISOScore(s.iso,drlZoneExposure(s)),weight:.25},
+    {value:drlZoneIdealLAScore(s.idealLA,drlZoneExposure(s)),weight:.20},
+    {value:drlZoneHardHitScore(s.hardhit,drlZoneExposure(s)),weight:.10},
+    {value:drlZoneXSLGScore(s.xslg,drlZoneExposure(s)),weight:.05}
+  ]);
 }
 function attackZonePitcherComposite(stats) {
   const s=stats||{};
-  const hrRate=attackZoneRateFromCount(s.hr,s);
-  return 0.40*attackZoneZ(hrRate,0.030,0.025)
-       + 0.25*attackZoneZ(s.xslg,0.430,0.170)
-       + 0.20*attackZoneZ(s.xwoba,0.330,0.095)
-       + 0.10*attackZoneZ(s.ev,89.0,4.5)
-       + 0.05*attackZoneZ(s.la,12.5,10.0);
+  return hybridWeightedAvg([
+    {value:drlZoneBarrelPAScore(s.barrelPA,drlZoneExposure(s)),weight:.35},
+    {value:drlZoneISOScore(s.iso,drlZoneExposure(s)),weight:.25},
+    {value:drlZoneIdealLAScore(s.idealLA,drlZoneExposure(s)),weight:.20},
+    {value:drlZoneHardHitScore(s.hardhit,drlZoneExposure(s)),weight:.15},
+    {value:drlZoneXSLGScore(s.xslg,drlZoneExposure(s)),weight:.05}
+  ]);
 }
 function attackZonePositiveFactor(z) {
-  const n=Number(z); return Math.max(0.10, Math.min(3.00, 1 + (Number.isFinite(n)?n:0)*0.35));
+  const n=Number(z); return Math.max(0.72, Math.min(1.28, 1 + ((Number.isFinite(n)?n:50)-50)/180));
+}
+// Controlled handedness context layered onto the exact pitch-zone matchup.
+// LHB: Zones 1/4/7 are pull-side; RHB: Zones 3/6/9 are pull-side.
+// Middle-column zones 2/5/8 remain favorable for both sides. No opposite-field penalty.
+function attackZoneHandednessFactor(logicalZone, batSide) {
+  const z=Number(logicalZone);
+  const side=String(batSide||'R').toUpperCase();
+  const pull = side==='L' ? [1,4,7] : [3,6,9];
+  if (pull.includes(z)) return 1.08;
+  if ([2,5,8].includes(z)) return 1.04;
+  return 1.00;
 }
 function attackZonePitcherZoneQualified(stats) {
   const pitches=Number(stats&&stats.pitches);
-  // Only exclude when the sheet actually supplies a pitch count and it is clearly too small.
-  return !Number.isFinite(pitches) || pitches<=0 || pitches>=ATTACK_ZONE_MIN_PITCHES_PER_ZONE;
+  return !Number.isFinite(pitches) || pitches<=0 || pitches>=1;
 }
 function attackZoneInteractionEdge(batterDamage, pitcherVulnerability, batterStats, pitcherStats, leagueDanger = 50) {
-  // Usage-only pitcher logic: the pitcher's results/vulnerability in a zone do not affect the score.
-  // This value is strictly the hitter's damage rating in that zone. Pitcher zone usage is applied
-  // later by attackZoneMatrixScore when the nine hitter-zone opportunities are ranked.
   if (!Number.isFinite(Number(batterDamage))) return null;
-  return Math.max(0, Number(batterDamage));
+  const p = Number.isFinite(Number(pitcherVulnerability)) ? Number(pitcherVulnerability) : 50;
+  return Math.max(0, Number(batterDamage) * attackZonePositiveFactor(p));
 }
 function attackZoneMatrixScore(zones) {
   if (!Array.isArray(zones) || !zones.length) return null;
-  const qualified = zones.filter(z =>
-    z &&
-    z.attackScoreQualified !== false &&
-    Number.isFinite(Number(z.batterDamage)) &&
-    Number.isFinite(Number(z.pitchPct)) &&
-    Number(z.pitchPct) > 0
-  );
+  // Count every positive-use pitch-family/zone cell, then renormalize all tracked in-zone exposure to 100%.
+  const qualified = zones.filter(z => z && z.attackScoreQualified !== false && Number.isFinite(Number(z.edge)) && Number.isFinite(Number(z.pitchPct)) && Number(z.pitchPct) > 0);
   if (!qualified.length) return null;
-
-  // Pitcher-driven Attack Zone engine:
-  // every batter is graded in all locations the opposing pitcher actually uses.
-  // A zone's influence is exactly the pitcher's PZ pitch_percent for that zone.
-  const totalPitcherUsage = qualified.reduce((sum,z)=>sum + Math.max(0,Number(z.pitchPct)||0),0);
-  if (!(totalPitcherUsage > 0)) return null;
-  const usageWeightedBatterDamage = qualified.reduce((sum,z)=>
-    sum + (Number(z.batterDamage) * Math.max(0,Number(z.pitchPct)||0)), 0
-  ) / totalPitcherUsage;
-
-  return Math.max(0, Math.min(175, usageWeightedBatterDamage));
+  const total = qualified.reduce((sum,z)=>sum+Math.max(0,Number(z.pitchPct)||0),0);
+  if (!(total>0)) return null;
+  return qualified.reduce((sum,z)=>sum+(Number(z.edge)*Math.max(0,Number(z.pitchPct)||0)),0)/total;
 }
 function attackZoneDisplayPeak(zones) {
   let peak = null;
@@ -14258,6 +14262,52 @@ function zoneBlendStarterBullpenValue(starterValue, bullpenValue) {
 function zoneBlendStarterBullpenPitchPct(starterPct, bullpenPct) {
   return zoneBlendStarterBullpenValue(starterPct, bullpenPct);
 }
+function attackZonePitcherHand(player, pitcherName) {
+  const prow = lookupStat('PITCHER', pitcherName) || lookupStat('PITCHERR', pitcherName) || lookupStat('PITCHERL', pitcherName) || {};
+  const raw = String(safeGet(prow,'Throws','Throwing Hand','Hand','Pitcher Hand') || safeGet(player,'Opp Pitcher Throws','Pitcher Throws') || '').toUpperCase();
+  return raw.startsWith('L') ? 'L' : 'R';
+}
+function attackZoneGroupBaselineRow(hitterName,bucket,hand) {
+  const key = (bucket==='FB'?'FB':bucket==='BR'?'BB':'OS') + hand;
+  return (batTrackingMaps[key]||{})[normalizeName(hitterName)] || {};
+}
+function attackZoneExactPitchRows(hitterName,bucket,hand,player) {
+  const groups = bucket==='FB'?['FB']:bucket==='BR'?['SL','CU','CV']:['CH'];
+  const pitcherName=String(safeGet(player,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name')||'').trim();
+  const ptRow=pitchTypeMap[normalizeName(pitcherName)]||{};
+  const usageFor=g=>{
+    if(g==='FB') return zonePitchBucketUsageFromKeys(ptRow,['FB%','Fastball%','FF%','FA%','SI%','FC%']);
+    if(g==='SL') return zonePitchBucketUsageFromKeys(ptRow,['SL%','ST%','SV%']);
+    if(g==='CU'||g==='CV') return zonePitchBucketUsageFromKeys(ptRow,['CU%','KC%','CS%','Curve%']);
+    return zonePitchBucketUsageFromKeys(ptRow,['CH%','FS%','FO%']);
+  };
+  return groups.map(g=>({row:getBatterPitchShapeRow(hitterName,g,hand),w:usageFor(g)})).filter(x=>x.row&&Object.keys(x.row).length);
+}
+function attackZoneOverallBatterRow(hitterName) {
+  return Object.assign({}, lookupStat('BARRELL',hitterName)||{}, lookupStat('ISO',hitterName)||{}, lookupStat('SS',hitterName)||{});
+}
+function attackZoneOverallPitcherRow(pitcherName) {
+  return Object.assign({}, lookupStat('PITCHERBB',pitcherName)||{}, lookupStat('PITCHER',pitcherName)||{});
+}
+function attackZoneBaselineScore(player,bucket,side,hitterName,pitcherName) {
+  if(side==='pitcher') return buildAttackZoneDamageScore(attackZoneOverallPitcherRow(pitcherName),'pitcher') ?? 50;
+  const hand=attackZonePitcherHand(player,pitcherName);
+  const pieces=[];
+  const group=attackZoneGroupBaselineRow(hitterName,bucket,hand);
+  const gs=buildAttackZoneDamageScore(group,'batter'); if(Number.isFinite(Number(gs))) pieces.push({value:gs,weight:.50});
+  const exact=attackZoneExactPitchRows(hitterName,bucket,hand,player);
+  let exactW=0, exactS=0; exact.forEach(x=>{const sc=buildAttackZoneDamageScore(x.row,'batter');if(Number.isFinite(Number(sc))){const w=x.w||1;exactS+=sc*w;exactW+=w;}});
+  if(exactW>0) pieces.push({value:exactS/exactW,weight:.30});
+  const overall=buildAttackZoneDamageScore(attackZoneOverallBatterRow(hitterName),'batter'); if(Number.isFinite(Number(overall))) pieces.push({value:overall,weight:.20});
+  return hybridWeightedAvg(pieces) ?? 50;
+}
+function attackZoneSmoothScore(exactScore,stats,baseline,k) {
+  const n=Math.max(0,drlZoneExposure(stats||{}));
+  const confidence=n/(n+k);
+  const exact=Number.isFinite(Number(exactScore))?Number(exactScore):Number(baseline);
+  return {score:(exact*confidence)+(Number(baseline)* (1-confidence)),confidence};
+}
+
 function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   const hitterName = player && player.Name;
   const pitcherName = String(safeGet(player, 'Opp Pitcher', 'Opp Pitcher Name', 'Pitcher', 'Pitcher Name') || '').trim();
@@ -14275,15 +14325,23 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
     const batterStats = zoneEnrichBatterStats(zoneExtractStats(hasB ? bRow : {}), player, hitterName);
     const pitcherStats = zoneEnrichPitcherStats(zoneExtractStats(hasP ? pRow : {}), player, pitcherName);
 
-    // Preserve the original visual scores exactly.
-    const batterDamage = hasB ? buildAttackZoneDamageScore(bRow, 'batter') : null;
-    const starterPitcherVulnerability = hasP ? buildAttackZoneDamageScore(pRow, 'pitcher') : null;
+    // True regression: exact zone -> handedness pitch family/exact pitch -> overall profile.
+    const batterExact = hasB ? buildAttackZoneDamageScore(bRow, 'batter') : null;
+    const pitcherExact = hasP ? buildAttackZoneDamageScore(pRow, 'pitcher') : null;
+    const batterBase = attackZoneBaselineScore(player,bucket||'GENERIC','batter',hitterName,pitcherName);
+    const pitcherBase = attackZoneBaselineScore(player,bucket||'GENERIC','pitcher',hitterName,pitcherName);
+    const batterSmoothed = attackZoneSmoothScore(batterExact,batterStats,batterBase,20);
+    const pitcherSmoothed = attackZoneSmoothScore(pitcherExact,pitcherStats,pitcherBase,30);
+    const batterDamage = batterSmoothed.score;
+    const starterPitcherVulnerability = pitcherSmoothed.score;
     const pitcherVulnerability = starterPitcherVulnerability;
     let pitchPct = hasP ? pitcherStats.pitchPct : null;
     const freqScore = attackZoneScaleScore('freq', pitchPct === null ? 1/9 : pitchPct);
     const leagueDanger = attackZoneLeagueDanger(bucket || 'GENERIC', logicalZone);
-    const edge = attackZoneInteractionEdge(batterDamage,pitcherVulnerability,batterStats,pitcherStats,leagueDanger);
-    if (edge === null || edge === undefined || isNaN(edge)) continue;
+    const baseEdge = attackZoneInteractionEdge(batterDamage,pitcherVulnerability,batterStats,pitcherStats,leagueDanger);
+    if (baseEdge === null || baseEdge === undefined || isNaN(baseEdge)) continue;
+    const handednessFactor = attackZoneHandednessFactor(logicalZone, batSide);
+    const edge = Number(baseEdge) * handednessFactor;
 
     // Pitcher-driven scoring formula. The pitcher chooses the test by where he throws;
     // the batter is graded in every used zone and weighted only by the pitcher's PZ usage.
@@ -14291,11 +14349,9 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
     const pitcherZ = attackZonePitcherComposite(pitcherStats); // retained for display/diagnostics only
     const pitcherUsage = Number.isFinite(Number(pitchPct)) ? Math.max(0,Number(pitchPct)) : 0;
     const hitterExposure = Number.isFinite(Number(batterStats.pitchPct)) ? Math.max(0,Number(batterStats.pitchPct)) : null;
-    const zoneWeight = 1; // location importance now comes from actual pitcher usage, not a fixed zone bonus
-    const attackScoreQualified = !!hasB && !!hasP && pitcherUsage > 0 && Number.isFinite(Number(batterDamage));
-    const scoringOpportunity = attackScoreQualified
-      ? Number(batterDamage) * pitcherUsage
-      : null;
+    const zoneWeight = handednessFactor; // small, controlled pull-side/middle-column context
+    const attackScoreQualified = !!hasB && !!hasP && pitcherUsage > 0 && Number.isFinite(Number(edge));
+    const scoringOpportunity = attackScoreQualified ? Number(edge) * pitcherUsage : null;
 
     zones.push({
       zone:logicalZone, physicalZone, batSide, bucket:bucket||'GENERIC', bucketLabel:bucketName,
@@ -14307,8 +14363,9 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
       edge:Number(edge),weightedEdge:Number(edge),
       batterPitchPct:hasB?batterStats.pitchPct:null,pitcherPitches:pitcherStats.pitches,
       hitterXSLG:batterStats.xslg,pitcherXSLG:pitcherStats.xslg,
-      hitterDamageZ:hitterZ,pitcherVulnerabilityZ:pitcherZ,zoneHRWeight:zoneWeight,
+      hitterDamageZ:hitterZ,pitcherVulnerabilityZ:pitcherZ,zoneHRWeight:zoneWeight,handednessFactor,baseEdge:Number(baseEdge),
       scoringOpportunity,attackScoreQualified,
+      batterRegressionConfidence:batterSmoothed.confidence,pitcherRegressionConfidence:pitcherSmoothed.confidence,
       batterStats,pitcherStats,bullpenStats:{}
     });
   }
@@ -14318,7 +14375,7 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   const scoringTop = zones.filter(z=>z.attackScoreQualified!==false&&Number.isFinite(Number(z.scoringOpportunity))).sort((a,b)=>Number(b.scoringOpportunity)-Number(a.scoringOpportunity))[0];
   const topZone = scoringTop || attackZoneDisplayPeak(zones);
   const summary = topZone ? zoneBuildSummary(hitterName,pitcherName,topZone) : `No ${bucketName} qualified scoring zones`;
-  return {score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,weightedAvgEdge,batSide,scoringEngine:'PITCHER_USAGE_WEIGHTED_V7'};
+  return {score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,weightedAvgEdge,batSide,scoringEngine:'PITCH_FAMILY_MATCHUP_V9'};
 }
 function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   const hitterName = player && player.Name;
@@ -14338,14 +14395,15 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
       const exposure = Number.isFinite(rawZoneUsage) && rawZoneUsage >= 0
         ? rawZoneUsage
         : (familyMix / 9);
-      const locationValue = ATTACK_ZONE_HR_MATRIX[Number(z.zone)] || (1/9);
+      const locationValue = 1;
       const blastFactor = Math.max(0, Number(z.edge) || 0);
       const confidence = zoneSampleConfidence(z.batterStats, z.pitcherStats);
-      const expectedValue = blastFactor * exposure * locationValue;
+      const expectedValue = exposure > 0 ? blastFactor * exposure : 0;
       cells.push({
         zone:Number(z.zone), bucket, label:zoneBucketLabel(bucket),
         edge:blastFactor, blastFactor, exposure, locationValue, expectedValue,
         confidence, batterDamage:z.batterDamage, pitcherVulnerability:z.pitcherVulnerability,
+        handednessFactor:Number(z.handednessFactor)||1, baseEdge:Number(z.baseEdge)||blastFactor,
         leagueDanger:Number.isFinite(Number(z.leagueDanger)) ? Number(z.leagueDanger) : attackZoneLeagueDanger(bucket, z.zone),
         batterStats:z.batterStats || {}, pitcherStats:z.pitcherStats || {}, source:z
       });
@@ -14380,20 +14438,19 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
       bucketPieces:pieces.map(c=>({
         bucket:c.bucket,label:c.label,mix:mixWeight(c),zonePitchPct:c.exposure,
         exposure:c.exposure,edge:c.edge,blastFactor:c.blastFactor,
-        contribution:c.expectedValue,batterDamage:c.batterDamage,pitcherVulnerability:c.pitcherVulnerability,leagueDanger:c.leagueDanger
+        contribution:c.expectedValue,batterDamage:c.batterDamage,pitcherVulnerability:c.pitcherVulnerability,
+        handednessFactor:c.handednessFactor,baseEdge:c.baseEdge,leagueDanger:c.leagueDanger
       }))
     });
   }
 
-  const exposureTotal=cells.reduce((s,c)=>s+c.exposure*(c.locationValue||1),0)||1;
-  const rawIndex=cells.reduce((s,c)=>s+c.expectedValue,0)/exposureTotal;
-  // Preserve home-run ceiling without letting one noisy cell own the entire bucket.
-  const ranked=cells.slice().sort((a,b)=>b.expectedValue-a.expectedValue);
-  const top3=ranked.slice(0,3);
-  const top3Exp=top3.reduce((s,c)=>s+c.exposure*(c.locationValue||1),0)||1;
-  const top3Index=top3.reduce((s,c)=>s+c.expectedValue,0)/top3Exp;
-  const peak=ranked.length?ranked[0].blastFactor:rawIndex;
-  const score=(rawIndex*0.78)+(top3Index*0.17)+(peak*0.05);
+  // Final score is only the renormalized sum of qualified expected-opportunity cells.
+  // No top-cell bonus, no fixed location matrix, and no second location weighting.
+  const qualifiedCells=cells.filter(c=>Number(c.exposure)>0 && Number.isFinite(Number(c.edge)));
+  const exposureTotal=qualifiedCells.reduce((s,c)=>s+c.exposure,0)||1;
+  const rawIndex=qualifiedCells.reduce((s,c)=>s+(c.edge*c.exposure),0)/exposureTotal;
+  const ranked=qualifiedCells.slice().sort((a,b)=>b.expectedValue-a.expectedValue);
+  const score=rawIndex;
   const topCell=ranked[0]||null;
   const topZone=topCell?zones.find(z=>z.zone===topCell.zone):attackZoneDisplayPeak(zones);
   const summary=topCell
@@ -14402,7 +14459,7 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   return {
     score,zones,topZone,bucket:'WEIGHTED',bucketLabel:'Weighted All',summary,
     weightedAvgEdge:rawIndex,rawPitchZoneIndex:rawIndex,cells,topCells:ranked.slice(0,3),
-    scoringEngine:'UNIFIED_27_CELL_HITTER_LED_V2'
+    scoringEngine:'PITCH_FAMILY_MATCHUP_V9'
   };
 }
 /* =========================
@@ -14418,38 +14475,29 @@ function zonePitcherCacheKey(pitcherName, mix, bullpenTeam) {
 function zoneBuildPitcherOnlyBucketProfile(pitcherName, bucket, mixWeight, bullpenTeam) {
   const suffix = bucket && bucket !== 'GENERIC' ? bucket : '';
   const zones = [];
+  const baseline = buildAttackZoneDamageScore(attackZoneOverallPitcherRow(pitcherName),'pitcher') ?? 50;
   for (let i = 1; i <= 9; i++) {
     const pRow = zoneSheetHasData('PZ' + i + suffix, pitcherName) || (!suffix ? null : zoneSheetHasData('PZ' + i, pitcherName));
     const hasP = pRow && Object.keys(pRow).length;
-    const hasBP = bpRow && Object.keys(bpRow).length;
-    if (!hasP && !hasBP) continue;
-    const pitcherStats = zoneEnrichPitcherStats(zoneExtractStats(hasP ? pRow : {}), {}, pitcherName);
-    const bullpenStats = zoneEnrichPitcherStats(zoneExtractStats(hasBP ? bpRow : {}), {}, bullpenTeam);
-    const starterPitcherVulnerability = hasP ? buildAttackZoneDamageScore(pRow, 'pitcher') : null;
-    const pitcherVulnerability = starterPitcherVulnerability;
-    let starterPitchPct = hasP ? pitcherStats.pitchPct : null;
-    if (starterPitchPct === null && hasP) starterPitchPct = 1 / 9;
-    let pitchPct = starterPitchPct;
-    if (pitchPct === null || pitchPct === undefined || isNaN(Number(pitchPct))) pitchPct = 1 / 9;
+    if (!hasP) continue;
+    const pitcherStats = zoneEnrichPitcherStats(zoneExtractStats(pRow), {}, pitcherName);
+    const exact = buildAttackZoneDamageScore(pRow, 'pitcher');
+    const smoothed = attackZoneSmoothScore(exact,pitcherStats,baseline,30);
+    const pitcherVulnerability = smoothed.score;
+    let pitchPct = pitcherStats.pitchPct;
+    if (pitchPct === null || pitchPct === undefined || isNaN(Number(pitchPct))) continue;
     pitchPct = Math.max(0, Math.min(1, Number(pitchPct)));
     zones.push({
-      zone: i,
-      bucket: bucket || 'GENERIC',
-      bucketLabel: zoneBucketLabel(bucket),
-      pitcherVulnerability,
-      starterPitcherVulnerability,
-      bullpenPitcherVulnerability,
-      bullpenTeam: bullpenTeam || null,
-      bullpenPitchPct: bullpenPitchPct === null ? null : Math.max(0, Math.min(1, Number(bullpenPitchPct))),
-      pitchFrequencyScore: attackZoneScaleScore('freq', pitchPct),
-      pitchPct,
-      expectedPitchPct: Math.max(0, Math.min(1, pitchPct * (Number(mixWeight) || 0))),
-      pitcherPitches: pitcherStats.pitches,
-      pitcherXSLG: pitcherStats.xslg,
-      pitcherStats, bullpenStats
+      zone:i,bucket:bucket||'GENERIC',bucketLabel:zoneBucketLabel(bucket),
+      pitcherVulnerability,starterPitcherVulnerability:pitcherVulnerability,
+      bullpenPitcherVulnerability:null,bullpenTeam:null,bullpenPitchPct:null,
+      pitchFrequencyScore:attackZoneScaleScore('freq',pitchPct),pitchPct,
+      expectedPitchPct:Math.max(0,Math.min(1,pitchPct*(Number(mixWeight)||0))),
+      pitcherPitches:pitcherStats.pitches,pitcherXSLG:pitcherStats.xslg,
+      pitcherRegressionConfidence:smoothed.confidence,pitcherStats,bullpenStats:{}
     });
   }
-  return { zones };
+  return {zones};
 }
 function zoneBuildPitcherOnlyProfile(pitcherName, mix, bullpenTeam) {
   mix = mix || { FB:0, BR:0, OS:0 };
@@ -14521,7 +14569,7 @@ function zoneRecomputeProfileScore(profile, hitterName, pitcherName) {
   profile.weightedAvgEdge = weightedAvgEdge;
   const matrixScore = attackZoneMatrixScore(profile.zones);
   profile.score = matrixScore === null || matrixScore === undefined || isNaN(Number(matrixScore)) ? profile.score : matrixScore;
-  profile.scoringEngine = profile.scoringEngine || 'PITCHER_USAGE_WEIGHTED_V7';
+  profile.scoringEngine = profile.scoringEngine || 'PITCH_FAMILY_MATCHUP_V9';
   if (profile.topZone) profile.summary = zoneBuildSummary(hitterName, pitcherName, profile.topZone);
   return profile;
 }
@@ -14559,17 +14607,65 @@ function calculateAttackZoneProfile(player) {
     const hitterName = player && player.Name;
     const pitcherName = String(safeGet(player, 'Opp Pitcher', 'Opp Pitcher Name', 'Pitcher', 'Pitcher Name') || '').trim();
     if (!hitterName || !pitcherName) return { score: null, zones: [], topZone: null, summary: 'No pitcher/hitter match.' };
-    // PZ1-PZ9 versus BZ1-BZ9 only. Pitch-type differences remain in Pitch Lab.
-    const weighted = calculateAttackZoneBucketProfile(player, 'GENERIC', 1);
-    weighted.mix = { FB:0, BR:0, OS:0 };
-    weighted.bucketProfiles = {};
-    weighted.activeView = 'WEIGHTED';
-    weighted.formula = 'All nine batter zones scored by hitter damage and weighted by the opposing pitcher’s PZ pitch_percent. The pitcher’s most-used zones naturally drive the matchup score.';
-    weighted.scoringEngine = 'PITCHER_USAGE_WEIGHTED_V7';
+
+    // Use the code's already-proven bucket engine. The workbook's BB sheets are
+    // canonically exposed as BR by the existing sheet loader, so no new parser is needed.
+    const mix = zonePitchBucketMix(player);
+    const bucketProfiles = {
+      FB: calculateAttackZoneBucketProfile(player, 'FB', mix.FB),
+      BR: calculateAttackZoneBucketProfile(player, 'BR', mix.BR),
+      OS: calculateAttackZoneBucketProfile(player, 'OS', mix.OS)
+    };
+
+    // If the new family sheets are missing for a player/pitcher, the existing bucket
+    // function safely falls back to the generic BZ/PZ sheet. If all family profiles are
+    // empty, preserve the old V7 generic profile rather than returning blanks.
+    const hasFamilyData = ['FB','BR','OS'].some(k => bucketProfiles[k] && Array.isArray(bucketProfiles[k].zones) && bucketProfiles[k].zones.length);
+    let weighted;
+    if (hasFamilyData) {
+      weighted = combineWeightedZoneProfiles(player, bucketProfiles, mix);
+      weighted.bucketProfiles = bucketProfiles;
+      weighted.mix = mix;
+      weighted.activeView = 'WEIGHTED';
+      weighted.formula = 'Every positive-use pitch-family/zone cell uses normalized pitcher exposure × smoothed batter HR damage × pitcher vulnerability × controlled handedness location context. LHB pull-side Zones 1/4/7 and RHB pull-side Zones 3/6/9 receive 1.08; middle Zones 2/5/8 receive 1.04; opposite-side zones remain 1.00. Batter damage uses 40% Barrel/PA, 25% ISO, 20% ideal-angle rate, 10% Hard Hit, 5% xSLG. Pitcher vulnerability uses 35/25/20/15/5. No positive-use cell is discarded and no fixed generic location matrix is applied.';
+      weighted.scoringEngine = 'PITCH_FAMILY_MATCHUP_V9';
+    } else {
+      weighted = calculateAttackZoneBucketProfile(player, 'GENERIC', 1);
+      weighted.bucketProfiles = {};
+      weighted.mix = mix;
+      weighted.activeView = 'WEIGHTED';
+      weighted.formula = 'Generic PZ/BZ fallback used because no pitch-family zone rows were found.';
+      weighted.scoringEngine = 'PITCH_FAMILY_MATCHUP_V9_GENERIC_FALLBACK';
+    }
+
+    // Never let an absent pitcher family sample blank the whole player.
+    if (!Number.isFinite(Number(weighted.score))) {
+      const generic = calculateAttackZoneBucketProfile(player, 'GENERIC', 1);
+      if (generic && Number.isFinite(Number(generic.score))) {
+        generic.bucketProfiles = bucketProfiles;
+        generic.mix = mix;
+        generic.activeView = 'WEIGHTED';
+        generic.formula = 'Pitch-family sample was insufficient; stable generic pitcher-zone averages were used.';
+        generic.scoringEngine = 'PITCH_FAMILY_GENERIC_SAMPLE_FALLBACK_V8';
+        return generic;
+      }
+      weighted.score = 50;
+      weighted.summary = weighted.summary || 'Neutral Attack Zone fallback used because no qualified pitcher sample was recorded.';
+    }
     return weighted;
   } catch (err) {
-    console.warn('Attack Zone calculation failed for', player && player.Name, err);
-    return { score: null, zones: [], topZone: null, summary: 'Attack Zone error-safe neutral.' };
+    console.warn('Attack Zone V8 stable calculation failed for', player && player.Name, err);
+    // Last-resort call to the exact old engine prevents one zone error from stopping population.
+    try {
+      const fallback = calculateAttackZoneBucketProfile(player, 'GENERIC', 1);
+      fallback.mix = { FB:0, BR:0, OS:0 };
+      fallback.bucketProfiles = {};
+      fallback.activeView = 'WEIGHTED';
+      fallback.scoringEngine = 'PITCHER_USAGE_WEIGHTED_V7_ERROR_FALLBACK';
+      return fallback;
+    } catch (fallbackErr) {
+      return { score:50, zones:[], topZone:null, summary:'Neutral Attack Zone fallback.', confidence:0 };
+    }
   }
 }
 
@@ -16820,7 +16916,7 @@ function renderMainTableBoard(data, overallRankMap = null) {
     const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
     const displayRank = idx + 1;
     const safeNameAttr = String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}${dnpBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}">${homeRankSortMode === 'MLI' ? `<span class="index-score mli-score ${Number(p.calculatedMLI || 0) >= 0 ? 'mli-positive' : 'mli-negative'}">${Number.isFinite(Number(p.calculatedMLI)) ? `${Number(p.calculatedMLI) >= 0 ? '+' : ''}${Number(p.calculatedMLI).toFixed(1)}` : '--'}</span><div class="mli-bbi-context">BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : `<span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}`}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td></tr>`;
+    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}${dnpBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span>${Number.isFinite(Number(p.battingOrder ?? p.BO)) ? `<span class="espn-dot">•</span><span class="espn-bo-chip">BO ${Math.round(Number(p.battingOrder ?? p.BO))}</span>` : ''}</div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}">${homeRankSortMode === 'MLI' ? `<span class="index-score mli-score ${Number(p.calculatedMLI || 0) >= 0 ? 'mli-positive' : 'mli-negative'}">${Number.isFinite(Number(p.calculatedMLI)) ? `${Number(p.calculatedMLI) >= 0 ? '+' : ''}${Number(p.calculatedMLI).toFixed(1)}` : '--'}</span><div class="mli-bbi-context">BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : `<span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}`}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td></tr>`;
   });
   tbody.innerHTML = rows.join('');
 }
@@ -16896,7 +16992,7 @@ function renderGameTableBoard(data, targetBodyId, overallRankMap = null) {
     const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
     const displayRank = idx + 1;
     const safeNameAttr = String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}${dnpBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span></div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}">${homeRankSortMode === 'MLI' ? `<span class="index-score mli-score ${Number(p.calculatedMLI || 0) >= 0 ? 'mli-positive' : 'mli-negative'}">${Number.isFinite(Number(p.calculatedMLI)) ? `${Number(p.calculatedMLI) >= 0 ? '+' : ''}${Number(p.calculatedMLI).toFixed(1)}` : '--'}</span><div class="mli-bbi-context">BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : `<span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}`}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td></tr>`;
+    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}${dnpBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span>${Number.isFinite(Number(p.battingOrder ?? p.BO)) ? `<span class="espn-dot">•</span><span class="espn-bo-chip">BO ${Math.round(Number(p.battingOrder ?? p.BO))}</span>` : ''}</div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}">${homeRankSortMode === 'MLI' ? `<span class="index-score mli-score ${Number(p.calculatedMLI || 0) >= 0 ? 'mli-positive' : 'mli-negative'}">${Number.isFinite(Number(p.calculatedMLI)) ? `${Number(p.calculatedMLI) >= 0 ? '+' : ''}${Number(p.calculatedMLI).toFixed(1)}` : '--'}</span><div class="mli-bbi-context">BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : `<span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}`}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${renderOddsWithBook(p)}</td><td class="edge-cell ${edgeClass}">${formatPctValue(p.bettingEdge)}</td></tr>`;
   });
   tbody.innerHTML = rows.join('');
 }
