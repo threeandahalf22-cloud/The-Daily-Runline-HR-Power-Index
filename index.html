@@ -8834,6 +8834,17 @@ body.drl-splash-active .container{visibility:hidden!important;}
 .bet-edge-analyzer{border:1px solid var(--espn-line,#2b2f35);border-left:4px solid var(--espn-red,#e10600);border-radius:14px;padding:18px;background:linear-gradient(180deg,#151719,#101214);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 24px rgba(0,0,0,.26)}
 .bet-edge-analyzer-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}.bet-edge-analyzer-kicker{color:var(--espn-red,#e10600);font-size:10px;font-weight:1000;text-transform:uppercase;letter-spacing:1.3px}.bet-edge-analyzer-title{color:#fff;font-size:20px;font-weight:1000;text-transform:uppercase;margin-top:4px}.bet-edge-analyzer-sub{color:var(--text-muted,#94a3b8);font-size:11px;font-weight:750;margin-top:5px;max-width:760px}.bet-edge-filter{min-width:190px}.bet-edge-filter .select-input-sm{width:100%}.bet-edge-best{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}.bet-edge-best-card{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;background:#171a1f}.bet-edge-best-card span{display:block;color:var(--text-muted,#94a3b8);font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.7px}.bet-edge-best-card b{display:block;color:#fff;font-family:monospace;font-size:20px;margin-top:5px}.bet-edge-best-card.hot b{color:#22c55e}.bet-edge-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.bet-edge-panel-title{color:#fff;font-size:12px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;margin:0 0 8px}.bet-edge-panel .signal-table-wrapper{margin-bottom:0;max-height:390px}.bet-edge-best-row td{background:rgba(34,197,94,.07)!important;color:#fff}.bet-edge-analyzer .signal-table td:first-child{font-family:monospace;font-weight:1000}.bet-edge-analyzer .backtest-note{margin:12px 0 0}.bet-edge-empty{padding:22px!important;color:var(--text-muted,#94a3b8)!important;font-style:italic;text-align:center!important}
 @media(max-width:850px){.bet-edge-grid{grid-template-columns:1fr}.bet-edge-analyzer-head{align-items:stretch}}
+
+/* ===== DRL workbook-load responsiveness patch =====
+   Visual design is unchanged after loading. During workbook parsing only,
+   expensive animations/transitions are paused so the browser can prioritize data. */
+body.drl-workbook-loading *,
+body.drl-workbook-loading *::before,
+body.drl-workbook-loading *::after{
+  animation-play-state: paused !important;
+  transition-duration: 0s !important;
+}
+body.drl-workbook-loading{ cursor: progress; }
 </style>
 </head>
 <body class="drl-splash-active">
@@ -10833,10 +10844,28 @@ updateSlateTicker();
 }
 }
 
+const __drlSheetAOACache = new WeakMap();
+function drlSheetToAOA(workbook, sheetName) {
+  const sheet = workbook && workbook.Sheets ? workbook.Sheets[sheetName] : null;
+  if (!sheet) return [];
+  let workbookCache = __drlSheetAOACache.get(workbook);
+  if (!workbookCache) { workbookCache = new Map(); __drlSheetAOACache.set(workbook, workbookCache); }
+  if (workbookCache.has(sheetName)) return workbookCache.get(sheetName);
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true, blankrows: false });
+  workbookCache.set(sheetName, rows);
+  return rows;
+}
+function drlYieldToBrowser() {
+  return new Promise(resolve => {
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => setTimeout(resolve, 0));
+    else setTimeout(resolve, 0);
+  });
+}
+
 function sheetToJsonSmart(workbook, sheetName, headerKeys = ['Player', 'Name']) {
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return [];
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const rows = drlSheetToAOA(workbook, sheetName);
   let headerIndex = rows.findIndex(row => row && row.some(cell => headerKeys.includes(String(cell).trim())));
   if (headerIndex < 0) headerIndex = 0;
   const headers = (rows[headerIndex] || []).map((h, idx) => String(h || `Column${idx+1}`).trim() || `Column${idx+1}`);
@@ -10888,7 +10917,7 @@ function buildBatTrackingMap(workbook, sheetName) {
   // I=first pitch-family Swing%, K=secondary Contact%, L=secondary Swing%.
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return {};
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const rows = drlSheetToAOA(workbook, sheetName);
   const out = {};
   rows.forEach(row => {
     const player = String(row[1] || '').replace(/ /g, ' ').trim();
@@ -10948,17 +10977,22 @@ if (!drlLoadingSharedWorkbook) {
   drlPendingSharedMeta = null;
 }
 try {
+document.body.classList.add('drl-workbook-loading');
+await drlYieldToBrowser();
 // Pass the original ArrayBuffer directly to SheetJS. Creating an additional
 // Uint8Array copy here can double peak memory for a large shared workbook.
 const data = await f.arrayBuffer();
-const workbook = XLSX.read(data, {type:'array', cellStyles:false, cellNF:false, cellHTML:false, bookVBA:false});
+const workbook = XLSX.read(data, {type:'array', dense:true, cellStyles:false, cellNF:false, cellHTML:false, bookVBA:false, sheetStubs:false, WTF:false});
 window.drlCurrentWorkbook = workbook;
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], day14Raw = [], day30Raw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [], pOddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], pitchBagBRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
 let batTrackingSheetNames = {}; 
 teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; day14Map = {}; day30Map = {}; bullpenData = {}; bullpenGameByTeam = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = []; pitcherTeamMap = {}; batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} }; zoneBMap = {}; zonePMap = {};
-workbook.SheetNames.forEach(sheetName => {
+for (let __drlSheetIndex = 0; __drlSheetIndex < workbook.SheetNames.length; __drlSheetIndex++) {
+const sheetName = workbook.SheetNames[__drlSheetIndex];
 let nameClean = sheetName.toUpperCase().trim();
+// Yield every few worksheets so Chrome never labels the page as frozen.
+if (__drlSheetIndex > 0 && (__drlSheetIndex % 6) === 0) await drlYieldToBrowser();
 if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
 // Zone pitch-bucket sheets can arrive with a few real-world names (BR or BB for breaking, OS/OFF for offspeed).
 // Canonicalize every alias so the Zone Profile buttons never blank/freeze when the workbook uses a different suffix.
@@ -11036,7 +11070,8 @@ if (nameClean === 'ZONEP') zonePMap = mapRowsByName(sheetToJsonSmart(workbook, s
 if (['FBL','FBR','BBL','BBR','OSL','OSR'].includes(nameClean)) batTrackingSheetNames[nameClean] = sheetName;
 if (nameClean === 'HA') processHomeAwaySheet(workbook.Sheets[sheetName]);
 if (nameClean === 'COMPARE' || nameClean === 'MATCHUPS' || nameClean === 'GAMES') processCompareSheetMatchups(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
-});
+}
+await drlYieldToBrowser();
 oddsRaw.forEach(row => { const nm = getNameFromRow(row); addNameAlias(oddsMap, nm, row); });
 oddsBookColumns = detectOddsBookColumns(oddsRaw);
 kOddsRows = Array.isArray(pOddsRaw) ? pOddsRaw : [];
@@ -11137,10 +11172,16 @@ document.getElementById('graphicsPanel').style.display = 'block';
   // 1) Calculate/store all BBI scores immediately using spreadsheet weather.
   // 2) Render Home right away so upload never waits on OpenWeather/network.
   // 3) Refresh OpenWeather in the background, then recalculate/rerender from the live weather data.
+  await drlYieldToBrowser();
   uploadStep('recalculateAllBBIScores', recalculateAllBBIScores);
+  await drlYieldToBrowser();
   uploadStep('applyFiltersAndRender', applyFiltersAndRender);
-  uploadStep('renderStrikeoutCenter', renderStrikeoutCenter);
+  // Strikeout Center is hidden on initial load; build it during idle time instead.
+  const renderStrikeoutsWhenIdle = () => uploadStep('renderStrikeoutCenter', renderStrikeoutCenter);
+  if ('requestIdleCallback' in window) requestIdleCallback(renderStrikeoutsWhenIdle, {timeout: 2200});
+  else setTimeout(renderStrikeoutsWhenIdle, 500);
   drlSplashMarkHomeReady();
+  document.body.classList.remove('drl-workbook-loading');
   uploadStep('updateHeaderStats', updateHeaderStats);
   uploadStep('updateSlateTicker', updateSlateTicker);
   // Cache serialization is non-visual and can be expensive on large slates.
@@ -11159,6 +11200,7 @@ document.getElementById('graphicsPanel').style.display = 'block';
 }
 } catch (err) {
   console.error('Workbook file read failed:', err);
+  document.body.classList.remove('drl-workbook-loading');
   drlSplashRelease('Workbook load failed');
   alert('Could not read that workbook file. Please make sure it is a normal .xlsx/.xls/.csv file and try again.');
   try { e.target.value = ''; } catch (_) {}
