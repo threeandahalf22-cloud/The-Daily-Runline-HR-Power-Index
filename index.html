@@ -8,7 +8,7 @@
 <!-- Targeted hybrid upgrade: old additive model retained; only platoon adjustment,
      unified Pitch Lab/Attack Zone multiplier, pitcher multiplier, and hitter-specific weather multiplier added. -->
 <!-- Pitch Lab V2 stats display fix: cards show PitchBagB fields actually used by the score. -->
-<!-- Pitch Lab V2 HR-predictive update: PitchBagB exact-pitch production + pitcher vulnerability + intersection + usage/sample regression. -->
+<!-- Pitch Lab V3 HR-only arsenal update: exact-pitch hard-hit + handed pitch-shape pull-air/AIR + handed pitch-family contact + small RV/100 context, pitcher vulnerability, usage weighting, and bounded Stuff+. -->
 <!-- DRL v64.9: Phase 5 unused CSS cleanup.
      Backtest-reweighted buckets: Power 30, Batted Ball 24, Attack Zone 16, Pitcher 10,
      BP Game: Compare Y uses 2 starter IP / 7 bullpen IP; N/blank preserves normal logic.
@@ -8930,6 +8930,7 @@ body.drl-splash-active .container{visibility:hidden!important;}
 <button class="nav-tab" onclick="switchTab('hotbat', this)">🔥 Hot Bat</button>
 <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
 <button class="nav-tab" onclick="switchTab('zoneprofile', this)">🎯 HR Attack Map</button>
+<button class="nav-tab" onclick="switchTab('goldenmatchups', this)">💎 Golden Matchups</button>
 <button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
 <button class="nav-tab" onclick="switchTab('synergy', this)">⚡ Synergy Bonuses</button>
 <button class="nav-tab" onclick="switchTab('backtest', this)">📊 Backtest Lab</button>
@@ -9449,6 +9450,27 @@ body.drl-splash-active .container{visibility:hidden!important;}
 </div>
 </div>
 
+<div id="tab-goldenmatchups" class="tab-content">
+  <div class="panel">
+    <h2>💎 Golden Matchups</h2>
+    <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 14px;">Independent matchup leaderboard only. Golden Matchup Score = <b>60% HR Attack Map + 40% Pitch Lab</b>. It does not change BBI, category weights, rankings, or any other score.</p>
+    <div class="full-edge-tools">
+      <div class="full-edge-tools-left">
+        <div class="filter-group"><label>Search Player / ID</label><input type="text" id="goldenMatchupSearch" class="search-input" placeholder="Player name or MLB ID..." oninput="renderGoldenMatchupsTab()"></div>
+        <div class="filter-group"><label>Team</label><select id="goldenMatchupTeam" class="select-input-sm" onchange="renderGoldenMatchupsTab()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
+        <div class="filter-group"><label>Sort</label><select id="goldenMatchupSort" class="select-input-sm" onchange="renderGoldenMatchupsTab()" style="width:180px;"><option value="GOLDEN">Golden Score</option><option value="ZONE">Attack Zone</option><option value="PITCHLAB">Pitch Lab</option><option value="BBI">BBI Rank</option><option value="NAME">Player Name</option></select></div>
+      </div>
+      <div class="full-edge-summary" id="goldenMatchupSummary">Players: <b>0</b></div>
+    </div>
+    <div class="table-wrapper full-edge-table-wrapper">
+      <table class="full-edge-table" style="min-width:1120px;">
+        <thead><tr><th>Rank</th><th style="text-align:left;">Player</th><th>MLB ID</th><th>Team</th><th>BO</th><th>Bats</th><th>Opp Pitcher</th><th>Attack Zone<br><small style="color:var(--text-muted);">60%</small></th><th>Pitch Lab<br><small style="color:var(--text-muted);">40%</small></th><th>Golden Score</th><th>BBI Rank</th></tr></thead>
+        <tbody id="goldenMatchupTableBody"><tr><td colspan="11" class="full-edge-empty">Upload workbook to calculate Golden Matchups...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div id="tab-synergy" class="tab-content">
   <div class="panel">
     <h2>⚡ Synergy Bonuses</h2>
@@ -9592,6 +9614,7 @@ const run = () => {
   if (tabName === 'h2h') renderH2HFullTable();
   if (tabName === 'pitchlab') renderPitchLabTable();
   if (tabName === 'zoneprofile') renderZoneProfileTab();
+  if (tabName === 'goldenmatchups') renderGoldenMatchupsTab();
   if (tabName === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
   if (tabName === 'backtest') {
     const c = document.getElementById('backtestLabContainer');
@@ -10861,7 +10884,8 @@ function getHandedParkFactor(player, parkTeam, fallbackPF, matchupHand) {
 }
 function buildBatTrackingMap(workbook, sheetName) {
   // Savant bat-tracking exports use stacked headers; do not trust row 1/header names.
-  // Fixed columns: B=Player, E=Avg Bat Speed, I=Squared-Up % Swing, L=Blast % Swing.
+  // Fixed columns used here: B=Player, E=Avg Bat Speed, H=first pitch-family Contact%,
+  // I=first pitch-family Swing%, K=secondary Contact%, L=secondary Swing%.
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return {};
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
@@ -10870,10 +10894,14 @@ function buildBatTrackingMap(workbook, sheetName) {
     const player = String(row[1] || '').replace(/ /g, ' ').trim();
     if (!player || /^player$/i.test(player)) return;
     const batSpeed = cleanNumber(row[4]);
-    const squaredSwing = cleanNumber(row[8]);
-    const blastSwing = cleanNumber(row[11]);
-    if (!player || (!batSpeed && !squaredSwing && !blastSwing)) return;
-    out[normalizeName(player)] = { player, batSpeed, squaredSwing, blastSwing };
+    const contact = cleanNumber(row[7]);
+    const swing = cleanNumber(row[8]);
+    const secondaryContact = cleanNumber(row[10]);
+    const secondarySwing = cleanNumber(row[11]);
+    const competitiveSwings = cleanNumber(row[14]);
+    const hitIntoPlay = cleanNumber(row[16]);
+    if (!player || (!batSpeed && contact === null && secondaryContact === null && !competitiveSwings && !hitIntoPlay)) return;
+    out[normalizeName(player)] = { player, batSpeed, contact, swing, secondaryContact, secondarySwing, competitiveSwings, hitIntoPlay };
   });
   return out;
 }
@@ -11522,7 +11550,7 @@ function renderModalPitchLab(player) {
           <div>
             <div class="modal-pitchlab-kicker">Batter vs Pitcher Arsenal</div>
             <div class="modal-pitchlab-matchup">${player.Name || 'Hitter'} vs ${profile.pitcherName || player['Opp Pitcher'] || 'Starter'}</div>
-            <div class="modal-pitchlab-summary">Usage-weighted pitch matchup. Each pitch score combines hitter HR damage, pitcher damage allowed and pitch quality, then weights it by how often the pitcher throws it.</div>
+            <div class="modal-pitchlab-summary">Usage-weighted HR-only arsenal matchup. Hitter damage uses Hard Hit%, handed Pull AIR%, handed AIR%, handed Contact% and a small RV/100 context, then combines it with pitcher pitch vulnerability.</div>
           </div>
           <div class="modal-pitchlab-scorebox">
             <div class="modal-pitchlab-scorelabel">Pitch Lab Score</div>
@@ -12099,6 +12127,12 @@ function getBatterPitchShapeRow(playerName, group, pitcherHand) {
   const handedMap = bucket[hand] || bucket;
   return handedMap[normalizeName(playerName)] || {};
 }
+function getPitchLabBatTrackingRow(playerName, group, pitcherHand) {
+  const g = String(group || '').trim().toUpperCase();
+  const hand = String(pitcherHand || '').trim().toUpperCase().startsWith('L') ? 'L' : 'R';
+  const family = g === 'FB' ? 'FB' : (g === 'CH' ? 'OS' : 'BB');
+  return (batTrackingMaps[family + hand] || {})[normalizeName(playerName)] || {};
+}
 function getPitchLabOverallFallback(playerName) {
   const key = normalizeName(playerName);
   const player = (playerData || []).find(p => normalizeName(p && p.Name) === key) || {};
@@ -12116,63 +12150,57 @@ function getPitchLabOverallFallback(playerName) {
 }
 function batterPitchGrade(playerName, group, pitcherHand, pitchType) {
   const pt = pitchType || { key: group, group };
-  const row = getPitchBagBRow(playerName, pt);
-  const ev = getPitchEVScore(playerName, pt);
+  const exactRow = getPitchBagBRow(playerName, pt);
+  const shapeRow = getBatterPitchShapeRow(playerName, group, pitcherHand);
+  const trackingRow = getPitchLabBatTrackingRow(playerName, group, pitcherHand);
 
-  if (row) {
-    const pa = pitchLabReadNumber(row, ['PA','pa','Plate Appearances','Pitches','pitches']);
-    const pitches = pitchLabReadNumber(row, ['Pitches','pitches','Pitch Count']);
-    const rv100 = pitchLabReadNumber(row, ['RV/100','Run Value/100','run_value_per_100','RV100']);
-    const runValue = pitchLabReadNumber(row, ['Run Value','run_value','RV']);
-    const slg = pitchLabReadNumber(row, ['SLG','Slugging','slg']);
-    const woba = pitchLabReadNumber(row, ['wOBA','WOBA','woba']);
-    const whiff = pitchLabReadNumber(row, ['Whiff %','Whiff%','whiff_percent']);
-    const k = pitchLabReadNumber(row, ['K %','K%','Strikeout %','k_percent']);
-    const putAway = pitchLabReadNumber(row, ['Put Away %','PutAway%','put_away_percent']);
-    const xslg = pitchLabReadNumber(row, ['xSLG','est_slg','expected_slg']);
-    const xwoba = pitchLabReadNumber(row, ['xwOBA','xWOBA','est_woba','expected_woba']);
-    const hard = pitchLabReadNumber(row, ['Hard Hit %','Hard Hit%','HardHit%','hard_hit_percent']);
+  // HR-only inputs tied to the opposing pitcher's arsenal and throwing hand.
+  // Exact-pitch: Hard Hit% and RV/100 from PitchBagB.
+  // Pitch family + pitcher hand: Pull AIR% and AIR% from vsPitch sheets.
+  // Pitch family + pitcher hand: Contact% from FBR/FBL, BBR/BBL or OSR/OSL.
+  const pa = exactRow ? pitchLabReadNumber(exactRow, ['PA','pa','Plate Appearances']) : null;
+  const pitches = exactRow ? pitchLabReadNumber(exactRow, ['Pitches','pitches','Pitch Count']) : null;
+  const rv100 = exactRow ? pitchLabReadNumber(exactRow, ['RV/100','Run Value/100','run_value_per_100','RV100']) : null;
+  const hard = exactRow ? pitchLabReadNumber(exactRow, ['Hard Hit %','Hard Hit%','HardHit%','hard_hit_percent']) : null;
 
-    // Pitch Lab V2 hitter score: actual/expected power against this exact pitch,
-    // plus the ability to put the pitch in play. All values are regressed by PA/(PA+25).
-    const score = pitchLabScoreWeighted([
-      { value: pitchLabV2Z(xslg, .430, .110, pa), weight: .30 },
-      { value: pitchLabV2Z(hard, 40.0, 8.0, pa), weight: .20 },
-      { value: pitchLabV2Z(rv100, 0.0, 2.5, pa), weight: .15 },
-      { value: pitchLabV2Z(slg, .420, .120, pa), weight: .10 },
-      { value: pitchLabV2Z(xwoba, .320, .070, pa), weight: .10 },
-      { value: pitchLabV2Z(whiff, 25.0, 8.0, pa, true), weight: .07 },
-      { value: pitchLabV2Z(k, 23.0, 8.0, pa, true), weight: .05 },
-      { value: pitchLabV2Z(putAway, 20.0, 7.0, pa, true), weight: .03 }
-    ], 50);
+  const shapeSample = pitchLabReadNumber(shapeRow, ['BBE','Batted Ball Events','PA','AB']) || 0;
+  const pullAir = pitchLabReadRate(shapeRow, ['Pull AIR %','Pull AIR%','Pull Air %','PullAir%']);
+  const air = pitchLabReadRate(shapeRow, ['AIR %','AIR%','Air %','Air%']);
 
-    return {
-      score: Math.max(0, score), grade: gradeFromScore(score), bbe: pa || 0, pa, pitches,
-      rv100, runValue, slg, woba, whiff, k, putAway, xslg, xwoba, hard,
-      barrel: null, pull: null, la: null, hr: null, hrRate: null,
-      ev: ev.value, maxEV: ev.maxValue, shape: {xslg, hard, rv100, slg, xwoba, whiff, k, putAway},
-      source: 'PitchBagB', reliability: pitchLabV2Reliability(pa),
-      note: `PitchBagB exact pitch // PA ${pa ?? '--'} / RV100 ${rv100 ?? '--'} / xSLG ${xslg ?? '--'} / HH ${hard ?? '--'}% / Whiff ${whiff ?? '--'}% / K ${k ?? '--'}%`
-    };
-  }
+  const trackingSample = firstNumber(
+    safeGet(trackingRow,'competitiveSwings','Competitive Swings'),
+    safeGet(trackingRow,'hitIntoPlay','Hit Into Play'),
+    0
+  ) || 0;
+  const contact = firstNumber(
+    safeGet(trackingRow,'contact','Contact %','Contact%'),
+    safeGet(trackingRow,'secondaryContact','Secondary Contact %')
+  );
 
-  // Backward-compatible fallback when PitchBagB has no exact pitch row.
-  const oldRow = getBatterPitchShapeRow(playerName, group, pitcherHand);
-  const fallback = getPitchLabOverallFallback(playerName);
-  const source = Object.keys(oldRow).length ? oldRow : fallback;
-  const sample = pitchLabReadNumber(source, ['PA','AB','BBE','Pitches']) || fallback.bbe || 0;
-  const xslg = pitchLabReadNumber(source, ['xSLG','Expected SLG','est_slg']) ?? fallback.xslg;
-  const hard = pitchLabReadNumber(source, ['Hard Hit %','HardHit%','HH%']) ?? fallback.hard;
-  const barrel = pitchLabReadNumber(source, ['Barrel %','Barrel%','Brl%']) ?? fallback.barrel;
+  // Convert rate fields to 0-100 for the common z-score helper.
+  const pullAirPct = pullAir === null ? null : pullAir * 100;
+  const airPct = air === null ? null : air * 100;
+  const contactPct = contact === null ? null : (Math.abs(Number(contact)) <= 1 ? Number(contact) * 100 : Number(contact));
+
+  // Final hitter arsenal grade: only HR-contact ingredients plus a small exact-pitch RV/100 context.
+  // Missing inputs are automatically reweighted instead of being treated as zero.
   const score = pitchLabScoreWeighted([
-    {value:pitchLabV2Z(xslg, .430, .110, sample), weight:.45},
-    {value:pitchLabV2Z(hard, 40.0, 8.0, sample), weight:.30},
-    {value:pitchLabV2Z(barrel, 10.0, 4.0, sample), weight:.25}
+    { value: pitchLabV2Z(hard, 40.0, 8.0, pa || 0), weight: .35 },
+    { value: pitchLabV2Z(pullAirPct, 24.0, 10.0, shapeSample), weight: .30 },
+    { value: pitchLabV2Z(airPct, 60.0, 12.0, shapeSample), weight: .20 },
+    { value: pitchLabV2Z(contactPct, 30.0, 10.0, trackingSample), weight: .10 },
+    { value: pitchLabV2Z(rv100, 0.0, 2.5, pa || 0), weight: .05 }
   ], 50);
+
   return {
-    score, grade:gradeFromScore(score), bbe:sample, pa:sample, xslg, hard, barrel,
-    ev:ev.value, maxEV:ev.maxValue, shape:{xslg,hard,barrel}, source:'Fallback', reliability:pitchLabV2Reliability(sample),
-    note:`Fallback pitch family // sample ${sample || 0} / xSLG ${xslg ?? '--'} / HH ${hard ?? '--'}% / Barrel ${barrel ?? '--'}%`
+    score: Math.max(0, score), grade: gradeFromScore(score),
+    bbe: shapeSample || pa || 0, pa, pitches, rv100, hard,
+    pullAir, air, contact: contactPct,
+    shapeSample, trackingSample,
+    source: exactRow ? 'PitchBagB + handed shape/contact' : 'Handed shape/contact fallback',
+    reliability: pitchLabV2Reliability(Math.max(Number(pa)||0, shapeSample||0, trackingSample||0)),
+    shape: { hard, pullAir, air, contact: contactPct, rv100 },
+    note: `HR-only arsenal // HH ${hard ?? '--'}% / Pull AIR ${pullAir !== null ? (pullAir*100).toFixed(1)+'%' : '--'} / AIR ${air !== null ? (air*100).toFixed(1)+'%' : '--'} / Contact ${contactPct !== null ? contactPct.toFixed(1)+'%' : '--'} / RV100 ${rv100 ?? '--'}`
   };
 }
 
@@ -12200,7 +12228,7 @@ function buildPitchLabProfile(player) {
       { value: pitcherDamage.score, weight: 0.35 },
       { value: intersection, weight: 0.10 }
     ], 50);
-    const stuffModifier = Math.max(0.95, Math.min(1.05, 1 + (stuffWeakness - 100) / 500));
+    const stuffModifier = Math.max(0.97, Math.min(1.03, 1 + (stuffWeakness - 100) / 750));
     const edge = Math.max(0, baseEdge * stuffModifier);
     const onlyHomers = pitchHrAffinityScore(player.Name, pitcherName, pt);
     rows.push({ ...pt, usage, stuff, stuffWeakness, bat, pitcherDamage, onlyHomers, edge, usageExposure: Math.max(0, Math.min(100, usage * 200)) });
@@ -12244,14 +12272,14 @@ function buildPitchLabProfile(player) {
   const pitchMaxEVScore = weighted(r=>r.bat && r.bat.ev ? r.bat.ev.maxScore : 50, 50);
   const pitchEVValue = weightedPresent(r=>r.bat && r.bat.ev ? r.bat.ev.value : null);
   const maxEVValue = weightedPresent(r=>r.bat && r.bat.ev ? r.bat.ev.maxValue : null);
-  const xslgWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.xslg : null);
-  const pullRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.pull : null);
-  const launchAngleWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.la : null);
-  const barrelRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.barrel : null);
   const hardHitRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.hard : null);
+  const pullAirRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.pullAir : null);
+  const airRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.air : null);
+  const contactRateWeighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.contact : null);
+  const rv100Weighted = weightedPresent(r=>r.bat && r.bat.shape ? r.bat.shape.rv100 : null);
 
-  const powerFactor = pitchLabV2PowerFactor(player);
-  const finalScore = Math.max(0, (Number(pitchMixScore) || 50) * powerFactor);
+  const powerFactor = 1; // Pitch Lab is arsenal-only; no overall hitter power multiplier.
+  const finalScore = Math.max(0, Number(pitchMixScore) || 50);
   const top = rows[0] || null;
   return {
     player, pitcherName, pitcherHand, rows,
@@ -12268,19 +12296,22 @@ function buildPitchLabProfile(player) {
     pitchMaxEVScore: Math.max(0, Number(pitchMaxEVScore) || 50),
     pitchEVValue,
     maxEVValue,
-    xslg: xslgWeighted,
-    pullRate: pullRateWeighted,
-    launchAngle: launchAngleWeighted,
-    barrelRate: barrelRateWeighted,
+    xslg: null,
+    pullRate: null,
+    launchAngle: null,
+    barrelRate: null,
     hardHitRate: hardHitRateWeighted,
-    fbRate: null,
-    pullAirRate: null,
+    fbRate: airRateWeighted,
+    pullAirRate: pullAirRateWeighted,
+    airRate: airRateWeighted,
+    contactRate: contactRateWeighted,
+    rv100: rv100Weighted,
     zoneScore: 50,
     zone: null,
     grade: gradeFromScore(finalScore), top,
     powerFactor,
-    summary: `Pitch Lab V2: PitchBagB exact-pitch hitter production, pitcher pitch vulnerability, matchup intersection, pitcher usage, sample regression and bounded power/Stuff+ modifiers.`,
-    note: `Usage-weighted ${scoreBarPct(finalScore)} // Barrel ${barrelRateWeighted !== null ? Number(barrelRateWeighted).toFixed(1)+'%' : '--'} / HH ${hardHitRateWeighted !== null ? Number(hardHitRateWeighted).toFixed(1)+'%' : '--'} / xSLG ${xslgWeighted !== null ? Number(xslgWeighted).toFixed(3) : '--'} / EV ${pitchEVValue !== null && pitchEVValue !== undefined && !isNaN(pitchEVValue) ? Number(pitchEVValue).toFixed(1) : '--'} / Max ${maxEVValue !== null && maxEVValue !== undefined && !isNaN(maxEVValue) ? Number(maxEVValue).toFixed(1) : '--'} / Pull ${pullRateWeighted !== null ? pctFmt(pullRateWeighted) : '--'} / LA ${launchAngleWeighted !== null ? Number(launchAngleWeighted).toFixed(1) : '--'}`
+    summary: `Pitch Lab V3: HR-only arsenal matchup using exact-pitch Hard Hit% and RV/100, handed pitch-family Pull AIR%, AIR% and Contact%, pitcher vulnerability, pitcher usage, sample regression and a ±3% Stuff+ modifier.`,
+    note: `Usage-weighted ${scoreBarPct(finalScore)} // HH ${hardHitRateWeighted !== null ? Number(hardHitRateWeighted).toFixed(1)+'%' : '--'} / Pull AIR ${pullAirRateWeighted !== null ? pctFmt(pullAirRateWeighted) : '--'} / AIR ${airRateWeighted !== null ? pctFmt(airRateWeighted) : '--'} / Contact ${contactRateWeighted !== null ? Number(contactRateWeighted).toFixed(1)+'%' : '--'} / RV100 ${rv100Weighted !== null ? Number(rv100Weighted).toFixed(2) : '--'}`
   };
 }
 
@@ -12706,9 +12737,10 @@ function renderPitchLab10Card(profile, idx) {
         ${pitchLab10Mini('Hitter Damage', batDamage)}
         ${pitchLab10Mini('Pitcher Weakness', pitcherWeak)}
         ${pitchLab10Mini('RV/100', rv100Val)}
-        ${pitchLab10Mini('xSLG', xslgVal)}
         ${pitchLab10Mini('Hard Hit%', hardHitVal)}
-        ${pitchLab10Mini('Whiff% / K%', `${whiffVal} / ${kVal}`)}
+        ${pitchLab10Mini('Pull AIR%', r.bat && r.bat.pullAir !== null && r.bat.pullAir !== undefined ? (Number(r.bat.pullAir)*100).toFixed(1)+'%' : '--')}
+        ${pitchLab10Mini('AIR%', r.bat && r.bat.air !== null && r.bat.air !== undefined ? (Number(r.bat.air)*100).toFixed(1)+'%' : '--')}
+        ${pitchLab10Mini('Contact%', r.bat && r.bat.contact !== null && r.bat.contact !== undefined ? Number(r.bat.contact).toFixed(1)+'%' : '--')}
         ${pitchLab10Mini('PA vs Pitch', paVal)}
         ${pitchLab10Mini('Matchup', pitchLab10Tier(r.edge))}
       </div>
@@ -12814,7 +12846,7 @@ function renderPitchLabTable(resetVisible = true) {
     if (cardBox.dataset.summaryKey !== summaryKey) {
       cardBox.innerHTML = leader ? `
         <div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab Leader</div><div class="pitch-lab-score">${Number(leader.score || 0).toFixed(0)}</div><div class="pitch-lab-sub">${leader.player.Name} vs ${leader.pitcherName || 'Starter'}</div></div>
-        <div class="pitch-lab-card"><div class="pitch-lab-title">Best Batter HR Damage</div><div class="pitch-lab-score">${bestBat ? Number(bestBat.batterShapeScore || 0).toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestBat ? bestBat.player.Name + ' // EV, FB%, pulled-air, barrel, hard-hit' : 'No data'}</div></div>
+        <div class="pitch-lab-card"><div class="pitch-lab-title">Best Batter HR Damage</div><div class="pitch-lab-score">${bestBat ? Number(bestBat.batterShapeScore || 0).toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestBat ? bestBat.player.Name + ' // HH, Pull AIR, AIR, Contact, RV/100' : 'No data'}</div></div>
         <div class="pitch-lab-card"><div class="pitch-lab-title">Most HR-Attackable Arsenal</div><div class="pitch-lab-score">${bestP ? Number(bestP.pitcherDamageScore || 0).toFixed(0) : '--'}</div><div class="pitch-lab-sub">${bestP ? (bestP.pitcherName || 'Starter') + ' HR damage allowed profile' : 'No data'}</div></div>
         <div class="pitch-lab-card"><div class="pitch-lab-title">Highest Pitch EV</div><div class="pitch-lab-score">${bestEV && bestEV.pitchEVValue ? Number(bestEV.pitchEVValue).toFixed(1) : '--'}</div><div class="pitch-lab-sub">${bestEV ? bestEV.player.Name + ' // usage-weighted EV vs mix' : 'Waiting for EV data'}</div></div>` : `<div class="pitch-lab-card"><div class="pitch-lab-title">Pitch Lab</div><div class="pitch-lab-score">--</div><div class="pitch-lab-sub">Upload workbook to calculate.</div></div>`;
       cardBox.dataset.summaryKey = summaryKey;
@@ -23519,6 +23551,108 @@ window.renderLongestHRCenter=function(){
 window.refreshOnlyHomersData=function(){setStatus('This center uses workbook data only: SS, PSS, and today’s weather.','warn')};
 window.renderStrikeoutCenter=window.renderLongestHRCenter;
 drlOnReady(()=>{setTimeout(window.renderLongestHRCenter,500);let n=-1;setInterval(()=>{const c=getPlayers().filter(p=>!p.isRemoved).length;if(c!==n){n=c;window.renderLongestHRCenter()}},1200)});
+})();
+</script>
+
+
+<script id="drl-golden-matchups-60-40">
+(function(){
+  'use strict';
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const finite = value => Number.isFinite(Number(value));
+  const scoreText = value => finite(value) ? Number(value).toFixed(1) : 'N/Q';
+  const scoreClass = value => !finite(value) ? 'stats-neutral' : Number(value) >= 75 ? 'stats-good' : Number(value) >= 58 ? 'stats-mid' : 'stats-bad';
+  const getSlatePlayers = () => {
+    try { if (typeof playerData !== 'undefined' && Array.isArray(playerData)) return playerData; } catch(e) {}
+    return Array.isArray(window.playerData) ? window.playerData : [];
+  };
+  const playerId = player => {
+    const name = String(player && player.Name || '').trim();
+    const key = typeof normalizeName === 'function' ? normalizeName(name) : name.toLowerCase().replace(/[^a-z0-9]/g,'');
+    return String((window.playerIdMap && window.playerIdMap[key]) || player.ID || player.PlayerID || player.MLBID || player.mlbId || '');
+  };
+  const headshot = (player, id) => {
+    const name = String(player.Name || 'Player');
+    const initials = name.split(/\s+/).filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase() || '?';
+    if (!id) return `<div class="best-edge-face-placeholder">${esc(initials)}</div>`;
+    return `<img class="player-headshot" style="width:44px;height:44px;margin:0;" src="https://img.mlbstatic.com/mlb-photos/image/upload/v1/people/${esc(id)}/headshot/67/current" alt="${esc(name)}" loading="lazy" onerror="this.outerHTML='<div class=&quot;best-edge-face-placeholder&quot;>${esc(initials)}</div>'">`;
+  };
+  function rowFor(player, originalIndex, bbiRank){
+    let zoneProfile = player.attackZoneProfile || null;
+    if ((!zoneProfile || !finite(zoneProfile.score)) && typeof calculateAttackZoneProfile === 'function') {
+      try { zoneProfile = calculateAttackZoneProfile(player); } catch(e) { zoneProfile = null; }
+    }
+    if (zoneProfile) {
+      player.attackZoneProfile = zoneProfile;
+      if (finite(zoneProfile.score)) player.calculatedAttackZoneScore = Number(zoneProfile.score);
+    }
+    let pitchProfile = player.pitchLabProfile || null;
+    if ((!pitchProfile || !finite(pitchProfile.score)) && typeof buildPitchLabProfile === 'function') {
+      try { pitchProfile = buildPitchLabProfile(player); } catch(e) { pitchProfile = null; }
+    }
+    if (pitchProfile) player.pitchLabProfile = pitchProfile;
+    const zone = finite(player.calculatedAttackZoneScore) ? Number(player.calculatedAttackZoneScore) : (zoneProfile && finite(zoneProfile.score) ? Number(zoneProfile.score) : null);
+    const pitch = pitchProfile && finite(pitchProfile.score) ? Number(pitchProfile.score) : null;
+    const golden = finite(zone) && finite(pitch) ? (zone * 0.60) + (pitch * 0.40) : null;
+    return {player, originalIndex, bbiRank, id:playerId(player), zone, pitch, golden};
+  }
+  window.renderGoldenMatchupsTab = function(){
+    const body = document.getElementById('goldenMatchupTableBody');
+    if (!body) return;
+    const players = getSlatePlayers();
+    if (!players.length) {
+      body.innerHTML = '<tr><td colspan="11" class="full-edge-empty">Upload workbook to calculate Golden Matchups...</td></tr>';
+      const sum=document.getElementById('goldenMatchupSummary'); if(sum) sum.innerHTML='Players: <b>0</b>';
+      return;
+    }
+    const ranked = [...players].sort((a,b)=>(Number(b.calculatedBBI)||0)-(Number(a.calculatedBBI)||0));
+    const rankMap = {};
+    ranked.forEach((p,i)=>{ const k=typeof normalizeName==='function'?normalizeName(p.Name):String(p.Name||'').toLowerCase(); if(!(k in rankMap)) rankMap[k]=i+1; });
+    let rows = players.map((p,i)=>{ const k=typeof normalizeName==='function'?normalizeName(p.Name):String(p.Name||'').toLowerCase(); return rowFor(p,i,rankMap[k]||'--'); });
+    const teamSel=document.getElementById('goldenMatchupTeam');
+    if(teamSel){
+      const current=teamSel.value||'ALL';
+      const teams=[...new Set(players.map(p=>String(p.Team||'').trim()).filter(Boolean))].sort();
+      teamSel.innerHTML='<option value="ALL">All Teams</option>'+teams.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+      teamSel.value=teams.includes(current)?current:'ALL';
+    }
+    const q=String(document.getElementById('goldenMatchupSearch')?.value||'').trim().toLowerCase();
+    const team=String(teamSel?.value||'ALL');
+    rows=rows.filter(r=>(team==='ALL'||String(r.player.Team||'')===team)&&(!q||String(r.player.Name||'').toLowerCase().includes(q)||String(r.id).toLowerCase().includes(q)));
+    const sort=String(document.getElementById('goldenMatchupSort')?.value||'GOLDEN');
+    const desc=(a,b,key)=>(finite(b[key])?Number(b[key]):-Infinity)-(finite(a[key])?Number(a[key]):-Infinity);
+    if(sort==='ZONE') rows.sort((a,b)=>desc(a,b,'zone'));
+    else if(sort==='PITCHLAB') rows.sort((a,b)=>desc(a,b,'pitch'));
+    else if(sort==='BBI') rows.sort((a,b)=>(Number(a.bbiRank)||9999)-(Number(b.bbiRank)||9999));
+    else if(sort==='NAME') rows.sort((a,b)=>String(a.player.Name||'').localeCompare(String(b.player.Name||'')));
+    else rows.sort((a,b)=>desc(a,b,'golden'));
+    body.innerHTML=rows.map((r,i)=>{
+      const p=r.player;
+      const bo=safeGet(p,'BO','Batting Order','Lineup Spot') || '--';
+      const bats=safeGet(p,'Bats','Bat Side','Hand') || '--';
+      const pitcher=safeGet(p,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '--';
+      return `<tr style="${typeof teamVisualStyle==='function'?teamVisualStyle(p.Team||''):''}">
+        <td class="full-edge-rank">${i+1}</td>
+        <td class="full-edge-player"><div class="full-edge-player-card" onclick="openPlayerModal(${r.originalIndex})">${headshot(p,r.id)}<div class="full-edge-player-copy"><div class="full-edge-player-name">${esc(p.Name||'Unknown')}</div><div class="full-edge-player-meta">${esc(p.Team||'--')} · vs ${esc(pitcher)}</div></div></div></td>
+        <td style="font-family:monospace;font-weight:1000;">${r.id?esc(r.id):'--'}</td>
+        <td>${esc(p.Team||'--')}</td><td>${esc(bo)}</td><td>${esc(bats)}</td><td>${esc(pitcher)}</td>
+        <td class="${scoreClass(r.zone)}">${scoreText(r.zone)}</td>
+        <td class="${scoreClass(r.pitch)}">${scoreText(r.pitch)}</td>
+        <td><span class="index-score" style="color:${finite(r.golden)&&r.golden>=75?'#f6c343':'var(--accent)'};">${scoreText(r.golden)}</span></td>
+        <td style="font-family:monospace;font-weight:1000;">${r.bbiRank==='--'?'--':'#'+r.bbiRank}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="11" class="full-edge-empty">No players match the current filters.</td></tr>';
+    const qualified=rows.filter(r=>finite(r.golden)).length;
+    const summary=document.getElementById('goldenMatchupSummary');
+    if(summary) summary.innerHTML=`Players: <b>${rows.length}</b> · Scored: <b>${qualified}</b> · Formula: <b>60/40</b>`;
+  };
+  drlOnReady(()=>{
+    let lastCount=-1;
+    setInterval(()=>{
+      const count=getSlatePlayers().length;
+      if(count!==lastCount){ lastCount=count; window.renderGoldenMatchupsTab(); }
+    },900);
+  });
 })();
 </script>
 
