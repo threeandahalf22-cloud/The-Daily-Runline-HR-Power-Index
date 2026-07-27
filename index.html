@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
+<!-- V12.3.6 WEATHER RESTORED: live OpenWeather refresh restored in background; weather animations restored; hidden Odds data retained.
 <!-- V12.3.5 MAX SPEED: Odds sheet is parsed only as hidden model data for Command Center longshot/edge outputs. The Odds tab remains removed. No eager hidden-tab rendering, cache serialization, or automatic live-weather second pass; row-window rendering and reduced visual effects. All core scoring formulas preserved. -->
 <!-- Attack Zone V10: exact pitch-family/zone usage weighting across every positive-use cell, hitter-handedness pull-side context, pitcher vulnerability, HR-specific formulas, true sample smoothing, and no fixed location matrix. -->
 <!-- Targeted hybrid upgrade: old additive model retained; only platoon adjustment,
@@ -8671,6 +8672,23 @@ body.drl-workbook-loading{ cursor: progress; }
 .table-wrapper{contain:layout paint style;}
 tbody tr{contain:layout paint style;}
 </style>
+
+<style id="drl-weather-restored-v136">
+/* Weather visuals must remain functional even in max-speed mode. */
+.weather-lab-wind-layer i{
+  animation-duration:var(--dur,2.4s)!important;
+  animation-iteration-count:infinite!important;
+}
+.weather-lab-field-wrap::before,
+.weather-lab-field-wrap::after{
+  animation-duration:1.7s!important;
+  animation-iteration-count:infinite!important;
+}
+.weather-lab-field-wrap.wind-cross .weather-lab-wind-layer i{
+  animation-duration:var(--dur,2.4s)!important;
+  animation-iteration-count:infinite!important;
+}
+</style>
 </head>
 <body class="drl-splash-active">
 <div aria-label="Loading live workbook" aria-live="polite" id="drlWorkbookSplash" role="status">
@@ -10193,7 +10211,7 @@ function refreshAfterLiveWeatherUpdate() {
   else if (tab === 'environment' && window.renderHREnvironmentTable40) window.renderHREnvironmentTable40();
   updateHeaderStats();
   updateSlateTicker();
-  saveCachedData();
+  // Performance: do not serialize the entire workbook after each weather refresh.
 }
 function refreshOpenWeatherAndRerender() {
   refreshOpenWeatherForSlate().then(refreshAfterLiveWeatherUpdate).catch(err => console.warn('Live weather refresh failed', err));
@@ -10889,8 +10907,16 @@ document.getElementById('graphicsPanel').style.display = 'block';
   document.body.classList.remove('drl-workbook-loading');
   uploadStep('updateHeaderStats', updateHeaderStats);
   uploadStep('updateSlateTicker', updateSlateTicker);
-  // Maximum-speed mode: use workbook weather and keep the loaded scoring snapshot stable.
-  // No cache serialization or automatic network weather pass after upload.
+  // Restore the original live-weather behavior without blocking workbook population.
+  // Home remains usable immediately; OpenWeather updates in the background, then
+  // the active view is recalculated once with the live weather data.
+  if (typeof refreshOpenWeatherForSlate === 'function') {
+    setTimeout(() => {
+      refreshOpenWeatherForSlate()
+        .then(() => refreshAfterLiveWeatherUpdate())
+        .catch(err => console.warn('Live weather refresh failed', err));
+    }, 0);
+  }
 }
 } catch (err) {
   console.error('Workbook file read failed:', err);
