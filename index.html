@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
+<!-- V12.5.1 POWER WINDOW UPDATE: Power rolling blend is Season 50%, Last 7 Days 23%, Last 14 Days 15%, Last 30 Days 12%. The 7-day share scales linearly by PA and reaches the full 23% at 8+ PA; unused 7-day weight is redistributed proportionally across Season/14/30. Average EV and ISO now use the same rolling blend from LastWeek/LW, 14Day/14Day2 and 30Day/30Day2. -->
 <!-- V12.5.0 GAME-ADJUSTED EDGE: one displayed Edge number. Raw edge = Model HR Probability - Implied Probability. Final Edge = Raw Edge - (50% of the average Raw Edge among all priced hitters in that game). This reduces game-wide green/red bias without forcing every game to average exactly zero. -->
 <!-- V12.4.9 BVP REWEIGHT / NO SYNERGY: Power 50%, Opportunity 21.05%, Batted Ball 15.79%, BvP 7.89%, Pitcher 4.21%, Weather 0.63%, Park 0.43%. Attack Zone, Pitch Lab and Bullpen remain visible at 0%. All synergy bonuses are disabled. BvP confidence tiers: 0-2 PA=0%, 3-5 PA=25%, 6-7 PA=50%, 8+ PA=100%. Any prior matchup HR adds a fixed +3 BBI, capped at +3. -->
 <!-- V12.4.6 probability mapping retained: BBI 90 maps to 38% HR probability. Edge display is superseded by V12.5.0 game adjustment. -->
@@ -15287,10 +15288,12 @@ function hybridRaw(p) {
     d14EV90: rawNumber(d14, 'EV90'),
     d14Barrel: rawRate(d14, 'Barrel%', 'Barrel %'),
     d14HardHit: rawRate(d14, 'HardHit%', 'Hard Hit %', 'HardHi t%'),
+    d14ISO: rawNumber(d14, 'ISO', 'Isolated Power'),
     d30EV: rawNumber(d30, 'EV', 'Avg EV', 'AVG EV'),
     d30EV90: rawNumber(d30, 'EV90'),
     d30Barrel: rawRate(d30, 'Barrel%', 'Barrel %'),
     d30HardHit: rawRate(d30, 'HardHit%', 'Hard Hit %', 'HardHi t%'),
+    d30ISO: rawNumber(d30, 'ISO', 'Isolated Power'),
     lwEV: rawNumber(lw, 'EV', 'Avg EV', 'AVG EV'),
     lwMaxEV: rawNumber(lw, 'maxEV', 'Max EV'),
     lwEV90: rawNumber(lw, 'EV90'),
@@ -15592,6 +15595,14 @@ function drlPowerHardHitScore(raw, pa) {
   const adjusted = drlRegressByScale(raw, DRL_LEAGUE_BASELINES.powerHardHit, pa, 45, 240, 0.35);
   return drlOpenStatScore(adjusted, DRL_LEAGUE_BASELINES.pitcher95, 0.055, 18);
 }
+function drlPowerAvgEVScore(raw, pa) {
+  // PA protection is handled by the rolling-window weights; score the actual EV value.
+  return hybridScaleScoreFromPoints(raw, HYBRID_FIXED_SCALES.avgEV);
+}
+function drlPowerISOScore(raw, pa) {
+  // PA protection is handled by the rolling-window weights; score the actual ISO value.
+  return hybridScaleScoreFromPoints(raw, HYBRID_FIXED_SCALES.iso);
+}
 function drlPowerXHRScore(rawXHR, pa) {
   const sample = Math.max(0, Number(pa) || 0);
   const xhr = Math.max(0, Number(rawXHR) || 0);
@@ -15711,29 +15722,26 @@ function drlBvPWhiffScore(raw, pa) {
 // ===============================================================================
 function drlAdaptiveSevenDayWeight(pa7) {
   const pa = Math.max(0, Number(pa7) || 0);
-  // Adaptive hot-streak signal. Tiny seven-day samples never overpower the model.
-  if (pa < 10) return 0.00;
-  if (pa < 25) return 0.05;
-  if (pa < 40) return 0.10;
-  if (pa < 60) return 0.15;
-  if (pa < 80) return 0.20;
-  return 0.25;
+  // Last 7 Days owns 23% of the blend. It earns that full share at 8+ PA.
+  return 0.23 * Math.min(pa / 8, 1);
 }
 function drlMultiWindowBlendOpenEnded(seasonScore, raw30, raw14, raw7, scorer, seasonPA, pa30, pa14, pa7) {
   const season = hybridNeutralScore(seasonScore);
-  const sevenWeight = drlAdaptiveSevenDayWeight(pa7);
-  // Base recent structure is season 50 / 30-day 25 / 14-day 15 / 7-day 10.
-  // When the seven-day sample earns more or less influence, the difference is
-  // redistributed proportionally across season, 30-day and 14-day.
-  const remaining = 1 - sevenWeight;
-  const baseNon7 = { season:0.50, d30:0.25, d14:0.15 };
-  const baseTotal = 0.90;
+  const earnedSevenWeight = drlAdaptiveSevenDayWeight(pa7);
+
+  // Full-sample target: Season 50 / Last 7 23 / Last 14 15 / Last 30 12.
+  // Before 8 PA, the unearned part of the 23% seven-day share is redistributed
+  // proportionally across the three longer windows so the blend always totals 100%.
+  const baseNon7 = { season:0.50, d30:0.12, d14:0.15 };
+  const baseNon7Total = 0.77;
+  const unearnedSevenWeight = 0.23 - earnedSevenWeight;
   const weights = {
-    season: remaining * (baseNon7.season / baseTotal),
-    d30: remaining * (baseNon7.d30 / baseTotal),
-    d14: remaining * (baseNon7.d14 / baseTotal),
-    d7: sevenWeight
+    season: baseNon7.season + (unearnedSevenWeight * (baseNon7.season / baseNon7Total)),
+    d30: baseNon7.d30 + (unearnedSevenWeight * (baseNon7.d30 / baseNon7Total)),
+    d14: baseNon7.d14 + (unearnedSevenWeight * (baseNon7.d14 / baseNon7Total)),
+    d7: earnedSevenWeight
   };
+
   const candidates = [
     { value:season, weight:weights.season },
     { value:(raw30===null||raw30===undefined||isNaN(raw30))?null:scorer(raw30, Math.max(0,Number(pa30)||0)), weight:weights.d30 },
@@ -15971,14 +15979,16 @@ function scoreHybridPlayer(p, ranges) {
   const powerPA = Math.max(0, Number(r.pa) || 0);
   const powerBarrelSeason = drlPowerBarrelScore(r.barrel, powerPA);
   const powerEV90Season = drlPowerEV90Score(r.ev90, powerPA);
+  const powerAvgEVSeason = drlPowerAvgEVScore(r.avgEV, powerPA);
+  const powerISOSeason = drlPowerISOScore(r.iso, powerPA);
   const powerHardHitSeason = drlPowerHardHitScore(r.hardHit, powerPA);
   const power = hybridWeightedAvg([
     // Backtest-led hitter foundation. Recent quality remains built into the 7/14/30/season blends.
     { value: drlMultiWindowBlendOpenEnded(powerEV90Season, r.d30EV90, r.d14EV90, r.lwEV90, drlPowerEV90Score, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.25 },
     { value: drlMultiWindowBlendOpenEnded(powerBarrelSeason, r.d30Barrel, r.d14Barrel, r.lwBarrel, drlPowerBarrelScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.22 },
-    { value: hybridScoreMetric(r,ranges,'avgEV'), weight: 0.18 },
+    { value: drlMultiWindowBlendOpenEnded(powerAvgEVSeason, r.d30EV, r.d14EV, r.lwEV, drlPowerAvgEVScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.18 },
     { value: drlPowerXHRScore(r.xHR, powerPA), weight: 0.15 },
-    { value: hybridScoreMetric(r,ranges,'iso'), weight: 0.12 },
+    { value: drlMultiWindowBlendOpenEnded(powerISOSeason, r.d30ISO, r.d14ISO, r.lwISO, drlPowerISOScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.12 },
     { value: drlMultiWindowBlendOpenEnded(powerHardHitSeason, r.d30HardHit, r.d14HardHit, r.lwHardHit, drlPowerHardHitScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.08 }
   ]);
   // v61.0 open-ended Pitcher Vulnerability. No 100 ceiling and no slate-only
