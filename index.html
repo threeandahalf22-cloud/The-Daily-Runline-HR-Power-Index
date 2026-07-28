@@ -6,6 +6,7 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
 <!-- V12.3.6 WEATHER RESTORED: live OpenWeather refresh restored in background; weather animations restored; hidden Odds data retained.
+<!-- V12.3.7 TOP 10 EDGES RESTORED: Top 10 Best Betting Edges renders immediately after score calculation and after weather/filter refreshes. Odds remains hidden.
 <!-- V12.3.5 MAX SPEED: Odds sheet is parsed only as hidden model data for Command Center longshot/edge outputs. The Odds tab remains removed. No eager hidden-tab rendering, cache serialization, or automatic live-weather second pass; row-window rendering and reduced visual effects. All core scoring formulas preserved. -->
 <!-- Attack Zone V10: exact pitch-family/zone usage weighting across every positive-use cell, hitter-handedness pull-side context, pitcher vulnerability, HR-specific formulas, true sample smoothing, and no fixed location matrix. -->
 <!-- Targeted hybrid upgrade: old additive model retained; only platoon adjustment,
@@ -16591,6 +16592,9 @@ renderBBITierStats(filtered.length);
 // Populate the two primary Home views first. Everything below the fold is deferred
 // so uploads, searches and filter clicks stay responsive without changing scoring.
 renderMainTableBoard(filtered, overallRankMap);
+// Keep the lightweight Top 10 edge panel populated on every upload/filter/weather refresh.
+// The Odds sheet remains hidden; only its calculated model data is used here.
+try { renderBestBettingEdges(); } catch (err) { console.warn('Top 10 edges render failed:', err); }
 clearTimeout(window.__drlAccordionTimer);
 window.__drlAccordionTimer = setTimeout(() => {
   if (document.getElementById('tab-home')?.classList.contains('active')) renderGameRankingsAccordion(filtered.slice(0, 120), overallRankMap);
