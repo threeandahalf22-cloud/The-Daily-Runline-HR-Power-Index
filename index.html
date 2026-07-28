@@ -5,11 +5,12 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
+<!-- V12.5.0 GAME-ADJUSTED EDGE: one displayed Edge number. Raw edge = Model HR Probability - Implied Probability. Final Edge = Raw Edge - (50% of the average Raw Edge among all priced hitters in that game). This reduces game-wide green/red bias without forcing every game to average exactly zero. -->
 <!-- V12.4.9 BVP REWEIGHT / NO SYNERGY: Power 50%, Opportunity 21.05%, Batted Ball 15.79%, BvP 7.89%, Pitcher 4.21%, Weather 0.63%, Park 0.43%. Attack Zone, Pitch Lab and Bullpen remain visible at 0%. All synergy bonuses are disabled. BvP confidence tiers: 0-2 PA=0%, 3-5 PA=25%, 6-7 PA=50%, 8+ PA=100%. Any prior matchup HR adds a fixed +3 BBI, capped at +3. -->
-<!-- V12.4.6 TRUE EDGE % FIX: Edge is strictly Model HR Probability minus market implied probability. BBI 90 maps to 38% HR probability. -->
+<!-- V12.4.6 probability mapping retained: BBI 90 maps to 38% HR probability. Edge display is superseded by V12.5.0 game adjustment. -->
 <!-- V12.4.1 LONGSHOT VALUE EDGE: adds the Command Center longshot matchup profile directly into Edge ranking while preserving raw mathematical edge.
      Value profile = 35% BBI + 25% Attack Zone + 20% Pitch Lab + 15% Pitcher Vulnerability + 5% Odds Upside.
-     Edge % = Model HR Probability % - Implied Probability %. -->
+     Legacy note only; final displayed Edge is superseded by V12.5.0. -->
 <!-- V12.4.0 HIERARCHICAL ATTACK ZONE: scores Fastball, Breaking, and Offspeed separately; normalizes qualified zones to 100% inside each family; then combines family scores by the pitcher's actual family mix. Weighted zone usage now represents total normalized attack share, while family tabs show location share within that family. Generic per-cell fallbacks are removed to prevent duplicated pitcher usage. -->
 <!-- V12.3.8 TEAM EDGE RESULT FIX: Win/Loss/Push controls are rebuilt when missing and refreshed immediately after Team Edge render/sort. -->
 <!-- V12.3.6 WEATHER RESTORED: live OpenWeather refresh restored in background; weather animations restored; hidden Odds data retained.
@@ -9688,12 +9689,10 @@ function getLongshotMatchupScore(player) {
   return clampValue((bbi * 0.35) + (attack * 0.25) + (lab * 0.20) + (pitcher * 0.15) + (oddsUpside * 0.05), 0, 100);
 }
 function getValueEdgeScore(player) {
-  // Edge % is strictly model HR probability minus implied probability.
+  // One displayed Edge number: raw mathematical edge adjusted by half of the game's average raw edge.
   if (!player) return null;
-  const model = Number(player.calculatedHRProbability);
-  const implied = Number(player.impliedProbability);
-  if (!Number.isFinite(model) || !Number.isFinite(implied)) return null;
-  return model - implied;
+  const edge = Number(player.bettingEdge);
+  return Number.isFinite(edge) ? edge : null;
 }
 function getValueEdgePct(player) {
   return getValueEdgeScore(player);
@@ -9748,7 +9747,10 @@ function attachOddsAndEdge(p) {
   p.bettingOdds = odds !== undefined ? formatAmericanOdds(odds) : '-';
   p.bettingBook = book !== undefined ? String(book || '').trim() : '';
   p.impliedProbability = implied;
-  p.bettingEdge = implied === null ? null : hrProb - implied;
+  p.rawBettingEdge = implied === null ? null : hrProb - implied;
+  p.gameAverageRawEdge = null;
+  p.gameEdgeAdjustment = 0;
+  p.bettingEdge = p.rawBettingEdge;
   p.expectedValuePct = evPct;
   p.longshotMatchupScore = getLongshotMatchupScore(p);
   p.valueEdgeScore = getValueEdgeScore(p);
@@ -9757,6 +9759,78 @@ function attachOddsAndEdge(p) {
   p.betGrade = getBetGrade(hrProb, p.bettingEdge, evPct, p.calculatedBBI || 0);
   p.edgeTier = edgeTier(p.bettingEdge);
 }
+
+function getEdgeGameKey(player) {
+  if (!player) return null;
+  if (player.gameId !== undefined && player.gameId !== null && String(player.gameId).trim() !== '') {
+    return `GAME:${String(player.gameId).trim()}`;
+  }
+  const team = String(player.Team || player.TEAM || '').trim().toUpperCase();
+  let opponent = '';
+  try {
+    opponent = String(
+      safeGet(player, 'Opp Team', 'OppTeam', 'Opponent', 'OPP', 'Opp') ||
+      (typeof getOpponentTeamForPlayer === 'function' ? getOpponentTeamForPlayer(player) : '') ||
+      ''
+    ).trim().toUpperCase();
+  } catch (e) {
+    opponent = '';
+  }
+  if (team && opponent && team !== opponent) {
+    return `MATCHUP:${[team, opponent].sort().join('|')}`;
+  }
+  try {
+    const home = String(typeof getHomeTeamForPlayer === 'function' ? getHomeTeamForPlayer(player) : '').trim().toUpperCase();
+    if (team && home) return `HOME:${home}`;
+  } catch (e) {}
+  return team ? `TEAM:${team}` : null;
+}
+
+function applyGameAdjustedEdges(players) {
+  const groups = new Map();
+
+  (players || []).forEach(player => {
+    const raw = Number(player && player.rawBettingEdge);
+    const key = getEdgeGameKey(player);
+    if (!key || !Number.isFinite(raw)) return;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(player);
+  });
+
+  groups.forEach(group => {
+    const validRawEdges = group
+      .map(player => Number(player.rawBettingEdge))
+      .filter(Number.isFinite);
+
+    if (!validRawEdges.length) return;
+
+    const gameAverageRawEdge =
+      validRawEdges.reduce((sum, value) => sum + value, 0) / validRawEdges.length;
+
+    const gameEdgeAdjustment = gameAverageRawEdge * 0.50;
+
+    group.forEach(player => {
+      const raw = Number(player.rawBettingEdge);
+      if (!Number.isFinite(raw)) return;
+
+      const finalEdge = raw - gameEdgeAdjustment;
+      player.gameAverageRawEdge = gameAverageRawEdge;
+      player.gameEdgeAdjustment = gameEdgeAdjustment;
+      player.bettingEdge = finalEdge;
+      player.valueEdgeScore = finalEdge;
+      player.valueEdgePct = finalEdge;
+      player.valueEdgeLabel = getValueEdgeLabel(player);
+      player.betGrade = getBetGrade(
+        Number(player.calculatedHRProbability),
+        finalEdge,
+        Number(player.expectedValuePct),
+        Number(player.calculatedBBI || 0)
+      );
+      player.edgeTier = edgeTier(finalEdge);
+    });
+  });
+}
+
 const teamLogos = {
 ARI:'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',ATL:'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',BAL:'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',BOS:'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',CHC:'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',CHW:'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',CIN:'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',CLE:'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',COL:'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',DET:'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',HOU:'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',KCR:'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',LAA:'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',LAD:'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',MIA:'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',MIL:'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',MIN:'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',NYM:'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',NYY:'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',ATH:'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',PHI:'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',PIT:'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',SDP:'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',SEA:'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',SFG:'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',STL:'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',TBR:'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',TEX:'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',TOR:'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',WSN:'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
 };
@@ -11217,7 +11291,7 @@ if (edgePlayers.length) {
       { label: 'Implied', value: implied !== null ? `${implied.toFixed(1)}%` : '--' },
       { label: 'Odds', value: formatOddsWithBookText(p) }
     ],
-    note: `${p.valueEdgeLabel || getValueEdgeLabel(p)} • HR Probability minus Implied Probability`
+    note: `${p.valueEdgeLabel || getValueEdgeLabel(p)} • raw edge minus 50% of game average edge`
   });
 } else {
   commandRenderEmpty('commandBestEdgeValue', 'commandBestEdgePlayer', '--', 'Needs Odds sheet', '📈');
@@ -16370,6 +16444,7 @@ function recalculateAllBBIScores(skipRender = false) {
       // Hidden Odds sheet data powers Command Center longshot and edge outputs.
       try { attachOddsAndEdge(p); } catch (err) { console.warn('Odds/edge attach failed for', p && p.Name, err); }
     });
+    try { applyGameAdjustedEdges(playerData); } catch (err) { console.warn('Game edge adjustment failed:', err); }
   } catch (err) {
     console.error('Recalculate pipeline failed:', err);
   }
