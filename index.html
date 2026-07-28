@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
+<!-- V12.3.9 BBI REWEIGHT + ATTACK ZONE V10.1: Power/Batted Ball/Pitcher internals optimized; Batted Ball uses SS!F Sweet-Spot%; Attack Zone removes xSLG/HR from scoring, raises ideal-angle Sweet Spot, displays HR only, qualifies exact pitch-family/zone cells at 2% and 15 pitches, and renormalizes qualified pitcher exposure to 100%. -->
 <!-- V12.3.8 TEAM EDGE RESULT FIX: Win/Loss/Push controls are rebuilt when missing and refreshed immediately after Team Edge render/sort. -->
 <!-- V12.3.6 WEATHER RESTORED: live OpenWeather refresh restored in background; weather animations restored; hidden Odds data retained.
 <!-- V12.3.7 TOP 10 EDGES RESTORED: Top 10 Best Betting Edges renders immediately after score calculation and after weather/filter refreshes. Odds remains hidden.
@@ -13838,6 +13839,10 @@ function drlZoneBarrelPAScore(raw, sample) {
   const adjusted = drlPitchZoneRegress(raw, 0.035, sample);
   return drlOpenStatScore(adjusted, 0.035, 0.020, 20);
 }
+function drlZoneBarrelBBEScore(raw, sample) {
+  const adjusted = drlPitchZoneRegress(raw, 0.080, sample);
+  return drlOpenStatScore(adjusted, 0.080, 0.045, 20);
+}
 function drlZoneISOScore(raw, sample) {
   const adjusted = drlPitchZoneRegress(raw, 0.190, sample);
   return drlOpenStatScore(adjusted, 0.190, 0.100, 18);
@@ -13879,24 +13884,14 @@ function buildAttackZoneDamageScore(row, side) {
   if (!row || !Object.keys(row).length) return null;
   const s = zoneExtractStats(row);
   const sample = drlZoneExposure(s);
-  const isPitcher = String(side || '').toLowerCase().includes('pitch');
-  if (isPitcher) {
-    // Agreed pitcher HR-vulnerability formula.
-    return hybridWeightedAvg([
-      { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.35 },
-      { value: drlZoneISOScore(s.iso, sample), weight: 0.25 },
-      { value: drlZoneIdealLAScore(s.idealLA, sample), weight: 0.20 },
-      { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.15 },
-      { value: drlZoneXSLGScore(s.xslg, sample), weight: 0.05 }
-    ]);
-  }
-  // Agreed batter HR-damage formula.
+  // Same HR-specific damage structure on each side of the exact matchup.
+  // HR remains available for display only and xSLG is intentionally excluded.
   return hybridWeightedAvg([
-    { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.40 },
-    { value: drlZoneISOScore(s.iso, sample), weight: 0.25 },
+    { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.30 },
+    { value: drlZoneBarrelBBEScore(s.barrel, sample), weight: 0.20 },
+    { value: drlZoneISOScore(s.iso, sample), weight: 0.20 },
     { value: drlZoneIdealLAScore(s.idealLA, sample), weight: 0.20 },
-    { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.10 },
-    { value: drlZoneXSLGScore(s.xslg, sample), weight: 0.05 }
+    { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.10 }
   ]);
 }
 function zoneBucketLabel(bucket) {
@@ -13973,7 +13968,8 @@ function attackZoneLeagueDanger(bucket, zone) { return 50; }
 // ===== HR ATTACK MAP V6: scoring-only matchup engine =====
 // The visible zone cards keep the original hitter/pitcher values and heat colors.
 // These helpers affect only the calculated Attack Zone matchup score.
-const ATTACK_ZONE_MIN_PITCHES_PER_ZONE = 20;
+const ATTACK_ZONE_MIN_PITCHES_PER_ZONE = 15;
+const ATTACK_ZONE_MIN_CELL_USAGE = 0.02;
 const ATTACK_ZONE_LOGICAL_HR_WEIGHT = Object.freeze({1:0.30,2:0.60,3:0.40,4:0.85,5:1.00,6:0.75,7:0.10,8:0.55,9:0.25});
 function attackZoneExpectedBatSide(player, pitcherName) {
   let hand = String(safeGet(player,'Bats','Bat Side','Hand','Batting Side') || '').trim().toUpperCase();
@@ -13999,22 +13995,24 @@ function attackZoneRateFromCount(count, stats) {
 }
 function attackZoneHitterComposite(stats) {
   const s=stats||{};
+  const n=drlZoneExposure(s);
   return hybridWeightedAvg([
-    {value:drlZoneBarrelPAScore(s.barrelPA,drlZoneExposure(s)),weight:.40},
-    {value:drlZoneISOScore(s.iso,drlZoneExposure(s)),weight:.25},
-    {value:drlZoneIdealLAScore(s.idealLA,drlZoneExposure(s)),weight:.20},
-    {value:drlZoneHardHitScore(s.hardhit,drlZoneExposure(s)),weight:.10},
-    {value:drlZoneXSLGScore(s.xslg,drlZoneExposure(s)),weight:.05}
+    {value:drlZoneBarrelPAScore(s.barrelPA,n),weight:.30},
+    {value:drlZoneBarrelBBEScore(s.barrel,n),weight:.20},
+    {value:drlZoneISOScore(s.iso,n),weight:.20},
+    {value:drlZoneIdealLAScore(s.idealLA,n),weight:.20},
+    {value:drlZoneHardHitScore(s.hardhit,n),weight:.10}
   ]);
 }
 function attackZonePitcherComposite(stats) {
   const s=stats||{};
+  const n=drlZoneExposure(s);
   return hybridWeightedAvg([
-    {value:drlZoneBarrelPAScore(s.barrelPA,drlZoneExposure(s)),weight:.35},
-    {value:drlZoneISOScore(s.iso,drlZoneExposure(s)),weight:.25},
-    {value:drlZoneIdealLAScore(s.idealLA,drlZoneExposure(s)),weight:.20},
-    {value:drlZoneHardHitScore(s.hardhit,drlZoneExposure(s)),weight:.15},
-    {value:drlZoneXSLGScore(s.xslg,drlZoneExposure(s)),weight:.05}
+    {value:drlZoneBarrelPAScore(s.barrelPA,n),weight:.30},
+    {value:drlZoneBarrelBBEScore(s.barrel,n),weight:.20},
+    {value:drlZoneISOScore(s.iso,n),weight:.20},
+    {value:drlZoneIdealLAScore(s.idealLA,n),weight:.20},
+    {value:drlZoneHardHitScore(s.hardhit,n),weight:.10}
   ]);
 }
 function attackZonePositiveFactor(z) {
@@ -14033,7 +14031,9 @@ function attackZoneHandednessFactor(logicalZone, batSide) {
 }
 function attackZonePitcherZoneQualified(stats) {
   const pitches=Number(stats&&stats.pitches);
-  return !Number.isFinite(pitches) || pitches<=0 || pitches>=1;
+  const usage=Number(stats&&stats.pitchPct);
+  return Number.isFinite(pitches) && pitches >= ATTACK_ZONE_MIN_PITCHES_PER_ZONE &&
+         Number.isFinite(usage) && usage >= ATTACK_ZONE_MIN_CELL_USAGE;
 }
 function attackZoneInteractionEdge(batterDamage, pitcherVulnerability, batterStats, pitcherStats, leagueDanger = 50) {
   if (!Number.isFinite(Number(batterDamage))) return null;
@@ -14153,7 +14153,7 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
     const pitcherUsage = Number.isFinite(Number(pitchPct)) ? Math.max(0,Number(pitchPct)) : 0;
     const hitterExposure = Number.isFinite(Number(batterStats.pitchPct)) ? Math.max(0,Number(batterStats.pitchPct)) : null;
     const zoneWeight = handednessFactor; // small, controlled pull-side/middle-column context
-    const attackScoreQualified = !!hasB && !!hasP && pitcherUsage > 0 && Number.isFinite(Number(edge));
+    const attackScoreQualified = !!hasB && !!hasP && attackZonePitcherZoneQualified(pitcherStats) && Number.isFinite(Number(edge));
     const scoringOpportunity = attackScoreQualified ? Number(edge) * pitcherUsage : null;
 
     zones.push({
@@ -14178,7 +14178,7 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   const scoringTop = zones.filter(z=>z.attackScoreQualified!==false&&Number.isFinite(Number(z.scoringOpportunity))).sort((a,b)=>Number(b.scoringOpportunity)-Number(a.scoringOpportunity))[0];
   const topZone = scoringTop || attackZoneDisplayPeak(zones);
   const summary = topZone ? zoneBuildSummary(hitterName,pitcherName,topZone) : `No ${bucketName} qualified scoring zones`;
-  return {score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,weightedAvgEdge,batSide,scoringEngine:'PITCH_FAMILY_MATCHUP_V9'};
+  return {score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,weightedAvgEdge,batSide,scoringEngine:'PITCH_FAMILY_MATCHUP_V10_1'};
 }
 function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   const hitterName = player && player.Name;
@@ -14262,7 +14262,7 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   return {
     score,zones,topZone,bucket:'WEIGHTED',bucketLabel:'Weighted All',summary,
     weightedAvgEdge:rawIndex,rawPitchZoneIndex:rawIndex,cells,topCells:ranked.slice(0,3),
-    scoringEngine:'PITCH_FAMILY_MATCHUP_V9'
+    scoringEngine:'PITCH_FAMILY_MATCHUP_V10_1'
   };
 }
 /* =========================
@@ -14372,7 +14372,7 @@ function zoneRecomputeProfileScore(profile, hitterName, pitcherName) {
   profile.weightedAvgEdge = weightedAvgEdge;
   const matrixScore = attackZoneMatrixScore(profile.zones);
   profile.score = matrixScore === null || matrixScore === undefined || isNaN(Number(matrixScore)) ? profile.score : matrixScore;
-  profile.scoringEngine = profile.scoringEngine || 'PITCH_FAMILY_MATCHUP_V9';
+  profile.scoringEngine = profile.scoringEngine || 'PITCH_FAMILY_MATCHUP_V10_1';
   if (profile.topZone) profile.summary = zoneBuildSummary(hitterName, pitcherName, profile.topZone);
   return profile;
 }
@@ -14430,15 +14430,15 @@ function calculateAttackZoneProfile(player) {
       weighted.bucketProfiles = bucketProfiles;
       weighted.mix = mix;
       weighted.activeView = 'WEIGHTED';
-      weighted.formula = 'Every positive-use pitch-family/zone cell uses normalized pitcher exposure × smoothed batter HR damage × pitcher vulnerability × controlled handedness location context. LHB pull-side Zones 1/4/7 and RHB pull-side Zones 3/6/9 receive 1.08; middle Zones 2/5/8 receive 1.04; opposite-side zones remain 1.00. Batter damage uses 40% Barrel/PA, 25% ISO, 20% ideal-angle rate, 10% Hard Hit, 5% xSLG. Pitcher vulnerability uses 35/25/20/15/5. No positive-use cell is discarded and no fixed generic location matrix is applied.';
-      weighted.scoringEngine = 'PITCH_FAMILY_MATCHUP_V9';
+      weighted.formula = 'Each exact pitch-family/zone cell is qualified at 2% of all pitcher pitches and 15 pitches. PZ pitch_percent already equals that pitch family in that zone divided by all pitcher pitches, so it captures both pitch selection and location without double multiplication. Qualified exposure is renormalized to 100%. Batter and pitcher cell damage each use 30% Barrel/PA, 20% Barrel/BBE, 20% ISO, 20% ideal-angle Sweet Spot, and 10% Hard Hit. xSLG and HR are excluded from scoring; HR remains display-only.';
+      weighted.scoringEngine = 'PITCH_FAMILY_MATCHUP_V10_1';
     } else {
       weighted = calculateAttackZoneBucketProfile(player, 'GENERIC', 1);
       weighted.bucketProfiles = {};
       weighted.mix = mix;
       weighted.activeView = 'WEIGHTED';
       weighted.formula = 'Generic PZ/BZ fallback used because no pitch-family zone rows were found.';
-      weighted.scoringEngine = 'PITCH_FAMILY_MATCHUP_V9_GENERIC_FALLBACK';
+      weighted.scoringEngine = 'PITCH_FAMILY_MATCHUP_V10_1_GENERIC_FALLBACK';
     }
 
     // Never let an absent pitcher family sample blank the whole player.
@@ -15790,11 +15790,11 @@ function scoreHybridPlayer(p, ranges) {
   const powerHardHitSeason = drlPowerHardHitScore(r.hardHit, powerPA);
   const power = hybridWeightedAvg([
     // Backtest reweight: EV90 and Barrel lead; Max EV adds ceiling; Sweet Spot removed.
-    { value: drlMultiWindowBlendOpenEnded(powerEV90Season, r.d30EV90, r.d14EV90, r.lwEV90, drlPowerEV90Score, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.30 },
-    { value: drlMultiWindowBlendOpenEnded(powerBarrelSeason, r.d30Barrel, r.d14Barrel, r.lwBarrel, drlPowerBarrelScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.25 },
-    { value: drlPowerXHRScore(r.xHR, powerPA), weight: 0.18 },
-    { value: hybridScoreMetric(r,ranges,'maxEV'), weight: 0.15 },
-    { value: drlMultiWindowBlendOpenEnded(powerHardHitSeason, r.d30HardHit, r.d14HardHit, r.lwHardHit, drlPowerHardHitScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.12 }
+    { value: drlMultiWindowBlendOpenEnded(powerBarrelSeason, r.d30Barrel, r.d14Barrel, r.lwBarrel, drlPowerBarrelScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.35 },
+    { value: drlMultiWindowBlendOpenEnded(powerEV90Season, r.d30EV90, r.d14EV90, r.lwEV90, drlPowerEV90Score, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.28 },
+    { value: drlPowerXHRScore(r.xHR, powerPA), weight: 0.20 },
+    { value: drlMultiWindowBlendOpenEnded(powerHardHitSeason, r.d30HardHit, r.d14HardHit, r.lwHardHit, drlPowerHardHitScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.10 },
+    { value: hybridScoreMetric(r,ranges,'maxEV'), weight: 0.07 }
   ]);
   // v61.0 open-ended Pitcher Vulnerability. No 100 ceiling and no slate-only
   // normalization. Each metric uses its own tuned scale and pitcher exposure.
@@ -15802,12 +15802,12 @@ function scoreHybridPlayer(p, ranges) {
   const pitcherBF = Math.max(0, Number(r.pitcherBF) || 0);
   const pitcherMetricBase = hybridWeightedAvg([
     // Backtest reweight: actual HR/air-ball damage leads; correlated contact stats are reduced.
-    { value: drlPitcherHR9Score(r.pitcherHR9, pitcherIP), weight: 0.30 },
-    { value: hybridScoreMetric(r,ranges,'pitcherFB'), weight: 0.22 },
-    { value: hybridScoreMetric(r,ranges,'pitcherHRFB'), weight: 0.18 },
-    { value: drlPitcherSweetSpotScore(r.pitcherSweet, pitcherBF, pitcherIP), weight: 0.12 },
-    { value: drlPitcherBarrelAllowedScore(r.pitcherBarrel, pitcherBF, pitcherIP), weight: 0.10 },
-    { value: drlPitcher95AllowedScore(r.pitcher95, pitcherBF, pitcherIP), weight: 0.08 }
+    { value: drlPitcherBarrelAllowedScore(r.pitcherBarrel, pitcherBF, pitcherIP), weight: 0.28 },
+    { value: drlPitcherHR9Score(r.pitcherHR9, pitcherIP), weight: 0.22 },
+    { value: hybridScoreMetric(r,ranges,'pitcherHRFB'), weight: 0.20 },
+    { value: hybridScoreMetric(r,ranges,'pitcherFB'), weight: 0.15 },
+    { value: drlPitcherSweetSpotScore(r.pitcherSweet, pitcherBF, pitcherIP), weight: 0.08 },
+    { value: drlPitcher95AllowedScore(r.pitcher95, pitcherBF, pitcherIP), weight: 0.07 }
   ]);
   const rawPitchLabScore = p.pitchLabProfile ? cleanNumber(p.pitchLabProfile.score) : null;
   const pitchLevelBeforeSampleGate = hybridWeightedAvg([
@@ -15876,11 +15876,11 @@ function scoreHybridPlayer(p, ranges) {
   const battedBallPA = Math.max(0, Number(r.pa) || 0);
   const battedBall = hybridWeightedAvg([
     // Backtest reweight: HR/FB and pulled-air shape lead; raw fly-ball rate is only a small input.
-    { value: drlBattedBallHRFBScore(r.hrFb, battedBallPA), weight: 0.40 },
-    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.22 },
-    { value: drlBattedBallPullScore(r.pull, battedBallPA), weight: 0.18 },
-    { value: drlBattedBallLaunchAngleScore(r.launchAngle, battedBallPA), weight: 0.15 },
-    { value: drlBattedBallFlyBallScore(r.flyBall, battedBallPA), weight: 0.05 }
+    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.35 },
+    { value: drlBattedBallHRFBScore(r.hrFb, battedBallPA), weight: 0.28 },
+    { value: hybridScoreMetric(r,ranges,'sweetSpot'), weight: 0.18 },
+    { value: drlBattedBallPullScore(r.pull, battedBallPA), weight: 0.12 },
+    { value: drlBattedBallFlyBallScore(r.flyBall, battedBallPA), weight: 0.07 }
   ]);
   let bvp = null;
   // Adaptive BvP: no influence at 5 PA or fewer, then smoothly earns confidence through 35 PA.
