@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
+<!-- V12.3.8 TEAM EDGE RESULT FIX: Win/Loss/Push controls are rebuilt when missing and refreshed immediately after Team Edge render/sort. -->
 <!-- V12.3.6 WEATHER RESTORED: live OpenWeather refresh restored in background; weather animations restored; hidden Odds data retained.
 <!-- V12.3.7 TOP 10 EDGES RESTORED: Top 10 Best Betting Edges renders immediately after score calculation and after weather/filter refreshes. Odds remains hidden.
 <!-- V12.3.5 MAX SPEED: Odds sheet is parsed only as hidden model data for Command Center longshot/edge outputs. The Odds tab remains removed. No eager hidden-tab rendering, cache serialization, or automatic live-weather second pass; row-window rendering and reduced visual effects. All core scoring formulas preserved. -->
@@ -8689,6 +8690,13 @@ tbody tr{contain:layout paint style;}
   animation-duration:var(--dur,2.4s)!important;
   animation-iteration-count:infinite!important;
 }
+</style>
+
+<style id="drl-team-edge-click-repair-v1238">
+#teamEdgeGames .team-market-card{overflow:visible!important;}
+#teamEdgeGames .bet-result-tools{display:flex!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:2147482000!important;pointer-events:auto!important;}
+#teamEdgeGames .bet-result-btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;pointer-events:auto!important;touch-action:manipulation!important;user-select:none!important;position:relative!important;z-index:2147482001!important;}
+#teamEdgeGames .team-edge-meter{pointer-events:none!important;}
 </style>
 </head>
 <body class="drl-splash-active">
@@ -21961,6 +21969,7 @@ function setTeamEdgeSort(value){
   const select=document.getElementById('teamEdgeSort');
   if(select && select.value!==teamEdgeSortMode) select.value=teamEdgeSortMode;
   renderTeam();
+  setTimeout(()=>{try{window.drlRefreshSectionFinalizeControls&&window.drlRefreshSectionFinalizeControls();}catch(e){}},0);
 }
 
 function teamEdgeMarketMatches(label, sortKey){
@@ -22096,7 +22105,7 @@ drlOnReady(()=>{
   }
 });
 
-async function loadTeamWorkbook(wb,label){teamBettingGames=parseTeamGames(wb);const st=document.getElementById('teamBettingUploadStatus');st.className='team-edge-upload-status good';st.textContent=`${label} • ${teamBettingGames.length} games`;renderTeam();}
+async function loadTeamWorkbook(wb,label){teamBettingGames=parseTeamGames(wb);const st=document.getElementById('teamBettingUploadStatus');st.className='team-edge-upload-status good';st.textContent=`${label} • ${teamBettingGames.length} games`;renderTeam();setTimeout(()=>{try{window.drlRefreshSectionFinalizeControls&&window.drlRefreshSectionFinalizeControls();}catch(e){console.error('Team Edge result controls refresh failed',e);}},0);}
 
 /* NRFI */
 function pct(v){const n=num(v);if(n===null)return null;return n>1?n/100:n;}
@@ -22459,7 +22468,7 @@ drlOnReady(init);window.renderTeamEdgeCenter=renderTeam;window.renderNrfiCenter=
     card.appendChild(wrap);
   }
   function decorate(){
-    document.querySelectorAll('#teamEdgeGames .team-market-card').forEach(card=>{if(card.dataset.sectionFinalize==='1')return;card.dataset.sectionFinalize='1';rebuildControls(card,'TEAM',parseTeam(card),true)});
+    document.querySelectorAll('#teamEdgeGames .team-market-card').forEach(card=>{const existing=card.querySelector('.bet-result-tools');const buttons=card.querySelectorAll('.bet-result-btn');if(card.dataset.sectionFinalize==='1'&&existing&&buttons.length>=2)return;card.dataset.sectionFinalize='1';rebuildControls(card,'TEAM',parseTeam(card),true)});
     document.querySelectorAll('#nrfiGames .nrfi-card').forEach(card=>{if(card.dataset.sectionFinalize==='1')return;card.dataset.sectionFinalize='1';rebuildControls(card,'NRFI',parseNrfi(card),false)});
     ensureFinalizeButtons();
   }
