@@ -5,7 +5,11 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
-<!-- V12.3.9 BBI REWEIGHT + ATTACK ZONE V10.1: Power/Batted Ball/Pitcher internals optimized; Batted Ball uses SS!F Sweet-Spot%; Attack Zone removes xSLG/HR from scoring, raises ideal-angle Sweet Spot, displays HR only, qualifies exact pitch-family/zone cells at 2% and 15 pitches, and renormalizes qualified pitcher exposure to 100%. -->
+<!-- V12.4.6 TRUE EDGE % FIX: Edge is strictly Model HR Probability minus market implied probability. BBI 90 maps to 38% HR probability. -->
+<!-- V12.4.1 LONGSHOT VALUE EDGE: adds the Command Center longshot matchup profile directly into Edge ranking while preserving raw mathematical edge.
+     Value profile = 35% BBI + 25% Attack Zone + 20% Pitch Lab + 15% Pitcher Vulnerability + 5% Odds Upside.
+     Edge % = Model HR Probability % - Implied Probability %. -->
+<!-- V12.4.0 HIERARCHICAL ATTACK ZONE: scores Fastball, Breaking, and Offspeed separately; normalizes qualified zones to 100% inside each family; then combines family scores by the pitcher's actual family mix. Weighted zone usage now represents total normalized attack share, while family tabs show location share within that family. Generic per-cell fallbacks are removed to prevent duplicated pitcher usage. -->
 <!-- V12.3.8 TEAM EDGE RESULT FIX: Win/Loss/Push controls are rebuilt when missing and refreshed immediately after Team Edge render/sort. -->
 <!-- V12.3.6 WEATHER RESTORED: live OpenWeather refresh restored in background; weather animations restored; hidden Odds data retained.
 <!-- V12.3.7 TOP 10 EDGES RESTORED: Top 10 Best Betting Edges renders immediately after score calculation and after weather/filter refreshes. Odds remains hidden.
@@ -8017,6 +8021,15 @@ body::after,
 .h2h-rate-stat{ color:#38bdf8; font-family:monospace; font-weight:1000; }
 .h2h-muted-stat{ color:#cbd5e1; font-family:monospace; }
 
+
+.value-edge-badge{display:inline-flex;margin-left:6px;padding:3px 6px;border-radius:999px;border:1px solid rgba(246,195,67,.38);background:rgba(246,195,67,.09);color:#f6c343;font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.45px;}
+
+.odds-col,.edge-col,.value-edge-col{min-width:92px;text-align:center;white-space:nowrap}
+.odds-cell,.raw-edge-cell,.value-edge-cell{text-align:center;font-family:monospace;font-weight:800;white-space:nowrap}
+.value-edge-pill{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:5px 8px;border-radius:999px;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:#7dd3fc;font-weight:900}
+.value-edge-pill.strong{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.42);color:#86efac}
+.value-edge-pill.elite{background:rgba(250,204,21,.15);border-color:rgba(250,204,21,.48);color:#fde047}
+.value-edge-context{font-size:10px;color:var(--text-muted);margin-top:3px;font-family:inherit;font-weight:700}
 </style>
 <script id="drl-espn-red-premium-theme-js-v414">
 (function(){
@@ -8865,7 +8878,7 @@ tbody tr{contain:layout paint style;}
 <div class="filter-group team-filter-future-wrap"><label>Filter Team 2</label><div class="team-filter-future" data-filter="2"><select class="select-input-sm native-team-select" id="teamFilter2" onchange="syncTeamLogoDropdown(2); applyFiltersAndRender()"><option value="ALL">All Teams</option></select><button class="team-filter-trigger" id="teamFilterTrigger2" onclick="toggleTeamLogoDropdown(event, 2)" type="button"><span class="team-filter-orb">⚡</span><span id="teamFilterLabel2">All Teams</span><span class="team-filter-chevron">▾</span></button><div class="team-logo-dropdown" id="teamLogoDropdown2"></div></div></div>
 <div class="filter-group"><label>Filter Bats</label><select class="select-input-sm" id="batsFilter" onchange="applyFiltersAndRender()"><option value="ALL">All</option><option value="L">Left</option><option value="R">Right</option><option value="S">Switch</option></select></div>
 <div class="filter-group"><label>Search Player Name</label><input class="search-input" id="searchFilter" oninput="applyFiltersAndRender()" placeholder="Type player name..." type="text"/></div>
-<div class="filter-group home-rank-sort-group"><label>Rank View</label><div aria-label="Home ranking sort" class="home-rank-sort-toggle" role="group"><button class="home-rank-sort-btn active" id="homeSortBBI" onclick="setHomeRankSort('BBI')" type="button">HR Model</button><button class="home-rank-sort-btn" id="homeSortEdge" onclick="setHomeRankSort('EDGE')" type="button">Market Edge</button><button class="home-rank-sort-btn" id="homeSortMLI" onclick="setHomeRankSort('MLI')" type="button">MLI</button></div><div class="home-rank-sort-note" id="homeRankSortNote">Most likely to homer</div></div>
+<div class="filter-group home-rank-sort-group"><label>Rank View</label><div aria-label="Home ranking sort" class="home-rank-sort-toggle" role="group"><button class="home-rank-sort-btn active" id="homeSortBBI" onclick="setHomeRankSort('BBI')" type="button">HR Model</button><button class="home-rank-sort-btn" id="homeSortEdge" onclick="setHomeRankSort('EDGE')" type="button">Edge %</button><button class="home-rank-sort-btn" id="homeSortMLI" onclick="setHomeRankSort('MLI')" type="button">MLI</button></div><div class="home-rank-sort-note" id="homeRankSortNote">Most likely to homer</div></div>
 <div class="filter-group" style="margin-left: auto; flex-direction: row; align-items: center; gap: 10px;">
 <input id="showRemovedCheck" onchange="applyFiltersAndRender()" style="cursor:pointer; width:auto;" type="checkbox"/>
 <label for="showRemovedCheck" style="cursor:pointer; margin-bottom:0; color:var(--accent);">Show Removed Bench Players</label>
@@ -8873,7 +8886,7 @@ tbody tr{contain:layout paint style;}
 </div>
 <div class="table-wrapper">
 <table>
-<thead><tr><th class="rank-col" id="homeRankHeader">BBI Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col" id="homeScoreHeader">Score</th><th class="hr-col">HR %</th></tr></thead>
+<thead><tr><th class="rank-col" id="homeRankHeader">BBI Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col" id="homeScoreHeader">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="value-edge-col">Edge %</th></tr></thead>
 <tbody id="tableBody"><tr><td colspan="11" style="padding: 60px; color: var(--text-muted); font-style: italic;">Awaiting daily analytics track document upload...</td></tr></tbody>
 </table>
 <div class="backtest-finalize-wrap">
@@ -9582,15 +9595,15 @@ function weightedModifierAverage(parts, fallback = 1.0) {
   return totalWeight > 0 ? (weightedSum / totalWeight) : fallback;
 }
 function modelHRProbability(score, player) {
-  // Market-facing HR probability calibration for the current uncapped BBI scale.
-  // Owner anchors: BBI 70 = 15.0% and BBI 100 = 33.3% HR probability.
-  // This affects probability, edge, and EV only; it does not alter BBI rankings or scoring.
+  // Market-facing HR probability calibration.
+  // Required anchor: BBI 90 = 38.0% HR probability.
+  // This affects probability, Edge %, and EV only; it does not alter BBI scoring.
   const s = Math.max(0, cleanNumber(score || 0));
   const curve = [
     [0, 1.0], [30, 2.0], [40, 3.5], [45, 4.5], [50, 6.0],
-    [55, 7.8], [60, 10.0], [65, 12.5], [70, 15.0], [75, 18.2],
-    [80, 21.5], [85, 24.8], [90, 28.0], [95, 30.8], [100, 33.3],
-    [110, 37.0], [120, 40.0], [140, 45.0]
+    [55, 7.8], [60, 10.0], [65, 12.5], [70, 15.0], [75, 20.0],
+    [80, 25.0], [85, 31.5], [90, 38.0], [95, 41.5], [100, 45.0],
+    [110, 48.0], [120, 50.0], [140, 52.0]
   ];
   let pct = curve[curve.length - 1][1];
   if (s <= curve[0][0]) {
@@ -9605,9 +9618,7 @@ function modelHRProbability(score, player) {
       }
     }
   }
-  const conf = cleanNumber(player && player.calculatedDataConfidence);
-  if (conf && conf < 0.55) pct *= 0.97;
-  return Math.max(1.0, Math.min(45.0, pct));
+  return Math.max(1.0, Math.min(52.0, pct));
 }
 function americanOddsToImplied(oddsRaw) {
   if (oddsRaw === undefined || oddsRaw === null || oddsRaw === '') return null;
@@ -9657,6 +9668,44 @@ function formatOddsWithBookText(playerOrOdds, maybeBook) {
   const suffix = info ? ` ${info.label}` : '';
   return `${formatAmericanOdds(odds)}${suffix}`;
 }
+function clampValue(v, lo, hi) { return Math.max(lo, Math.min(hi, Number(v) || 0)); }
+function getLongshotOddsUpside(oddsRaw) {
+  const odds = getPositiveAmericanOddsNumber(oddsRaw);
+  if (odds === null || odds < 450) return 0;
+  if (odds >= 1000) return 100;
+  if (odds >= 600) return 55 + ((odds - 600) / 400) * 45;
+  return ((odds - 450) / 150) * 55;
+}
+function getLongshotMatchupScore(player) {
+  if (!player) return 0;
+  const cats = player.category || {};
+  const bbi = clampValue(player.calculatedBBI, 0, 100);
+  const attack = clampValue(player.calculatedAttackZoneScore ?? cats.attackZone ?? player.attackZoneScore, 0, 100);
+  const lab = clampValue(cats.pitchLevel ?? player.calculatedPitchLab ?? player.pitchLabScore, 0, 100);
+  const pitcher = clampValue(player.calculatedPitcherScore ?? cats.pitcher ?? player.pitcherScore, 0, 100);
+  const oddsUpside = getLongshotOddsUpside(player.bettingOdds);
+  return clampValue((bbi * 0.35) + (attack * 0.25) + (lab * 0.20) + (pitcher * 0.15) + (oddsUpside * 0.05), 0, 100);
+}
+function getValueEdgeScore(player) {
+  // Edge % is strictly model HR probability minus implied probability.
+  if (!player) return null;
+  const model = Number(player.calculatedHRProbability);
+  const implied = Number(player.impliedProbability);
+  if (!Number.isFinite(model) || !Number.isFinite(implied)) return null;
+  return model - implied;
+}
+function getValueEdgePct(player) {
+  return getValueEdgeScore(player);
+}
+function getValueEdgeLabel(player) {
+  const edge = getValueEdgeScore(player);
+  if (!Number.isFinite(edge)) return 'No Odds';
+  if (edge >= 8) return 'Elite Edge';
+  if (edge >= 5) return 'Strong Edge';
+  if (edge >= 2) return 'Positive Edge';
+  if (edge >= 0) return 'Small Edge';
+  return 'No Edge';
+}
 function edgeTier(edge) {
   if (edge === null || edge === undefined || isNaN(edge)) return { label:'No Odds', cls:'neutral' };
   if (edge >= 5) return { label:'A+ Edge', cls:'good' };
@@ -9700,6 +9749,10 @@ function attachOddsAndEdge(p) {
   p.impliedProbability = implied;
   p.bettingEdge = implied === null ? null : hrProb - implied;
   p.expectedValuePct = evPct;
+  p.longshotMatchupScore = getLongshotMatchupScore(p);
+  p.valueEdgeScore = getValueEdgeScore(p);
+  p.valueEdgePct = getValueEdgePct(p);
+  p.valueEdgeLabel = getValueEdgeLabel(p);
   p.betGrade = getBetGrade(hrProb, p.bettingEdge, evPct, p.calculatedBBI || 0);
   p.edgeTier = edgeTier(p.bettingEdge);
 }
@@ -11148,7 +11201,7 @@ setCommandCenterText('commandGamesTodayValue', gameCount ? String(gameCount) : '
 
 const edgePlayers = activePlayers
   .filter(p => p.bettingEdge !== null && p.bettingEdge !== undefined && isFinite(Number(p.bettingEdge)))
-  .sort((a,b) => Number(b.bettingEdge) - Number(a.bettingEdge));
+  .sort((a,b) => (Number(b.valueEdgeScore ?? getValueEdgeScore(b)) - Number(a.valueEdgeScore ?? getValueEdgeScore(a))) || (Number(b.bettingEdge) - Number(a.bettingEdge)));
 if (edgePlayers.length) {
   const p = edgePlayers[0];
   const model = isFinite(Number(p.calculatedHRProbability)) ? Number(p.calculatedHRProbability) : null;
@@ -11156,14 +11209,14 @@ if (edgePlayers.length) {
   commandRenderPlayerCard({
     valueId: 'commandBestEdgeValue',
     playerId: 'commandBestEdgePlayer',
-    value: `${Number(p.bettingEdge) >= 0 ? '+' : ''}${Number(p.bettingEdge).toFixed(1)}%`,
+    value: `${Number(p.valueEdgePct ?? getValueEdgePct(p)) >= 0 ? '+' : ''}${Number(p.valueEdgePct ?? getValueEdgePct(p)).toFixed(1)}%`,
     player: p,
     stats: [
       { label: 'Model', value: model !== null ? `${model.toFixed(1)}%` : '--' },
       { label: 'Implied', value: implied !== null ? `${implied.toFixed(1)}%` : '--' },
       { label: 'Odds', value: formatOddsWithBookText(p) }
     ],
-    note: 'Largest model edge versus the market'
+    note: `${p.valueEdgeLabel || getValueEdgeLabel(p)} • HR Probability minus Implied Probability`
   });
 } else {
   commandRenderEmpty('commandBestEdgeValue', 'commandBestEdgePlayer', '--', 'Needs Odds sheet', '📈');
@@ -11173,9 +11226,11 @@ const longshots = activePlayers
   .map(p => ({ p, oddsNum: getPositiveAmericanOddsNumber(p.bettingOdds) }))
   .filter(x => x.oddsNum !== null && x.oddsNum >= 600)
   .sort((a,b) => {
-    const edgeDiff = (Number(b.p.bettingEdge || -999) - Number(a.p.bettingEdge || -999));
-    if (Math.abs(edgeDiff) > 0.001) return edgeDiff;
-    return (Number(b.p.calculatedHRProbability || 0) - Number(a.p.calculatedHRProbability || 0));
+    const valueDiff = Number(b.p.valueEdgeScore ?? getValueEdgeScore(b.p) ?? -999) - Number(a.p.valueEdgeScore ?? getValueEdgeScore(a.p) ?? -999);
+    if (Math.abs(valueDiff) > 0.001) return valueDiff;
+    const profileDiff = getLongshotMatchupScore(b.p) - getLongshotMatchupScore(a.p);
+    if (Math.abs(profileDiff) > 0.001) return profileDiff;
+    return Number(b.p.calculatedHRProbability || 0) - Number(a.p.calculatedHRProbability || 0);
   });
 if (longshots.length) {
   const p = longshots[0].p;
@@ -11187,9 +11242,9 @@ if (longshots.length) {
     stats: [
       { label: 'BBI', value: Number(p.calculatedBBI || 0).toFixed(1) },
       { label: 'HR Prob', value: commandPct(p.calculatedHRProbability, 1) },
-      { label: 'Edge', value: isFinite(Number(p.bettingEdge)) ? `${Number(p.bettingEdge) >= 0 ? '+' : ''}${Number(p.bettingEdge).toFixed(1)}%` : '--' }
+      { label: 'Edge', value: isFinite(Number(p.valueEdgePct ?? getValueEdgePct(p))) ? `${Number(p.valueEdgePct ?? getValueEdgePct(p)) >= 0 ? '+' : ''}${Number(p.valueEdgePct ?? getValueEdgePct(p)).toFixed(1)}%` : '--' }
     ],
-    note: '+600 or longer with the best value profile'
+    note: `+600 or longer • longshot profile ${getLongshotMatchupScore(p).toFixed(1)}`
   });
 } else {
   const fallback = [...activePlayers].filter(p => !p.bettingOdds).length === activePlayers.length;
@@ -13303,6 +13358,8 @@ function renderBestBettingEdges() {
   const plays = playerData
     .filter(p => !p.isRemoved && p.bettingOdds && p.bettingOdds !== '-' && p.bettingEdge !== null && p.bettingEdge !== undefined && !isNaN(p.bettingEdge))
     .sort((a, b) => {
+      const valueDiff = Number(b.valueEdgeScore ?? getValueEdgeScore(b) ?? -999) - Number(a.valueEdgeScore ?? getValueEdgeScore(a) ?? -999);
+      if (Math.abs(valueDiff) > 0.001) return valueDiff;
       const edgeDiff = (b.bettingEdge || -999) - (a.bettingEdge || -999);
       if (Math.abs(edgeDiff) > 0.001) return edgeDiff;
       return (b.expectedValuePct || -999) - (a.expectedValuePct || -999);
@@ -13315,6 +13372,8 @@ function renderBestBettingEdges() {
   container.innerHTML = `<div class="best-edges-list">${plays.map((p, idx) => {
     const edgeCls = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
     const evCls = (p.expectedValuePct || 0) >= 0 ? 'edge-pos' : 'edge-neg';
+    const valuePct = p.valueEdgePct ?? getValueEdgePct(p);
+    const valueCls = Number(valuePct || 0) >= 0 ? 'edge-pos' : 'edge-neg';
     const pitcher = p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter';
     const faceUrl = getHeadshotUrl(p.Name);
     const faceHtml = faceUrl ? `<img class="best-edge-face" src="${faceUrl}" alt="${p.Name}" onerror="this.outerHTML='<div class=&quot;best-edge-face-placeholder&quot;>⚾</div>'">` : `<div class="best-edge-face-placeholder">⚾</div>`;
@@ -13326,9 +13385,8 @@ function renderBestBettingEdges() {
       </div>
       <div class="best-edge-stats">
         <div class="best-edge-stat"><div class="best-edge-label">Model</div><div class="best-edge-value">${formatPlainPct(p.calculatedHRProbability)}</div></div>
-        <div class="best-edge-stat"><div class="best-edge-label">Imp</div><div class="best-edge-value">${formatPlainPct(p.impliedProbability)}</div></div>
-        <div class="best-edge-stat"><div class="best-edge-label">Edge</div><div class="best-edge-value ${edgeCls}">${formatPctValue(p.bettingEdge)}</div></div>
-        <div class="best-edge-stat"><div class="best-edge-label">EV</div><div class="best-edge-value ${evCls}">${formatPctValue(p.expectedValuePct)}</div></div>
+        <div class="best-edge-stat"><div class="best-edge-label">Edge %</div><div class="best-edge-value ${valueCls}">${Number.isFinite(Number(valuePct)) ? `${Number(valuePct) >= 0 ? '+' : ''}${Number(valuePct).toFixed(1)}%` : '-'}</div></div>
+        <div class="best-edge-stat"><div class="best-edge-label">Profile</div><div class="best-edge-value">${getLongshotMatchupScore(p).toFixed(1)}</div></div>
       </div>
     </div>`;
   }).join('')}</div>`;
@@ -13346,6 +13404,9 @@ function getSortedEdgePlays(includeNoOdds = false) {
     .filter(p => !p.isRemoved)
     .filter(p => includeNoOdds || (p.bettingOdds && p.bettingOdds !== '-' && p.bettingEdge !== null && p.bettingEdge !== undefined && !isNaN(p.bettingEdge)))
     .sort((a, b) => {
+      const av = getValueEdgeScore(a);
+      const bv = getValueEdgeScore(b);
+      if (Math.abs(Number(bv ?? -9999) - Number(av ?? -9999)) > 0.001) return Number(bv ?? -9999) - Number(av ?? -9999);
       const ae = (a.bettingEdge !== null && a.bettingEdge !== undefined && !isNaN(a.bettingEdge)) ? a.bettingEdge : -9999;
       const be = (b.bettingEdge !== null && b.bettingEdge !== undefined && !isNaN(b.bettingEdge)) ? b.bettingEdge : -9999;
       if (Math.abs(be - ae) > 0.001) return be - ae;
@@ -14120,8 +14181,10 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   const zones = [];
   for (let logicalZone = 1; logicalZone <= 9; logicalZone++) {
     const physicalZone = attackZonePhysicalIndex(logicalZone,batSide);
-    const bRow = zoneSheetHasData('BZ' + physicalZone + suffix, hitterName) || (!suffix ? null : zoneSheetHasData('BZ' + physicalZone, hitterName));
-    const pRow = zoneSheetHasData('PZ' + physicalZone + suffix, pitcherName) || (!suffix ? null : zoneSheetHasData('PZ' + physicalZone, pitcherName));
+    // Family views must use the exact family sheets only. Falling back to generic
+    // BZ/PZ rows inside every family duplicates the same pitcher usage three times.
+    const bRow = zoneSheetHasData('BZ' + physicalZone + suffix, hitterName);
+    const pRow = zoneSheetHasData('PZ' + physicalZone + suffix, pitcherName);
     const hasB = bRow && Object.keys(bRow).length;
     const hasP = pRow && Object.keys(pRow).length;
     if (!hasB && !hasP) continue;
@@ -14173,96 +14236,141 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
     });
   }
   if (!zones.length) return {score:null,zones:[],topZone:null,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary:`No ${bucketName} BZ/PZ zone data found.`};
-  const weightedAvgEdge = zones.reduce((s,z)=>s+(Number(z.edge)||0)*(Number(z.pitchPct)||(1/zones.length)),0) / zones.reduce((s,z)=>s+(Number(z.pitchPct)||(1/zones.length)),0);
-  const score = attackZoneMatrixScore(zones);
-  const scoringTop = zones.filter(z=>z.attackScoreQualified!==false&&Number.isFinite(Number(z.scoringOpportunity))).sort((a,b)=>Number(b.scoringOpportunity)-Number(a.scoringOpportunity))[0];
+
+  // Hierarchical family logic:
+  // 1) qualify exact family-zone cells using raw PZ exposure (share of all pitches),
+  // 2) normalize qualified locations to 100% INSIDE this family,
+  // 3) calculate one family matchup score from those conditional location shares.
+  const qualified = zones.filter(z => z.attackScoreQualified !== false && Number.isFinite(Number(z.edge)) && Number.isFinite(Number(z.pitchPct)) && Number(z.pitchPct) > 0);
+  const rawFamilyZoneTotal = qualified.reduce((sum,z)=>sum+Math.max(0,Number(z.pitchPct)||0),0);
+  for (const z of zones) {
+    z.rawPitchPct = Number.isFinite(Number(z.pitchPct)) ? Math.max(0,Number(z.pitchPct)) : null;
+    z.familyZonePct = rawFamilyZoneTotal > 0 && z.attackScoreQualified !== false
+      ? Math.max(0,Number(z.rawPitchPct)||0) / rawFamilyZoneTotal
+      : 0;
+    // Family tabs display "where this family goes," so usage totals 100% within family.
+    z.pitchPct = z.familyZonePct;
+    z.expectedPitchPct = z.familyZonePct;
+    z.pitchFrequencyScore = attackZoneScaleScore('freq', z.familyZonePct || 1/9);
+    z.scoringOpportunity = z.attackScoreQualified ? Number(z.edge) * z.familyZonePct : null;
+  }
+  const score = rawFamilyZoneTotal > 0
+    ? qualified.reduce((sum,z)=>sum+(Number(z.edge)*Number(z.familyZonePct)),0)
+    : null;
+  const weightedAvgEdge = score;
+  const scoringTop = qualified.slice().sort((a,b)=>Number(b.scoringOpportunity)-Number(a.scoringOpportunity))[0];
   const topZone = scoringTop || attackZoneDisplayPeak(zones);
-  const summary = topZone ? zoneBuildSummary(hitterName,pitcherName,topZone) : `No ${bucketName} qualified scoring zones`;
-  return {score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,weightedAvgEdge,batSide,scoringEngine:'PITCH_FAMILY_MATCHUP_V10_1'};
+  const summary = topZone
+    ? `${bucketName} Zone ${topZone.zone} is the strongest location inside this pitch family. It receives ${zoneProfileFmtPct(topZone.familyZonePct)} of qualified ${bucketName.toLowerCase()} locations with a ${Math.round(Number(topZone.edge)||0)} blast factor.`
+    : `No ${bucketName} qualified scoring zones`;
+  return {
+    score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,
+    weightedAvgEdge,batSide,rawFamilyZoneTotal,
+    scoringEngine:'HIERARCHICAL_FAMILY_LOCATION_V12_4'
+  };
 }
 function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   const hitterName = player && player.Name;
   const pitcherName = String(safeGet(player, 'Opp Pitcher', 'Opp Pitcher Name', 'Pitcher', 'Pitcher Name') || '').trim();
   const families = ['FB','BR','OS'];
-  const cells = [];
-  const zones = [];
 
-  // Build all available 9 x 3 family/location cells first.
-  for (const bucket of families) {
-    const prof = bucketProfiles[bucket];
-    for (const z of (prof && Array.isArray(prof.zones) ? prof.zones : [])) {
-      const rawZoneUsage = Number(z.pitchPct);
-      const familyMix = Math.max(0, Number(mix && mix[bucket]) || 0);
-      // PZ family sheets normally contain exact family-in-zone exposure. If absent,
-      // use family mix divided across nine zones as a transparent fallback.
-      const exposure = Number.isFinite(rawZoneUsage) && rawZoneUsage >= 0
-        ? rawZoneUsage
-        : (familyMix / 9);
-      const locationValue = 1;
-      const blastFactor = Math.max(0, Number(z.edge) || 0);
-      const confidence = zoneSampleConfidence(z.batterStats, z.pitcherStats);
-      const expectedValue = exposure > 0 ? blastFactor * exposure : 0;
-      cells.push({
-        zone:Number(z.zone), bucket, label:zoneBucketLabel(bucket),
-        edge:blastFactor, blastFactor, exposure, locationValue, expectedValue,
-        confidence, batterDamage:z.batterDamage, pitcherVulnerability:z.pitcherVulnerability,
-        handednessFactor:Number(z.handednessFactor)||1, baseEdge:Number(z.baseEdge)||blastFactor,
-        leagueDanger:Number.isFinite(Number(z.leagueDanger)) ? Number(z.leagueDanger) : attackZoneLeagueDanger(bucket, z.zone),
-        batterStats:z.batterStats || {}, pitcherStats:z.pitcherStats || {}, source:z
-      });
+  // Only families with a real score and real exact-family zone rows participate.
+  const activeFamilies = families.map(bucket => {
+    const profile = bucketProfiles && bucketProfiles[bucket];
+    const familyMix = Math.max(0, Number(mix && mix[bucket]) || 0);
+    const valid = profile && Number.isFinite(Number(profile.score)) && Array.isArray(profile.zones) && profile.zones.some(z => Number(z.familyZonePct) > 0);
+    return valid ? { bucket, profile, familyMix } : null;
+  }).filter(Boolean);
+
+  if (!activeFamilies.length) return calculateAttackZoneBucketProfile(player, 'GENERIC', 1);
+
+  // Renormalize the pitch-family mix only across families that have usable exact data.
+  // This preserves actual arsenal preference without letting a missing sheet create blanks.
+  const rawMixTotal = activeFamilies.reduce((sum,f)=>sum+f.familyMix,0);
+  const mixDenom = rawMixTotal > 0 ? rawMixTotal : activeFamilies.length;
+  activeFamilies.forEach(f => {
+    f.normalizedMix = rawMixTotal > 0 ? f.familyMix / mixDenom : 1 / activeFamilies.length;
+  });
+
+  // One score per family, then actual pitch mix decides the final Attack Zone score.
+  const familyScores = {};
+  let score = 0;
+  for (const f of activeFamilies) {
+    familyScores[f.bucket] = {
+      score:Number(f.profile.score),
+      rawMix:f.familyMix,
+      normalizedMix:f.normalizedMix,
+      rawFamilyZoneTotal:Number(f.profile.rawFamilyZoneTotal)||0
+    };
+    score += Number(f.profile.score) * f.normalizedMix;
+  }
+
+  // Roll family-location exposure into the nine weighted squares.
+  // overallZonePct = normalized family mix × normalized location share within family.
+  const zones = [];
+  const cells = [];
+  for (const f of activeFamilies) {
+    for (const z of (f.profile.zones || [])) {
+      if (!(Number(z.familyZonePct) > 0) || z.attackScoreQualified === false) continue;
+      const overallExposure = f.normalizedMix * Number(z.familyZonePct);
+      const cell = {
+        zone:Number(z.zone), bucket:f.bucket, label:zoneBucketLabel(f.bucket),
+        edge:Number(z.edge)||0, blastFactor:Number(z.edge)||0,
+        exposure:overallExposure,
+        familyZonePct:Number(z.familyZonePct)||0,
+        familyMix:f.normalizedMix,
+        rawFamilyMix:f.familyMix,
+        expectedValue:(Number(z.edge)||0)*overallExposure,
+        batterDamage:z.batterDamage, pitcherVulnerability:z.pitcherVulnerability,
+        handednessFactor:Number(z.handednessFactor)||1, baseEdge:Number(z.baseEdge)||Number(z.edge)||0,
+        leagueDanger:Number.isFinite(Number(z.leagueDanger)) ? Number(z.leagueDanger) : attackZoneLeagueDanger(f.bucket,z.zone),
+        batterStats:z.batterStats||{}, pitcherStats:z.pitcherStats||{}, source:z
+      };
+      cells.push(cell);
     }
   }
 
-  if (!cells.length) return calculateAttackZoneBucketProfile(player, 'GENERIC', 1);
-
-  // Roll the 27 cells into the nine squares shown in the UI.
-  for (let i=1; i<=9; i++) {
+  for (let i=1;i<=9;i++) {
     const pieces=cells.filter(c=>c.zone===i);
     if (!pieces.length) continue;
-    const exposureTotal=pieces.reduce((s,c)=>s+c.exposure,0);
-    const safeExposure=exposureTotal>0?exposureTotal:pieces.length;
-    const mixWeight=c=>exposureTotal>0?(c.exposure/safeExposure):(1/pieces.length);
-    const wavg=fn=>pieces.reduce((s,c)=>s+(Number(fn(c))||0)*mixWeight(c),0);
-    const edge=wavg(c=>c.edge);
-    const batterDamage=wavg(c=>c.batterDamage);
-    const pitcherVulnerability=wavg(c=>c.pitcherVulnerability);
-    const leagueDanger=wavg(c=>c.leagueDanger);
+    const exposureTotal=pieces.reduce((sum,c)=>sum+c.exposure,0);
+    const conditionalWeight=c=>exposureTotal>0?c.exposure/exposureTotal:1/pieces.length;
+    const wavg=fn=>pieces.reduce((sum,c)=>sum+(Number(fn(c))||0)*conditionalWeight(c),0);
     const best=pieces.slice().sort((a,b)=>b.expectedValue-a.expectedValue)[0];
     zones.push({
-      zone:i, bucket:'WEIGHTED', bucketLabel:'Weighted All',
-      bestBucket:best.bucket, bestBucketLabel:best.label,
-      batterDamage, pitcherVulnerability, leagueDanger,
-      pitchPct:exposureTotal, expectedPitchPct:exposureTotal,
-      pitchFrequencyScore:attackZoneScaleScore('freq', exposureTotal || 1/9),
-      edge, weightedEdge:edge,
-      blastContribution:pieces.reduce((s,c)=>s+c.expectedValue,0),
-      batterStats:zoneMergeDisplayStatsFromPieces(pieces.map(c=>({bucket:c.bucket,z:c.source,w:mixWeight(c)})),'batterStats',best.batterStats),
-      pitcherStats:zoneMergeDisplayStatsFromPieces(pieces.map(c=>({bucket:c.bucket,z:c.source,w:mixWeight(c)})),'pitcherStats',best.pitcherStats),
+      zone:i,bucket:'WEIGHTED',bucketLabel:'Weighted All',
+      bestBucket:best.bucket,bestBucketLabel:best.label,
+      batterDamage:wavg(c=>c.batterDamage),
+      pitcherVulnerability:wavg(c=>c.pitcherVulnerability),
+      leagueDanger:wavg(c=>c.leagueDanger),
+      pitchPct:exposureTotal,
+      expectedPitchPct:exposureTotal,
+      pitchFrequencyScore:attackZoneScaleScore('freq',exposureTotal||1/9),
+      edge:wavg(c=>c.edge),weightedEdge:wavg(c=>c.edge),
+      blastContribution:pieces.reduce((sum,c)=>sum+c.expectedValue,0),
+      batterStats:zoneMergeDisplayStatsFromPieces(pieces.map(c=>({bucket:c.bucket,z:c.source,w:conditionalWeight(c)})),'batterStats',best.batterStats),
+      pitcherStats:zoneMergeDisplayStatsFromPieces(pieces.map(c=>({bucket:c.bucket,z:c.source,w:conditionalWeight(c)})),'pitcherStats',best.pitcherStats),
       bucketPieces:pieces.map(c=>({
-        bucket:c.bucket,label:c.label,mix:mixWeight(c),zonePitchPct:c.exposure,
-        exposure:c.exposure,edge:c.edge,blastFactor:c.blastFactor,
+        bucket:c.bucket,label:c.label,familyMix:c.familyMix,rawFamilyMix:c.rawFamilyMix,
+        familyZonePct:c.familyZonePct,exposure:c.exposure,edge:c.edge,
         contribution:c.expectedValue,batterDamage:c.batterDamage,pitcherVulnerability:c.pitcherVulnerability,
         handednessFactor:c.handednessFactor,baseEdge:c.baseEdge,leagueDanger:c.leagueDanger
       }))
     });
   }
 
-  // Final score is only the renormalized sum of qualified expected-opportunity cells.
-  // No top-cell bonus, no fixed location matrix, and no second location weighting.
-  const qualifiedCells=cells.filter(c=>Number(c.exposure)>0 && Number.isFinite(Number(c.edge)));
-  const exposureTotal=qualifiedCells.reduce((s,c)=>s+c.exposure,0)||1;
-  const rawIndex=qualifiedCells.reduce((s,c)=>s+(c.edge*c.exposure),0)/exposureTotal;
-  const ranked=qualifiedCells.slice().sort((a,b)=>b.expectedValue-a.expectedValue);
-  const score=rawIndex;
+  const ranked=cells.slice().sort((a,b)=>b.expectedValue-a.expectedValue);
   const topCell=ranked[0]||null;
-  const topZone=topCell?zones.find(z=>z.zone===topCell.zone):attackZoneDisplayPeak(zones);
+  const topZone=topCell?zones.find(z=>Number(z.zone)===Number(topCell.zone)):attackZoneDisplayPeak(zones);
   const summary=topCell
-    ? `${zoneBucketLabel(topCell.bucket)} in Zone ${topCell.zone} is tonight's strongest HR cell. It carries ${zoneProfileFmtPct(topCell.exposure)} expected exposure with a ${Math.round(topCell.blastFactor)} blast factor.`
+    ? `${zoneBucketLabel(topCell.bucket)} in Zone ${topCell.zone} is tonight's strongest HR cell. ${zoneBucketLabel(topCell.bucket)} is ${zoneProfileFmtPct(topCell.familyMix)} of the usable arsenal, and Zone ${topCell.zone} receives ${zoneProfileFmtPct(topCell.familyZonePct)} of that family. Total attack exposure is ${zoneProfileFmtPct(topCell.exposure)} with a ${Math.round(topCell.blastFactor)} blast factor.`
     : 'No weighted pitch-zone edge.';
+
   return {
     score,zones,topZone,bucket:'WEIGHTED',bucketLabel:'Weighted All',summary,
-    weightedAvgEdge:rawIndex,rawPitchZoneIndex:rawIndex,cells,topCells:ranked.slice(0,3),
-    scoringEngine:'PITCH_FAMILY_MATCHUP_V10_1'
+    weightedAvgEdge:score,rawPitchZoneIndex:score,cells,topCells:ranked.slice(0,3),
+    familyScores,normalizedMix:Object.fromEntries(activeFamilies.map(f=>[f.bucket,f.normalizedMix])),
+    scoringEngine:'HIERARCHICAL_FAMILY_LOCATION_V12_4'
   };
 }
 /* =========================
@@ -14430,8 +14538,8 @@ function calculateAttackZoneProfile(player) {
       weighted.bucketProfiles = bucketProfiles;
       weighted.mix = mix;
       weighted.activeView = 'WEIGHTED';
-      weighted.formula = 'Each exact pitch-family/zone cell is qualified at 2% of all pitcher pitches and 15 pitches. PZ pitch_percent already equals that pitch family in that zone divided by all pitcher pitches, so it captures both pitch selection and location without double multiplication. Qualified exposure is renormalized to 100%. Batter and pitcher cell damage each use 30% Barrel/PA, 20% Barrel/BBE, 20% ISO, 20% ideal-angle Sweet Spot, and 10% Hard Hit. xSLG and HR are excluded from scoring; HR remains display-only.';
-      weighted.scoringEngine = 'PITCH_FAMILY_MATCHUP_V10_1';
+      weighted.formula = 'Hierarchical matchup: each family is scored separately from qualified exact family-zone cells (minimum 2% of all pitcher pitches and 15 pitches). Qualified zones are normalized to 100% inside Fastball, Breaking, and Offspeed. The three family scores are then combined by the pitcher actual family mix. Weighted zone usage equals family mix multiplied by within-family zone share and totals 100% across the displayed attack map. Batter and pitcher damage use 30% Barrel/PA, 20% Barrel/BBE, 20% ISO, 20% ideal-angle Sweet Spot, and 10% Hard Hit. HR is display-only.';
+      weighted.scoringEngine = 'HIERARCHICAL_FAMILY_LOCATION_V12_4';
     } else {
       weighted = calculateAttackZoneBucketProfile(player, 'GENERIC', 1);
       weighted.bucketProfiles = {};
@@ -14694,7 +14802,7 @@ function renderZoneProfileTab() {
   const pill = document.getElementById('zoneSummaryPill');
   if (pill) {
     const withData = data.filter(x => x.profile && x.profile.zones && x.profile.zones.length).length;
-    pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(window.zoneProfileView || 'WEIGHTED')}</b> &nbsp; Formula: <b>Unified 27-Cell Engine</b>`;
+    pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(window.zoneProfileView || 'WEIGHTED')}</b> &nbsp; Formula: <b>Family Mix → Within-Family Zone Usage</b>`;
   }
   if (!data.length) { grid.innerHTML = `<div class="zone-empty">No players match the current HR Attack Map filters.</div>`; return; }
   grid.innerHTML = data.map(({player:p, profile}, idx) => {
@@ -16482,7 +16590,8 @@ function compareHomeEdgeRank(a, b) {
   const bValid = hasValidHomeMarketData(b);
   if (aValid !== bValid) return bValid ? 1 : -1;
   if (!aValid && !bValid) return compareHomeBBIRank(a, b);
-  return (Number(b.bettingEdge) || 0) - (Number(a.bettingEdge) || 0)
+  return Number(b.valueEdgeScore ?? getValueEdgeScore(b) ?? -9999) - Number(a.valueEdgeScore ?? getValueEdgeScore(a) ?? -9999)
+    || (Number(b.bettingEdge) || 0) - (Number(a.bettingEdge) || 0)
     || (Number(b.expectedValuePct) || 0) - (Number(a.expectedValuePct) || 0)
     || (Number(b.calculatedBBI) || 0) - (Number(a.calculatedBBI) || 0)
     || (Number(b.calculatedHRProbability) || 0) - (Number(a.calculatedHRProbability) || 0)
@@ -16530,7 +16639,7 @@ function updateHomeRankSortUI() {
   if (zoneSelect) zoneSelect.value = isZone ? String(homeZoneSortNumber) : '';
   if (header) header.textContent = isZone ? `Zone ${homeZoneSortNumber} Rank` : (isEdge ? 'Edge Rank' : (isMLI ? 'MLI Rank' : 'BBI Rank'));
   if (scoreHeader) scoreHeader.textContent = isMLI ? 'MLI / BBI' : 'Score';
-  if (note) note.textContent = isZone ? `Highest hitter damage in Zone ${homeZoneSortNumber}` : (isEdge ? 'Best market value • players without odds listed last' : (isMLI ? 'Biggest matchup boost above a neutral game • BBI shown for context' : 'Most likely to homer'));
+  if (note) note.textContent = isZone ? `Highest hitter damage in Zone ${homeZoneSortNumber}` : (isEdge ? 'Edge % = HR Probability % − Implied Probability %' : (isMLI ? 'Biggest matchup boost above a neutral game • BBI shown for context' : 'Most likely to homer'));
   if (home) {
     home.classList.toggle('edge-rank-mode', isEdge);
     home.classList.toggle('mli-rank-mode', isMLI);
@@ -16741,7 +16850,7 @@ function renderMainTableBoard(data, overallRankMap = null) {
     const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
     const displayRank = idx + 1;
     const safeNameAttr = String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}${dnpBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span>${Number.isFinite(Number(p.battingOrder ?? p.BO)) ? `<span class="espn-dot">•</span><span class="espn-bo-chip">BO ${Math.round(Number(p.battingOrder ?? p.BO))}</span>` : ''}</div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}">${homeRankSortMode === 'MLI' ? `<span class="index-score mli-score ${Number(p.calculatedMLI || 0) >= 0 ? 'mli-positive' : 'mli-negative'}">${Number.isFinite(Number(p.calculatedMLI)) ? `${Number(p.calculatedMLI) >= 0 ? '+' : ''}${Number(p.calculatedMLI).toFixed(1)}` : '--'}</span><div class="mli-bbi-context">BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : `<span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}`}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td></tr>`;
+    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}${dnpBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span>${Number.isFinite(Number(p.battingOrder ?? p.BO)) ? `<span class="espn-dot">•</span><span class="espn-bo-chip">BO ${Math.round(Number(p.battingOrder ?? p.BO))}</span>` : ''}</div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}">${homeRankSortMode === 'MLI' ? `<span class="index-score mli-score ${Number(p.calculatedMLI || 0) >= 0 ? 'mli-positive' : 'mli-negative'}">${Number.isFinite(Number(p.calculatedMLI)) ? `${Number(p.calculatedMLI) >= 0 ? '+' : ''}${Number(p.calculatedMLI).toFixed(1)}` : '--'}</span><div class="mli-bbi-context">BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : homeRankSortMode === 'EDGE' ? `<span class="index-score">${Number.isFinite(Number(p.valueEdgeScore)) ? `${Number(p.valueEdgeScore) >= 0 ? '+' : ''}${Number(p.valueEdgeScore).toFixed(1)}%` : '--'}</span><div class="value-edge-context">Edge % • BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : `<span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}`}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${p.bettingOdds && p.bettingOdds !== '-' ? p.bettingOdds : '-'}</td><td class="value-edge-cell"><span class="value-edge-pill ${Number(p.valueEdgeScore || 0) >= 8 ? 'elite' : (Number(p.valueEdgeScore || 0) >= 5 ? 'strong' : '')}">${Number.isFinite(Number(p.valueEdgeScore)) ? `${Number(p.valueEdgeScore) >= 0 ? '+' : ''}${Number(p.valueEdgeScore).toFixed(1)}%` : '-'}</span><div class="value-edge-context">${p.valueEdgeLabel || getValueEdgeLabel(p)}</div></td></tr>`;
   });
   if (data.length > __drlVisibleData.length) rows.push(`<tr><td colspan="6" style="padding:14px;color:var(--text-muted);font-weight:800;">Showing top ${__drlVisibleData.length} of ${data.length}. Use filters/search to narrow the slate.</td></tr>`);
   tbody.innerHTML = rows.join('');
@@ -16818,7 +16927,7 @@ function renderGameTableBoard(data, targetBodyId, overallRankMap = null) {
     const edgeClass = (p.bettingEdge || 0) >= 0 ? 'edge-pos' : 'edge-neg';
     const displayRank = idx + 1;
     const safeNameAttr = String(p.Name).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}${dnpBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span>${Number.isFinite(Number(p.battingOrder ?? p.BO)) ? `<span class="espn-dot">•</span><span class="espn-bo-chip">BO ${Math.round(Number(p.battingOrder ?? p.BO))}</span>` : ''}</div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}">${homeRankSortMode === 'MLI' ? `<span class="index-score mli-score ${Number(p.calculatedMLI || 0) >= 0 ? 'mli-positive' : 'mli-negative'}">${Number.isFinite(Number(p.calculatedMLI)) ? `${Number(p.calculatedMLI) >= 0 ? '+' : ''}${Number(p.calculatedMLI).toFixed(1)}` : '--'}</span><div class="mli-bbi-context">BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : `<span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}`}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td></tr>`;
+    return `<tr id="player-row-${normalizeName(p.Name)}" class="${getFastRowClasses(p)}" style="${getFastRowVisualStyle(p)}"><td class="rank-cell">#${displayRank}</td><td class="espn-player-cell"><div class="espn-player-line player-clickable${orbitClass}" data-player-name="${safeNameAttr}" onclick="openPlayerModalByName('${escJSString(p.Name)}')"><div class="espn-headshot-wrap">${headshotHtml}</div><div class="espn-player-copy"><div class="espn-name-row"><span class="espn-player-name">${p.Name}</span> ${pfBadge} ${bombBtn}${dnpBtn}</div><div class="espn-matchup-row"><span class="espn-team-pill">${logoImg}<b>${p.Team}</b></span><span class="espn-dot">•</span><span>vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span>${Number.isFinite(Number(p.battingOrder ?? p.BO)) ? `<span class="espn-dot">•</span><span class="espn-bo-chip">BO ${Math.round(Number(p.battingOrder ?? p.BO))}</span>` : ''}</div></div></div><div class="espn-badge-row">${badgeHtml}</div>${renderCompactWhyRow(p)}</td><td class="bats-cell"><span class="batter-hand-pill ${batterHand.cls}">${batterHand.label}</span></td><td class="weather-cell">${climateString}${stadiumPill}</td><td class="score-cell" style="${teamVisualStyle(p.Team)}">${homeRankSortMode === 'MLI' ? `<span class="index-score mli-score ${Number(p.calculatedMLI || 0) >= 0 ? 'mli-positive' : 'mli-negative'}">${Number.isFinite(Number(p.calculatedMLI)) ? `${Number(p.calculatedMLI) >= 0 ? '+' : ''}${Number(p.calculatedMLI).toFixed(1)}` : '--'}</span><div class="mli-bbi-context">BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : homeRankSortMode === 'EDGE' ? `<span class="index-score">${Number.isFinite(Number(p.valueEdgeScore)) ? `${Number(p.valueEdgeScore) >= 0 ? '+' : ''}${Number(p.valueEdgeScore).toFixed(1)}%` : '--'}</span><div class="value-edge-context">Edge % • BBI ${(p.calculatedBBI||0).toFixed(1)}</div>` : `<span class="index-score">${(p.calculatedBBI||0).toFixed(1)}</span>${renderBBIBreakdown(p)}`}</td><td class="hrprob-cell">${formatPlainPct(p.calculatedHRProbability)}</td><td class="odds-cell">${p.bettingOdds && p.bettingOdds !== '-' ? p.bettingOdds : '-'}</td><td class="value-edge-cell"><span class="value-edge-pill ${Number(p.valueEdgeScore || 0) >= 8 ? 'elite' : (Number(p.valueEdgeScore || 0) >= 5 ? 'strong' : '')}">${Number.isFinite(Number(p.valueEdgeScore)) ? `${Number(p.valueEdgeScore) >= 0 ? '+' : ''}${Number(p.valueEdgeScore).toFixed(1)}%` : '-'}</span><div class="value-edge-context">${p.valueEdgeLabel || getValueEdgeLabel(p)}</div></td></tr>`;
   });
   tbody.innerHTML = rows.join('');
 }
@@ -17150,13 +17259,13 @@ function renderGameRankingsAccordion(filteredData, overallRankMap) {
           <div class="game-sort-label">Sort this game</div>
           <div class="game-sort-buttons">
             <button type="button" class="game-sort-btn active" data-sort-mode="BBI" onclick="changeGameRankingSort('${safeKey}','BBI')">HR Model</button>
-            <button type="button" class="game-sort-btn" data-sort-mode="EDGE" onclick="changeGameRankingSort('${safeKey}','EDGE')">Edge</button>
+            <button type="button" class="game-sort-btn" data-sort-mode="EDGE" onclick="changeGameRankingSort('${safeKey}','EDGE')">Edge %</button>
             <button type="button" class="game-sort-btn" data-sort-mode="MLI" onclick="changeGameRankingSort('${safeKey}','MLI')">MLI</button>
           </div>
         </div>
         <div class="table-wrapper game-specific-table-wrapper">
           <table>
-            <thead><tr><th class="rank-col" id="homeRankHeader">BBI Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col" id="homeScoreHeader">Score</th><th class="hr-col">HR %</th></tr></thead>
+            <thead><tr><th class="rank-col" id="homeRankHeader">BBI Rank</th><th class="player-col">Player / Matchup</th><th class="bats-col">Bats</th><th class="weather-col">Weather / Park</th><th class="score-col" id="homeScoreHeader">Score</th><th class="hr-col">HR %</th><th class="odds-col">Odds</th><th class="value-edge-col">Edge %</th></tr></thead>
             <tbody id="${bodyId}"></tbody>
           </table>
         </div>
@@ -19844,7 +19953,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
         batted: [`Barrel: ${pct(barrelRaw)}`, `Hard Hit: ${pct(hhRaw)}`, `Fly Ball: ${pct(get(p,['Fly Ball Rate','FB%'],0))}`, `Pull Air: ${pct(get(p,['Pulled Air %','Pull Air %'],0))}`],
         pitcher: [`HR/9: ${val(pHR9,2)}`, `Barrel Allowed: ${pct(pBarrel)}`, `Hard Hit Allowed: ${pct(pHH)}`, `EV Allowed: ${val(pEV,1,' mph')}`, `Fly Ball: ${pct(pFB)}`],
         pitchlab: [`Fastball: ${val(get(p,['FB Grade','Fastball Grade','fbGrade'],0),0)}`, `Breaking: ${val(get(p,['BRK Grade','Breaking Grade','brkGrade'],0),0)}`, `Offspeed: ${val(get(p,['OS Grade','Offspeed Grade','osGrade'],0),0)}`, `Score: ${val(pitchLabScore,0)}`],
-        attackZone: [`Score: ${val(player && player.calculatedAttackZoneScore,0)}`, `Top: ${esc(player && player.attackZoneSummary || '-')}`, `Weighted by PZ pitch %`, `Sheets: BZ1-BZ9 + PZ1-PZ9`],
+        attackZone: [`Score: ${val(player && player.calculatedAttackZoneScore,0)}`, `Top: ${esc(player && player.attackZoneSummary || '-')}`, `Pitch family mix × within-family zone share`, `Sheets: BZ/PZ family-zone sheets`],
         form: [`LW HR: ${recentHR || '-'}`, `LW wOBA: ${recentWOBA ? recentWOBA.toFixed(3) : '-'}`, `Recent EV: ${val(get(p,['Last Week EV','LW EV'],0),1,' mph')}`],
         bvp: [`PA: ${bvpPA || '-'}`, `HR: ${bvpHR || '-'}`, `EV: ${val(bvpEV,1,' mph')}`, `xSLG: ${val(get(p,['BvP xSLG','xSLG vs P'],0),3)}`],
         weather: [`Wind: ${w.isDome ? 'Dome' : `${num(w.windSpeed)||0} mph ${String(w.windDir||'neutral')}`}`, `Temp: ${w.isDome ? 'Dome' : `${num(w.temp)||72}°F`}`, `Humidity: ${w.isDome ? 'Dome' : `${num(w.humidity)||0}%`}`],
@@ -20951,7 +21060,7 @@ drlOnReady( initBetFinder);
     const pill = document.getElementById('zoneSummaryPill');
     if (pill) {
       const withData = data.reduce((n,x)=>n + (x.profile && x.profile.zones && x.profile.zones.length ? 1 : 0), 0);
-      pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(view)}</b>${Number.isInteger(zoneDamageSortNumber) ? ` &nbsp; Sorted: <b>Zone ${zoneDamageSortNumber} Damage</b>` : ''} &nbsp; Formula: <b>Unified 27-Cell Engine</b>`;
+      pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(view)}</b>${Number.isInteger(zoneDamageSortNumber) ? ` &nbsp; Sorted: <b>Zone ${zoneDamageSortNumber} Damage</b>` : ''} &nbsp; Formula: <b>Family Mix → Within-Family Zone Usage</b>`;
     }
     if (!data.length) { grid.classList.remove('zone-rendering'); grid.innerHTML = '<div class="zone-empty">No players match the current HR Attack Map filters.</div>'; return; }
 
