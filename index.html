@@ -16714,7 +16714,7 @@ renderMainTableBoard(filtered, overallRankMap);
 try { renderBestBettingEdges(); } catch (err) { console.warn('Top 10 edges render failed:', err); }
 clearTimeout(window.__drlAccordionTimer);
 window.__drlAccordionTimer = setTimeout(() => {
-  if (document.getElementById('tab-home')?.classList.contains('active')) renderGameRankingsAccordion(filtered.slice(0, 120), overallRankMap);
+  if (document.getElementById('tab-home')?.classList.contains('active')) renderGameRankingsAccordion(filtered, overallRankMap);
 }, 180);
 // Secondary Home widgets stay lazy; they update only when explicitly opened/refreshed.
 // Heavy tabs are lazy-rendered when opened, so Home filters stay fast.
@@ -17198,16 +17198,31 @@ function renderGameRankingsAccordion(filteredData, overallRankMap) {
   const list = document.getElementById('gameRankingsAccordionList');
   if (!list) return;
 
-  const active = (Array.isArray(filteredData) ? filteredData : playerData).filter(p => p && !p.isRemoved && p.Team);
-  if (!active.length) {
+  // The filtered rows decide which GAMES are visible, but an opened game must
+  // always contain the complete active lineup from both teams. Previously this
+  // was built from filtered.slice(0, 120), which randomly left only 6-7 hitters.
+  const seedPlayers = (Array.isArray(filteredData) ? filteredData : playerData)
+    .filter(p => p && !p.isRemoved && p.Team);
+  if (!seedPlayers.length) {
     list.innerHTML = `<div class="game-rankings-empty">No active hitters match the current filters.</div>`;
     return;
   }
 
+  const gameGroupKey = p => {
+    const team = String(p && p.Team || '').trim().toUpperCase();
+    const mappedId = String((p && p.gameId) || teamToGameIdMap[team] || '').trim();
+    if (mappedId) return mappedId;
+    const opp = String(getOpponentTeamForPlayer(p) || safeGet(p, 'Opp Team', 'OppTeam', 'Opponent', 'OPP', 'Opp') || '').trim().toUpperCase();
+    return [team, opp].filter(Boolean).sort().join('_vs_') || team;
+  };
+
+  const visibleGameKeys = new Set(seedPlayers.map(gameGroupKey).filter(Boolean));
+  const active = (Array.isArray(playerData) ? playerData : seedPlayers)
+    .filter(p => p && !p.isRemoved && p.Team && visibleGameKeys.has(gameGroupKey(p)));
+
   const games = new Map();
   active.forEach(p => {
-    const home = getHomeTeamForPlayer(p) || p.Team;
-    const key = p.gameId || `${home}_${p.Team}`;
+    const key = gameGroupKey(p);
     if (!games.has(key)) games.set(key, []);
     games.get(key).push(p);
   });
