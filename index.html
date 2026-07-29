@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
+<!-- V12.5.5: Added pitch movement damage and velocity-band damage multipliers to Attack Zone using workbook CSV columns; existing FB/BR/OS zone logic remains unchanged. -->
 <!-- V12.5.3 MATCHUP REBALANCE: Power 25%, Opportunity 20%, Batted Ball 15%, Pitcher Vulnerability 10%, Attack Zone 25%, Pitch Lab 0%, Weather 3%, Park 2%, BvP 0%. Attack Zone preserves all existing qualification, regression, pitcher-vulnerability, pitch-family usage, mistake-zone, and hang-zone logic. New scaling: RawPowerFactor = 0.6 + (0.008 * RawPower); MatchScore = 100 * TotalPitchTypeMatch; VolatilityFactor = 1 + (1.5 * Volatility); AttackZoneHRProb = RawPowerFactor * VolatilityFactor * MatchScore, clamped to 0-100 for the category score. -->
 <!-- V12.5.1 POWER WINDOW UPDATE: Power rolling blend is Season 50%, Last 7 Days 23%, Last 14 Days 15%, Last 30 Days 12%. The 7-day share scales linearly by PA and reaches the full 23% at 8+ PA; unused 7-day weight is redistributed proportionally across Season/14/30. Average EV and ISO now use the same rolling blend from LastWeek/LW, 14Day/14Day2 and 30Day/30Day2. -->
 <!-- V12.5.0 GAME-ADJUSTED EDGE: one displayed Edge number. Raw edge = Model HR Probability - Implied Probability. Final Edge = Raw Edge - (50% of the average Raw Edge among all priced hitters in that game). This reduces game-wide green/red bias without forcing every game to average exactly zero. -->
@@ -10850,6 +10851,7 @@ await drlYieldToBrowser();
 const data = await f.arrayBuffer();
 const workbook = XLSX.read(data, {type:'array', dense:true, cellStyles:false, cellNF:false, cellHTML:false, bookVBA:false, sheetStubs:false, WTF:false});
 window.drlCurrentWorkbook = workbook;
+window.drlAttackShapeCache = null;
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], day14Raw = [], day30Raw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [], pOddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], pitchBagBRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
 let batTrackingSheetNames = {}; 
@@ -14592,6 +14594,221 @@ function zoneApplyPitcherOnlyCache(profile, pitcherName, mix, hitterName, bullpe
   return profile;
 }
 
+
+// V12.5.5 movement-profile and velocity-band matchup helpers.
+// These helpers dynamically discover workbook sheets containing the supplied
+// CSV columns, preserving compatibility with different sheet names.
+window.drlAttackShapeCache = window.drlAttackShapeCache || null;
+function attackShapeNormPitchType(row) {
+  return String(safeGet(row, 'pitch_type','Pitch Type','pitch_name','Pitch','tagged_pitch_type','pitchType') || '').trim().toUpperCase();
+}
+function attackShapeFamilyForPitchType(type) {
+  const t = String(type || '').toUpperCase();
+  if (['FF','FA','SI','FT','FC','FASTBALL','4-SEAM','FOUR-SEAM','SINKER','CUTTER'].includes(t)) return 'FB';
+  if (['SL','ST','SV','CU','KC','CS','SC','CURVEBALL','SLIDER','SWEEPER','GYRO'].includes(t)) return 'BR';
+  if (['CH','FS','FO','SCV','CHANGEUP','SPLITTER','SPLIT-FINGER'].includes(t)) return 'OS';
+  return null;
+}
+function attackShapeNumber(row, keys) {
+  const v = safeGet(row, ...keys);
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+function attackShapeRate(row, keys, denomKeys=[]) {
+  let n = attackShapeNumber(row, keys);
+  if (!Number.isFinite(n)) return null;
+  if (Math.abs(n) > 1 && Math.abs(n) <= 100) n /= 100;
+  if (Math.abs(n) > 1 && denomKeys.length) {
+    const d = attackShapeNumber(row, denomKeys);
+    if (Number.isFinite(d) && d > 0) n /= d;
+  }
+  return Math.max(0, Math.min(1, n));
+}
+function attackShapeCluster(row) {
+  const type = attackShapeNormPitchType(row);
+  const family = attackShapeFamilyForPitchType(type);
+  const ivb = attackShapeNumber(row, ['api_break_z_induced']);
+  const gravity = attackShapeNumber(row, ['api_break_z_with_gravity']);
+  const hbIn = attackShapeNumber(row, ['api_break_x_batter_in']);
+  const armAngle = attackShapeNumber(row, ['arm_angle']);
+  const attackDirection = attackShapeNumber(row, ['attack_direction']);
+  const absHB = Number.isFinite(hbIn) ? Math.abs(hbIn) : null;
+
+  if (family === 'FB') {
+    if (['SI','FT','SINKER'].includes(type)) return 'sinker';
+    if (['FC','CUTTER'].includes(type)) return 'cutter';
+    if (Number.isFinite(ivb) && ivb >= 16) return 'ride_ff';
+    if (Number.isFinite(ivb) && ivb <= 12) return 'flat_ff';
+    return 'flat_ff';
+  }
+  if (family === 'BR') {
+    if (['CU','KC','CS','CURVEBALL'].includes(type) || (Number.isFinite(gravity) && gravity <= -12)) return 'curveball';
+    if (['ST','SV','SWEEPER'].includes(type) || (Number.isFinite(absHB) && absHB >= 12)) return 'sweeper';
+    if (['SL','GYRO','SLIDER'].includes(type)) {
+      const gyroDirection = Number.isFinite(attackDirection) && Math.abs(attackDirection) >= 20;
+      const gyroArm = Number.isFinite(armAngle) && armAngle >= 45;
+      if ((Number.isFinite(absHB) && absHB <= 6) && (gyroArm || gyroDirection)) return 'gyro_slider';
+      return 'slider';
+    }
+    return 'slider';
+  }
+  if (family === 'OS') {
+    if (['FS','FO','SPLITTER','SPLIT-FINGER'].includes(type)) return 'splitter';
+    if (['CH','CHANGEUP'].includes(type)) {
+      if ((Number.isFinite(absHB) && absHB >= 8) && (!Number.isFinite(ivb) || ivb <= 10)) return 'changeup_fade';
+      return 'changeup';
+    }
+    return 'changeup';
+  }
+  return null;
+}
+function attackShapeVelocity(row) {
+  const effective = attackShapeNumber(row, ['effective_speed']);
+  const velocity = attackShapeNumber(row, ['velocity']);
+  const hyper = attackShapeNumber(row, ['hyper_speed']);
+  const minVel = attackShapeNumber(row, ['eff_min_vel']);
+  return Number.isFinite(effective) ? effective : (Number.isFinite(velocity) ? velocity : (Number.isFinite(hyper) ? hyper : minVel));
+}
+function attackShapeVelocityBand(v) {
+  if (!Number.isFinite(v)) return null;
+  if (v < 88) return 'lt88';
+  if (v < 92) return '88_92';
+  if (v < 95) return '92_94';
+  if (v < 98) return '95_97';
+  return '98plus';
+}
+function attackShapeDamageScore(row) {
+  const ev = attackShapeNumber(row, ['launch_speed','EV','Exit Velocity','avg_exit_velocity']);
+  const la = attackShapeNumber(row, ['launch_angle','LA','Launch Angle']);
+  const barrel = attackShapeRate(row, ['barrels_per_bbe_percent','Barrel%','Barrel %','barrel_rate']);
+  const hrRate = attackShapeRate(row, ['hrs','HR','home_runs','HR rate','hr_rate'], ['pa','PA','bbe','BBE','pitches','Pitches']);
+  const xwoba = attackShapeNumber(row, ['xwoba','xwOBA','XWOBA']);
+  const pieces = [];
+  if (Number.isFinite(ev)) pieces.push({w:.24, v:Math.max(0,Math.min(1,(ev-82)/18))});
+  if (Number.isFinite(la)) pieces.push({w:.16, v:Math.max(0,Math.min(1,1-(Math.abs(la-27)/27)))});
+  if (Number.isFinite(barrel)) pieces.push({w:.25, v:Math.max(0,Math.min(1,barrel/.20))});
+  if (Number.isFinite(hrRate)) pieces.push({w:.20, v:Math.max(0,Math.min(1,hrRate/.10))});
+  if (Number.isFinite(xwoba)) pieces.push({w:.15, v:Math.max(0,Math.min(1,(xwoba-.250)/.200))});
+  if (!pieces.length) return null;
+  const denom = pieces.reduce((s,x)=>s+x.w,0) || 1;
+  return Math.max(0,Math.min(1,pieces.reduce((s,x)=>s+x.w*x.v,0)/denom));
+}
+function attackShapeRowWeight(row) {
+  const sample = attackShapeNumber(row, ['pitches','Pitches','PA','pa','BBE','bbe','swings','Swings']);
+  return Number.isFinite(sample) && sample > 0 ? Math.min(100, sample) : 1;
+}
+function attackShapeAddAlias(map, rawName, row) {
+  const raw = String(rawName || '').trim();
+  if (!raw) return;
+  const keys = [normalizeName(raw)];
+  if (raw.includes(',')) {
+    const p = raw.split(',').map(x=>x.trim());
+    keys.push(normalizeName(`${p.slice(1).join(' ')} ${p[0]}`));
+  }
+  keys.forEach(k => { if (k) (map[k] || (map[k]=[])).push(row); });
+}
+function attackShapeBuildCache() {
+  const wb = window.drlCurrentWorkbook;
+  const cache = { workbook:wb, hitterRows:{}, pitcherRows:{}, allRows:[] };
+  if (!wb || !Array.isArray(wb.SheetNames)) return cache;
+  const required = ['api_break_z_induced','api_break_z_with_gravity','api_break_x_batter_in','velocity','effective_speed','launch_speed','xwoba'];
+  wb.SheetNames.forEach(sheetName => {
+    const rows = sheetToJsonSmart(wb, sheetName, ['batter','Batter','hitter','Hitter','Player','Name','pitcher','Pitcher','pitch_type']);
+    if (!rows.length) return;
+    const keySet = new Set();
+    rows.slice(0,5).forEach(r=>Object.keys(r||{}).forEach(k=>keySet.add(String(k).trim().toLowerCase())));
+    if (!required.some(k=>keySet.has(k))) return;
+    rows.forEach(row => {
+      const hasShape = attackShapeCluster(row) || attackShapeVelocityBand(attackShapeVelocity(row));
+      if (!hasShape) return;
+      cache.allRows.push(row);
+      const hitter = safeGet(row,'batter_name','Batter Name','batter','Batter','hitter_name','Hitter Name','hitter','Hitter','Player','Name','last_name, first_name');
+      const pitcher = safeGet(row,'pitcher_name','Pitcher Name','pitcher','Pitcher','Opp Pitcher','Opp Pitcher Name');
+      attackShapeAddAlias(cache.hitterRows, hitter, row);
+      attackShapeAddAlias(cache.pitcherRows, pitcher, row);
+    });
+  });
+  window.drlAttackShapeCache = cache;
+  return cache;
+}
+function attackShapeGetCache() {
+  const wb = window.drlCurrentWorkbook;
+  return window.drlAttackShapeCache && window.drlAttackShapeCache.workbook === wb
+    ? window.drlAttackShapeCache
+    : attackShapeBuildCache();
+}
+function attackShapeAggregateDamage(rows, selector) {
+  const sums = {}, weights = {};
+  (rows || []).forEach(row => {
+    const key = selector(row);
+    const damage = attackShapeDamageScore(row);
+    if (!key || !Number.isFinite(damage)) return;
+    const w = attackShapeRowWeight(row);
+    sums[key] = (sums[key] || 0) + damage*w;
+    weights[key] = (weights[key] || 0) + w;
+  });
+  const out = {};
+  Object.keys(sums).forEach(k => out[k] = Math.max(0,Math.min(1,sums[k]/weights[k])));
+  return out;
+}
+function attackShapeUsage(rows, selector) {
+  const counts = {}, totalObj = {v:0};
+  (rows || []).forEach(row => {
+    const key = selector(row);
+    if (!key) return;
+    const w = attackShapeRowWeight(row);
+    counts[key] = (counts[key] || 0) + w;
+    totalObj.v += w;
+  });
+  const out = {};
+  Object.keys(counts).forEach(k => out[k] = totalObj.v > 0 ? counts[k]/totalObj.v : 0);
+  return out;
+}
+function attackShapeMatchups(player, mix) {
+  const cache = attackShapeGetCache();
+  const hitterName = String(player && (player.Name || safeGet(player,'Player','Batter','Hitter')) || '').trim();
+  const pitcherName = String(safeGet(player,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '').trim();
+  const hitterRows = cache.hitterRows[normalizeName(hitterName)] || [];
+  const pitcherRows = cache.pitcherRows[normalizeName(pitcherName)] || [];
+  const movementDamageByCluster = attackShapeAggregateDamage(hitterRows, attackShapeCluster);
+  const velocityDamageByBand = attackShapeAggregateDamage(hitterRows, row=>attackShapeVelocityBand(attackShapeVelocity(row)));
+  const pitcherClusterUsage = attackShapeUsage(pitcherRows, attackShapeCluster);
+  const pitcherVelocityBandUsage = attackShapeUsage(pitcherRows, row=>attackShapeVelocityBand(attackShapeVelocity(row)));
+
+  const clusterFamilies = {
+    flat_ff:'FB', ride_ff:'FB', sinker:'FB', cutter:'FB',
+    slider:'BR', sweeper:'BR', curveball:'BR', gyro_slider:'BR',
+    changeup:'OS', changeup_fade:'OS', splitter:'OS'
+  };
+  const familyDamage = {FB:0,BR:0,OS:0}, familyClusterUsage = {FB:0,BR:0,OS:0};
+  Object.keys(pitcherClusterUsage).forEach(cluster => {
+    const fam = clusterFamilies[cluster];
+    if (!fam) return;
+    const u = pitcherClusterUsage[cluster] || 0;
+    const d = movementDamageByCluster[cluster];
+    if (Number.isFinite(d)) familyDamage[fam] += u*d;
+    familyClusterUsage[fam] += u;
+  });
+  Object.keys(familyDamage).forEach(fam => {
+    if (familyClusterUsage[fam] > 0) familyDamage[fam] /= familyClusterUsage[fam];
+  });
+  const movementMatch = ['FB','BR','OS'].reduce((sum,fam)=>sum + (Math.max(0,Number(mix && mix[fam])||0) * Math.max(0,Number(familyDamage[fam])||0)),0);
+  const velocityMatch = Object.keys(pitcherVelocityBandUsage).reduce((sum,band)=>{
+    const d = velocityDamageByBand[band];
+    return sum + (Number.isFinite(d) ? pitcherVelocityBandUsage[band]*d : 0);
+  },0);
+  return {
+    movementMatch:Math.max(0,Math.min(1,movementMatch)),
+    velocityMatch:Math.max(0,Math.min(1,velocityMatch)),
+    movementDamageByCluster,
+    velocityDamageByBand,
+    pitcherClusterUsage,
+    pitcherVelocityBandUsage,
+    familyMovementDamage:familyDamage,
+    sourceRows:{hitter:hitterRows.length,pitcher:pitcherRows.length}
+  };
+}
+
 // V12.5.3 daily pitcher-hitter Attack Zone matchup engine.
 // Preserves pitcher family-zone frequency, hitter family-zone damage, family usage,
 // qualification/regression, and all family-specific mistake/hang logic.
@@ -14655,7 +14872,14 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
   const rawPowerFactor = 0.6 + (0.008 * rawPower);
   const matchScore = 80 * pitchTypeMatchTotal;
   const volatilityFactor = 1 + (1.0 * volatility);
-  const hrProb = rawPowerFactor * volatilityFactor * matchScore;
+  const shapeMatchups = attackShapeMatchups(player, mix);
+  const movementMatch = shapeMatchups.movementMatch;
+  const velocityMatch = shapeMatchups.velocityMatch;
+  const hrProb = rawPowerFactor
+    * volatilityFactor
+    * matchScore
+    * (1 + movementMatch)
+    * (1 + velocityMatch);
   return {
     hrProb,
     score: Math.max(0, Math.min(100, hrProb)),
@@ -14665,6 +14889,11 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
     volatilityFactor,
     pitchTypeMatchTotal,
     matchScore,
+    movementMatch,
+    velocityMatch,
+    movementDamageByCluster: shapeMatchups.movementDamageByCluster,
+    velocityDamageByBand: shapeMatchups.velocityDamageByBand,
+    movementDebug: shapeMatchups,
     families: familyResults
   };
 }
@@ -14713,11 +14942,16 @@ function calculateAttackZoneProfile(player) {
       weighted.rawPower = matchup.rawPower;
       weighted.volatility = matchup.volatility;
       weighted.pitchTypeMatchTotal = matchup.pitchTypeMatchTotal;
+      weighted.movementMatch = matchup.movementMatch;
+      weighted.velocityMatch = matchup.velocityMatch;
+      weighted.movementDamageByCluster = matchup.movementDamageByCluster;
+      weighted.velocityDamageByBand = matchup.velocityDamageByBand;
+      weighted.movementDebug = matchup.movementDebug;
       weighted.familyMatchups = matchup.families;
       weighted.score = matchup.score;
-      weighted.formula = 'HRProb = (0.15 × RawPower) × (1 + Volatility) × (PitchTypeMatch_BRK + PitchTypeMatch_FB + PitchTypeMatch_CH). PitchTypeMatch = pitch-family usage × sum(PitcherZoneFrequency × HitterDamage).';
-      weighted.scoringEngine = 'DAILY_HRPROB_ZONE_PITCH_TYPE_V12_5_2';
-      weighted.summary = `Daily zone HRProb ${matchup.hrProb.toFixed(2)} // Volatility ${matchup.volatility.toFixed(3)} // Pitch-type match ${matchup.pitchTypeMatchTotal.toFixed(3)}.`;
+      weighted.formula = 'HRProb = RawPowerFactor × VolatilityFactor × MatchScore × (1 + MovementMatch) × (1 + VelocityMatch). Existing FB/BR/OS zone, mistake, hang, qualification, and regression logic is unchanged.';
+      weighted.scoringEngine = 'DAILY_HRPROB_ZONE_MOVEMENT_VELOCITY_V12_5_5';
+      weighted.summary = `Daily zone HRProb ${matchup.hrProb.toFixed(2)} // Volatility ${matchup.volatility.toFixed(3)} // Pitch-type ${matchup.pitchTypeMatchTotal.toFixed(3)} // Movement ${matchup.movementMatch.toFixed(3)} // Velocity ${matchup.velocityMatch.toFixed(3)}.`;
     }
 
     // Never let an absent pitcher family sample blank the whole player.
