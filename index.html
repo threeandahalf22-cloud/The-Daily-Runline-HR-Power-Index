@@ -14653,8 +14653,8 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
     : (Number.isFinite(Number(fallbackRawPower)) ? Number(fallbackRawPower) : 50);
 
   const rawPowerFactor = 0.6 + (0.008 * rawPower);
-  const matchScore = 100 * pitchTypeMatchTotal;
-  const volatilityFactor = 1 + (1.5 * volatility);
+  const matchScore = 80 * pitchTypeMatchTotal;
+  const volatilityFactor = 1 + (1.0 * volatility);
   const hrProb = rawPowerFactor * volatilityFactor * matchScore;
   return {
     hrProb,
