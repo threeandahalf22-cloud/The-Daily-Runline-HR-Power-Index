@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
+<!-- V12.5.3 MATCHUP REBALANCE: Power 25%, Opportunity 20%, Batted Ball 15%, Pitcher Vulnerability 10%, Attack Zone 25%, Pitch Lab 0%, Weather 3%, Park 2%, BvP 0%. Attack Zone preserves all existing qualification, regression, pitcher-vulnerability, pitch-family usage, mistake-zone, and hang-zone logic. New scaling: RawPowerFactor = 0.6 + (0.008 * RawPower); MatchScore = 100 * TotalPitchTypeMatch; VolatilityFactor = 1 + (1.5 * Volatility); AttackZoneHRProb = RawPowerFactor * VolatilityFactor * MatchScore, clamped to 0-100 for the category score. -->
 <!-- V12.5.1 POWER WINDOW UPDATE: Power rolling blend is Season 50%, Last 7 Days 23%, Last 14 Days 15%, Last 30 Days 12%. The 7-day share scales linearly by PA and reaches the full 23% at 8+ PA; unused 7-day weight is redistributed proportionally across Season/14/30. Average EV and ISO now use the same rolling blend from LastWeek/LW, 14Day/14Day2 and 30Day/30Day2. -->
 <!-- V12.5.0 GAME-ADJUSTED EDGE: one displayed Edge number. Raw edge = Model HR Probability - Implied Probability. Final Edge = Raw Edge - (50% of the average Raw Edge among all priced hitters in that game). This reduces game-wide green/red bias without forcing every game to average exactly zero. -->
 <!-- V12.4.9 BVP REWEIGHT / NO SYNERGY: Power 50%, Opportunity 21.05%, Batted Ball 15.79%, BvP 7.89%, Pitcher 4.21%, Weather 0.63%, Park 0.43%. Attack Zone, Pitch Lab and Bullpen remain visible at 0%. All synergy bonuses are disabled. BvP confidence tiers: 0-2 PA=0%, 3-5 PA=25%, 6-7 PA=50%, 8+ PA=100%. Any prior matchup HR adds a fixed +3 BBI, capped at +3. -->
@@ -13625,15 +13626,15 @@ function parseUsageValue(raw) { let v = cleanNumber(raw); if (!v) return 0; if (
 // Hybrid engine: BreakerBreaker slate normalization + Daily RunLine layout/environment logic.
 const DRL_SYNERGY_CAP = 7.5; // Phase 7 canonical applied synergy ceiling (+7.50 BBI)
 const HYBRID_CATEGORY_WEIGHTS = {
-  power: 0.5000,       // Core hitter EV/power + built-in season/30/14/7 recent blending
-  opportunity: 0.2105, // Batting order, PA/game and total PA
-  battedBall: 0.1579,
-  bvp: 0.0789,         // Confidence-weighted batter vs pitcher history
-  pitcher: 0.0421,
-  weather: 0.0063,
-  park: 0.0043,
-  attackZone: 0.0000,  // Page remains available; no BBI contribution
-  pitchLevel: 0.0000   // Page remains available; no BBI contribution
+  power: 0.25,         // Hitter Power + Recent
+  opportunity: 0.20,   // Opportunity / Lineup
+  battedBall: 0.15,
+  bvp: 0.00,           // Removed from the active 100% model
+  pitcher: 0.10,       // Pitcher Vulnerability
+  attackZone: 0.25,    // Primary daily pitcher-hitter zone and pitch-type matchup
+  pitchLevel: 0.00,    // Pitch Lab remains visible but stays at 0%
+  weather: 0.03,
+  park: 0.02
 };
 const DRL_PREVIOUS_CATEGORY_WEIGHTS = {
   power: 0.30,
@@ -14590,6 +14591,84 @@ function zoneApplyPitcherOnlyCache(profile, pitcherName, mix, hitterName, bullpe
   profile.pitcherZoneCacheFixed = true;
   return profile;
 }
+
+// V12.5.3 daily pitcher-hitter Attack Zone matchup engine.
+// Preserves pitcher family-zone frequency, hitter family-zone damage, family usage,
+// qualification/regression, and all family-specific mistake/hang logic.
+// Rescales power, matchup, and volatility so the daily matchup drives the category.
+function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
+  const familyDefs = {
+    FB: { mistake:[7,8,9,5], hang:[8,5] },
+    BR: { mistake:[1,2,3,5], hang:[1,2,3,5] },
+    OS: { mistake:[1,2,3,5], hang:[1,2,3,5] }
+  };
+  const familyResults = {};
+  let volatility = 0;
+  let pitchTypeMatchTotal = 0;
+
+  ['FB','BR','OS'].forEach(bucket => {
+    const profile = bucketProfiles && bucketProfiles[bucket];
+    const zones = profile && Array.isArray(profile.zones) ? profile.zones : [];
+    const usable = zones.filter(z => Number(z.familyZonePct) > 0 && z.attackScoreQualified !== false);
+    const zoneByNumber = {};
+    usable.forEach(z => { zoneByNumber[Number(z.zone)] = z; });
+
+    const freq = {};
+    for (let zone=1; zone<=9; zone++) {
+      const row = zoneByNumber[zone];
+      freq[zone] = row ? Math.max(0, Number(row.familyZonePct) || 0) : 0;
+    }
+
+    const damageForZone = zone => {
+      const row = zoneByNumber[zone];
+      if (!row || !Number.isFinite(Number(row.batterDamage))) return 0;
+      // Existing zone damage is a 0-100 grade. Convert it to the 0-1 damage scale
+      // required by the requested probability formula without changing its ordering.
+      return Math.max(0, Number(row.batterDamage)) / 100;
+    };
+
+    const zoneMatch = Array.from({length:9},(_,i)=>i+1)
+      .reduce((sum,zone)=>sum + (freq[zone] * damageForZone(zone)), 0);
+    const usage = Math.max(0, Number(mix && mix[bucket]) || 0);
+    const pitchTypeMatch = usage * zoneMatch;
+    const mistakeRate = familyDefs[bucket].mistake.reduce((sum,zone)=>sum + (freq[zone] || 0), 0);
+    const hangRate = familyDefs[bucket].hang.reduce((sum,zone)=>sum + (freq[zone] || 0), 0);
+
+    volatility += mistakeRate + hangRate;
+    pitchTypeMatchTotal += pitchTypeMatch;
+    familyResults[bucket] = { usage, freq, zoneMatch, pitchTypeMatch, mistakeRate, hangRate };
+  });
+
+  const explicitRawPower = Number(safeGet(player,
+    'RawPower','Raw Power','Raw_Power','Hitter Raw Power','Power Score','Hitter Power'));
+  const fallbackRawPower = attackZoneBaselineScore(
+    player,
+    'GENERIC',
+    'batter',
+    player && player.Name,
+    String(safeGet(player,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '').trim()
+  );
+  const rawPower = Number.isFinite(explicitRawPower)
+    ? explicitRawPower
+    : (Number.isFinite(Number(fallbackRawPower)) ? Number(fallbackRawPower) : 50);
+
+  const rawPowerFactor = 0.6 + (0.008 * rawPower);
+  const matchScore = 100 * pitchTypeMatchTotal;
+  const volatilityFactor = 1 + (1.5 * volatility);
+  const hrProb = rawPowerFactor * volatilityFactor * matchScore;
+  return {
+    hrProb,
+    score: Math.max(0, Math.min(100, hrProb)),
+    rawPower,
+    rawPowerFactor,
+    volatility,
+    volatilityFactor,
+    pitchTypeMatchTotal,
+    matchScore,
+    families: familyResults
+  };
+}
+
 function calculateAttackZoneProfile(player) {
   try {
     const hitterName = player && player.Name;
@@ -14624,6 +14703,21 @@ function calculateAttackZoneProfile(player) {
       weighted.activeView = 'WEIGHTED';
       weighted.formula = 'Generic PZ/BZ fallback used because no pitch-family zone rows were found.';
       weighted.scoringEngine = 'PITCH_FAMILY_MATCHUP_V10_1_GENERIC_FALLBACK';
+    }
+
+    // Apply the requested daily HR probability formula after the three exact
+    // pitch-family profiles have been built.
+    if (hasFamilyData) {
+      const matchup = attackZoneDailyHRProbability(player, bucketProfiles, mix);
+      weighted.hrProb = matchup.hrProb;
+      weighted.rawPower = matchup.rawPower;
+      weighted.volatility = matchup.volatility;
+      weighted.pitchTypeMatchTotal = matchup.pitchTypeMatchTotal;
+      weighted.familyMatchups = matchup.families;
+      weighted.score = matchup.score;
+      weighted.formula = 'HRProb = (0.15 × RawPower) × (1 + Volatility) × (PitchTypeMatch_BRK + PitchTypeMatch_FB + PitchTypeMatch_CH). PitchTypeMatch = pitch-family usage × sum(PitcherZoneFrequency × HitterDamage).';
+      weighted.scoringEngine = 'DAILY_HRPROB_ZONE_PITCH_TYPE_V12_5_2';
+      weighted.summary = `Daily zone HRProb ${matchup.hrProb.toFixed(2)} // Volatility ${matchup.volatility.toFixed(3)} // Pitch-type match ${matchup.pitchTypeMatchTotal.toFixed(3)}.`;
     }
 
     // Never let an absent pitcher family sample blank the whole player.
@@ -19999,14 +20093,15 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
 <script id="v40-restart-fixes-script">
 (function(){
   const WEIGHTS_40 = [
-    { key:'power', label:'💪 Power', weight:30, color:'#a855f7' },
-    { key:'batted', label:'🚀 Batted Ball', weight:24, color:'#ef4444' },
+    { key:'power', label:'💪 Power', weight:25, color:'#a855f7' },
+    { key:'opportunity', label:'📋 Opportunity', weight:20, color:'#10b981' },
+    { key:'batted', label:'🚀 Batted Ball', weight:15, color:'#ef4444' },
     { key:'pitcher', label:'⚾ Pitcher Vuln', weight:10, color:'#fb7185' },
-    { key:'pitchlab', label:'🎯 Pitch Lab', weight:7, color:'#38bdf8' },
-    { key:'attackZone', label:'🎯 Attack Zone', weight:16, color:'#f97316' },
-    { key:'bvp', label:'🤝 BvP', weight:4, color:'#facc15' },
-    { key:'weather', label:'🌦 Weather', weight:5, color:'#0ea5e9' },
-    { key:'park', label:'🏟 Park', weight:4, color:'#94a3b8' }
+    { key:'attackZone', label:'🎯 Attack Zone', weight:25, color:'#f97316' },
+    { key:'weather', label:'🌦 Weather', weight:3, color:'#0ea5e9' },
+    { key:'park', label:'🏟 Park', weight:2, color:'#94a3b8' },
+    { key:'pitchlab', label:'🎯 Pitch Lab', weight:0, color:'#38bdf8' },
+    { key:'bvp', label:'🤝 BvP', weight:0, color:'#facc15' }
   ];
   function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
   function num(v){ try { return typeof cleanNumber === 'function' ? cleanNumber(v) : Number(v || 0); } catch(e){ return Number(v || 0) || 0; } }
