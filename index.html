@@ -5,7 +5,8 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
-<!-- V12.5.12 PURE-HR AVERAGE-CONTACT FIX: primary zone scoring uses only workbook-supported inputs: Barrel/PA, Barrel/BBE, HR/PA, HR/BBE, average launch-angle quality, and average exit-velocity quality. Average LA/EV are explicitly scored as averages, not mislabeled as 22-35 degree or 103+ mph rates. Movement and velocity use the same HR-specific average-contact logic. Mistake exploitation, orientation, usage, coverage, qualification, regression flow, volatility, raw power, family logic, UI reconciliation, caps, and scoring order remain unchanged. -->
+<!-- V12.5.14 FAMILY-ZONE PITCH-COUNT FIX: a Weighted All zone is valid when at least one pitch family independently qualifies in that zone. A qualified FB cell is no longer erased by unqualified BR/OS cells. Pitcher-only maps use the same rule. -->
+<!-- V12.5.13 PURE-HR AVERAGE-CONTACT FIX: primary zone scoring uses only workbook-supported inputs: Barrel/PA, Barrel/BBE, HR/PA, HR/BBE, average launch-angle quality, and average exit-velocity quality. Average LA/EV are explicitly scored as averages, not mislabeled as 22-35 degree or 103+ mph rates. Movement and velocity use the same HR-specific average-contact logic. Mistake exploitation, orientation, usage, coverage, qualification, regression flow, volatility, raw power, family logic, UI reconciliation, caps, and scoring order remain unchanged. -->
 <!-- V12.5.9 HR-CENTERED ATTACK ZONE: stabilized zone HR production is now included directly in hitter/pitcher zone scoring; mistake exploitation inherits the HR-centered edge; movement and velocity damage are reweighted toward HR rate, barrels, HR-quality EV and HR-quality launch angle. All usage, coverage, regression, volatility, caps, raw power and scoring order remain unchanged. -->
 <!-- V12.5.10 USAGE/UI FIX: family-zone usage uses a reconciliation denominator so no displayed zone can exceed 100%; source disagreements are normalized without inventing coverage. Movement/velocity zero remains a valid no-match/no-data result. -->
 <!-- V12.5.8 MISTAKE EXPLOITATION: 75% base family Zone Match + 25% pitcher mistake/hang × hitter same-zone damage opportunity; existing volatility cap and movement/velocity sequence retained. -->
@@ -14070,7 +14071,7 @@ function buildAttackZoneDamageScore(row, side) {
   if (!row || !Object.keys(row).length) return null;
   const s = zoneExtractStats(row);
   const sample = drlZoneExposure(s);
-  // V12.5.12 pure-HR zone score using only fields the workbook actually has.
+  // V12.5.13 pure-HR zone score using only fields the workbook actually has.
   // ISO and generic hard-hit are excluded. LA and EV are average-quality inputs,
   // not fabricated optimal-window percentages.
   return hybridWeightedAvg([
@@ -14247,8 +14248,11 @@ function attackZoneHRGeometryMultiplier(logicalZone) {
 function attackZonePitcherZoneQualified(stats) {
   const pitches=Number(stats&&stats.pitches);
   const usage=Number(stats&&stats.pitchPct);
+  // A family-zone cell qualifies on its own pitch sample. The prior rule also
+  // required 2% row usage, which could blank a zone even with 100+ fastballs
+  // when the workbook omitted/misreported pitch%. One qualified family is enough.
   return Number.isFinite(pitches) && pitches >= ATTACK_ZONE_MIN_PITCHES_PER_ZONE &&
-         Number.isFinite(usage) && usage >= ATTACK_ZONE_MIN_CELL_USAGE;
+         Number.isFinite(usage) && usage > 0;
 }
 function attackZoneInteractionEdge(batterDamage, pitcherVulnerability, batterStats, pitcherStats, leagueDanger = 50) {
   if (!Number.isFinite(Number(batterDamage))) return null;
@@ -14333,12 +14337,25 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   const bucketName = bucket && bucket !== 'GENERIC' ? zoneBucketLabel(bucket) : 'Generic';
   const batSide = attackZoneExpectedBatSide(player,pitcherName);
   const zones = [];
+
+  // Cache the exact family pitcher rows and derive location usage from pitch counts.
+  // Some workbook family-zone rows contain a valid pitch count but no usable pitch%,
+  // which previously caused the cell to fail qualification and render NO DATA.
+  const pitcherRowsByPhysicalZone = {};
+  let familyPitchCountTotal = 0;
+  for (let physicalZone = 1; physicalZone <= 9; physicalZone++) {
+    const row = zoneSheetHasData('PZ' + physicalZone + suffix, pitcherName);
+    pitcherRowsByPhysicalZone[physicalZone] = row;
+    const count = row ? zoneFirstNumber(row, ['pitches','Pitches','pitch_count','pitch_count_zone']) : null;
+    if (Number.isFinite(Number(count)) && Number(count) > 0) familyPitchCountTotal += Number(count);
+  }
+
   for (let logicalZone = 1; logicalZone <= 9; logicalZone++) {
     const physicalZone = attackZonePhysicalIndex(logicalZone,batSide);
     // Family views must use the exact family sheets only. Falling back to generic
     // BZ/PZ rows inside every family duplicates the same pitcher usage three times.
     const bRow = zoneSheetHasData('BZ' + physicalZone + suffix, hitterName);
-    const pRow = zoneSheetHasData('PZ' + physicalZone + suffix, pitcherName);
+    const pRow = pitcherRowsByPhysicalZone[physicalZone];
     const hasB = bRow && Object.keys(bRow).length;
     const hasP = pRow && Object.keys(pRow).length;
     if (!hasB && !hasP) continue;
@@ -14356,6 +14373,12 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
     const starterPitcherVulnerability = pitcherSmoothed.score;
     const pitcherVulnerability = starterPitcherVulnerability;
     let pitchPct = hasP ? pitcherStats.pitchPct : null;
+    if ((!Number.isFinite(Number(pitchPct)) || Number(pitchPct) <= 0) &&
+        Number.isFinite(Number(pitcherStats.pitches)) && Number(pitcherStats.pitches) > 0 &&
+        familyPitchCountTotal > 0) {
+      pitchPct = Number(pitcherStats.pitches) / familyPitchCountTotal;
+      pitcherStats.pitchPct = pitchPct;
+    }
     const freqScore = attackZoneScaleScore('freq', pitchPct === null ? 1/9 : pitchPct);
     const leagueDanger = attackZoneLeagueDanger(bucket || 'GENERIC', logicalZone);
     const baseEdge = attackZoneInteractionEdge(batterDamage,pitcherVulnerability,batterStats,pitcherStats,leagueDanger);
@@ -14439,9 +14462,15 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   return {
     score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,
     weightedAvgEdge,batSide,rawFamilyZoneTotal,familyCoverage,actualFamilyUsage,
-    scoringEngine:'COMPLETE_ATTACK_ZONE_SEQUENCE_V12_5_10_USAGE_FIXED'
+    scoringEngine:'COMPLETE_ATTACK_ZONE_SEQUENCE_V12_5_14_FAMILY_ZONE_PITCH_COUNT_FIXED'
   };
 }
+function attackZoneUsableFamilyCell(z) {
+  if (!z || z.attackScoreQualified === false) return false;
+  const usage = Number(z.rawPitchPct ?? z.expectedPitchPct ?? z.pitchPct);
+  return Number.isFinite(Number(z.edge)) && Number.isFinite(usage) && usage > 0;
+}
+
 function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   const hitterName = player && player.Name;
   const pitcherName = String(safeGet(player, 'Opp Pitcher', 'Opp Pitcher Name', 'Pitcher', 'Pitcher Name') || '').trim();
@@ -14451,7 +14480,9 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   const activeFamilies = families.map(bucket => {
     const profile = bucketProfiles && bucketProfiles[bucket];
     const familyMix = Math.max(0, Number(mix && mix[bucket]) || 0);
-    const valid = profile && Number.isFinite(Number(profile.score)) && Array.isArray(profile.zones) && profile.zones.some(z => Number(z.familyZonePct) > 0);
+    // A family participates when it has at least one independently qualified zone.
+    // Other families are never required to qualify in the same zone.
+    const valid = profile && Number.isFinite(Number(profile.score)) && Array.isArray(profile.zones) && profile.zones.some(attackZoneUsableFamilyCell);
     return valid ? { bucket, profile, familyMix } : null;
   }).filter(Boolean);
 
@@ -14484,8 +14515,12 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
   const cells = [];
   for (const f of activeFamilies) {
     for (const z of (f.profile.zones || [])) {
-      if (!(Number(z.familyZonePct) > 0) || z.attackScoreQualified === false) continue;
-      const overallExposure = f.normalizedMix * Number(z.familyZonePct);
+      // Keep every independently qualified family-zone cell. Example: 100 FBs in Z9
+      // remains a valid Z9 cell even when BR/OS have only one pitch there.
+      if (!attackZoneUsableFamilyCell(z)) continue;
+      const familyZoneShare = Math.max(0, Number(z.familyZonePct) || 0);
+      if (!(familyZoneShare > 0)) continue;
+      const overallExposure = f.normalizedMix * familyZoneShare;
       const cell = {
         zone:Number(z.zone), bucket:f.bucket, label:zoneBucketLabel(f.bucket),
         edge:Number(z.edge)||0, hrSpecificEdge:Number(z.hrSpecificEdge ?? z.edge)||0, blastFactor:Number(z.edge)||0,
@@ -14571,8 +14606,10 @@ function zoneBuildPitcherOnlyBucketProfile(pitcherName, bucket, mixWeight, bullp
     let pitchPct = pitcherStats.pitchPct;
     if (pitchPct === null || pitchPct === undefined || isNaN(Number(pitchPct))) continue;
     pitchPct = Math.max(0, Math.min(1, Number(pitchPct)));
+    const attackScoreQualified = attackZonePitcherZoneQualified(pitcherStats);
     zones.push({
       zone:i,bucket:bucket||'GENERIC',bucketLabel:zoneBucketLabel(bucket),
+      attackScoreQualified,
       pitcherVulnerability,starterPitcherVulnerability:pitcherVulnerability,
       bullpenPitcherVulnerability:null,bullpenTeam:null,bullpenPitchPct:null,
       pitchFrequencyScore:attackZoneScaleScore('freq',pitchPct),pitchPct,
@@ -14595,7 +14632,9 @@ function zoneBuildPitcherOnlyProfile(pitcherName, mix, bullpenTeam) {
     const pieces = ['FB','BR','OS'].map(bucket => {
       const prof = bucketProfiles[bucket];
       const z = prof && prof.zones ? prof.zones.find(x => Number(x.zone) === i) : null;
-      return z ? { bucket, z, w:Number(mix[bucket]) || 0 } : null;
+      return (z && z.attackScoreQualified !== false && Number(z.pitchPct) > 0)
+        ? { bucket, z, w:Number(mix[bucket]) || 0 }
+        : null;
     }).filter(Boolean);
     if (!pieces.length) {
       const generic = zoneBuildPitcherOnlyBucketProfile(pitcherName, 'GENERIC', 1, bullpenTeam);
@@ -14666,7 +14705,7 @@ function zoneApplyPitcherOnlyCache(profile, pitcherName, mix, hitterName, bullpe
       const src = bucket && cache.bucketProfiles && cache.bucketProfiles[bucket]
         ? (cache.bucketProfiles[bucket].zones || []).find(x => Number(x.zone) === Number(z.zone))
         : (cache.zones || []).find(x => Number(x.zone) === Number(z.zone));
-      if (!src) return;
+      if (!src || src.attackScoreQualified === false) return;
       z.pitcherVulnerability = src.pitcherVulnerability;
       z.starterPitcherVulnerability = src.starterPitcherVulnerability;
       z.bullpenPitcherVulnerability = src.bullpenPitcherVulnerability;
@@ -14788,7 +14827,7 @@ function attackShapeDamageScore(row) {
 
   const sample = Math.max(0, Number(hrDenom) || 0);
   const pieces = [];
-  // V12.5.12: movement/velocity are HR-specific but use the workbook's actual
+  // V12.5.13: movement/velocity are HR-specific but use the workbook's actual
   // average EV and average LA fields instead of nonexistent optimal-rate fields.
   if (Number.isFinite(hrRate)) {
     const adjHR = drlPitchZoneRegress(hrRate, 0.030, sample);
