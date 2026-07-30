@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
+<!-- V12.5.12 PURE-HR AVERAGE-CONTACT FIX: primary zone scoring uses only workbook-supported inputs: Barrel/PA, Barrel/BBE, HR/PA, HR/BBE, average launch-angle quality, and average exit-velocity quality. Average LA/EV are explicitly scored as averages, not mislabeled as 22-35 degree or 103+ mph rates. Movement and velocity use the same HR-specific average-contact logic. Mistake exploitation, orientation, usage, coverage, qualification, regression flow, volatility, raw power, family logic, UI reconciliation, caps, and scoring order remain unchanged. -->
 <!-- V12.5.9 HR-CENTERED ATTACK ZONE: stabilized zone HR production is now included directly in hitter/pitcher zone scoring; mistake exploitation inherits the HR-centered edge; movement and velocity damage are reweighted toward HR rate, barrels, HR-quality EV and HR-quality launch angle. All usage, coverage, regression, volatility, caps, raw power and scoring order remain unchanged. -->
 <!-- V12.5.10 USAGE/UI FIX: family-zone usage uses a reconciliation denominator so no displayed zone can exceed 100%; source disagreements are normalized without inventing coverage. Movement/velocity zero remains a valid no-match/no-data result. -->
 <!-- V12.5.8 MISTAKE EXPLOITATION: 75% base family Zone Match + 25% pitcher mistake/hang × hitter same-zone damage opportunity; existing volatility cap and movement/velocity sequence retained. -->
@@ -13897,6 +13898,8 @@ function zoneExtractStats(row) {
     barrelPA: zoneFirstRate(row, ['barrels_per_pa_percent','Barrels/PA %','barrel_pa_percent','barrel_per_pa']),
     hardhit: zoneFirstRate(row, ['hardhit_percent','HardHit%','Hard Hit %','hard_hit_percent','hard_hit_pct','hardhit_pct','Hard Hit Allowed','Hard Hit % Allowed']),
     idealLA: zoneFirstRate(row, ['rate_ideal_attack_angle','Ideal Attack Angle Rate','Ideal Attack Angle %','ideal_attack_angle_rate','ideal_attack_angle_percent','ideal_la_rate']),
+    hrOptimalLA: zoneFirstRate(row, ['hr_optimal_la_rate','HR Optimal LA Rate','HR-Optimal LA Rate','LA 22-35%','Launch Angle 22-35%','launch_angle_22_35_percent','la_22_35_rate','rate_22_35_la']),
+    hrOptimalEV: zoneFirstRate(row, ['hr_optimal_ev_rate','HR Optimal EV Rate','HR-Optimal EV Rate','EV 103+%','103+ MPH Rate','103+ EV Rate','ev_103_plus_percent','ev_103_plus_rate','rate_103_plus_ev']),
     sweetspot: zoneFirstRate(row, ['sweet_spot_percent','Sweet Spot %','sweetspot_percent','sweet_spot_pct']),
     pull: zoneFirstRate(row, ['pull_percent','Pull %','pull_pct','pull_rate']),
     fb: zoneFirstRate(row, ['fb_percent','FB %','fly_ball_percent','flyball_percent','fb_pct','fly_ball_pct','FB%']),
@@ -13907,7 +13910,7 @@ function zoneExtractStats(row) {
     whiff: zoneFirstRate(row, ['whiff_percent','Whiff %','whiff_pct']),
     pitches: zoneFirstNumber(row, ['pitches','Pitches','pitch_count','pitch_count_zone']),
     pa: zoneFirstNumber(row, ['pa','PA','plate_appearances','Plate Appearances','plate appearances','batter_pa','pitcher_pa']),
-    bbe: zoneFirstNumber(row, ['bbe','BBE','batted_ball_events','Batted Ball Events','batted balls']),
+    bbe: zoneFirstNumber(row, ['bbe','BBE','bip','BIP','batted_ball_events','Batted Ball Events','batted balls','balls_in_play','Balls In Play']),
     pitchPct: zonePitchPercent(row)
   };
 }
@@ -13924,7 +13927,7 @@ function zoneValueIsFilled(v) {
 function zoneMergeDisplayStatsFromPieces(pieces, statKey, preferredStats) {
   const out = { ...(preferredStats || {}) };
   const ordered = (pieces || []).slice().sort((a,b) => (Number(b.w) || 0) - (Number(a.w) || 0));
-  const fields = ['hr','avg','slg','xslg','xwoba','iso','ev','maxev','barrel','barrelPA','hardhit','idealLA','sweetspot','pull','fb','gb','la','batSpeed','contact','whiff','pitches','pa','bbe','pitchPct'];
+  const fields = ['hr','avg','slg','xslg','xwoba','iso','ev','maxev','barrel','barrelPA','hardhit','idealLA','hrOptimalLA','hrOptimalEV','sweetspot','pull','fb','gb','la','batSpeed','contact','whiff','pitches','pa','bbe','pitchPct'];
   fields.forEach(field => {
     if (zoneValueIsFilled(out[field])) return;
     for (const piece of ordered) {
@@ -14008,13 +14011,50 @@ function drlZoneHRScore(rawHR, sample) {
   const adjusted = drlPitchZoneRegress(rawRate, 0.030, n);
   return drlOpenStatScore(adjusted, 0.030, 0.025, 20);
 }
-function drlZoneLaunchAngleScore(raw, sample) {
+function drlZoneHRPAScore(rawHR, rawPA) {
+  const n = Math.max(0, Number(rawPA) || 0);
+  const hr = Math.max(0, Number(rawHR) || 0);
+  const rawRate = n > 0 ? hr / n : 0.030;
+  const adjusted = drlPitchZoneRegress(rawRate, 0.030, n);
+  return drlOpenStatScore(adjusted, 0.030, 0.025, 20);
+}
+function drlZoneHRBBEScore(rawHR, rawBBE) {
+  const n = Math.max(0, Number(rawBBE) || 0);
+  const hr = Math.max(0, Number(rawHR) || 0);
+  // 4.1% is the PA baseline translated to the BBE denominator used by this model.
+  const rawRate = n > 0 ? hr / n : 0.041;
+  const adjusted = drlPitchZoneRegress(rawRate, 0.041, n);
+  return drlOpenStatScore(adjusted, 0.041, 0.034, 18);
+}
+function drlZoneHROptimalLAScore(raw, sample) {
+  const adjusted = drlPitchZoneRegress(raw, 0.300, sample);
+  return drlOpenStatScore(adjusted, 0.300, 0.120, 18);
+}
+function drlZoneHROptimalEVScore(raw, sample) {
+  const adjusted = drlPitchZoneRegress(raw, 0.100, sample);
+  return drlOpenStatScore(adjusted, 0.100, 0.080, 18);
+}
+function drlZoneAverageLAScore(raw, sample) {
+  // Average launch angle is the only zone-level batted-ball angle supplied by
+  // the workbook. Score it as an average centered on the HR-producing window;
+  // do not represent it as the percentage of balls in that window.
   const adjusted = drlPitchZoneRegress(raw, 12.5, sample);
-  if (!Number.isFinite(adjusted)) return 50;
-  const distance = Math.abs(adjusted - 22);
-  if (distance <= 3) return 110 - (distance * 2.5);
-  if (adjusted < 19) return 102.5 - ((19 - adjusted) * 4.25);
-  return 102.5 - ((adjusted - 25) * 4.75);
+  if (!Number.isFinite(adjusted)) return null;
+  const distance = Math.abs(adjusted - 27.5);
+  if (distance <= 2.5) return 110 - (distance * 2.0);      // 25-30 degrees
+  if (distance <= 7.5) return 105 - ((distance - 2.5) * 5.0); // 20-35
+  if (distance <= 15.0) return 80 - ((distance - 7.5) * 5.0);
+  return Math.max(0, 42.5 - ((distance - 15.0) * 4.0));
+}
+function drlZoneAverageEVScore(raw, sample) {
+  // Average exit velocity is scored directly. It is not treated as a 103+ mph
+  // contact rate because that rate is not present in the workbook zone rows.
+  const adjusted = drlPitchZoneRegress(raw, 88.5, sample);
+  return drlOpenStatScore(adjusted, 88.5, 4.0, 18);
+}
+// Backward-compatible alias for any diagnostics still calling the old name.
+function drlZoneLaunchAngleScore(raw, sample) {
+  return drlZoneAverageLAScore(raw, sample);
 }
 // ===============================================================================
 
@@ -14030,15 +14070,16 @@ function buildAttackZoneDamageScore(row, side) {
   if (!row || !Object.keys(row).length) return null;
   const s = zoneExtractStats(row);
   const sample = drlZoneExposure(s);
-  // V12.5.9 HR-centered zone score. Raw zone HR totals are converted to a
-  // sample-adjusted HR rate by drlZoneHRScore before entering the composite.
-  // The exact same structure is used for hitter production and pitcher allowed.
+  // V12.5.12 pure-HR zone score using only fields the workbook actually has.
+  // ISO and generic hard-hit are excluded. LA and EV are average-quality inputs,
+  // not fabricated optimal-window percentages.
   return hybridWeightedAvg([
-    { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.35 },
-    { value: drlZoneBarrelBBEScore(s.barrel, sample), weight: 0.25 },
-    { value: drlZoneHRScore(s.hr, sample), weight: 0.20 },
-    { value: drlZoneISOScore(s.iso, sample), weight: 0.12 },
-    { value: drlZoneHardHitScore(s.hardhit, sample), weight: 0.08 }
+    { value: drlZoneBarrelPAScore(s.barrelPA, sample), weight: 0.30 },
+    { value: drlZoneBarrelBBEScore(s.barrel, sample), weight: 0.20 },
+    { value: drlZoneHRPAScore(s.hr, s.pa), weight: 0.18 },
+    { value: drlZoneHRBBEScore(s.hr, s.bbe), weight: 0.12 },
+    { value: drlZoneAverageLAScore(s.la, sample), weight: 0.10 },
+    { value: drlZoneAverageEVScore(s.ev, sample), weight: 0.10 }
   ]);
 }
 function zoneBucketLabel(bucket) {
@@ -14342,7 +14383,7 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
       pitchFrequencyScore:freqScore,
       pitchPct:pitchPct===null?null:Math.max(0,Math.min(1,Number(pitchPct))),
       expectedPitchPct:pitchPct===null?null:Math.max(0,Math.min(1,Number(pitchPct)*(Number(mixWeight)||0))),
-      edge:Number(edge),weightedEdge:Number(edge),
+      edge:Number(edge),hrSpecificEdge:Number(edge),weightedEdge:Number(edge),
       batterPitchPct:hasB?batterStats.pitchPct:null,pitcherPitches:pitcherStats.pitches,
       hitterXSLG:batterStats.xslg,pitcherXSLG:pitcherStats.xslg,
       hitterDamageZ:hitterZ,pitcherVulnerabilityZ:pitcherZ,zoneHRWeight:zoneWeight,hrZoneMultiplier,handednessFactor,baseEdge:Number(baseEdge),
@@ -14447,7 +14488,7 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
       const overallExposure = f.normalizedMix * Number(z.familyZonePct);
       const cell = {
         zone:Number(z.zone), bucket:f.bucket, label:zoneBucketLabel(f.bucket),
-        edge:Number(z.edge)||0, blastFactor:Number(z.edge)||0,
+        edge:Number(z.edge)||0, hrSpecificEdge:Number(z.hrSpecificEdge ?? z.edge)||0, blastFactor:Number(z.edge)||0,
         exposure:overallExposure,
         familyZonePct:Number(z.familyZonePct)||0,
         familyMix:f.normalizedMix,
@@ -14478,7 +14519,7 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
       pitchPct:exposureTotal,
       expectedPitchPct:exposureTotal,
       pitchFrequencyScore:attackZoneScaleScore('freq',exposureTotal||1/9),
-      edge:wavg(c=>c.edge),weightedEdge:wavg(c=>c.edge),
+      edge:wavg(c=>c.edge),hrSpecificEdge:wavg(c=>c.hrSpecificEdge ?? c.edge),weightedEdge:wavg(c=>c.edge),
       blastContribution:pieces.reduce((sum,c)=>sum+c.expectedValue,0),
       batterStats:zoneMergeDisplayStatsFromPieces(pieces.map(c=>({bucket:c.bucket,z:c.source,w:conditionalWeight(c)})),'batterStats',best.batterStats),
       pitcherStats:zoneMergeDisplayStatsFromPieces(pieces.map(c=>({bucket:c.bucket,z:c.source,w:conditionalWeight(c)})),'pitcherStats',best.pitcherStats),
@@ -14730,35 +14771,44 @@ function attackShapeVelocityBand(v) {
   return '98plus';
 }
 function attackShapeDamageScore(row) {
-  const ev = attackShapeNumber(row, ['launch_speed','EV','Exit Velocity','avg_exit_velocity']);
-  const la = attackShapeNumber(row, ['launch_angle','LA','Launch Angle']);
   const barrel = attackShapeRate(row, ['barrels_per_bbe_percent','Barrel%','Barrel %','barrel_rate']);
-
-  // HR can be supplied either as a rate or as a total. When it is a total,
-  // divide by the best available opportunity denominator before scoring it.
   const hrRaw = attackShapeNumber(row, ['hrs','HR','home_runs']);
   const hrRateField = attackShapeRate(row, ['HR rate','hr_rate','HR/PA','HR/BBE','home_run_rate']);
-  const hrDenom = attackShapeNumber(row, ['pa','PA','bbe','BBE','pitches','Pitches']);
+  const pa = attackShapeNumber(row, ['pa','PA']);
+  const bbe = attackShapeNumber(row, ['bbe','BBE','bip','BIP']);
+  const pitches = attackShapeNumber(row, ['pitches','Pitches']);
+  const hrDenom = Number.isFinite(pa) && pa > 0 ? pa : (Number.isFinite(bbe) && bbe > 0 ? bbe : pitches);
+  const avgEV = attackShapeNumber(row, ['launch_speed','Launch Speed','EV','Avg EV','average_ev','avg_exit_velocity']);
+  const avgLA = attackShapeNumber(row, ['launch_angle','Launch Angle','LA','Avg LA','avg_launch_angle']);
+
   let hrRate = Number.isFinite(hrRateField) ? hrRateField : null;
   if (!Number.isFinite(hrRate) && Number.isFinite(hrRaw) && Number.isFinite(hrDenom) && hrDenom > 0) {
     hrRate = Math.max(0, Math.min(1, hrRaw / hrDenom));
   }
 
+  const sample = Math.max(0, Number(hrDenom) || 0);
   const pieces = [];
-  // HR-centered movement/velocity damage: actual HR production and barrels lead;
-  // EV and launch angle only receive full credit inside HR-quality windows.
-  if (Number.isFinite(hrRate)) pieces.push({w:.30, v:Math.max(0,Math.min(1,hrRate/.10))});
-  if (Number.isFinite(barrel)) pieces.push({w:.30, v:Math.max(0,Math.min(1,barrel/.20))});
-  if (Number.isFinite(ev)) pieces.push({w:.22, v:Math.max(0,Math.min(1,(ev-95)/8))});
-  if (Number.isFinite(la)) {
-    const hrAngle = la >= 22 && la <= 35
-      ? 1
-      : Math.max(0, 1 - (Math.min(Math.abs(la-22), Math.abs(la-35)) / 18));
-    pieces.push({w:.18, v:hrAngle});
+  // V12.5.12: movement/velocity are HR-specific but use the workbook's actual
+  // average EV and average LA fields instead of nonexistent optimal-rate fields.
+  if (Number.isFinite(hrRate)) {
+    const adjHR = drlPitchZoneRegress(hrRate, 0.030, sample);
+    pieces.push({w:.35, v:Math.max(0,Math.min(1,adjHR/.10))});
+  }
+  if (Number.isFinite(barrel)) {
+    const adjBarrel = drlPitchZoneRegress(barrel, 0.080, sample);
+    pieces.push({w:.30, v:Math.max(0,Math.min(1,adjBarrel/.20))});
+  }
+  if (Number.isFinite(avgEV)) {
+    const evScore = drlZoneAverageEVScore(avgEV, sample);
+    pieces.push({w:.20, v:Math.max(0,Math.min(1,evScore/100))});
+  }
+  if (Number.isFinite(avgLA)) {
+    const laScore = drlZoneAverageLAScore(avgLA, sample);
+    pieces.push({w:.15, v:Math.max(0,Math.min(1,laScore/100))});
   }
   if (!pieces.length) return null;
-  const denom = pieces.reduce((s,x)=>s+x.w,0) || 1;
-  return Math.max(0,Math.min(1,pieces.reduce((s,x)=>s+x.w*x.v,0)/denom));
+  const denom = pieces.reduce((sum,x)=>sum+x.w,0) || 1;
+  return Math.max(0,Math.min(1,pieces.reduce((sum,x)=>sum+x.w*x.v,0)/denom));
 }
 function attackShapeRowWeight(row) {
   const sample = attackShapeNumber(row, ['pitches','Pitches','PA','pa','BBE','bbe','swings','Swings']);
@@ -14961,13 +15011,14 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
       const row = zoneByNumber[zone];
       conditionalFreq[zone] = row ? Math.max(0, Number(row.conditionalZonePct) || 0) : 0;
     }
-    const matchupDamageForZone = zone => {
+    const matchupHRForZone = zone => {
       const row = zoneByNumber[zone];
-      if (!row || !Number.isFinite(Number(row.edge))) return 0;
-      return Math.max(0, Number(row.edge)) / 100;
+      const hrEdge = row ? Number(row.hrSpecificEdge ?? row.edge) : NaN;
+      if (!Number.isFinite(hrEdge)) return 0;
+      return Math.max(0, hrEdge) / 100;
     };
     const zoneMatch = Array.from({length:9},(_,i)=>i+1)
-      .reduce((sum,zone)=>sum + (conditionalFreq[zone] * matchupDamageForZone(zone)), 0);
+      .reduce((sum,zone)=>sum + (conditionalFreq[zone] * matchupHRForZone(zone)), 0);
 
     const locationMistakeRate = familyDefs[bucket].mistake.reduce((sum,zone)=>sum + (conditionalFreq[zone] || 0), 0);
     const hangRate = familyDefs[bucket].hang.reduce((sum,zone)=>sum + (conditionalFreq[zone] || 0), 0);
@@ -14982,14 +15033,14 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
     // mistake+hang zones therefore receive the full 1.00 weight.
     const mistakeZoneSet = new Set(familyDefs[bucket].mistake);
     const hangZoneSet = new Set(familyDefs[bucket].hang);
-    let alignedMistakeDamage = 0;
+    let alignedMistakeDamage = 0; // retained field name; value is now HR-specific overlap
     let alignedMistakeExposure = 0;
     for (let zone=1; zone<=9; zone++) {
       const dangerWeight = (mistakeZoneSet.has(zone) ? 0.65 : 0) + (hangZoneSet.has(zone) ? 0.35 : 0);
       if (dangerWeight <= 0) continue;
       const exposure = (conditionalFreq[zone] || 0) * dangerWeight;
       alignedMistakeExposure += exposure;
-      alignedMistakeDamage += exposure * matchupDamageForZone(zone);
+      alignedMistakeDamage += exposure * matchupHRForZone(zone);
     }
     const hitterDamageInMistakeZones = alignedMistakeExposure > 0
       ? alignedMistakeDamage / alignedMistakeExposure
@@ -15027,8 +15078,8 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
   const rawPowerFactor = 0.6 + (0.008 * rawPower);
   const matchScore = 80 * pitchTypeMatchTotal;
   const shapeMatchups = attackShapeMatchups(player, mix);
-  const movementMatch = Math.max(0,Math.min(0.25,Number(shapeMatchups.movementMatch)||0));
-  const velocityMatch = Math.max(0,Math.min(0.20,Number(shapeMatchups.velocityMatch)||0));
+  const movementMatch = Math.max(0,Math.min(0.35,Number(shapeMatchups.movementMatch)||0));
+  const velocityMatch = Math.max(0,Math.min(0.40,Number(shapeMatchups.velocityMatch)||0));
 
   // Exact sequence: opportunity -> volatility -> movement -> velocity -> conversion power.
   let hrProb = matchScore;
@@ -15045,7 +15096,7 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
     velocityDamageByBand:shapeMatchups.velocityDamageByBand,
     movementDebug:shapeMatchups,shapeMistakeDebug:shapeMistakes,families:familyResults,
     scoringOrder:['BASE_ZONE_MATCH_75','MISTAKE_EXPLOITATION_25','VOLATILITY','MOVEMENT','VELOCITY','RAW_POWER'],
-    caps:{volatility:0.40,movement:0.25,velocity:0.20}
+    caps:{volatility:0.40,movement:0.35,velocity:0.40}
   };
 }
 function calculateAttackZoneProfile(player) {
