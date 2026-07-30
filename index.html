@@ -6,6 +6,7 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
 <!-- V12.5.9 HR-CENTERED ATTACK ZONE: stabilized zone HR production is now included directly in hitter/pitcher zone scoring; mistake exploitation inherits the HR-centered edge; movement and velocity damage are reweighted toward HR rate, barrels, HR-quality EV and HR-quality launch angle. All usage, coverage, regression, volatility, caps, raw power and scoring order remain unchanged. -->
+<!-- V12.5.10 USAGE/UI FIX: family-zone usage uses a reconciliation denominator so no displayed zone can exceed 100%; source disagreements are normalized without inventing coverage. Movement/velocity zero remains a valid no-match/no-data result. -->
 <!-- V12.5.8 MISTAKE EXPLOITATION: 75% base family Zone Match + 25% pitcher mistake/hang × hitter same-zone damage opportunity; existing volatility cap and movement/velocity sequence retained. -->
 <!-- V12.5.7 COMPLETE ATTACK ZONE SEQUENCE: batter-relative HR geometry; switch-hitter resolution; family-specific handedness; coverage-preserved pitcher usage; location + shape mistake model; capped volatility/movement/velocity; final order Zone -> Volatility -> Movement -> Velocity -> Raw Power. -->
 <!-- V12.5.6 ZONE MATCHUP FIX: final zoneMatch now uses full edge; volatility is usage/coverage weighted and 50/50 mistake-hang; missing hitter BZ uses baseline; family coverage is retained; pitch percent and pitch-mix parsing fixed; map and final score aligned. -->
@@ -14361,11 +14362,20 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
     ? Math.max(0, Math.min(1, rawFamilyZoneTotal / actualFamilyUsage))
     : 0;
 
+  // The family mix and zone sheets can come from different workbook exports and
+  // occasionally disagree slightly. Dividing a raw zone share by a smaller family
+  // mix produced impossible displays such as 105% or 102% USE. Reconcile with the
+  // larger denominator: this preserves genuine uncovered family mass when zone
+  // coverage is incomplete, but scales overreported zone totals back to a valid
+  // 0-100% family distribution when the source totals exceed the listed mix.
+  const familyUsageDenominator = Math.max(actualFamilyUsage, rawFamilyZoneTotal, 0);
+
   for (const z of zones) {
     z.rawPitchPct = Number.isFinite(Number(z.pitchPct)) ? Math.max(0,Number(z.pitchPct)) : null;
-    // Share inside the pitch family, but retain uncovered family mass instead of forcing total to 100%.
-    z.familyZonePct = actualFamilyUsage > 0 && z.attackScoreQualified !== false
-      ? Math.max(0,Number(z.rawPitchPct)||0) / actualFamilyUsage
+    // Share inside the pitch family. It can sum below 100% for incomplete coverage,
+    // but can never exceed 100% for a cell or for the covered family total.
+    z.familyZonePct = familyUsageDenominator > 0 && z.attackScoreQualified !== false
+      ? Math.max(0, Math.min(1, Math.max(0,Number(z.rawPitchPct)||0) / familyUsageDenominator))
       : 0;
     // Conditional share is used only to calculate the average damage among covered cells.
     z.conditionalZonePct = rawFamilyZoneTotal > 0 && z.attackScoreQualified !== false
@@ -14388,7 +14398,7 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   return {
     score,zones,topZone,bucket:bucket||'GENERIC',bucketLabel:bucketName,summary,
     weightedAvgEdge,batSide,rawFamilyZoneTotal,familyCoverage,actualFamilyUsage,
-    scoringEngine:'COMPLETE_ATTACK_ZONE_SEQUENCE_V12_5_7'
+    scoringEngine:'COMPLETE_ATTACK_ZONE_SEQUENCE_V12_5_10_USAGE_FIXED'
   };
 }
 function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
