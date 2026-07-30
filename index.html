@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
+<!-- V12.5.15 PLATOON BUCKET UPGRADE: SDBL/SDBR and SDPL/SDPR are parsed as pitch-type rows, aggregated by player with exposure weighting, selected by matchup handedness, and confidence-regressed into Hitter Power, Batted Ball, and Pitcher Vulnerability. Category weights remain 25/20/15/10/25/0/3/2. -->
 <!-- V12.5.14 FAMILY-ZONE PITCH-COUNT FIX: a Weighted All zone is valid when at least one pitch family independently qualifies in that zone. A qualified FB cell is no longer erased by unqualified BR/OS cells. Pitcher-only maps use the same rule. -->
 <!-- V12.5.13 PURE-HR AVERAGE-CONTACT FIX: primary zone scoring uses only workbook-supported inputs: Barrel/PA, Barrel/BBE, HR/PA, HR/BBE, average launch-angle quality, and average exit-velocity quality. Average LA/EV are explicitly scored as averages, not mislabeled as 22-35 degree or 103+ mph rates. Movement and velocity use the same HR-specific average-contact logic. Mistake exploitation, orientation, usage, coverage, qualification, regression flow, volatility, raw power, family logic, UI reconciliation, caps, and scoring order remain unchanged. -->
 <!-- V12.5.9 HR-CENTERED ATTACK ZONE: stabilized zone HR production is now included directly in hitter/pitcher zone scoring; mistake exploitation inherits the HR-centered edge; movement and velocity damage are reweighted toward HR rate, barrels, HR-quality EV and HR-quality launch angle. All usage, coverage, regression, volatility, caps, raw power and scoring order remain unchanged. -->
@@ -10841,6 +10842,102 @@ function fillPitcherHR9SidesFromHR(name, lhb, rhb) {
   };
 }
 
+
+// ==================== V12.5.15 PLATOON SPLIT BUCKET DATA ====================
+let drlSplitDamageMaps = { SDBL:{}, SDBR:{}, SDPL:{}, SDPR:{} };
+function drlSplitFirstNumber(row, keys) {
+  for (const key of keys) {
+    const value = safeGet(row, key);
+    if (value === undefined || value === null || String(value).trim() === '') continue;
+    const n = cleanNumber(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+function drlSplitFirstRate(row, keys) {
+  for (const key of keys) {
+    const value = safeGet(row, key);
+    if (value === undefined || value === null || value === '') continue;
+    let n = cleanNumber(value);
+    if (!Number.isFinite(n)) continue;
+    if (n > 1 && n <= 100) n /= 100;
+    return n;
+  }
+  return null;
+}
+function drlSplitPlayerName(row) {
+  return String(safeGet(row, 'player_name','Player Name','Player','Name','Batter','Hitter','Pitcher','last_name, first_name') || '').replace(/\u00a0/g,' ').trim();
+}
+function drlAggregateSplitRows(rows) {
+  const groups = {};
+  (rows || []).forEach(row => {
+    const name = drlSplitPlayerName(row);
+    if (!name) return;
+    const key = normalizeName(name);
+    if (!groups[key]) groups[key] = { name, rows:[] };
+    groups[key].rows.push(row);
+  });
+  const out = {};
+  Object.keys(groups).forEach(key => {
+    const group = groups[key];
+    let totalPitches=0, totalPA=0, totalBBE=0, totalHR=0, totalBarrels=0;
+    let weightedISO=0, isoW=0, weightedIdeal=0, idealW=0, weightedLA=0, laW=0, weightedHH=0, hhW=0, weightedBarrelPA=0, barrelPAW=0;
+    group.rows.forEach(row => {
+      const pitches = Math.max(0, drlSplitFirstNumber(row,['total_pitches','Total Pitches','pitch_count','Pitches','pitches']) || 0);
+      const pa = Math.max(0, drlSplitFirstNumber(row,['pa','PA','plate_appearances','Plate Appearances']) || 0);
+      const bbe = Math.max(0, drlSplitFirstNumber(row,['bbe','BBE','bip','BIP','batted_ball_events','Batted Ball Events']) || 0);
+      const hrs = Math.max(0, drlSplitFirstNumber(row,['hrs','HRs','hr','HR','home_runs','Home Runs']) || 0);
+      const barrels = Math.max(0, drlSplitFirstNumber(row,['barrels','Barrels','barrels_total','Barrels Total']) || 0);
+      const weight = pitches || bbe || pa || 1;
+      const iso = drlSplitFirstNumber(row,['iso','ISO']);
+      const ideal = drlSplitFirstRate(row,['rate_ideal_attack_angle','Ideal Attack Angle Rate','Ideal Attack Angle %']);
+      const la = drlSplitFirstNumber(row,['launch_angle','Launch Angle','LA']);
+      const hh = drlSplitFirstRate(row,['hardhit_percent','HardHit%','Hard Hit %']);
+      const barrelPA = drlSplitFirstRate(row,['barrels_per_pa_percent','Barrels/PA %','barrel_pa_percent']);
+      totalPitches += pitches; totalPA += pa; totalBBE += bbe; totalHR += hrs; totalBarrels += barrels;
+      if (Number.isFinite(iso)) { weightedISO += iso * (pa || weight); isoW += (pa || weight); }
+      if (Number.isFinite(ideal)) { weightedIdeal += ideal * (bbe || weight); idealW += (bbe || weight); }
+      if (Number.isFinite(la)) { weightedLA += la * (bbe || weight); laW += (bbe || weight); }
+      if (Number.isFinite(hh)) { weightedHH += hh * (bbe || weight); hhW += (bbe || weight); }
+      if (Number.isFinite(barrelPA)) { weightedBarrelPA += barrelPA * (pa || weight); barrelPAW += (pa || weight); }
+    });
+    const barrelPA = totalPA > 0 && totalBarrels > 0 ? totalBarrels / totalPA : (barrelPAW ? weightedBarrelPA / barrelPAW : null);
+    out[key] = {
+      name: group.name, pitches: totalPitches, pa: totalPA, bbe: totalBBE, hr: totalHR,
+      hrPA: totalPA > 0 ? totalHR / totalPA : null,
+      barrelPA,
+      iso: isoW ? weightedISO / isoW : null,
+      idealLA: idealW ? weightedIdeal / idealW : null,
+      launchAngle: laW ? weightedLA / laW : null,
+      hardHit: hhW ? weightedHH / hhW : null
+    };
+  });
+  return out;
+}
+function drlSplitConfidence(sample, batter=true) {
+  const n = Math.max(0, Number(sample) || 0);
+  if (batter) {
+    if (n >= 100) return 1;
+    if (n >= 50) return 0.50 + ((n-50)/50)*0.30;
+    if (n >= 20) return 0.20 + ((n-20)/30)*0.30;
+    return (n/20)*0.20;
+  }
+  if (n >= 200) return 1;
+  if (n >= 100) return 0.55 + ((n-100)/100)*0.30;
+  if (n >= 40) return 0.20 + ((n-40)/60)*0.35;
+  return (n/40)*0.20;
+}
+function drlBlendSplit(splitValue, overallValue, sample, batter=true) {
+  const s = Number(splitValue), o = Number(overallValue);
+  if (!Number.isFinite(s)) return Number.isFinite(o) ? o : null;
+  if (!Number.isFinite(o)) return s;
+  const c = drlSplitConfidence(sample, batter);
+  return (s*c) + (o*(1-c));
+}
+function drlGetSplitRow(sheetKey, name) {
+  return (drlSplitDamageMaps[sheetKey] || {})[normalizeName(name)] || null;
+}
+
 async function handleFile(e) {
 const files = e.target.files;
 if(!files || files.length === 0) return;
@@ -10862,7 +10959,7 @@ window.drlAttackShapeCache = null;
 let hrRaw = [], vpRaw = [], plRaw = [], lwRaw = [], day14Raw = [], day30Raw = [], weatherRaw = [], bullpenRaw = [], top5Raw = [], idRaw = [], oddsRaw = [], pOddsRaw = [];
 let pitchTypeRaw = [], stuffRaw = [], pitchEVRaw = [], pitchWinRaw = [], pitchBagRaw = [], pitchBagBRaw = [], vsFBRRaw = [], vsFBLRaw = [], vsCHRRaw = [], vsCHLRaw = [], vsCVRRaw = [], vsCVLRaw = [], vsSLRRaw = [], vsSLLRaw = [], vsCURRaw = [], vsCULRaw = [];
 let batTrackingSheetNames = {}; 
-teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; day14Map = {}; day30Map = {}; bullpenData = {}; bullpenGameByTeam = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = []; pitcherTeamMap = {}; batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} }; zoneBMap = {}; zonePMap = {};
+drlSplitDamageMaps = { SDBL:{}, SDBR:{}, SDPL:{}, SDPR:{} }; teamToGameIdMap = {}; teamHomeParkMap = {}; gameMatchups = []; weatherSettings = {}; vsPitcherData = {}; bvpRawRows = []; plDataMap = {}; lastWeekMap = {}; day14Map = {}; day30Map = {}; bullpenData = {}; bullpenGameByTeam = {}; parkFactorMap = {}; parkFactorLMap = {}; parkFactorRMap = {}; playerIdMap = {}; pitchTypeMap = {}; stuffMap = {}; pitchEVMap = {}; pitchWinMap = {}; pitchBagMap = {}; pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = []; pitcherTeamMap = {}; batterPitchMaps = { FB:{R:{},L:{}}, CH:{R:{},L:{}}, CV:{R:{},L:{}}, SL:{R:{},L:{}}, CU:{R:{},L:{}} }; zoneBMap = {}; zonePMap = {};
 for (let __drlSheetIndex = 0; __drlSheetIndex < workbook.SheetNames.length; __drlSheetIndex++) {
 const sheetName = workbook.SheetNames[__drlSheetIndex];
 let nameClean = sheetName.toUpperCase().trim();
@@ -10886,6 +10983,10 @@ if (/^[BP]Z[1-9](FB|BR|BB|BREAKING|BK|OS|OFF|OFFSPEED)?$/.test(nameClean)) {
 if (['BULLPEN','BULLPENEV','BULLPENL7','BULLPENEVL7'].includes(nameClean)) statSheetMaps[nameClean] = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm']));
 if (nameClean === 'PARKFACTORL') parkFactorLMap = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm','Park Team','Home Team']));
 if (nameClean === 'PARKFACTORR') parkFactorRMap = mapRowsByTeam(sheetToJsonSmart(workbook, sheetName, ['Team','TEAM','Tm','Park Team','Home Team']));
+if (['SDBL','SDBR','SDPL','SDPR'].includes(nameClean)) {
+  const splitRows = sheetToJsonSmart(workbook, sheetName, ['player_name','Player Name','Player','Name','Batter','Hitter','Pitcher']);
+  drlSplitDamageMaps[nameClean] = drlAggregateSplitRows(splitRows);
+}
 if (nameClean === 'ODDS') oddsRaw = sheetToJsonSmart(workbook, sheetName, ['Player','Name','Batter','Hitter']);
 if (nameClean === 'PODDS') pOddsRaw = sheetToJsonSmart(workbook, sheetName, ['Pitcher','Player','Name']);
 if (nameClean === 'HR' || nameClean === 'HOMERUN') hrRaw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -15695,6 +15796,10 @@ function hybridRaw(p) {
   const pitcherHandRaw = String(safeGet(p, 'Opp Pitcher Throws', 'Opp Throws', 'Pitcher Throws', 'Pitcher Hand', 'P Throws', 'Throws', 'L/R', 'LR') || '').trim().toUpperCase();
   const vsLefty = pitcherHandRaw.startsWith('L');
   const matchupHitterSide = getWeatherHandForPlayer(p, pitcherHandRaw);
+  const hitterSplitSheet = vsLefty ? 'SDBL' : 'SDBR';
+  const pitcherSplitSheet = matchupHitterSide === 'L' ? 'SDPL' : 'SDPR';
+  const hitterDamageSplit = drlGetSplitRow(hitterSplitSheet, p.Name);
+  const pitcherDamageSplit = drlGetSplitRow(pitcherSplitSheet, pitcherName);
   const barrellRow = lookupStat('BARRELL', p.Name);
   const ssRow = lookupStat('SS', p.Name);
   const scastRow = lookupStat(vsLefty ? 'SCASTL' : 'SCASTR', p.Name);
@@ -15769,7 +15874,30 @@ function hybridRaw(p) {
   p.attackZoneProfile = attackZoneProfile;
   p.calculatedAttackZoneScore = attackZoneProfile && attackZoneProfile.score !== null ? attackZoneProfile.score : null;
   p.attackZoneSummary = attackZoneProfile && attackZoneProfile.summary ? attackZoneProfile.summary : '';
+  const overallBarrelPA = firstRate(safeGet(barrellRow, 'Brls/PA %', 'Barrels/PA %'), safeGet(ssRow, 'Brls/PA %'), safeGet(scastRow, 'Brls/PA %'));
+  const overallISO = firstNumber(safeGet(isoHandRow, 'ISO'), safeGet(p, 'ISO', 'Iso'));
+  const overallHRPA = stabilizedHRPAInfo.stabilized;
+  const overallIdealLA = firstRate(safeGet(p, 'Ideal Attack Angle Rate', 'Ideal Attack Angle %'), safeGet(ssRow, 'Ideal Attack Angle Rate', 'Ideal Attack Angle %'));
+  const overallLA = wxLaunchAngle;
+  const overallPitcherBarrelPA = firstRate(safeGet(pitcherBBSplitRow, 'Brls/PA %', 'Barrels/PA %'), safeGet(pitcherSplitRow, 'Brls/PA %', 'Barrels/PA %'));
+  const overallPitcherHRPA = firstNumber(safeGet(pitcherSplitRow, 'HR/PA', 'HR per PA'), safeGet(p, 'Pitcher HR/PA Allowed'));
+  const overallPitcherIdealLA = firstRate(safeGet(pitcherBBSplitRow, 'Ideal Attack Angle Rate', 'Ideal Attack Angle %'), safeGet(pitcherSplitRow, 'Ideal Attack Angle Rate', 'Ideal Attack Angle %'));
+  const hitterSplitPA = hitterDamageSplit ? hitterDamageSplit.pa : 0;
+  const pitcherSplitBF = pitcherDamageSplit ? pitcherDamageSplit.pa : 0;
   return {
+    splitHitterSheet: hitterSplitSheet,
+    splitPitcherSheet: pitcherSplitSheet,
+    splitHitterPA: hitterSplitPA,
+    splitPitcherBF: pitcherSplitBF,
+    platoonBarrelPA: drlBlendSplit(hitterDamageSplit && hitterDamageSplit.barrelPA, overallBarrelPA, hitterSplitPA, true),
+    platoonISO: drlBlendSplit(hitterDamageSplit && hitterDamageSplit.iso, overallISO, hitterSplitPA, true),
+    platoonHRPA: drlBlendSplit(hitterDamageSplit && hitterDamageSplit.hrPA, overallHRPA, hitterSplitPA, true),
+    platoonIdealLA: drlBlendSplit(hitterDamageSplit && hitterDamageSplit.idealLA, overallIdealLA, hitterSplitPA, true),
+    platoonLaunchAngle: drlBlendSplit(hitterDamageSplit && hitterDamageSplit.launchAngle, overallLA, hitterSplitPA, true),
+    platoonPitcherHRPA: drlBlendSplit(pitcherDamageSplit && pitcherDamageSplit.hrPA, overallPitcherHRPA, pitcherSplitBF, false),
+    platoonPitcherBarrelPA: drlBlendSplit(pitcherDamageSplit && pitcherDamageSplit.barrelPA, overallPitcherBarrelPA, pitcherSplitBF, false),
+    platoonPitcherIdealLA: drlBlendSplit(pitcherDamageSplit && pitcherDamageSplit.idealLA, null, pitcherSplitBF, false),
+    platoonPitcherHardHit: drlBlendSplit(pitcherDamageSplit && pitcherDamageSplit.hardHit, wxPitcherHardHit, pitcherSplitBF, false),
     barrel: firstRate(safeGet(barrellRow, 'Barrel %', 'Barrel%', 'Brls/BBE %'), safeGet(ssRow, 'Brls/BBE %'), safeGet(scastRow, 'Brls/BBE %'), safeGet(p, 'Barrel %', 'Barrel%')),
     brlsPA: firstRate(safeGet(barrellRow, 'Brls/PA %', 'Barrels/PA %'), safeGet(ssRow, 'Brls/PA %'), safeGet(scastRow, 'Brls/PA %')),
     iso: firstNumber(safeGet(isoHandRow, 'ISO'), safeGet(p, 'ISO', 'Iso')),
@@ -16541,35 +16669,64 @@ function drlTargetWeatherMultiplier(raw) {
   return drlTargetClamp(Number(raw && raw.weatherImpactMultiplier) || 1.0, 0.96, 1.04);
 }
 
+
+function drlPowerBarrelPAScore(raw, pa) {
+  if (raw === null || raw === undefined || !Number.isFinite(Number(raw))) return 50;
+  const adjusted = drlRegressByScale(raw, 0.065, pa, 20, 100, 0.20);
+  return drlOpenStatScore(adjusted, 0.065, 0.025, 18);
+}
+function drlPowerHRPAScore(raw, pa) {
+  if (raw === null || raw === undefined || !Number.isFinite(Number(raw))) return 50;
+  const adjusted = drlRegressByScale(raw, 0.032, pa, 20, 100, 0.20);
+  return drlOpenStatScore(adjusted, 0.032, 0.018, 18);
+}
+function drlIdealAttackAngleScore(raw, pa) {
+  if (raw === null || raw === undefined || !Number.isFinite(Number(raw))) return 50;
+  const adjusted = drlRegressByScale(raw, 0.235, pa, 20, 100, 0.20);
+  return drlOpenStatScore(adjusted, 0.235, 0.085, 18);
+}
+function drlPitcherHRPAScore(raw, bf) {
+  if (raw === null || raw === undefined || !Number.isFinite(Number(raw))) return 50;
+  const adjusted = drlRegressByScale(raw, 0.032, bf, 40, 200, 0.20);
+  return drlOpenStatScore(adjusted, 0.032, 0.018, 18);
+}
+function drlPitcherBarrelPAScore(raw, bf) {
+  if (raw === null || raw === undefined || !Number.isFinite(Number(raw))) return 50;
+  const adjusted = drlRegressByScale(raw, 0.065, bf, 40, 200, 0.20);
+  return drlOpenStatScore(adjusted, 0.065, 0.025, 18);
+}
+function drlPitcherIdealLAScore(raw, bf) {
+  if (raw === null || raw === undefined || !Number.isFinite(Number(raw))) return 50;
+  const adjusted = drlRegressByScale(raw, 0.235, bf, 40, 200, 0.20);
+  return drlOpenStatScore(adjusted, 0.235, 0.085, 18);
+}
+
 function scoreHybridPlayer(p, ranges) {
   const r = p.hybridRaw;
   const pitcherSample = drlPitcherBucketQualification(p, r, p.attackZoneProfile);
   const powerPA = Math.max(0, Number(r.pa) || 0);
-  const powerBarrelSeason = drlPowerBarrelScore(r.barrel, powerPA);
   const powerEV90Season = drlPowerEV90Score(r.ev90, powerPA);
-  const powerAvgEVSeason = drlPowerAvgEVScore(r.avgEV, powerPA);
-  const powerISOSeason = drlPowerISOScore(r.iso, powerPA);
-  const powerHardHitSeason = drlPowerHardHitScore(r.hardHit, powerPA);
+  const powerISOSeason = drlPowerISOScore(r.platoonISO, powerPA);
   const power = hybridWeightedAvg([
-    // Backtest-led hitter foundation. Recent quality remains built into the 7/14/30/season blends.
+    // V12.5.15 pure-HR power: platoon Barrels/PA, EV90, xHR, platoon ISO and platoon HR/PA.
+    { value: drlPowerBarrelPAScore(r.platoonBarrelPA, r.splitHitterPA || powerPA), weight: 0.30 },
     { value: drlMultiWindowBlendOpenEnded(powerEV90Season, r.d30EV90, r.d14EV90, r.lwEV90, drlPowerEV90Score, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.25 },
-    { value: drlMultiWindowBlendOpenEnded(powerBarrelSeason, r.d30Barrel, r.d14Barrel, r.lwBarrel, drlPowerBarrelScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.22 },
-    { value: drlMultiWindowBlendOpenEnded(powerAvgEVSeason, r.d30EV, r.d14EV, r.lwEV, drlPowerAvgEVScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.18 },
-    { value: drlPowerXHRScore(r.xHR, powerPA), weight: 0.15 },
-    { value: drlMultiWindowBlendOpenEnded(powerISOSeason, r.d30ISO, r.d14ISO, r.lwISO, drlPowerISOScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.12 },
-    { value: drlMultiWindowBlendOpenEnded(powerHardHitSeason, r.d30HardHit, r.d14HardHit, r.lwHardHit, drlPowerHardHitScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.08 }
+    { value: drlPowerXHRScore(r.xHR, powerPA), weight: 0.20 },
+    { value: drlMultiWindowBlendOpenEnded(powerISOSeason, r.d30ISO, r.d14ISO, r.lwISO, drlPowerISOScore, powerPA, r.recentPA30, r.recentPA14, r.recentPA7), weight: 0.15 },
+    { value: drlPowerHRPAScore(r.platoonHRPA, r.splitHitterPA || powerPA), weight: 0.10 }
   ]);
   // v61.0 open-ended Pitcher Vulnerability. No 100 ceiling and no slate-only
   // normalization. Each metric uses its own tuned scale and pitcher exposure.
   const pitcherIP = Math.max(0, Number(r.pitcherIP) || 0);
   const pitcherBF = Math.max(0, Number(r.pitcherBF) || 0);
+  const splitPitcherExposure = r.splitPitcherBF || pitcherBF;
   const pitcherMetricBase = hybridWeightedAvg([
-    // Small supporting category: actual HR and airborne damage lead.
-    { value: hybridScoreMetric(r,ranges,'pitcherHRFB'), weight: 0.30 },
-    { value: drlPitcherHR9Score(r.pitcherHR9, pitcherIP), weight: 0.25 },
-    { value: drlPitcherBarrelAllowedScore(r.pitcherBarrel, pitcherBF, pitcherIP), weight: 0.20 },
-    { value: hybridScoreMetric(r,ranges,'pitcherFB'), weight: 0.15 },
-    { value: drlPitcher95AllowedScore(r.pitcher95, pitcherBF, pitcherIP), weight: 0.10 }
+    // V12.5.15 handedness-specific HR vulnerability.
+    { value: drlPitcherHRPAScore(r.platoonPitcherHRPA, splitPitcherExposure), weight: 0.30 },
+    { value: drlPitcherBarrelPAScore(r.platoonPitcherBarrelPA, splitPitcherExposure), weight: 0.25 },
+    { value: drlPitcherHR9Score(r.pitcherHR9, pitcherIP), weight: 0.20 },
+    { value: drlPitcherIdealLAScore(r.platoonPitcherIdealLA, splitPitcherExposure), weight: 0.15 },
+    { value: drlPitcher95AllowedScore(r.platoonPitcherHardHit, splitPitcherExposure, pitcherIP), weight: 0.10 }
   ]);
   const rawPitchLabScore = p.pitchLabProfile ? cleanNumber(p.pitchLabProfile.score) : null;
   const pitchLevelBeforeSampleGate = hybridWeightedAvg([
@@ -16633,12 +16790,12 @@ function scoreHybridPlayer(p, ranges) {
   const recent = null;
   const battedBallPA = Math.max(0, Number(r.pa) || 0);
   const battedBall = hybridWeightedAvg([
-    // Backtest-led shape: conversion and pulled-air quality lead; raw FB% stays small.
-    { value: drlBattedBallHRFBScore(r.hrFb, battedBallPA), weight: 0.35 },
+    // V12.5.15 HR shape: conversion, pulled air, ideal attack angle and launch-angle quality.
+    { value: drlBattedBallHRFBScore(r.hrFb, battedBallPA), weight: 0.40 },
     { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.30 },
-    { value: hybridScoreMetric(r,ranges,'sweetSpot'), weight: 0.15 },
-    { value: drlBattedBallPullScore(r.pull, battedBallPA), weight: 0.10 },
-    { value: drlBattedBallFlyBallScore(r.flyBall, battedBallPA), weight: 0.10 }
+    { value: drlIdealAttackAngleScore(r.platoonIdealLA, r.splitHitterPA || battedBallPA), weight: 0.15 },
+    { value: drlBattedBallLaunchAngleScore(r.platoonLaunchAngle, r.splitHitterPA || battedBallPA), weight: 0.10 },
+    { value: drlBattedBallFlyBallScore(r.flyBall, battedBallPA), weight: 0.05 }
   ]);
   let bvp = null;
   // Adaptive BvP: no influence at 5 PA or fewer, then smoothly earns confidence through 35 PA.
@@ -16727,9 +16884,9 @@ function scoreHybridPlayer(p, ranges) {
   p.mliCoverage = mliWeightUsed;
   p.calculatedPAReliability = paReliability;
   const dataConfidence = hybridCoverage(r, [
-    { weight: 0.32, keys: ['barrel','avgEV','ev90','hardHit','xHR','xslg','xwoba','lwBarrel','lwEV','lwHardHit','lwXSLG','lwXWOBA'] },
-    { weight: 0.24, keys: ['pitcherHR9','pitcherBarrel','pitcherHardHit','pitcherFB','pitcherHRFB','pitcherEV'] },
-    { weight: 0.20, keys: ['hrFb','launchAngle','flyBall','pull'] },
+    { weight: 0.32, keys: ['platoonBarrelPA','ev90','xHR','platoonISO','platoonHRPA','lwEV90','lwISO'] },
+    { weight: 0.24, keys: ['platoonPitcherHRPA','platoonPitcherBarrelPA','pitcherHR9','platoonPitcherIdealLA','platoonPitcherHardHit'] },
+    { weight: 0.20, keys: ['hrFb','pullAir','platoonIdealLA','platoonLaunchAngle','flyBall'] },
     { weight: 0.12, keys: ['parkFactor','pullFence','weatherScore','teamTotal'] },
     { weight: 0.08, keys: ['attackZone','attackZoneTopEdge','attackZoneTopPitchPct'] },
     { weight: 0.04, keys: ['pa','paPg','battingOrder'] },
