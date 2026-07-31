@@ -2,7 +2,8 @@
 
 <html lang="en">
 <head>
-<!-- V12.5.19 ATTACK-ZONE STRUCTURAL REFACTOR: batter-relative HR geometry updated; BR/OS high-corner mistake geometry overrides added; family mistake/hang zones realigned; BR middle-third partial mistake weighting added; negative zone edges now retain a 25% penalty; logical inside orientation is fixed at zones 1/4/7 after handedness conversion. -->
+<!-- V12.5.19 ATTACK-ZONE STRUCTURAL REFACTOR: batter-relative HR geometry updated; BR/OS high-corner mistake geometry overrides added; family mistake/hang zones realigned; BR middle-third partial mistake weighting added; negative zone edges now retain a 25% penalty; logical orientation is corrected so zones 1/4/7 are away and zones 3/6/9 are inside after handedness conversion. -->
+<!-- V12.5.24 ZONE ORIENTATION FIX: for a right-handed hitter, Zone 1 is high-away and Zone 3 is high-inside; left-handed hitters remain horizontally mirrored through 1↔3, 4↔6, 7↔9. HR geometry and inside/pull boosts now follow zones 3/6/9. -->
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
@@ -14275,11 +14276,11 @@ function attackZoneLeagueDanger(bucket, zone) { return 50; }
 const ATTACK_ZONE_MIN_PITCHES_PER_ZONE = 15;
 const ATTACK_ZONE_MIN_CELL_USAGE = 0.02;
 // Batter-relative HR geometry. These keys are logical zones after LHH/RHH conversion.
-// Logical zones 1/4/7 are always inside; 3/6/9 are always away.
+// Logical zones 1/4/7 are always away; 3/6/9 are always inside.
 const ATTACK_ZONE_LOGICAL_HR_MULTIPLIER = Object.freeze({
-  1:0.70, 2:1.20, 3:0.45,
-  4:1.10, 5:1.40, 6:0.95,
-  7:0.65, 8:1.00, 9:0.35
+  1:0.45, 2:1.20, 3:0.70,
+  4:0.95, 5:1.40, 6:1.10,
+  7:0.35, 8:1.00, 9:0.65
 });
 const ATTACK_ZONE_LOGICAL_HR_WEIGHT = ATTACK_ZONE_LOGICAL_HR_MULTIPLIER;
 
@@ -14354,13 +14355,13 @@ function attackZonePositiveFactor(z) {
   const n=Number(z); return Math.max(0.72, Math.min(1.28, 1 + ((Number.isFinite(n)?n:50)-50)/180));
 }
 // Controlled handedness context layered onto the exact pitch-zone matchup.
-// The physical-to-logical conversion has already occurred, so zones 1/4/7 are
+// The physical-to-logical conversion has already occurred, so zones 3/6/9 are
 // always batter-inside/pull-side for both RHB and LHB. Never flip them again here.
 function attackZoneHandednessFactor(logicalZone, batSide, bucket='GENERIC') {
   const z=Number(logicalZone);
   const family=String(bucket||'GENERIC').toUpperCase();
   const pullBoost = family==='FB' ? 1.08 : family==='BR' ? 1.05 : family==='OS' ? 1.03 : 1.05;
-  if ([1,4,7].includes(z)) return pullBoost;
+  if ([3,6,9].includes(z)) return pullBoost;
   if ([2,5,8].includes(z)) return 1.04;
   return 1.00;
 }
