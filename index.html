@@ -11,6 +11,7 @@
 <!-- V12.5.13 PURE-HR AVERAGE-CONTACT FIX: primary zone scoring uses only workbook-supported inputs: Barrel/PA, Barrel/BBE, HR/PA, HR/BBE, average launch-angle quality, and average exit-velocity quality. Average LA/EV are explicitly scored as averages, not mislabeled as 22-35 degree or 103+ mph rates. Movement and velocity use the same HR-specific average-contact logic. Mistake exploitation, orientation, usage, coverage, qualification, regression flow, volatility, raw power, family logic, UI reconciliation, caps, and scoring order remain unchanged. -->
 <!-- V12.5.9 HR-CENTERED ATTACK ZONE: stabilized zone HR production is now included directly in hitter/pitcher zone scoring; mistake exploitation inherits the HR-centered edge; movement and velocity damage are reweighted toward HR rate, barrels, HR-quality EV and HR-quality launch angle. All usage, coverage, regression, volatility, caps, raw power and scoring order remain unchanged. -->
 <!-- V12.5.10 USAGE/UI FIX: family-zone usage uses a reconciliation denominator so no displayed zone can exceed 100%; source disagreements are normalized without inventing coverage. Movement/velocity zero remains a valid no-match/no-data result. -->
+<!-- V12.5.23 SCORING RESTORATION: Attack Zone volatility/movement/velocity now use one additive averaged boost instead of compounding; Attack Zone remains uncapped until the final BBI clamp; Pitcher Vulnerability restores a fixed 6-inning starter / 3-inning bullpen blend using Bullpen and BullpenEV; Batted Ball weights are HR/FB 15%, Pulled Air 45%, Ideal LA 25%, Average LA Quality 10%, FB% 5%. -->
 <!-- V12.5.22 MISTAKE EXPLOITATION REWEIGHT: 50% base family Zone Match + 50% pitcher mistake/hang × hitter same-zone damage opportunity; all other Attack Zone logic, volatility caps, movement/velocity sequence, geometry, and handedness remain unchanged. -->
 <!-- V12.5.8 MISTAKE EXPLOITATION: 75% base family Zone Match + 25% pitcher mistake/hang × hitter same-zone damage opportunity; existing volatility cap and movement/velocity sequence retained. -->
 <!-- V12.5.7 COMPLETE ATTACK ZONE SEQUENCE: batter-relative HR geometry; switch-hitter resolution; family-specific handedness; coverage-preserved pitcher usage; location + shape mistake model; capped volatility/movement/velocity; final order Zone -> Volatility -> Movement -> Velocity -> Raw Power. -->
@@ -15247,21 +15248,19 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
   const movementMatch = Math.max(0,Math.min(0.35,Number(shapeMatchups.movementMatch)||0));
   const velocityMatch = Math.max(0,Math.min(0.40,Number(shapeMatchups.velocityMatch)||0));
 
-  // Exact sequence: opportunity -> volatility -> movement -> velocity -> conversion power.
-  let hrProb = matchScore;
-  const volatilityFactor = 1 + volatility;
-  hrProb *= volatilityFactor;
-  hrProb *= (1 + movementMatch);
-  hrProb *= (1 + velocityMatch);
-  hrProb *= rawPowerFactor;
+  // V12.5.23: combine volatility, movement and velocity into one averaged additive boost.
+  // This prevents sequential multiplier compounding while preserving top-end separation.
+  const additiveShapeBoost = (volatility + movementMatch + velocityMatch) / 3;
+  const volatilityFactor = 1 + additiveShapeBoost;
+  const hrProb = matchScore * volatilityFactor * rawPowerFactor;
 
   return {
-    hrProb,score:Math.max(0,Math.min(100,hrProb)),rawPower,rawPowerFactor,
-    volatility,volatilityFactor,pitchTypeMatchTotal,matchScore,movementMatch,velocityMatch,
+    hrProb,score:Math.max(0,hrProb),rawPower,rawPowerFactor,
+    volatility,volatilityFactor,additiveShapeBoost,pitchTypeMatchTotal,matchScore,movementMatch,velocityMatch,
     movementDamageByCluster:shapeMatchups.movementDamageByCluster,
     velocityDamageByBand:shapeMatchups.velocityDamageByBand,
     movementDebug:shapeMatchups,shapeMistakeDebug:shapeMistakes,families:familyResults,
-    scoringOrder:['BASE_ZONE_MATCH_75','MISTAKE_EXPLOITATION_25','VOLATILITY','MOVEMENT','VELOCITY','RAW_POWER'],
+    scoringOrder:['BASE_ZONE_MATCH_50','MISTAKE_EXPLOITATION_50','AVERAGED_VOL_MOV_VEL_BOOST','RAW_POWER'],
     caps:{volatility:0.40,movement:0.35,velocity:0.40}
   };
 }
@@ -16794,21 +16793,27 @@ function scoreHybridPlayer(p, ranges) {
     { value: hitterPitcherContactMatch, weight: 0.30 },
     { value: hitterPitcherAirMatch, weight: 0.20 }
   ]);
-  // Compare sheet BP Game override:
-  // N/blank = preserve the existing starter-only Pitcher Vulnerability exactly.
-  // Y = opener is fixed at 2 innings and bullpen owns the remaining 7 innings.
+  // V12.5.23 fixed game-share blend: six innings from the starter, three from the bullpen.
+  // Bullpen inputs come from the existing Bullpen and BullpenEV workbook sheets.
   const bullpenVulnerability = hybridAvg([
     hybridScoreMetric(r,ranges,'bullpenHR9'),
     hybridScoreMetric(r,ranges,'bullpenFIP'),
     hybridScoreMetric(r,ranges,'bullpenBarrel'),
     hybridScoreMetric(r,ranges,'bullpenHardHit')
   ]);
-  // Bullpen is display-only in V12.4.8 and contributes 0% to hitter BBI.
-  const pitcherBeforeSampleGate = starterPitcherVulnerability;
+  const starterShare = 6 / 9;
+  const bullpenShare = 3 / 9;
+  const hasStarterVulnerability = Number.isFinite(Number(starterPitcherVulnerability));
+  const hasBullpenVulnerability = Number.isFinite(Number(bullpenVulnerability));
+  const pitcherBeforeSampleGate = hasStarterVulnerability && hasBullpenVulnerability
+    ? (Number(starterPitcherVulnerability) * starterShare) + (Number(bullpenVulnerability) * bullpenShare)
+    : (hasStarterVulnerability ? Number(starterPitcherVulnerability) : (hasBullpenVulnerability ? Number(bullpenVulnerability) : null));
   const pitcher = pitcherSample.pitcherQualified ? pitcherBeforeSampleGate : null;
-  p.isBullpenGame = !!r.isBullpenGame;
-  p.projectedStarterInnings = r.isBullpenGame ? 2 : null;
-  p.projectedBullpenInnings = r.isBullpenGame ? 7 : null;
+  p.isBullpenGame = true;
+  p.projectedStarterInnings = 6;
+  p.projectedBullpenInnings = 3;
+  p.pitcherStarterShare = starterShare;
+  p.pitcherBullpenShare = bullpenShare;
   p.starterPitcherVulnerability = starterPitcherVulnerability;
   p.bullpenPitcherVulnerability = bullpenVulnerability;
   // Pitcher Vulnerability now includes the two hitter/pitcher matchup intersections.
@@ -16816,10 +16821,10 @@ function scoreHybridPlayer(p, ranges) {
   const recent = null;
   const battedBallPA = Math.max(0, Number(r.pa) || 0);
   const battedBall = hybridWeightedAvg([
-    // V12.5.15 HR shape: conversion, pulled air, ideal attack angle and launch-angle quality.
-    { value: drlBattedBallHRFBScore(r.hrFb, battedBallPA), weight: 0.40 },
-    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.30 },
-    { value: drlIdealAttackAngleScore(r.platoonIdealLA, r.splitHitterPA || battedBallPA), weight: 0.15 },
+    // V12.5.23 HR shape rebalance: stable pulled-air and ideal-angle creation lead the bucket.
+    { value: drlBattedBallHRFBScore(r.hrFb, battedBallPA), weight: 0.15 },
+    { value: hybridScoreMetric(r,ranges,'pullAir'), weight: 0.45 },
+    { value: drlIdealAttackAngleScore(r.platoonIdealLA, r.splitHitterPA || battedBallPA), weight: 0.25 },
     { value: drlBattedBallLaunchAngleScore(r.platoonLaunchAngle, r.splitHitterPA || battedBallPA), weight: 0.10 },
     { value: drlBattedBallFlyBallScore(r.flyBall, battedBallPA), weight: 0.05 }
   ]);
@@ -17043,9 +17048,9 @@ function scoreHybridPlayer(p, ranges) {
     weatherMultiplier: p.calculatedWeatherMultiplier,
     combinedMultiplier: p.calculatedTargetedMultiplier
   };
-  // v61.4 final cleanup: every official bucket is now open-ended internally.
-  // Keep only a zero floor; visual meters/colors may still clamp independently.
-  return Math.max(0, score);
+  // V12.5.23: official buckets remain open-ended internally, including Attack Zone.
+  // Apply the model's only 0-100 scoring clamp here, after weighting, environment and BvP bonus.
+  return Math.max(0, Math.min(100, score));
 }
 function calculateMicroSynergyBonuses(player, raw, cats) {
   try {
