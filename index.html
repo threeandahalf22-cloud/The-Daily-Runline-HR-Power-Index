@@ -7,7 +7,8 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
-<!-- V12.5.15 PLATOON BUCKET UPGRADE: SDBL/SDBR and SDPL/SDPR are parsed as pitch-type rows, aggregated by player with exposure weighting, selected by matchup handedness, and confidence-regressed into Hitter Power, Batted Ball, and Pitcher Vulnerability. Category weights remain 25/20/15/10/25/0/3/2. -->
+<!-- V12.5.25 BUCKET REWEIGHT: Hitter Power 25%, Opportunity 10%, Batted Ball 20%, Pitcher Vulnerability 13%, Attack Zone 25%, Pitch Lab 0%, Weather 5%, Park 2%, BvP 0%. Total active weight = 100%. -->
+<!-- V12.5.15 PLATOON BUCKET UPGRADE: SDBL/SDBR and SDPL/SDPR are parsed as pitch-type rows, aggregated by player with exposure weighting, selected by matchup handedness, and confidence-regressed into Hitter Power, Batted Ball, and Pitcher Vulnerability. -->
 <!-- V12.5.14 FAMILY-ZONE PITCH-COUNT FIX: a Weighted All zone is valid when at least one pitch family independently qualifies in that zone. A qualified FB cell is no longer erased by unqualified BR/OS cells. Pitcher-only maps use the same rule. -->
 <!-- V12.5.13 PURE-HR AVERAGE-CONTACT FIX: primary zone scoring uses only workbook-supported inputs: Barrel/PA, Barrel/BBE, HR/PA, HR/BBE, average launch-angle quality, and average exit-velocity quality. Average LA/EV are explicitly scored as averages, not mislabeled as 22-35 degree or 103+ mph rates. Movement and velocity use the same HR-specific average-contact logic. Mistake exploitation, orientation, usage, coverage, qualification, regression flow, volatility, raw power, family logic, UI reconciliation, caps, and scoring order remain unchanged. -->
 <!-- V12.5.9 HR-CENTERED ATTACK ZONE: stabilized zone HR production is now included directly in hitter/pitcher zone scoring; mistake exploitation inherits the HR-centered edge; movement and velocity damage are reweighted toward HR rate, barrels, HR-quality EV and HR-quality launch angle. All usage, coverage, regression, volatility, caps, raw power and scoring order remain unchanged. -->
@@ -13741,13 +13742,13 @@ function parseUsageValue(raw) { let v = cleanNumber(raw); if (!v) return 0; if (
 const DRL_SYNERGY_CAP = 7.5; // Phase 7 canonical applied synergy ceiling (+7.50 BBI)
 const HYBRID_CATEGORY_WEIGHTS = {
   power: 0.25,         // Hitter Power + Recent
-  opportunity: 0.20,   // Opportunity / Lineup
-  battedBall: 0.15,
+  opportunity: 0.10,   // Opportunity / Lineup
+  battedBall: 0.20,
   bvp: 0.00,           // Removed from the active 100% model
-  pitcher: 0.10,       // Pitcher Vulnerability
+  pitcher: 0.13,       // Pitcher Vulnerability
   attackZone: 0.25,    // Primary daily pitcher-hitter zone and pitch-type matchup
   pitchLevel: 0.00,    // Pitch Lab remains visible but stays at 0%
-  weather: 0.03,
+  weather: 0.05,
   park: 0.02
 };
 const DRL_PREVIOUS_CATEGORY_WEIGHTS = {
@@ -20757,11 +20758,11 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
 (function(){
   const WEIGHTS_40 = [
     { key:'power', label:'💪 Power', weight:25, color:'#a855f7' },
-    { key:'opportunity', label:'📋 Opportunity', weight:20, color:'#10b981' },
-    { key:'batted', label:'🚀 Batted Ball', weight:15, color:'#ef4444' },
-    { key:'pitcher', label:'⚾ Pitcher Vuln', weight:10, color:'#fb7185' },
+    { key:'opportunity', label:'📋 Opportunity', weight:10, color:'#10b981' },
+    { key:'batted', label:'🚀 Batted Ball', weight:20, color:'#ef4444' },
+    { key:'pitcher', label:'⚾ Pitcher Vuln', weight:13, color:'#fb7185' },
     { key:'attackZone', label:'🎯 Attack Zone', weight:25, color:'#f97316' },
-    { key:'weather', label:'🌦 Weather', weight:3, color:'#0ea5e9' },
+    { key:'weather', label:'🌦 Weather', weight:5, color:'#0ea5e9' },
     { key:'park', label:'🏟 Park', weight:2, color:'#94a3b8' },
     { key:'pitchlab', label:'🎯 Pitch Lab', weight:0, color:'#38bdf8' },
     { key:'bvp', label:'🤝 BvP', weight:0, color:'#facc15' }
