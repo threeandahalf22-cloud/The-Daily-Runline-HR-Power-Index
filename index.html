@@ -2,6 +2,7 @@
 
 <html lang="en">
 <head>
+<!-- V12.5.19 ATTACK-ZONE STRUCTURAL REFACTOR: batter-relative HR geometry updated; BR/OS high-corner mistake geometry overrides added; family mistake/hang zones realigned; BR middle-third partial mistake weighting added; negative zone edges now retain a 25% penalty; logical inside orientation is fixed at zones 1/4/7 after handedness conversion. -->
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
@@ -10,6 +11,7 @@
 <!-- V12.5.13 PURE-HR AVERAGE-CONTACT FIX: primary zone scoring uses only workbook-supported inputs: Barrel/PA, Barrel/BBE, HR/PA, HR/BBE, average launch-angle quality, and average exit-velocity quality. Average LA/EV are explicitly scored as averages, not mislabeled as 22-35 degree or 103+ mph rates. Movement and velocity use the same HR-specific average-contact logic. Mistake exploitation, orientation, usage, coverage, qualification, regression flow, volatility, raw power, family logic, UI reconciliation, caps, and scoring order remain unchanged. -->
 <!-- V12.5.9 HR-CENTERED ATTACK ZONE: stabilized zone HR production is now included directly in hitter/pitcher zone scoring; mistake exploitation inherits the HR-centered edge; movement and velocity damage are reweighted toward HR rate, barrels, HR-quality EV and HR-quality launch angle. All usage, coverage, regression, volatility, caps, raw power and scoring order remain unchanged. -->
 <!-- V12.5.10 USAGE/UI FIX: family-zone usage uses a reconciliation denominator so no displayed zone can exceed 100%; source disagreements are normalized without inventing coverage. Movement/velocity zero remains a valid no-match/no-data result. -->
+<!-- V12.5.22 MISTAKE EXPLOITATION REWEIGHT: 50% base family Zone Match + 50% pitcher mistake/hang × hitter same-zone damage opportunity; all other Attack Zone logic, volatility caps, movement/velocity sequence, geometry, and handedness remain unchanged. -->
 <!-- V12.5.8 MISTAKE EXPLOITATION: 75% base family Zone Match + 25% pitcher mistake/hang × hitter same-zone damage opportunity; existing volatility cap and movement/velocity sequence retained. -->
 <!-- V12.5.7 COMPLETE ATTACK ZONE SEQUENCE: batter-relative HR geometry; switch-hitter resolution; family-specific handedness; coverage-preserved pitcher usage; location + shape mistake model; capped volatility/movement/velocity; final order Zone -> Volatility -> Movement -> Velocity -> Raw Power. -->
 <!-- V12.5.6 ZONE MATCHUP FIX: final zoneMatch now uses full edge; volatility is usage/coverage weighted and 50/50 mistake-hang; missing hitter BZ uses baseline; family coverage is retained; pitch percent and pitch-mix parsing fixed; map and final score aligned. -->
@@ -14272,13 +14274,34 @@ function attackZoneLeagueDanger(bucket, zone) { return 50; }
 const ATTACK_ZONE_MIN_PITCHES_PER_ZONE = 15;
 const ATTACK_ZONE_MIN_CELL_USAGE = 0.02;
 // Batter-relative HR geometry. These keys are logical zones after LHH/RHH conversion.
-// Chase zones remain heavily suppressed; the four primary HR zones receive the requested boosts.
+// Logical zones 1/4/7 are always inside; 3/6/9 are always away.
 const ATTACK_ZONE_LOGICAL_HR_MULTIPLIER = Object.freeze({
-  1:0.10, 2:1.25, 3:0.10,
-  4:1.00, 5:1.40, 6:1.15,
-  7:0.10, 8:1.20, 9:0.10
+  1:0.70, 2:1.20, 3:0.45,
+  4:1.10, 5:1.40, 6:0.95,
+  7:0.65, 8:1.00, 9:0.35
 });
 const ATTACK_ZONE_LOGICAL_HR_WEIGHT = ATTACK_ZONE_LOGICAL_HR_MULTIPLIER;
+
+// Family-specific location definitions use logical batter-relative zones only.
+// mistakeWeight allows a location to count as a partial mistake without changing
+// the full mistake/hang membership used by diagnostics and geometry overrides.
+const ATTACK_ZONE_FAMILY_LOCATION_DEFS = Object.freeze({
+  FB: Object.freeze({
+    mistake:Object.freeze([2,4,5,8]),
+    hang:Object.freeze([2,5]),
+    mistakeWeight:Object.freeze({2:1.00,4:1.00,5:1.00,8:1.00})
+  }),
+  BR: Object.freeze({
+    mistake:Object.freeze([1,2,3,4,5,6]),
+    hang:Object.freeze([1,2,3,5]),
+    mistakeWeight:Object.freeze({1:1.00,2:1.00,3:1.00,4:0.65,5:1.00,6:0.65})
+  }),
+  OS: Object.freeze({
+    mistake:Object.freeze([1,2,3,5]),
+    hang:Object.freeze([1,2,3,5]),
+    mistakeWeight:Object.freeze({1:1.00,2:1.00,3:1.00,5:1.00})
+  })
+});
 function attackZoneExpectedBatSide(player, pitcherName) {
   let hand = String(safeGet(player,'Bats','Bat Side','Hand','Batting Side') || '').trim().toUpperCase();
   if (hand.startsWith('S')) {
@@ -14330,20 +14353,21 @@ function attackZonePositiveFactor(z) {
   const n=Number(z); return Math.max(0.72, Math.min(1.28, 1 + ((Number.isFinite(n)?n:50)-50)/180));
 }
 // Controlled handedness context layered onto the exact pitch-zone matchup.
-// LHB: Zones 1/4/7 are pull-side; RHB: Zones 3/6/9 are pull-side.
-// Middle-column zones 2/5/8 remain favorable for both sides. No opposite-field penalty.
+// The physical-to-logical conversion has already occurred, so zones 1/4/7 are
+// always batter-inside/pull-side for both RHB and LHB. Never flip them again here.
 function attackZoneHandednessFactor(logicalZone, batSide, bucket='GENERIC') {
   const z=Number(logicalZone);
-  const side=String(batSide||'R').toUpperCase();
   const family=String(bucket||'GENERIC').toUpperCase();
-  const pull = side==='L' ? [1,4,7] : [3,6,9];
   const pullBoost = family==='FB' ? 1.08 : family==='BR' ? 1.05 : family==='OS' ? 1.03 : 1.05;
-  if (pull.includes(z)) return pullBoost;
+  if ([1,4,7].includes(z)) return pullBoost;
   if ([2,5,8].includes(z)) return 1.04;
   return 1.00;
 }
-function attackZoneHRGeometryMultiplier(logicalZone) {
+function attackZoneHRGeometryMultiplier(logicalZone, bucket='GENERIC') {
   const z=Number(logicalZone);
+  const family=String(bucket||'GENERIC').toUpperCase();
+  // High, floating BR/OS mistakes in either high corner retain full HR danger.
+  if ((family==='BR' || family==='OS') && (z===1 || z===3)) return 1.15;
   return Number(ATTACK_ZONE_LOGICAL_HR_MULTIPLIER[z]) || 1.00;
 }
 function attackZonePitcherZoneQualified(stats) {
@@ -14485,7 +14509,7 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
     const baseEdge = attackZoneInteractionEdge(batterDamage,pitcherVulnerability,batterStats,pitcherStats,leagueDanger);
     if (baseEdge === null || baseEdge === undefined || isNaN(baseEdge)) continue;
     const handednessFactor = attackZoneHandednessFactor(logicalZone, batSide, bucket);
-    const hrZoneMultiplier = attackZoneHRGeometryMultiplier(logicalZone);
+    const hrZoneMultiplier = attackZoneHRGeometryMultiplier(logicalZone, bucket);
     const edge = Number(baseEdge) * handednessFactor * hrZoneMultiplier;
 
     // Pitcher-driven scoring formula. The pitcher chooses the test by where he throws;
@@ -15130,11 +15154,7 @@ function attackZoneFamilyShapeMistakes(player) {
 // qualification/regression, and all family-specific mistake/hang logic.
 // Rescales power, matchup, and volatility so the daily matchup drives the category.
 function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
-  const familyDefs = {
-    FB: { mistake:[7,8,9,5], hang:[8,5] },
-    BR: { mistake:[1,2,3,5], hang:[1,2,3,5] },
-    OS: { mistake:[1,4,7,5], hang:[1,4,7,5] }
-  };
+  const familyDefs = ATTACK_ZONE_FAMILY_LOCATION_DEFS;
   const shapeMistakes=attackZoneFamilyShapeMistakes(player);
   const familyResults = {};
   let volatility = 0;
@@ -15155,12 +15175,17 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
       const row = zoneByNumber[zone];
       const hrEdge = row ? Number(row.hrSpecificEdge ?? row.edge) : NaN;
       if (!Number.isFinite(hrEdge)) return 0;
-      return Math.max(0, hrEdge) / 100;
+      // Positive matchup edges retain full value. Cold-zone edges remain in the
+      // model as a controlled 25% penalty instead of being erased at zero.
+      return hrEdge >= 0 ? hrEdge / 100 : (hrEdge * 0.25) / 100;
     };
     const zoneMatch = Array.from({length:9},(_,i)=>i+1)
       .reduce((sum,zone)=>sum + (conditionalFreq[zone] * matchupHRForZone(zone)), 0);
 
-    const locationMistakeRate = familyDefs[bucket].mistake.reduce((sum,zone)=>sum + (conditionalFreq[zone] || 0), 0);
+    const mistakeWeights = familyDefs[bucket].mistakeWeight || {};
+    const locationMistakeRate = familyDefs[bucket].mistake.reduce(
+      (sum,zone)=>sum + ((conditionalFreq[zone] || 0) * (Number(mistakeWeights[zone]) || 0)), 0
+    );
     const hangRate = familyDefs[bucket].hang.reduce((sum,zone)=>sum + (conditionalFreq[zone] || 0), 0);
     const shapeMistakeRate = Math.max(0,Math.min(1,Number(shapeMistakes[bucket]&&shapeMistakes[bucket].shapeMistakeRate)||0));
     const damageOnMistakes = Math.max(0,Math.min(1,Number(shapeMistakes[bucket]&&shapeMistakes[bucket].damageOnMistakes)||0));
@@ -15176,7 +15201,8 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
     let alignedMistakeDamage = 0; // retained field name; value is now HR-specific overlap
     let alignedMistakeExposure = 0;
     for (let zone=1; zone<=9; zone++) {
-      const dangerWeight = (mistakeZoneSet.has(zone) ? 0.65 : 0) + (hangZoneSet.has(zone) ? 0.35 : 0);
+      const partialMistakeWeight = mistakeZoneSet.has(zone) ? (Number(mistakeWeights[zone]) || 0) : 0;
+      const dangerWeight = (0.65 * partialMistakeWeight) + (hangZoneSet.has(zone) ? 0.35 : 0);
       if (dangerWeight <= 0) continue;
       const exposure = (conditionalFreq[zone] || 0) * dangerWeight;
       alignedMistakeExposure += exposure;
@@ -15192,7 +15218,7 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
     // volatility modestly strengthens that overlap without removing the 0.40 cap.
     const mistakeExploitationBoost = alignedMistakeDamage * (1 + familyVolatility);
     const mistakeOpportunity = Math.max(0, Math.min(1, zoneMatch + mistakeExploitationBoost));
-    const enhancedZoneMatch = (0.75 * zoneMatch) + (0.25 * mistakeOpportunity);
+    const enhancedZoneMatch = (0.50 * zoneMatch) + (0.50 * mistakeOpportunity);
 
     const usage = Math.max(0, Number(mix && mix[bucket]) || 0);
     const familyCoverage = Math.max(0, Math.min(1, Number(profile && profile.familyCoverage) || 0));
