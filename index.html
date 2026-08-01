@@ -4,6 +4,7 @@
 <head>
 <!-- V12.5.19 ATTACK-ZONE STRUCTURAL REFACTOR: batter-relative HR geometry updated; BR/OS high-corner mistake geometry overrides added; family mistake/hang zones realigned; BR middle-third partial mistake weighting added; negative zone edges now retain a 25% penalty; logical orientation is corrected so zones 1/4/7 are away and zones 3/6/9 are inside after handedness conversion. -->
 <!-- V12.5.24 ZONE ORIENTATION FIX: for a right-handed hitter, Zone 1 is high-away and Zone 3 is high-inside; left-handed hitters remain horizontally mirrored through 1↔3, 4↔6, 7↔9. HR geometry and inside/pull boosts now follow zones 3/6/9. -->
+<!-- V12.5.27 EDGE RESCALE / NO ZONE MINIMUM: HR probability curve is recalibrated so BBI 75 = 33%; displayed Edge is raw model probability minus sportsbook implied probability with no game-average adjustment; every positive-pitch Attack Zone family/zone cell can qualify, with sample size still visible for interpretation. -->
 <!-- V12.5.26 ZONE ANALYTICS SIMPLIFICATION: Bucket Analytics renamed Zone Analytics; UI now tracks only unified Attack Zone score results in five-point bands 1-5 through 51-55. Pitcher, Pitch Lab, confluence, threshold, and diamond research panels are no longer rendered. Model scoring is unchanged. -->
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -9614,15 +9615,15 @@ function weightedModifierAverage(parts, fallback = 1.0) {
   return totalWeight > 0 ? (weightedSum / totalWeight) : fallback;
 }
 function modelHRProbability(score, player) {
-  // Market-facing HR probability calibration.
-  // Required anchor: BBI 90 = 38.0% HR probability.
+  // Market-facing HR probability calibration for the lower current BBI scale.
+  // Required anchor: BBI 75 = 33.0% HR probability.
   // This affects probability, Edge %, and EV only; it does not alter BBI scoring.
   const s = Math.max(0, cleanNumber(score || 0));
   const curve = [
-    [0, 1.0], [30, 2.0], [40, 3.5], [45, 4.5], [50, 6.0],
-    [55, 7.8], [60, 10.0], [65, 12.5], [70, 15.0], [75, 20.0],
-    [80, 25.0], [85, 31.5], [90, 38.0], [95, 41.5], [100, 45.0],
-    [110, 48.0], [120, 50.0], [140, 52.0]
+    [0, 1.0], [30, 2.0], [35, 3.0], [40, 5.0], [45, 7.0],
+    [50, 10.0], [55, 14.0], [60, 18.0], [65, 23.0], [70, 28.0],
+    [75, 33.0], [80, 37.0], [85, 41.0], [90, 44.0], [95, 47.0],
+    [100, 50.0], [110, 52.0], [120, 52.0], [140, 52.0]
   ];
   let pct = curve[curve.length - 1][1];
   if (s <= curve[0][0]) {
@@ -9706,7 +9707,7 @@ function getLongshotMatchupScore(player) {
   return clampValue((bbi * 0.35) + (attack * 0.25) + (lab * 0.20) + (pitcher * 0.15) + (oddsUpside * 0.05), 0, 100);
 }
 function getValueEdgeScore(player) {
-  // One displayed Edge number: raw mathematical edge adjusted by half of the game's average raw edge.
+  // One displayed Edge number: model HR probability minus sportsbook implied probability.
   if (!player) return null;
   const edge = Number(player.bettingEdge);
   return Number.isFinite(edge) ? edge : null;
@@ -9804,47 +9805,24 @@ function getEdgeGameKey(player) {
 }
 
 function applyGameAdjustedEdges(players) {
-  const groups = new Map();
-
+  // V12.5.27: displayed Edge is the direct mathematical edge.
+  // Edge = model HR probability - sportsbook implied probability.
   (players || []).forEach(player => {
     const raw = Number(player && player.rawBettingEdge);
-    const key = getEdgeGameKey(player);
-    if (!key || !Number.isFinite(raw)) return;
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(player);
-  });
-
-  groups.forEach(group => {
-    const validRawEdges = group
-      .map(player => Number(player.rawBettingEdge))
-      .filter(Number.isFinite);
-
-    if (!validRawEdges.length) return;
-
-    const gameAverageRawEdge =
-      validRawEdges.reduce((sum, value) => sum + value, 0) / validRawEdges.length;
-
-    const gameEdgeAdjustment = gameAverageRawEdge * 0.50;
-
-    group.forEach(player => {
-      const raw = Number(player.rawBettingEdge);
-      if (!Number.isFinite(raw)) return;
-
-      const finalEdge = raw - gameEdgeAdjustment;
-      player.gameAverageRawEdge = gameAverageRawEdge;
-      player.gameEdgeAdjustment = gameEdgeAdjustment;
-      player.bettingEdge = finalEdge;
-      player.valueEdgeScore = finalEdge;
-      player.valueEdgePct = finalEdge;
-      player.valueEdgeLabel = getValueEdgeLabel(player);
-      player.betGrade = getBetGrade(
-        Number(player.calculatedHRProbability),
-        finalEdge,
-        Number(player.expectedValuePct),
-        Number(player.calculatedBBI || 0)
-      );
-      player.edgeTier = edgeTier(finalEdge);
-    });
+    if (!Number.isFinite(raw)) return;
+    player.gameAverageRawEdge = null;
+    player.gameEdgeAdjustment = 0;
+    player.bettingEdge = raw;
+    player.valueEdgeScore = raw;
+    player.valueEdgePct = raw;
+    player.valueEdgeLabel = getValueEdgeLabel(player);
+    player.betGrade = getBetGrade(
+      Number(player.calculatedHRProbability),
+      raw,
+      Number(player.expectedValuePct),
+      Number(player.calculatedBBI || 0)
+    );
+    player.edgeTier = edgeTier(raw);
   });
 }
 
@@ -11409,7 +11387,7 @@ if (edgePlayers.length) {
       { label: 'Implied', value: implied !== null ? `${implied.toFixed(1)}%` : '--' },
       { label: 'Odds', value: formatOddsWithBookText(p) }
     ],
-    note: `${p.valueEdgeLabel || getValueEdgeLabel(p)} • raw edge minus 50% of game average edge`
+    note: `${p.valueEdgeLabel || getValueEdgeLabel(p)} • model probability minus implied probability`
   });
 } else {
   commandRenderEmpty('commandBestEdgeValue', 'commandBestEdgePlayer', '--', 'Needs Odds sheet', '📈');
@@ -14275,8 +14253,8 @@ function attackZoneLeagueDanger(bucket, zone) { return 50; }
 // ===== HR ATTACK MAP V6: scoring-only matchup engine =====
 // The visible zone cards keep the original hitter/pitcher values and heat colors.
 // These helpers affect only the calculated Attack Zone matchup score.
-const ATTACK_ZONE_MIN_PITCHES_PER_ZONE = 15;
-const ATTACK_ZONE_MIN_CELL_USAGE = 0.02;
+const ATTACK_ZONE_MIN_PITCHES_PER_ZONE = 0;
+const ATTACK_ZONE_MIN_CELL_USAGE = 0;
 // Batter-relative HR geometry. These keys are logical zones after LHH/RHH conversion.
 // Logical zones 1/4/7 are always away; 3/6/9 are always inside.
 const ATTACK_ZONE_LOGICAL_HR_MULTIPLIER = Object.freeze({
@@ -14380,7 +14358,7 @@ function attackZonePitcherZoneQualified(stats) {
   // A family-zone cell qualifies on its own pitch sample. The prior rule also
   // required 2% row usage, which could blank a zone even with 100+ fastballs
   // when the workbook omitted/misreported pitch%. One qualified family is enough.
-  return Number.isFinite(pitches) && pitches >= ATTACK_ZONE_MIN_PITCHES_PER_ZONE &&
+  return Number.isFinite(pitches) && pitches > 0 &&
          Number.isFinite(usage) && usage > 0;
 }
 function attackZoneInteractionEdge(batterDamage, pitcherVulnerability, batterStats, pitcherStats, leagueDanger = 50) {
