@@ -4,6 +4,7 @@
 <head>
 <!-- V12.5.19 ATTACK-ZONE STRUCTURAL REFACTOR: batter-relative HR geometry updated; BR/OS high-corner mistake geometry overrides added; family mistake/hang zones realigned; BR middle-third partial mistake weighting added; negative zone edges now retain a 25% penalty; logical orientation is corrected so zones 1/4/7 are away and zones 3/6/9 are inside after handedness conversion. -->
 <!-- V12.5.24 ZONE ORIENTATION FIX: for a right-handed hitter, Zone 1 is high-away and Zone 3 is high-inside; left-handed hitters remain horizontally mirrored through 1↔3, 4↔6, 7↔9. HR geometry and inside/pull boosts now follow zones 3/6/9. -->
+<!-- V12.5.26 ZONE ANALYTICS SIMPLIFICATION: Bucket Analytics renamed Zone Analytics; UI now tracks only unified Attack Zone score results in five-point bands 1-5 through 51-55. Pitcher, Pitch Lab, confluence, threshold, and diamond research panels are no longer rendered. Model scoring is unchanged. -->
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
@@ -8825,7 +8826,7 @@ tbody tr{contain:layout paint style;}
 
 <button class="nav-tab" onclick="switchTab('backtest', this)">📊 Backtest Lab</button>
 <button class="nav-tab" onclick="switchTab('bbidiagnostics', this)">🎯 BBI / Rank Buckets</button>
-<button class="nav-tab" onclick="switchTab('bucketanalytics', this)">🧱 Bucket Analytics</button>
+<button class="nav-tab" onclick="switchTab('bucketanalytics', this)">🎯 Zone Analytics</button>
 </div>
 <div class="tab-content active" id="tab-home">
 <div class="slate-board" id="pregameSlateBoard"></div>
@@ -9307,15 +9308,15 @@ tbody tr{contain:layout paint style;}
 </div>
 <div class="tab-content" id="tab-bucketanalytics">
 <div class="panel bucket-analytics-panel">
-<h2>🧱 Bucket Analytics</h2>
-<p class="backtest-note">Component-level research for Attack Zone, Pitcher Vulnerability, Pitch Lab, pitch families, individual zones, and diamond signals. Clean-slate bucket tables use Bucket Analytics storage; deeper Pitch Lab and zone diagnostics use finalized Backtest snapshots.</p>
+<h2>🎯 Zone Analytics</h2>
+<p class="backtest-note">Tracks how the unified Attack Zone score performs against actual home-run results. Scores are grouped into five-point bands from 1–5 through 51–55.</p>
 <div class="backtest-tools">
-<button class="backtest-tool-btn" onclick="renderBucketAnalytics()">🔄 Refresh Bucket Analytics</button>
-<button class="backtest-tool-btn" onclick="exportBucketAnalyticsXLSX()">⬇ Export Bucket Analytics</button>
+<button class="backtest-tool-btn" onclick="renderBucketAnalytics()">🔄 Refresh Zone Analytics</button>
+<button class="backtest-tool-btn" onclick="exportBucketAnalyticsXLSX()">⬇ Export Zone Analytics</button>
 <button class="backtest-tool-btn" onclick="exportPitchLabBacktestCSV()">🧪 Export Pitch Lab CSV</button>
-<button class="backtest-tool-btn backtest-warning-btn" onclick="resetBucketAnalyticsConfirm()">🧹 Reset Bucket Analytics Only</button>
+<button class="backtest-tool-btn backtest-warning-btn" onclick="resetBucketAnalyticsConfirm()">🧹 Reset Zone Analytics Only</button>
 </div>
-<div id="bucketAnalyticsContainer"><div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No Bucket Analytics rows yet. Tonight’s next finalized slate will become Day 1 for Attack Zone and Pitcher tracking.</div></div>
+<div id="bucketAnalyticsContainer"><div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">No Zone Analytics rows yet. The next finalized slate will begin tracking Attack Zone score results.</div></div>
 </div>
 </div>
 <div id="drlBottomUploadArea" style="width:100%;max-width:1440px;margin:56px auto 24px;clear:both;">
@@ -20191,12 +20192,11 @@ function makeBucketRange(label, min, max) {
   return { label, min, max, players:0, hrs:0, sum:0, count:0 };
 }
 function buildComponentBuckets(rows, key) {
-  const buckets = [
-    makeBucketRange('140+',140,Infinity), makeBucketRange('120-139',120,139.999999), makeBucketRange('100-119',100,119.999999),
-    makeBucketRange('90-99',90,99.999999), makeBucketRange('80-89',80,89.999999), makeBucketRange('70-79',70,79.999999),
-    makeBucketRange('60-69',60,69.999999), makeBucketRange('50-59',50,59.999999), makeBucketRange('40-49',40,49.999999),
-    makeBucketRange('30-39',30,39.999999), makeBucketRange('<30',-Infinity,29.999999)
-  ];
+  const buckets = [];
+  for (let min = 1; min <= 51; min += 5) {
+    const max = min + 4;
+    buckets.push(makeBucketRange(`${min}-${max}`, min, max + 0.999999));
+  }
   let usable = 0, missing = 0;
   rows.forEach(r => {
     const v = bucketAnalyticsNum(r[key]);
@@ -20286,7 +20286,7 @@ function renderBucketAnalytics() {
   try {
     const rows = bucketAnalyticsRows();
     if (!rows.length) {
-      container.innerHTML = `<div class="bucket-empty">No Bucket Analytics data yet. This is intentionally clean-slate. The next Finalize Today’s Backtest will create the first component snapshot.</div>`;
+      container.innerHTML = `<div class="bucket-empty">No Zone Analytics data yet. The next Finalize Today’s Backtest will create the first Attack Zone snapshot.</div>`;
       return;
     }
     const hrs = rows.filter(r => bucketAnalyticsNum(r.HR_Result) === 1).length;
@@ -20294,48 +20294,28 @@ function renderBucketAnalytics() {
     const slates = bucketAnalyticsHistory.length;
     const latest = bucketAnalyticsHistory[bucketAnalyticsHistory.length - 1];
     const zoneBuckets = buildComponentBuckets(rows, 'AttackZone_Score');
-    const pitcherBuckets = buildComponentBuckets(rows, 'Pitcher_Score');
-    const confluenceRows = buildConfluenceRows(rows).filter(x => x.players > 0).sort((a,b) => (b.pct || 0) - (a.pct || 0));
-    const bestConfluence = confluenceRows[0];
     container.innerHTML = `
       <div class="backtest-kpi-grid">
-        <div class="backtest-kpi"><div class="backtest-kpi-label">Bucket slates</div><div class="backtest-kpi-value">${slates}</div><div class="backtest-kpi-sub">Clean-slate storage only</div></div>
-        <div class="backtest-kpi"><div class="backtest-kpi-label">Player snapshots</div><div class="backtest-kpi-value">${rows.length.toLocaleString()}</div><div class="backtest-kpi-sub">Latest: ${latest && latest.finalizedAt ? new Date(latest.finalizedAt).toLocaleString() : '-'}</div></div>
-        <div class="backtest-kpi"><div class="backtest-kpi-label">HR winners</div><div class="backtest-kpi-value">${hrs}</div><div class="backtest-kpi-sub">Baseline ${fmtBack(baselinePct,2,'%')}</div></div>
-        <div class="backtest-kpi"><div class="backtest-kpi-label">Best confluence</div><div class="backtest-kpi-value small-title">${bestConfluence ? bestConfluence.label : '-'}</div><div class="backtest-kpi-sub">${bestConfluence ? `${bestConfluence.hrs}/${bestConfluence.players} HR • ${fmtBack(bestConfluence.pct,1,'%')}` : 'Need more data'}</div></div>
+        <div class="backtest-kpi"><div class="backtest-kpi-label">Tracked slates</div><div class="backtest-kpi-value">${slates}</div><div class="backtest-kpi-sub">Zone Analytics history</div></div>
+        <div class="backtest-kpi"><div class="backtest-kpi-label">Zone snapshots</div><div class="backtest-kpi-value">${zoneBuckets.usable.toLocaleString()}</div><div class="backtest-kpi-sub">Latest: ${latest && latest.finalizedAt ? new Date(latest.finalizedAt).toLocaleString() : '-'}</div></div>
+        <div class="backtest-kpi"><div class="backtest-kpi-label">HR winners</div><div class="backtest-kpi-value">${hrs}</div><div class="backtest-kpi-sub">Overall baseline ${fmtBack(baselinePct,2,'%')}</div></div>
+        <div class="backtest-kpi"><div class="backtest-kpi-label">Missing / outside 1–55</div><div class="backtest-kpi-value">${zoneBuckets.missing}</div><div class="backtest-kpi-sub">Not included in score bands</div></div>
       </div>
-      <div class="bucket-analytics-section-grid">
-        <div class="bucket-mini-card"><div class="bucket-mini-title">🎯 Unified Attack Zone Thresholds</div><div class="bucket-mini-sub">Combined pitch-family and location matchup score.</div>${renderThresholdCards(rows, 'AttackZone_Score')}</div>
-        <div class="bucket-mini-card"><div class="bucket-mini-title">⚾ Pitcher Thresholds</div><div class="bucket-mini-sub">Uses the exact large HR Damage score shown on each Pitchers tab card.</div>${renderPitcherBandCards(rows)}</div>
-      </div>
-      <h2>🎯 Attack Zone Score Buckets</h2>
-      <p class="backtest-note">Zone target score bucketed independently from BBI.</p>
+      <h2>🎯 Attack Zone Score Results</h2>
+      <p class="backtest-note">Each row shows how often hitters homered when their unified Attack Zone score landed in that five-point band. Lift compares the band’s HR rate to the overall tracked baseline.</p>
       <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Zone Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(zoneBuckets, baselinePct)}</tbody></table></div>
-      <h2>⚾ Pitcher Vulnerability Score Buckets</h2>
-      <p class="backtest-note">Pitchers-tab HR Damage score bucketed independently from BBI, using the exact card score (higher of LHB/RHB risk).</p>
-      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Pitcher Score</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th><th>Avg Score</th></tr></thead><tbody>${renderComponentBucketTable(pitcherBuckets, baselinePct)}</tbody></table></div>
-      <h2>🤝 Confluence Analysis</h2>
-      <p class="backtest-note">This shows what happens when the unified Attack Zone score and Pitcher score agree. Lift compares each group to the clean-slate Bucket Analytics baseline.</p>
-      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Criteria</th><th>Players</th><th>HR</th><th>HR %</th><th>Lift</th></tr></thead><tbody>${renderConfluenceTable(rows, baselinePct)}</tbody></table></div>
-      <h2>✅ Current Best Cutoffs</h2>
-      <div class="signal-table-wrapper"><table class="signal-table"><thead><tr><th>Engine</th><th>Best threshold so far</th><th>Usable rows</th><th>Missing rows</th></tr></thead><tbody>
-        <tr><td>Unified Attack Zone</td><td>${bestThresholdText(rows, 'AttackZone_Score')}</td><td>${zoneBuckets.usable}</td><td>${zoneBuckets.missing}</td></tr>
-        <tr><td>Pitcher Vulnerability</td><td>${bestThresholdText(rows, 'Pitcher_Score')}</td><td>${pitcherBuckets.usable}</td><td>${pitcherBuckets.missing}</td></tr>
-      </tbody></table></div>
     `;
     initSortableSignalTables(container);
-    try { appendPhase3PitchLabReport(); } catch (err) { console.error('Pitch Lab Bucket Analysis report failed:', err); }
-    try { if (typeof window.renderAttackZonePhaseDReport === 'function') window.renderAttackZonePhaseDReport(); } catch (err) { console.error('Zone Bucket Analysis report failed:', err); }
   } catch (err) {
-    console.error('Bucket Analytics render failed:', err);
-    container.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;line-height:1.45;"><b>Bucket Analytics error:</b> ${err && err.message ? err.message : err}<br><span style="color:var(--text-muted);">BBI Backtest data was not touched.</span></div>`;
+    console.error('Zone Analytics render failed:', err);
+    container.innerHTML = `<div style="text-align:center;color:#fecaca;padding:30px;line-height:1.45;"><b>Zone Analytics error:</b> ${err && err.message ? err.message : err}<br><span style="color:var(--text-muted);">Model scoring and BBI Backtest data were not changed.</span></div>`;
   }
 }
 function exportBucketAnalyticsXLSX() {
   const rows = bucketAnalyticsRows();
-  if (!rows.length) { alert('No Bucket Analytics rows to export yet.'); return; }
+  if (!rows.length) { alert('No Zone Analytics rows to export yet.'); return; }
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Bucket_Analytics');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Zone_Analytics');
   const summary = [{
     Bucket_Slates: bucketAnalyticsHistory.length,
     Player_Snapshots: rows.length,
@@ -20345,15 +20325,15 @@ function exportBucketAnalyticsXLSX() {
     Storage_Key: BUCKET_ANALYTICS_HISTORY_KEY
   }];
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), 'Bucket_Summary');
-  XLSX.writeFile(wb, `Bucket_Analytics_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb, `Zone_Analytics_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 async function resetBucketAnalyticsConfirm() {
-  const ok = confirm('Reset ONLY Bucket Analytics clean-slate history?\n\nThis does not delete BBI Backtest history, bombs, rankings, or any model scoring.');
+  const ok = confirm('Reset ONLY Zone Analytics history?\n\nThis does not delete BBI Backtest history, bombs, rankings, or any model scoring.');
   if (!ok) return;
   bucketAnalyticsHistory = [];
   await saveBucketAnalyticsHistory();
   renderBucketAnalytics();
-  alert('Bucket Analytics history reset. BBI Backtest history was not changed.');
+  alert('Zone Analytics history reset. BBI Backtest history was not changed.');
 }
 
 
