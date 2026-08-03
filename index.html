@@ -10,7 +10,8 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>The Daily Run Line</title>
-<!-- V12.5.25 BUCKET REWEIGHT: Hitter Power 25%, Opportunity 10%, Batted Ball 20%, Pitcher Vulnerability 13%, Attack Zone 25%, Pitch Lab 0%, Weather 5%, Park 2%, BvP 0%. Total active weight = 100%. -->
+<!-- V12.5.29 WEATHER PHYSICS UPGRADE: Weather now uses effective wind (65% sustained / 35% gust), directional angle strength, moist-air density, pressure, cloud cover, forecast precipitation probability, and the retained humidity adjustment. Weather weight is 7%; Batted Ball is 19%; Pitcher Vulnerability is 12%. -->
+<!-- V12.5.25 BUCKET REWEIGHT (superseded by V12.5.29): Hitter Power 25%, Opportunity 10%, Batted Ball 20%, Pitcher Vulnerability 13%, Attack Zone 25%, Pitch Lab 0%, Weather 5%, Park 2%, BvP 0%. -->
 <!-- V12.5.15 PLATOON BUCKET UPGRADE: SDBL/SDBR and SDPL/SDPR are parsed as pitch-type rows, aggregated by player with exposure weighting, selected by matchup handedness, and confidence-regressed into Hitter Power, Batted Ball, and Pitcher Vulnerability. -->
 <!-- V12.5.14 FAMILY-ZONE PITCH-COUNT FIX: a Weighted All zone is valid when at least one pitch family independently qualifies in that zone. A qualified FB cell is no longer erased by unqualified BR/OS cells. Pitcher-only maps use the same rule. -->
 <!-- V12.5.13 PURE-HR AVERAGE-CONTACT FIX: primary zone scoring uses only workbook-supported inputs: Barrel/PA, Barrel/BBE, HR/PA, HR/BBE, average launch-angle quality, and average exit-velocity quality. Average LA/EV are explicitly scored as averages, not mislabeled as 22-35 degree or 103+ mph rates. Movement and velocity use the same HR-specific average-contact logic. Mistake exploitation, orientation, usage, coverage, qualification, regression flow, volatility, raw power, family logic, UI reconciliation, caps, and scoring order remain unchanged. -->
@@ -10044,7 +10045,7 @@ function renderPregameSlateBoard() {
     const visual = getStadiumVisualForPlayer(top || players[0]);
     const env = environmentScoreForPlayers(players);
     const wx = weatherSettings[(top || players[0]).gameId];
-    const wxTxt = wx && !wx.isDome ? `${wx.temp || 72}° • ${wx.windSpeed || 0} MPH ${String(wx.windDir || '').toUpperCase()}` : 'DOME / NEUTRAL';
+    const wxTxt = wx && !wx.isDome ? `${wx.temp || 72}° • ${Number(wx.effectiveWind ?? wx.windSpeed ?? 0).toFixed(1)} EFF MPH ${String(wx.windDir || '').toUpperCase()}` : 'DOME / NEUTRAL';
     const tier = env >= 9 ? 'nuclear' : env >= 8 ? 'hot' : env >= 7 ? '' : 'cold';
     const envLabel = env >= 9 ? '🚀 Nuclear' : env >= 8 ? '🔥 Hot' : env >= 7 ? '⚾ Playable' : '❄ Pitcher Lean';
     const topName = top && top.Name ? top.Name : 'Top bat';
@@ -10099,7 +10100,7 @@ function renderTopTargetHero() {
   const headshot = createHeadshotHtml(p.Name, 'lg', p.Team) || logo;
   const visual = getStadiumVisualForPlayer(p);
   const w = weatherSettings[p.gameId];
-  const weather = w && !w.isDome ? `${w.temp}°F • ${w.windSpeed} MPH ${String(w.windDir || '').toUpperCase()}` : 'Closed Dome / Neutral Weather';
+  const weather = w && !w.isDome ? `${w.temp}°F • ${Number(w.effectiveWind ?? w.windSpeed ?? 0).toFixed(1)} EFF MPH ${String(w.windDir || '').toUpperCase()}` : 'Closed Dome / Neutral Weather';
   const chips = getPlayerWhyChips(p).map(c => `<span class="hero-why-chip">${c}</span>`).join('');
   const tier = (p.calculatedBBI || 0) >= 95 ? 'Nuclear' : (p.calculatedBBI || 0) >= 90 ? 'Elite' : 'Top Target';
   hero.innerHTML = `<div class="hero-inner"><div class="hero-headshot-wrap"><div class="hero-rank-badge">#1</div>${headshot}</div><div><div class="hero-title-kicker">Today's Top Target</div><div class="hero-player-name">${p.Name}</div><div class="hero-meta"><span class="hero-meta-chip">${logo}${p.Team}</span><span class="hero-meta-chip">vs ${p['Opp Pitcher'] || p['Opp Pitcher Name'] || 'Starter'}</span>${Number.isFinite(Number(p.battingOrder ?? p.BO)) ? `<span class="hero-meta-chip">BO ${Math.round(Number(p.battingOrder ?? p.BO))}</span>` : ''}<span class="hero-meta-chip">🏟️ ${visual.name}</span><span class="hero-meta-chip">🌤️ ${weather}</span></div><div class="hero-why-row">${chips}</div></div><div class="hero-scorebox"><div class="hero-score-label">BBI Score</div><div class="hero-score">${(p.calculatedBBI || 0).toFixed(1)}</div><span class="hero-score-tier">${tier}</span>${renderBBIProbabilityMeter(p)}</div></div>`;
@@ -10260,7 +10261,12 @@ function enrichWeatherWithFieldVector(weather, homeTeam) {
   let fieldWind = null;
   if (weather && weather.windDeg !== undefined && weather.windDeg !== null && !isNaN(Number(weather.windDeg))) fieldWind = fieldDirectionFromWind(Number(weather.windDeg), stadium.cfBearing);
   else fieldWind = inferFieldWindFromLabel(weather && weather.windDir, homeTeam);
-  return { ...(weather || {}), windDir: fieldWind.label || ((weather && weather.windDir) || 'neutral'), windToDeg: fieldWind.windToDeg, windFieldZone: fieldWind.fieldZone, windType: fieldWind.windType, windQuality: fieldWind.quality, windAngleOffTarget: fieldWind.angleOffTarget, windDetail: fieldWind.detail, windCrossFrom: fieldWind.windCrossFrom || null, windCrossTo: fieldWind.windCrossTo || null, homeTeam: String(homeTeam || '').toUpperCase(), stadiumName: (stadium && stadium.name) || (weather && weather.stadiumName) || homeTeam };
+  const sustainedWind = Math.max(0, Number(weather && weather.windSpeed) || 0);
+  const gustRaw = weather && weather.windGust;
+  const gustAvailable = gustRaw !== undefined && gustRaw !== null && Number.isFinite(Number(gustRaw));
+  const gustWind = gustAvailable ? Math.max(0, Number(gustRaw)) : sustainedWind;
+  const effectiveWind = gustAvailable ? ((0.65 * sustainedWind) + (0.35 * gustWind)) : sustainedWind;
+  return { ...(weather || {}), effectiveWind, windDir: fieldWind.label || ((weather && weather.windDir) || 'neutral'), windToDeg: fieldWind.windToDeg, windFieldZone: fieldWind.fieldZone, windType: fieldWind.windType, windQuality: fieldWind.quality, windAngleOffTarget: fieldWind.angleOffTarget, windDetail: fieldWind.detail, windCrossFrom: fieldWind.windCrossFrom || null, windCrossTo: fieldWind.windCrossTo || null, homeTeam: String(homeTeam || '').toUpperCase(), stadiumName: (stadium && stadium.name) || (weather && weather.stadiumName) || homeTeam };
 }
 function parseFirstPitchDateTime(startTimeRaw) {
   const raw = String(startTimeRaw || '').trim();
@@ -10298,14 +10304,20 @@ function convertOpenWeatherToGameWeather(apiData, homeTeam, existingWeather, sou
   const stadium = stadiumCoordinates[homeTeam] || {};
   const main = apiData && apiData.main ? apiData.main : {};
   const wind = apiData && apiData.wind ? apiData.wind : {};
+  const clouds = apiData && apiData.clouds ? apiData.clouds : {};
   const safeNum = (v, fallback) => (v !== undefined && v !== null && !isNaN(Number(v))) ? Number(v) : fallback;
   const apiHumidity = safeNum(main.humidity, 0);
+  const sustainedWind = Math.max(0, safeNum(wind.speed, 0));
+  const gustAvailable = wind.gust !== undefined && wind.gust !== null && !isNaN(Number(wind.gust));
+  const gustWind = gustAvailable ? Math.max(0, Number(wind.gust)) : sustainedWind;
+  const effectiveWind = gustAvailable ? ((0.65 * sustainedWind) + (0.35 * gustWind)) : sustainedWind;
   const fieldWind = fieldDirectionFromWind(wind.deg, stadium.cfBearing);
   return {
     ...(existingWeather || {}),
     temp: Math.round(safeNum(main.temp, (existingWeather && existingWeather.temp) || 72)),
-    windSpeed: Math.round(safeNum(wind.speed, 0)),
-    windGust: wind.gust !== undefined ? Math.round(safeNum(wind.gust, 0)) : undefined,
+    windSpeed: Math.round(sustainedWind),
+    windGust: gustAvailable ? Math.round(gustWind) : null,
+    effectiveWind: effectiveWind,
     windDir: fieldWind.label,
     windDeg: wind.deg !== undefined && wind.deg !== null ? Number(wind.deg) : null,
     windToDeg: fieldWind.windToDeg,
@@ -10318,7 +10330,9 @@ function convertOpenWeatherToGameWeather(apiData, homeTeam, existingWeather, sou
     windCrossTo: fieldWind.windCrossTo || null,
     humidity: apiHumidity,
     humiditySource: main.humidity !== undefined && main.humidity !== null ? 'OpenWeather API' : 'Unavailable',
-    pressure: safeNum(main.pressure, 0),
+    pressure: safeNum(main.pressure, 1015),
+    cloudCover: safeNum(clouds.all, 0),
+    precipitationProbability: safeNum(apiData && apiData.pop, 0),
     isDome: !!stadium.dome || !!(existingWeather && existingWeather.isDome),
     weatherSource: sourceMode === 'forecast' ? 'OpenWeather Forecast' : 'OpenWeather Current',
     weatherForecastTime: forecastDt || '',
@@ -10369,7 +10383,7 @@ function getTrueHomeTeamFromMatchup(m) {
 }
 function cloneWeatherKeepingSheetFallback(existing, homeTeam, errorText) {
   const stadium = stadiumCoordinates[homeTeam] || {};
-  const base = existing && Object.keys(existing).length ? existing : { temp: 72, windSpeed: 0, windDir: 'neutral', humidity: 0 };
+  const base = existing && Object.keys(existing).length ? existing : { temp: 72, windSpeed: 0, windGust: null, effectiveWind: 0, windDir: 'neutral', humidity: 0, pressure: 1015, cloudCover: 0, precipitationProbability: 0 };
   return enrichWeatherWithFieldVector({
     ...base,
     isDome: !!stadium.dome || !!base.isDome,
@@ -11621,7 +11635,7 @@ const synergyMod = (player.calculatedSynergyMultiplier || 1).toFixed(2);
 const pf = cleanNumber(player.pf) || 100;
 const gameTotal = cleanNumber(safeGet(player, 'Total', 'Game Total', 'O/U', 'Over/Under'));
 const w = weatherSettings[player.gameId];
-let climate = w && !w.isDome ? `${w.temp}°F, ${w.windSpeed}mph ${w.windDir.toUpperCase()}` : 'Closed Dome';
+let climate = w && !w.isDome ? `${w.temp}°F, ${Number(w.effectiveWind ?? w.windSpeed ?? 0).toFixed(1)} effective mph ${w.windDir.toUpperCase()}` : 'Closed Dome';
 const stat = (label, val, color = '') => `<div class="modal-stat-item"><span class="modal-stat-label">${label}</span><span class="modal-stat-val ${color}">${val}</span></div>`;
 const section = (title, content) => `<div><div class="modal-section-title">${title}</div><div class="modal-stats-grid">${content}</div></div>`;
 let html = '';
@@ -13723,12 +13737,12 @@ const DRL_SYNERGY_CAP = 7.5; // Phase 7 canonical applied synergy ceiling (+7.50
 const HYBRID_CATEGORY_WEIGHTS = {
   power: 0.25,         // Hitter Power + Recent
   opportunity: 0.10,   // Opportunity / Lineup
-  battedBall: 0.20,
+  battedBall: 0.19,
   bvp: 0.00,           // Removed from the active 100% model
-  pitcher: 0.13,       // Pitcher Vulnerability
+  pitcher: 0.12,       // Pitcher Vulnerability
   attackZone: 0.25,    // Primary daily pitcher-hitter zone and pitch-type matchup
   pitchLevel: 0.00,    // Pitch Lab remains visible but stays at 0%
-  weather: 0.05,
+  weather: 0.07,
   park: 0.02
 };
 const DRL_PREVIOUS_CATEGORY_WEIGHTS = {
@@ -13738,7 +13752,7 @@ const DRL_PREVIOUS_CATEGORY_WEIGHTS = {
   pitcher: 0.15,
   pitchLevel: 0.10,
   bvp: 0.03,
-  weather: 0.05,
+  weather: 0.07,
   park: 0.02
 };
 const MODEL_SANDBOX_WEIGHT_META = [
@@ -15727,60 +15741,83 @@ function windDirectionSideFit(dirRaw, hand, speed, weatherObj) {
 }
 function buildSideWeatherImpact({ weather, hand, pull, pullAir, flyBall, launchAngle, barrel, maxEV, pitcherFB, pitcherHRFB, pitcherBarrel, pitcherHardHit, pitcherEV, pullFence, cf, parkFactor }) {
   if (!weather) return { score: 50, multiplier: 1.0, side: hand, reason: 'No weather data found; neutral weather score.', components: {} };
-  if (weather.isDome) return { score: 55, multiplier: 1.005, side: hand, reason: `${hand}HB dome/roof game: neutral carry, no wind penalty.`, components: {} };
-  const temp = Number(weather.temp || 72);
-  const humidity = Number(weather.humidity || 0);
-  const wind = windDirectionSideFit(weather.windDir, hand, weather.windSpeed, weather);
-  const pullFit = weatherScaleBetween(pull, 0.34, 0.48);
-  const pullAirFit = weatherScaleBetween(pullAir, 0.10, 0.24);
-  const flyBallFit = weatherScaleBetween(flyBall, 0.30, 0.45);
-  const launchFit = weatherSweetLaunchFit(launchAngle);
-  const barrelFit = weatherScaleBetween(barrel, 0.075, 0.145);
-  const maxEVFit = weatherScaleBetween(maxEV, 106, 113);
-  const hitterShape = (pullFit * 0.24) + (pullAirFit * 0.28) + (flyBallFit * 0.20) + (launchFit * 0.12) + (barrelFit * 0.10) + (maxEVFit * 0.06);
-  const pitcherAir = (weatherScaleBetween(pitcherFB, 0.32, 0.45) * 0.34) + (weatherScaleBetween(pitcherHRFB, 0.09, 0.18) * 0.24) + (weatherScaleBetween(pitcherBarrel, 0.075, 0.115) * 0.18) + (weatherScaleBetween(pitcherHardHit, 0.34, 0.44) * 0.14) + (weatherScaleBetween(pitcherEV, 88, 91.5) * 0.10);
-  const fenceTarget = hand === 'R' ? positiveOrFallback(pullFence, 330) : positiveOrFallback(pullFence, 330);
-  const fenceFit = 1 - weatherScaleBetween(fenceTarget, 315, 350);
-  const cfFit = 1 - weatherScaleBetween(cf, 390, 420);
-  const pfFit = weatherScaleBetween(parkFactor, 96, 106);
-  const parkCarry = (fenceFit * 0.45) + (cfFit * 0.20) + (pfFit * 0.35);
-  let tempScore = 0;
-  if (temp >= 90) tempScore = 5;
-  else if (temp >= 82) tempScore = 4;
-  else if (temp >= 75) tempScore = 2;
-  else if (temp < 55) tempScore = -8;
-  else if (temp < 62) tempScore = -4;
-  let humidityScore = humidity >= 75 ? 1.25 : humidity >= 65 ? 0.60 : 0;
-  let windPoints = 0;
-  if (wind.out) {
-    const rawWind = 18 * wind.fit * wind.speedImpact;
-    // Strong wind only becomes a strong bump when hitter shape and pitcher air-contact actually line up.
-    const contextGate = 0.35 + (hitterShape * 0.45) + (pitcherAir * 0.20);
-    windPoints = rawWind * contextGate;
-  } else if (wind.inn) {
-    const rawWind = 18 * Math.abs(wind.fit) * wind.speedImpact;
-    const airPenaltyGate = 0.65 + (hitterShape * 0.20) + (pitcherAir * 0.15);
-    windPoints = -rawWind * airPenaltyGate;
-  } else if (wind.cross) {
-    const rawWind = 6 * wind.fit * wind.speedImpact;
-    const crossGate = 0.45 + (hitterShape * 0.35) + (pitcherAir * 0.20);
-    windPoints = rawWind * crossGate;
-  }
-  const shapePoints = (wind.out || (wind.cross && wind.fit > 0)) ? (hitterShape - 0.50) * (wind.out ? 6 : 2.5) : 0;
-  const pitcherPoints = (wind.out || (wind.cross && wind.fit > 0)) ? (pitcherAir - 0.50) * (wind.out ? 4 : 2) : 0;
-  const parkPoints = (parkCarry - 0.50) * 4;
-  const score = weatherClampScore(50 + windPoints + shapePoints + pitcherPoints + parkPoints + tempScore + humidityScore);
-  const multiplier = Math.max(0.955, Math.min(1.045, 1 + ((score - 50) / 1100)));
+  if (weather.isDome) return { score: 50, multiplier: 1.0, side: hand, reason: `${hand}HB dome/roof game: neutral carry, no wind effect.`, components: { weatherAdjustment:0 } };
+
+  const temp = Number.isFinite(Number(weather.temp)) ? Number(weather.temp) : 72;
+  const humidity = Math.max(0, Math.min(100, Number(weather.humidity) || 0));
+  const pressure = Number.isFinite(Number(weather.pressure)) && Number(weather.pressure) > 0 ? Number(weather.pressure) : 1015;
+  const clouds = Math.max(0, Math.min(100, Number(weather.cloudCover) || 0));
+  const pop = Math.max(0, Math.min(1, Number(weather.precipitationProbability) || 0));
+  const sustainedWind = Math.max(0, Number(weather.windSpeed) || 0);
+  const gustAvailable = weather.windGust !== undefined && weather.windGust !== null && Number.isFinite(Number(weather.windGust));
+  const windGust = gustAvailable ? Math.max(0, Number(weather.windGust)) : sustainedWind;
+  const effectiveWind = gustAvailable ? ((0.65 * sustainedWind) + (0.35 * windGust)) : sustainedWind;
+  weather.effectiveWind = effectiveWind;
+
+  // OpenWeather pressure is hPa. Convert only the density numerator to Pa;
+  // vapor pressure and total pressure remain in the same hPa units inside their ratio.
+  const tempC = (temp - 32) * (5 / 9);
+  const tempK = tempC + 273.15;
+  const vaporPressure = humidity * 0.01 * 6.112 * Math.exp((17.67 * tempC) / (tempC + 243.5));
+  const pressurePa = pressure * 100;
+  const rho = (pressurePa / (287.05 * tempK)) * (1 - (0.378 * vaporPressure / pressure));
+  const airDensityScore = (1.225 - rho) * 12;
+  const pressureScore = Math.max(-2.5, Math.min(2.5, (1015 - pressure) / 10));
+  const cloudScore = clouds < 20 ? 0.25 : clouds < 60 ? 0 : -0.25;
+  const rainScore = -3 * pop;
+  const humidityScore = humidity >= 75 ? 1.25 : humidity >= 65 ? 0.60 : 0;
+
+  const angleOff = Number.isFinite(Number(weather.windAngleOffTarget)) ? Math.max(0, Number(weather.windAngleOffTarget)) : 90;
+  const directionMultiplier = Math.max(0, 1 - (angleOff / 90));
+  const directionalWind = effectiveWind * directionMultiplier;
+  const windMultiplier = Math.min(directionalWind / 18, 1.35);
+
+  // Preserve hitter-side direction: outward wind helps, inward wind hurts, and true
+  // crosswinds retain the existing small handedness sign. Magnitude now comes only
+  // from effective wind and exact angle rather than old fixed out/in/cross scaling.
+  const wind = windDirectionSideFit(weather.windDir, hand, effectiveWind, weather);
+  let windSign = 0;
+  if (wind.out) windSign = 1;
+  else if (wind.inn) windSign = -1;
+  else if (wind.cross) windSign = wind.fit > 0 ? 1 : wind.fit < 0 ? -1 : 0;
+  const signedWindMultiplier = windMultiplier * windSign;
+  const windPoints = signedWindMultiplier * 5;
+
+  const weatherAdjustment = airDensityScore + pressureScore + cloudScore + rainScore + humidityScore + windPoints;
+  // The model's category buckets are neutral-at-50. Keep that integration scale,
+  // while the raw physics adjustment follows the requested zero-centered formula.
+  const score = weatherClampScore(50 + weatherAdjustment);
+  const multiplier = 1 + (weatherAdjustment / 100);
   const sideLabel = hand === 'R' ? 'RHB' : 'LHB';
-  const pullPct = pull !== null && !isNaN(pull) ? `${Math.round(pull * 100)}% Pull` : 'Pull N/A';
-  const airPct = pullAir !== null && !isNaN(pullAir) ? `${Math.round(pullAir * 100)}% Pulled Air` : 'Pulled Air N/A';
-  const fbPct = flyBall !== null && !isNaN(flyBall) ? `${Math.round(flyBall * 100)}% FB` : 'FB N/A';
-  const pfbPct = pitcherFB !== null && !isNaN(pitcherFB) ? `${Math.round(pitcherFB * 100)}% pitcher FB` : 'pitcher FB N/A';
   const sourceTxt = weather.weatherSource ? ` via ${weather.weatherSource}` : '';
   const detailTxt = weather.windDetail ? ` (${weather.windDetail})` : '';
-  const pressureTxt = weather.pressure ? `, ${weather.pressure} hPa` : '';
-  const reason = `${sideLabel} weather${sourceTxt}: ${weather.windSpeed || 0} MPH ${String(weather.windDir || 'neutral').toUpperCase()}${detailTxt}, ${temp}°F${pressureTxt}, ${pullPct}, ${airPct}, ${fbPct}, ${pfbPct}.`;
-  return { score, multiplier, side: sideLabel, reason, components: { windPoints, hitterShape, pitcherAir, parkCarry, tempScore, humidityScore } };
+  const reason = `${sideLabel} weather${sourceTxt}: ${sustainedWind.toFixed(1)} MPH sustained, ${gustAvailable ? `${windGust.toFixed(1)} MPH gust, ` : ''}${effectiveWind.toFixed(1)} effective MPH, ${String(weather.windDir || 'neutral').toUpperCase()}${detailTxt}, ${temp.toFixed(0)}°F, ${pressure.toFixed(0)} hPa, ${humidity.toFixed(0)}% humidity, ${clouds.toFixed(0)}% clouds, ${(pop * 100).toFixed(0)}% precip, density ${rho.toFixed(3)} kg/m³.`;
+  return {
+    score,
+    multiplier,
+    side: sideLabel,
+    reason,
+    components: {
+      weatherAdjustment,
+      effectiveWind,
+      directionalWind,
+      directionMultiplier,
+      windMultiplier: signedWindMultiplier,
+      windPoints,
+      airDensity: rho,
+      airDensityScore,
+      pressureScore,
+      cloudScore,
+      rainScore,
+      humidityScore,
+      cloudCover: clouds,
+      precipitationProbability: pop,
+      tempScore: airDensityScore,
+      hitterShape: 0,
+      pitcherAir: 0,
+      parkCarry: 0
+    }
+  };
 }
 function getWeatherHandForPlayer(p, pitcherHandRaw) {
   const hand = getHitterHandedness(p);
@@ -16682,7 +16719,7 @@ function drlTargetPitcherMultiplier(pitcherScore) {
   return drlTargetClamp(drlTargetScoreMultiplier(pitcherScore, 0.94, 1.06), 0.94, 1.06);
 }
 function drlTargetWeatherMultiplier(raw) {
-  return drlTargetClamp(Number(raw && raw.weatherImpactMultiplier) || 1.0, 0.96, 1.04);
+  return drlTargetClamp(Number(raw && raw.weatherImpactMultiplier) || 1.0, 0.85, 1.15);
 }
 
 
@@ -17005,7 +17042,7 @@ function scoreHybridPlayer(p, ranges) {
   const pitchZoneMultiplier = 1.0;
   const pitcherMultiplier = 1.0;
   const sideWeatherMultiplier = drlTargetWeatherMultiplier(r);
-  const targetedMultiplier = drlTargetClamp(sideWeatherMultiplier, 0.96, 1.04);
+  const targetedMultiplier = drlTargetClamp(sideWeatherMultiplier, 0.85, 1.15);
   score *= targetedMultiplier;
 
   // Fixed BvP HR bonus: one or more prior HR against today's pitcher adds exactly +3 BBI.
@@ -18780,6 +18817,11 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Data_Confidence: backtestNum(p.calculatedDataConfidence),
     Weather_Temp: backtestNum(w.temp),
     Weather_WindSpeed: backtestNum(w.windSpeed),
+    Weather_WindGust: backtestNum(w.windGust),
+    Weather_EffectiveWind: backtestNum(w.effectiveWind),
+    Weather_CloudCover: backtestNum(w.cloudCover),
+    Weather_PrecipProbability: backtestNum(w.precipitationProbability),
+    Weather_Pressure: backtestNum(w.pressure),
     Weather_WindDir: w.windDir || '',
     Weather_Roof_Dome: w.isDome ? 1 : 0,
     Weather_Side_Used: p.weatherSideUsed || '',
@@ -18886,7 +18928,13 @@ function snapshotBacktestPlayer(p, rank, slateId, finalizedAt) {
     Weather_Pitcher_Air: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.pitcherAir),
     Weather_Park_Carry: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.parkCarry),
     Weather_Temp_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.tempScore),
-    Weather_Humidity_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.humidityScore)
+    Weather_Humidity_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.humidityScore),
+    Weather_AirDensity: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.airDensity),
+    Weather_AirDensity_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.airDensityScore),
+    Weather_Pressure_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.pressureScore),
+    Weather_Cloud_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.cloudScore),
+    Weather_Rain_Points: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.rainScore),
+    Weather_Direction_Multiplier: backtestNum(p.weatherImpactComponents && p.weatherImpactComponents.directionMultiplier)
   };
   flattenBacktestObject('Raw', p.hybridRawSnapshot || p.hybridRaw || {}, row);
   const trustedBacktestMaxEV = trueBarrellMaxEVForPlayer(p);
@@ -20753,10 +20801,10 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCompa
   const WEIGHTS_40 = [
     { key:'power', label:'💪 Power', weight:25, color:'#a855f7' },
     { key:'opportunity', label:'📋 Opportunity', weight:10, color:'#10b981' },
-    { key:'batted', label:'🚀 Batted Ball', weight:20, color:'#ef4444' },
+    { key:'batted', label:'🚀 Batted Ball', weight:19, color:'#ef4444' },
     { key:'pitcher', label:'⚾ Pitcher Vuln', weight:13, color:'#fb7185' },
     { key:'attackZone', label:'🎯 Attack Zone', weight:25, color:'#f97316' },
-    { key:'weather', label:'🌦 Weather', weight:5, color:'#0ea5e9' },
+    { key:'weather', label:'🌦 Weather', weight:7, color:'#0ea5e9' },
     { key:'park', label:'🏟 Park', weight:2, color:'#94a3b8' },
     { key:'pitchlab', label:'🎯 Pitch Lab', weight:0, color:'#38bdf8' },
     { key:'bvp', label:'🤝 BvP', weight:0, color:'#facc15' }
