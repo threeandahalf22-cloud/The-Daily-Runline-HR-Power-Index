@@ -24,7 +24,7 @@
 <!-- V12.5.6 ZONE MATCHUP FIX: final zoneMatch now uses full edge; volatility is usage/coverage weighted and 50/50 mistake-hang; missing hitter BZ uses baseline; family coverage is retained; pitch percent and pitch-mix parsing fixed; map and final score aligned. -->
 <!-- V12.5.5: Added pitch movement damage and velocity-band damage multipliers to Attack Zone using workbook CSV columns; existing FB/BR/OS zone logic remains unchanged. -->
 <!-- V12.5.3 MATCHUP REBALANCE: Power 25%, Opportunity 20%, Batted Ball 15%, Pitcher Vulnerability 10%, Attack Zone 25%, Pitch Lab 0%, Weather 3%, Park 2%, BvP 0%. Attack Zone preserves all existing qualification, regression, pitcher-vulnerability, pitch-family usage, mistake-zone, and hang-zone logic. New scaling: RawPowerFactor = 0.6 + (0.008 * RawPower); MatchScore = 100 * TotalPitchTypeMatch; VolatilityFactor = 1 + (1.5 * Volatility); AttackZoneHRProb = RawPowerFactor * VolatilityFactor * MatchScore, clamped to 0-100 for the category score. -->
-<!-- V12.5.1 POWER WINDOW UPDATE: Power rolling blend is Season 50%, Last 7 Days 23%, Last 14 Days 15%, Last 30 Days 12%. The 7-day share scales linearly by PA and reaches the full 23% at 8+ PA; unused 7-day weight is redistributed proportionally across Season/14/30. Average EV and ISO now use the same rolling blend from LastWeek/LW, 14Day/14Day2 and 30Day/30Day2. -->
+<!-- V12.5.31 POWER WINDOW REWEIGHT: every four-window hitter-power blend now uses Season 40%, Last 30 Days 30%, Last 14 Days 15%, and Last 7 Days 15%. The 7-day share still scales linearly by PA and reaches its full 15% at 8+ PA; unused 7-day weight is redistributed proportionally across Season/30/14. -->
 <!-- V12.5.0 GAME-ADJUSTED EDGE: one displayed Edge number. Raw edge = Model HR Probability - Implied Probability. Final Edge = Raw Edge - (50% of the average Raw Edge among all priced hitters in that game). This reduces game-wide green/red bias without forcing every game to average exactly zero. -->
 <!-- V12.4.9 BVP REWEIGHT / NO SYNERGY: Power 50%, Opportunity 21.05%, Batted Ball 15.79%, BvP 7.89%, Pitcher 4.21%, Weather 0.63%, Park 0.43%. Attack Zone, Pitch Lab and Bullpen remain visible at 0%. All synergy bonuses are disabled. BvP confidence tiers: 0-2 PA=0%, 3-5 PA=25%, 6-7 PA=50%, 8+ PA=100%. Any prior matchup HR adds a fixed +3 BBI, capped at +3. -->
 <!-- V12.4.6 probability mapping retained: BBI 90 maps to 38% HR probability. Edge display is superseded by V12.5.0 game adjustment. -->
@@ -16473,19 +16473,19 @@ function drlBvPWhiffScore(raw, pa) {
 // ===============================================================================
 function drlAdaptiveSevenDayWeight(pa7) {
   const pa = Math.max(0, Number(pa7) || 0);
-  // Last 7 Days owns 23% of the blend. It earns that full share at 8+ PA.
-  return 0.23 * Math.min(pa / 8, 1);
+  // Last 7 Days owns 15% of the blend. It earns that full share at 8+ PA.
+  return 0.15 * Math.min(pa / 8, 1);
 }
 function drlMultiWindowBlendOpenEnded(seasonScore, raw30, raw14, raw7, scorer, seasonPA, pa30, pa14, pa7) {
   const season = hybridNeutralScore(seasonScore);
   const earnedSevenWeight = drlAdaptiveSevenDayWeight(pa7);
 
-  // Full-sample target: Season 50 / Last 7 23 / Last 14 15 / Last 30 12.
-  // Before 8 PA, the unearned part of the 23% seven-day share is redistributed
+  // Full-sample target: Season 40 / Last 30 30 / Last 14 15 / Last 7 15.
+  // Before 8 PA, the unearned part of the 15% seven-day share is redistributed
   // proportionally across the three longer windows so the blend always totals 100%.
-  const baseNon7 = { season:0.50, d30:0.12, d14:0.15 };
-  const baseNon7Total = 0.77;
-  const unearnedSevenWeight = 0.23 - earnedSevenWeight;
+  const baseNon7 = { season:0.40, d30:0.30, d14:0.15 };
+  const baseNon7Total = 0.85;
+  const unearnedSevenWeight = 0.15 - earnedSevenWeight;
   const weights = {
     season: baseNon7.season + (unearnedSevenWeight * (baseNon7.season / baseNon7Total)),
     d30: baseNon7.d30 + (unearnedSevenWeight * (baseNon7.d30 / baseNon7Total)),
