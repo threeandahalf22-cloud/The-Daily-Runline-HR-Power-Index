@@ -5,6 +5,7 @@
 <!-- V12.5.19 ATTACK-ZONE STRUCTURAL REFACTOR: batter-relative HR geometry updated; BR/OS high-corner mistake geometry overrides added; family mistake/hang zones realigned; BR middle-third partial mistake weighting added; negative zone edges now retain a 25% penalty; logical orientation is corrected so zones 1/4/7 are away and zones 3/6/9 are inside after handedness conversion. -->
 <!-- V12.5.24 ZONE ORIENTATION FIX: for a right-handed hitter, Zone 1 is high-away and Zone 3 is high-inside; left-handed hitters remain horizontally mirrored through 1↔3, 4↔6, 7↔9. HR geometry and inside/pull boosts now follow zones 3/6/9. -->
 <!-- V12.5.27 EDGE RESCALE / NO ZONE MINIMUM: HR probability curve is recalibrated so BBI 75 = 33%; displayed Edge is raw model probability minus sportsbook implied probability with no game-average adjustment; every positive-pitch Attack Zone family/zone cell can qualify, with sample size still visible for interpretation. -->
+<!-- V12.5.28 PITCHER14 RECENT VULNERABILITY: starter Pitcher Vulnerability is now 70% existing season/matchup score and 30% Pitcher14 recent-contact score. Pitcher14 uses Barrel% 30%, EV90 20%, HardHit% 20%, maxEV 15%, LA 10%, and xERA 5%; Events controls confidence only, reaching full recent weight at 18 events. ERA and IP are not scored. Existing 6-inning starter / 3-inning bullpen blending remains intact. -->
 <!-- V12.5.26 ZONE ANALYTICS SIMPLIFICATION: Bucket Analytics renamed Zone Analytics; UI now tracks only unified Attack Zone score results in five-point bands 1-5 through 51-55. Pitcher, Pitch Lab, confluence, threshold, and diamond research panels are no longer rendered. Model scoring is unchanged. -->
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -9564,7 +9565,7 @@ let kProjections = [];
 let pitchLabData = [];
 let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = [];
 let pitcherTeamMap = {};
-const STAT_MODEL_SHEETS = ["WEATHER", "BARRELL", "SS", "SCASTL", "SCASTR", "PAL", "PAR", "RHPBB", "LHPBB", "ISO", "ISOR", "ISOL", "ISOX", "PXHR", "PITCHERBB", "PSS", "PITCHMAX", "PITCHER", "PITCHERR", "PITCHERL", "PITCHERFB", "PITCHERBBL", "PITCHERBBR", "LASTST", "BULLPEN", "BULLPENEV", "BULLPENL7", "BULLPENEVL7", "LINEUPS", "PA", "PARKFACTOR", "PARKFACTORL", "PARKFACTORR", "RZ", "BZ1", "BZ2", "BZ3", "BZ4", "BZ5", "BZ6", "BZ7", "BZ8", "BZ9", "PZ1", "PZ2", "PZ3", "PZ4", "PZ5", "PZ6", "PZ7", "PZ8", "PZ9", "BZ1FB", "BZ2FB", "BZ3FB", "BZ4FB", "BZ5FB", "BZ6FB", "BZ7FB", "BZ8FB", "BZ9FB", "PZ1FB", "PZ2FB", "PZ3FB", "PZ4FB", "PZ5FB", "PZ6FB", "PZ7FB", "PZ8FB", "PZ9FB", "BZ1BB", "BZ2BB", "BZ3BB", "BZ4BB", "BZ5BB", "BZ6BB", "BZ7BB", "BZ8BB", "BZ9BB", "PZ1BB", "PZ2BB", "PZ3BB", "PZ4BB", "PZ5BB", "PZ6BB", "PZ7BB", "PZ8BB", "PZ9BB", "BZ1BR", "BZ2BR", "BZ3BR", "BZ4BR", "BZ5BR", "BZ6BR", "BZ7BR", "BZ8BR", "BZ9BR", "PZ1BR", "PZ2BR", "PZ3BR", "PZ4BR", "PZ5BR", "PZ6BR", "PZ7BR", "PZ8BR", "PZ9BR", "BZ1OS", "BZ2OS", "BZ3OS", "BZ4OS", "BZ5OS", "BZ6OS", "BZ7OS", "BZ8OS", "BZ9OS", "PZ1OS", "PZ2OS", "PZ3OS", "PZ4OS", "PZ5OS", "PZ6OS", "PZ7OS", "PZ8OS", "PZ9OS"];
+const STAT_MODEL_SHEETS = ["WEATHER", "PITCHER14", "BARRELL", "SS", "SCASTL", "SCASTR", "PAL", "PAR", "RHPBB", "LHPBB", "ISO", "ISOR", "ISOL", "ISOX", "PXHR", "PITCHERBB", "PSS", "PITCHMAX", "PITCHER", "PITCHERR", "PITCHERL", "PITCHERFB", "PITCHERBBL", "PITCHERBBR", "LASTST", "BULLPEN", "BULLPENEV", "BULLPENL7", "BULLPENEVL7", "LINEUPS", "PA", "PARKFACTOR", "PARKFACTORL", "PARKFACTORR", "RZ", "BZ1", "BZ2", "BZ3", "BZ4", "BZ5", "BZ6", "BZ7", "BZ8", "BZ9", "PZ1", "PZ2", "PZ3", "PZ4", "PZ5", "PZ6", "PZ7", "PZ8", "PZ9", "BZ1FB", "BZ2FB", "BZ3FB", "BZ4FB", "BZ5FB", "BZ6FB", "BZ7FB", "BZ8FB", "BZ9FB", "PZ1FB", "PZ2FB", "PZ3FB", "PZ4FB", "PZ5FB", "PZ6FB", "PZ7FB", "PZ8FB", "PZ9FB", "BZ1BB", "BZ2BB", "BZ3BB", "BZ4BB", "BZ5BB", "BZ6BB", "BZ7BB", "BZ8BB", "BZ9BB", "PZ1BB", "PZ2BB", "PZ3BB", "PZ4BB", "PZ5BB", "PZ6BB", "PZ7BB", "PZ8BB", "PZ9BB", "BZ1BR", "BZ2BR", "BZ3BR", "BZ4BR", "BZ5BR", "BZ6BR", "BZ7BR", "BZ8BR", "BZ9BR", "PZ1BR", "PZ2BR", "PZ3BR", "PZ4BR", "PZ5BR", "PZ6BR", "PZ7BR", "PZ8BR", "PZ9BR", "BZ1OS", "BZ2OS", "BZ3OS", "BZ4OS", "BZ5OS", "BZ6OS", "BZ7OS", "BZ8OS", "BZ9OS", "PZ1OS", "PZ2OS", "PZ3OS", "PZ4OS", "PZ5OS", "PZ6OS", "PZ7OS", "PZ8OS", "PZ9OS"];
 function normalizedKey(k) { return String(k || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function lookupStat(sheetKey, name) { return lookupNameMap(statSheetMaps[String(sheetKey || '').toUpperCase()] || {}, name) || {}; }
 function findByTeam(sheetKey, team) {
@@ -15817,6 +15818,7 @@ function hybridRaw(p) {
   const pssRow = lookupStat('PSS', pitcherName);
   const pitchMaxRow = lookupStat('PITCHMAX', pitcherName);
   const pitcherOverallRow = lookupStat('PITCHER', pitcherName);
+  const pitcher14Row = lookupStat('PITCHER14', pitcherName);
   const pitcherSplitRow = lookupStat(matchupHitterSide === 'L' ? 'PITCHERL' : 'PITCHERR', pitcherName);
   const pitcherBBSplitRow = lookupStat(matchupHitterSide === 'L' ? 'PITCHERBBL' : 'PITCHERBBR', pitcherName);
   const pitcherFBRow = lookupStat('PITCHERFB', pitcherName);
@@ -15942,6 +15944,14 @@ function hybridRaw(p) {
     pitcherSweet: firstRate(safeGet(pssRow, 'LA SwSp%', 'Sweet Spot %'), safeGet(p, 'Pitcher Sweet Spot %', 'P Sweet Spot %', 'Pitcher Sweet Spot')),
     pitcherFBLD: firstRate(safeGet(pssRow, 'FB/LD'), safeGet(pitchMaxRow, 'FB/LD')),
     pitcherXERA: firstNumber(safeGet(pitcherBBRow, 'xERA'), safeGet(pitcherOverallRow, 'xERA'), safeGet(pitcherSplitRow, 'xERA')),
+    pitcher14Events: firstNumber(safeGet(pitcher14Row, 'Events', 'events', 'BBE', 'Batted Ball Events')),
+    pitcher14IP: firstNumber(safeGet(pitcher14Row, 'IP', 'Innings Pitched')),
+    pitcher14Barrel: firstRate(safeGet(pitcher14Row, 'Barrel%', 'Barrel %', 'Brl%')),
+    pitcher14EV90: firstNumber(safeGet(pitcher14Row, 'EV90', 'EV 90', '90th EV')),
+    pitcher14HardHit: firstRate(safeGet(pitcher14Row, 'HardHit%', 'Hard Hit %', 'HardHit')),
+    pitcher14MaxEV: firstNumber(safeGet(pitcher14Row, 'maxEV', 'Max EV', 'MaxEV')),
+    pitcher14LA: firstNumber(safeGet(pitcher14Row, 'LA', 'Launch Angle', 'Avg LA')),
+    pitcher14XERA: firstNumber(safeGet(pitcher14Row, 'xERA', 'XERA')),
     pitcherStuff: firstNumber(safeGet(stuffMap[pitcherNorm] || {}, 'Stuff+', 'Stuff'), safeGet(stuffMap[pitcherNorm] || {}, 'Pitching+')),
     armAngle: firstNumber(safeGet(rzRow, 'Arm Angle', 'ArmAngle', 'RZ')),
     flyBall: firstRate(safeGet(pulledRow, 'FB %', 'FB%'), safeGet(bbHandRow, 'FB%', 'FB %'), safeGet(p, 'Fly Ball Rate', 'FB%', 'Fly Ball %')),
@@ -16769,11 +16779,37 @@ function scoreHybridPlayer(p, ranges) {
     { value: hybridMatchPair(hybridScoreMetric(r,ranges,'flyBall'), hybridScoreMetric(r,ranges,'pitcherFB')), weight: 0.15 }
   ]);
   // Reconnected hitter/pitcher intersections: 50% pitcher metrics, 30% contact match, 20% air match.
-  const starterPitcherVulnerability = hybridWeightedAvg([
+  const seasonStarterPitcherVulnerability = hybridWeightedAvg([
     { value: pitcherMetricBase, weight: 0.50 },
     { value: hitterPitcherContactMatch, weight: 0.30 },
     { value: hitterPitcherAirMatch, weight: 0.20 }
   ]);
+  // V12.5.28 Pitcher14 recent vulnerability. ERA and IP are deliberately not scored.
+  // Events controls confidence only: 18+ events earns the full 30% recent share;
+  // smaller samples regress the recent score back toward the existing season score.
+  const pitcher14Score = hybridWeightedAvg([
+    { value: hybridScoreMetric({ pitcherBarrel:r.pitcher14Barrel }, ranges, 'pitcherBarrel'), weight: 0.30 },
+    { value: hybridScoreMetric({ pitcherEV90:r.pitcher14EV90 }, ranges, 'pitcherEV90'), weight: 0.20 },
+    { value: hybridScoreMetric({ pitcherHardHit:r.pitcher14HardHit }, ranges, 'pitcherHardHit'), weight: 0.20 },
+    { value: hybridScoreMetric({ pitcherMaxEV:r.pitcher14MaxEV }, ranges, 'pitcherMaxEV'), weight: 0.15 },
+    { value: (r.pitcher14LA !== null && r.pitcher14LA !== undefined && !isNaN(r.pitcher14LA)) ? hybridNeutralScore(hybridSweetSpotLaunchAngle(r.pitcher14LA)) : null, weight: 0.10 },
+    { value: hybridScoreMetric({ pitcherXERA:r.pitcher14XERA }, ranges, 'pitcherXERA'), weight: 0.05 }
+  ]);
+  const pitcher14Events = Math.max(0, Number(r.pitcher14Events) || 0);
+  const pitcher14Confidence = Math.max(0, Math.min(1, pitcher14Events / 18));
+  const hasSeasonStarter = Number.isFinite(Number(seasonStarterPitcherVulnerability));
+  const hasPitcher14 = Number.isFinite(Number(pitcher14Score));
+  const confidenceAdjustedPitcher14 = hasSeasonStarter && hasPitcher14
+    ? (Number(pitcher14Score) * pitcher14Confidence) + (Number(seasonStarterPitcherVulnerability) * (1 - pitcher14Confidence))
+    : (hasPitcher14 ? Number(pitcher14Score) : null);
+  const starterPitcherVulnerability = hasSeasonStarter && Number.isFinite(Number(confidenceAdjustedPitcher14))
+    ? (Number(seasonStarterPitcherVulnerability) * 0.70) + (Number(confidenceAdjustedPitcher14) * 0.30)
+    : (hasSeasonStarter ? Number(seasonStarterPitcherVulnerability) : confidenceAdjustedPitcher14);
+  p.seasonStarterPitcherVulnerability = seasonStarterPitcherVulnerability;
+  p.pitcher14Vulnerability = pitcher14Score;
+  p.pitcher14Events = pitcher14Events;
+  p.pitcher14Confidence = pitcher14Confidence;
+  p.pitcher14EffectiveWeight = 0.30 * pitcher14Confidence;
   // V12.5.23 fixed game-share blend: six innings from the starter, three from the bullpen.
   // Bullpen inputs come from the existing Bullpen and BullpenEV workbook sheets.
   const bullpenVulnerability = hybridAvg([
