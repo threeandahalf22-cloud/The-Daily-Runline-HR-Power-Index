@@ -14363,6 +14363,8 @@ function attackZoneHandednessFactor(logicalZone, batSide, bucket='GENERIC') {
 function attackZoneHRGeometryMultiplier(logicalZone, bucket='GENERIC') {
   const z=Number(logicalZone);
   const family=String(bucket||'GENERIC').toUpperCase();
+  // Fastball-specific HR calibration: logical Zone 3 is high-inside after handedness conversion.
+  if (family==='FB' && z===3) return 0.95;
   // High, floating BR/OS mistakes in either high corner retain full HR danger.
   if ((family==='BR' || family==='OS') && (z===1 || z===3)) return 1.15;
   return Number(ATTACK_ZONE_LOGICAL_HR_MULTIPLIER[z]) || 1.00;
