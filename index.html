@@ -2,6 +2,8 @@
 
 <html lang="en">
 <head>
+<!-- V12.5.34 APPROVED MAP LAYOUT: isolated physical map UI matching approved mockup; 1-9 boxed in red, 11/12/13 above, 14 left, 16 right; scoring/data unchanged. -->
+
 <!-- V12.5.19 ATTACK-ZONE STRUCTURAL REFACTOR: batter-relative HR geometry updated; BR/OS high-corner mistake geometry overrides added; family mistake/hang zones realigned; BR middle-third partial mistake weighting added; negative zone edges now retain a 25% penalty; logical orientation is corrected so zones 1/4/7 are away and zones 3/6/9 are inside after handedness conversion. -->
 <!-- V12.5.24 ZONE ORIENTATION FIX: for a right-handed hitter, Zone 1 is high-away and Zone 3 is high-inside; left-handed hitters remain horizontally mirrored through 1↔3, 4↔6, 7↔9. HR geometry and inside/pull boosts now follow zones 3/6/9. -->
 <!-- V12.5.27 EDGE RESCALE / NO ZONE MINIMUM: HR probability curve is recalibrated so BBI 75 = 33%; displayed Edge is raw model probability minus sportsbook implied probability with no game-average adjustment; every positive-pitch Attack Zone family/zone cell can qualify, with sample size still visible for interpretation. -->
@@ -24,7 +26,9 @@
 <!-- V12.5.6 ZONE MATCHUP FIX: final zoneMatch now uses full edge; volatility is usage/coverage weighted and 50/50 mistake-hang; missing hitter BZ uses baseline; family coverage is retained; pitch percent and pitch-mix parsing fixed; map and final score aligned. -->
 <!-- V12.5.5: Added pitch movement damage and velocity-band damage multipliers to Attack Zone using workbook CSV columns; existing FB/BR/OS zone logic remains unchanged. -->
 <!-- V12.5.3 MATCHUP REBALANCE: Power 25%, Opportunity 20%, Batted Ball 15%, Pitcher Vulnerability 10%, Attack Zone 25%, Pitch Lab 0%, Weather 3%, Park 2%, BvP 0%. Attack Zone preserves all existing qualification, regression, pitcher-vulnerability, pitch-family usage, mistake-zone, and hang-zone logic. New scaling: RawPowerFactor = 0.6 + (0.008 * RawPower); MatchScore = 100 * TotalPitchTypeMatch; VolatilityFactor = 1 + (1.5 * Volatility); AttackZoneHRProb = RawPowerFactor * VolatilityFactor * MatchScore, clamped to 0-100 for the category score. -->
+<!-- V12.5.34 SHADOW ZONES 11/12/13/14/16: expands the fixed physical HR Attack Map and pitcher-only map with five shadow locations using new BZ/PZ FB/BB/OS sheets. Core Zones 1-9 remain unchanged. Shadow location contribution is 0.50, handedness geometry favors 11/14 for LHH and 13/16 for RHH, Zone 12 neutral; existing family qualification/regression, mistake/hang, movement, velocity, Raw Power, and final Attack Zone scoring order are preserved. -->
 <!-- V12.5.33 PITCHER ATTACK MAP: added a pitcher-only HR Attack Map mirror with unique starter cards, MLB headshot/ID, Weighted/FB/BR/OS views, overall and zone-specific pitcher-damage sorting, usage/HR/EV sorting, and pitcher-only zone detail modal. Display/research only; scoring unchanged. -->
+<!-- V12.5.34 ATTACK MAP PHYSICAL UI: Zones 1-9 are now presented inside a dedicated red strike-zone frame; Zones 11/12/13/14/16 remain fixed shadow cells around the core. Shadow scoring stays at 0.50. Scoring order/formulas are unchanged. -->
 <!-- V12.5.32 FIXED PHYSICAL ZONES: BZ/PZ rows now remain in their original physical Zone 1-9 cells for every hitter. Batter handedness changes only the batter-relative interpretation used by HR geometry, pull/inside boosts, and mistake/hang logic. Pitcher vulnerability maps no longer mirror for LHH. Cached edge recalculation now reapplies handedness and HR-geometry factors. -->
 <!-- V12.5.31 POWER WINDOW REWEIGHT: every four-window hitter-power blend now uses Season 40%, Last 30 Days 30%, Last 14 Days 15%, and Last 7 Days 15%. The 7-day share still scales linearly by PA and reaches its full 15% at 8+ PA; unused 7-day weight is redistributed proportionally across Season/30/14. -->
 <!-- V12.5.0 GAME-ADJUSTED EDGE: one displayed Edge number. Raw edge = Model HR Probability - Implied Probability. Final Edge = Raw Edge - (50% of the average Raw Edge among all priced hitters in that game). This reduces game-wide green/red bias without forcing every game to average exactly zero. -->
@@ -8736,6 +8740,54 @@ tbody tr{contain:layout paint style;}
 #teamEdgeGames .bet-result-btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;pointer-events:auto!important;touch-action:manipulation!important;user-select:none!important;position:relative!important;z-index:2147482001!important;}
 #teamEdgeGames .team-edge-meter{pointer-events:none!important;}
 </style>
+
+<style id="attack-zone-shadow-v12-5-34-style">
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-grid{
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  grid-template-areas:
+    ". z11 z12 z13 ."
+    "z14 z1 z2 z3 z16"
+    ". z4 z5 z6 ."
+    ". z7 z8 z9 ." !important;
+  align-items:stretch;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z1{grid-area:z1}.zone-z2{grid-area:z2}.zone-z3{grid-area:z3}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z4{grid-area:z4}.zone-z5{grid-area:z5}.zone-z6{grid-area:z6}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z7{grid-area:z7}.zone-z8{grid-area:z8}.zone-z9{grid-area:z9}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z11{grid-area:z11}.zone-z12{grid-area:z12}.zone-z13{grid-area:z13}.zone-z14{grid-area:z14}.zone-z16{grid-area:z16}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z11,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z12,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z13,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z14,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z16{
+  min-height:88px !important;
+  opacity:.92;
+  border-style:dashed !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z1,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z2,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z3,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z4,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z5,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z6,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z7,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z8,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z9{ min-height:116px !important; }
+@media(max-width:760px){
+ :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-grid{gap:4px !important;padding:4px !important;}
+ :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-cell{min-height:68px !important;padding:5px !important;}
+ :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z11,
+ :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z12,
+ :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z13,
+ :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z14,
+ :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-z16{min-height:58px !important;}
+}
+</style>
+
+
+
+
+
 </head>
 <body class="drl-splash-active">
 <div aria-label="Loading live workbook" aria-live="polite" id="drlWorkbookSplash" role="status">
@@ -9098,7 +9150,7 @@ tbody tr{contain:layout paint style;}
 <div>
 <div class="zone-kicker">🎯 Zone Profile</div>
 <div class="zone-title">Batter Damage + Pitcher Tendencies</div>
-<div class="zone-sub">Every hitter gets a 3x3 attack-zone heat map. Red means the hitter/pitcher collision is dangerous for a homer. Blue means the zone is weaker or safer. The pitcher map shows where the opposing starter is vulnerable and how often he lives there.</div>
+<div class="zone-sub">Every hitter gets the fixed core 3x3 attack-zone heat map plus shadow Zones 11/12/13/14/16. Red means the hitter/pitcher collision is dangerous for a homer. Blue means the zone is weaker or safer. The pitcher map shows where the opposing starter is vulnerable and how often he lives there.</div>
 </div>
 <div class="zone-legend">
 <span class="zone-legend-pill good"><i></i>Hot / Attack</span>
@@ -9115,13 +9167,13 @@ tbody tr{contain:layout paint style;}
 <div class="filter-group"><label>Team</label><select class="select-input-sm" id="zoneTeamFilter" onchange="renderZoneProfileTab()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
 <div class="filter-group"><label>Pitcher</label><select class="select-input-sm" id="zonePitcherFilter" onchange="renderZoneProfileTab()" style="width:190px;"><option value="ALL">All Pitchers</option></select></div>
 <div class="filter-group"><label>Sort</label><select class="select-input-sm" id="zoneSortFilter" onchange="renderZoneProfileTab()" style="width:170px;"><option value="RANK">Model Rank</option><option value="ZONE">Zone Score</option><option value="TOPEDGE">Best Zone Edge</option><option value="USAGE">Pitcher Usage</option><option value="ALPHA">Player A-Z</option></select></div>
-<div class="filter-group"><label>Zone Damage Sort</label><select aria-label="Sort HR Attack Map by hitter zone damage" class="select-input-sm home-zone-sort-select" id="zoneDamageSortSelect" onchange="setZoneDamageSort(this.value)" style="width:170px;"><option value="">Off</option><option value="1">Zone 1</option><option value="2">Zone 2</option><option value="3">Zone 3</option><option value="4">Zone 4</option><option value="5">Zone 5</option><option value="6">Zone 6</option><option value="7">Zone 7</option><option value="8">Zone 8</option><option value="9">Zone 9</option></select></div>
+<div class="filter-group"><label>Zone Damage Sort</label><select aria-label="Sort HR Attack Map by hitter zone damage" class="select-input-sm home-zone-sort-select" id="zoneDamageSortSelect" onchange="setZoneDamageSort(this.value)" style="width:170px;"><option value="">Off</option><option value="1">Zone 1</option><option value="2">Zone 2</option><option value="3">Zone 3</option><option value="4">Zone 4</option><option value="5">Zone 5</option><option value="6">Zone 6</option><option value="7">Zone 7</option><option value="8">Zone 8</option><option value="9">Zone 9</option><option value="11">Zone 11</option><option value="12">Zone 12</option><option value="13">Zone 13</option><option value="14">Zone 14</option><option value="16">Zone 16</option></select></div>
 <div class="filter-group"><label>Zone View</label><div class="zone-view-toggle"><button class="zone-view-btn active" data-zone-view="WEIGHTED" onclick="setZoneProfileView('WEIGHTED')" type="button">Weighted</button><button class="zone-view-btn" data-zone-view="FB" onclick="setZoneProfileView('FB')" type="button">Fastball</button><button class="zone-view-btn" data-zone-view="BR" onclick="setZoneProfileView('BR')" type="button">Breaking</button><button class="zone-view-btn" data-zone-view="OS" onclick="setZoneProfileView('OS')" type="button">Offspeed</button></div></div>
 </div>
 <div class="zone-summary-pill" id="zoneSummaryPill">Players: <b>0</b></div>
 </div>
 </div>
-<div class="zone-card-grid" id="zoneProfileGrid"><div class="zone-empty">Upload workbook with BZ1-BZ9 and PZ1-PZ9 sheets to load zone profiles...</div></div>
+<div class="zone-card-grid" id="zoneProfileGrid"><div class="zone-empty">Upload workbook with BZ/PZ Zones 1-9 plus shadow Zones 11/12/13/14/16 to load zone profiles...</div></div>
 <div style="display:flex;justify-content:center;margin:22px 0 4px;">
 <button class="btn-blue" onclick="exportZoneScoresToExcel()" style="width:auto;min-width:240px;" type="button">Export Player Zone Scores</button>
 </div>
@@ -9135,7 +9187,7 @@ tbody tr{contain:layout paint style;}
 <div>
 <div class="zone-kicker">🔥 Pitcher Attack Map</div>
 <div class="zone-title">Pitcher Damage + Zone Tendencies</div>
-<div class="zone-sub">The same 3x3 physical-zone board as HR Attack Map, using only opposing-pitcher PZ data. Red means the pitcher is more vulnerable to HR damage in that zone; blue means safer. No hitter damage or hitter matchup score is used on this page.</div>
+<div class="zone-sub">The same fixed physical-zone board as HR Attack Map, including shadow Zones 11/12/13/14/16, using only opposing-pitcher PZ data. Red means the pitcher is more vulnerable to HR damage in that zone; blue means safer. No hitter damage or hitter matchup score is used on this page.</div>
 </div>
 <div class="zone-legend"><span class="zone-legend-pill good"><i></i>High Damage</span><span class="zone-legend-pill mid"><i></i>Neutral</span><span class="zone-legend-pill bad"><i></i>Low Damage</span></div>
 </div>
@@ -9146,14 +9198,14 @@ tbody tr{contain:layout paint style;}
 <div class="zone-tools-left">
 <div class="filter-group"><label>Search Pitcher / ID</label><input class="search-input" id="pitcherAttackSearch" oninput="renderPitcherAttackMapTab()" placeholder="Pitcher name or MLB ID..." type="text"/></div>
 <div class="filter-group"><label>Team</label><select class="select-input-sm" id="pitcherAttackTeam" onchange="renderPitcherAttackMapTab()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
-<div class="filter-group"><label>Sort</label><select class="select-input-sm" id="pitcherAttackSort" onchange="renderPitcherAttackMapTab()" style="width:190px;"><option value="DAMAGE">Pitcher Damage</option><option value="TOPZONE">Top Zone Damage</option><option value="USAGE">Top Zone Usage</option><option value="HR">HR Allowed</option><option value="EV">EV Allowed</option><option value="ALPHA">Pitcher A-Z</option></select></div>
-<div class="filter-group"><label>Zone Damage Sort</label><select class="select-input-sm" id="pitcherAttackZoneSort" onchange="setPitcherAttackZoneSort(this.value)" style="width:170px;"><option value="">Off</option><option value="1">Zone 1</option><option value="2">Zone 2</option><option value="3">Zone 3</option><option value="4">Zone 4</option><option value="5">Zone 5</option><option value="6">Zone 6</option><option value="7">Zone 7</option><option value="8">Zone 8</option><option value="9">Zone 9</option></select></div>
+<div class="filter-group"><label>Sort</label><select class="select-input-sm" id="pitcherAttackSort" onchange="renderPitcherAttackMapTab()" style="width:190px;"><option value="DAMAGE">Pitcher Damage</option><option value="TOPZONE">Top Zone Damage</option><option value="SHADOW">Overall Shadow Damage</option><option value="USAGE">Top Zone Usage</option><option value="HR">HR Allowed</option><option value="EV">EV Allowed</option><option value="ALPHA">Pitcher A-Z</option></select></div>
+<div class="filter-group"><label>Zone Damage Sort</label><select class="select-input-sm" id="pitcherAttackZoneSort" onchange="setPitcherAttackZoneSort(this.value)" style="width:170px;"><option value="">Off</option><option value="1">Zone 1</option><option value="2">Zone 2</option><option value="3">Zone 3</option><option value="4">Zone 4</option><option value="5">Zone 5</option><option value="6">Zone 6</option><option value="7">Zone 7</option><option value="8">Zone 8</option><option value="9">Zone 9</option><option value="11">Zone 11</option><option value="12">Zone 12</option><option value="13">Zone 13</option><option value="14">Zone 14</option><option value="16">Zone 16</option></select></div>
 <div class="filter-group"><label>Zone View</label><div class="zone-view-toggle"><button class="zone-view-btn pitcher-zone-view-btn active" data-pitcher-zone-view="WEIGHTED" onclick="setPitcherAttackView('WEIGHTED')" type="button">Weighted</button><button class="zone-view-btn pitcher-zone-view-btn" data-pitcher-zone-view="FB" onclick="setPitcherAttackView('FB')" type="button">Fastball</button><button class="zone-view-btn pitcher-zone-view-btn" data-pitcher-zone-view="BR" onclick="setPitcherAttackView('BR')" type="button">Breaking</button><button class="zone-view-btn pitcher-zone-view-btn" data-pitcher-zone-view="OS" onclick="setPitcherAttackView('OS')" type="button">Offspeed</button></div></div>
 </div>
 <div class="zone-summary-pill" id="pitcherAttackSummary">Pitchers: <b>0</b></div>
 </div>
 </div>
-<div class="zone-card-grid" id="pitcherAttackGrid"><div class="zone-empty">Upload workbook with PZ1-PZ9 pitcher zone sheets to load Pitcher Attack Map...</div></div>
+<div class="zone-card-grid" id="pitcherAttackGrid"><div class="zone-empty">Upload workbook with PZ Zones 1-9 plus shadow Zones 11/12/13/14/16 to load Pitcher Attack Map...</div></div>
 </div>
 </div>
 <div class="zone-modal-overlay" id="zoneProfileModal" onclick="if(event.target===this) closeZoneProfileModal()">
@@ -9598,7 +9650,7 @@ let kProjections = [];
 let pitchLabData = [];
 let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = [];
 let pitcherTeamMap = {};
-const STAT_MODEL_SHEETS = ["WEATHER", "PITCHER14", "BARRELL", "SS", "SCASTL", "SCASTR", "PAL", "PAR", "RHPBB", "LHPBB", "ISO", "ISOR", "ISOL", "ISOX", "PXHR", "PITCHERBB", "PSS", "PITCHMAX", "PITCHER", "PITCHERR", "PITCHERL", "PITCHERFB", "PITCHERBBL", "PITCHERBBR", "LASTST", "BULLPEN", "BULLPENEV", "BULLPENL7", "BULLPENEVL7", "LINEUPS", "PA", "PARKFACTOR", "PARKFACTORL", "PARKFACTORR", "RZ", "BZ1", "BZ2", "BZ3", "BZ4", "BZ5", "BZ6", "BZ7", "BZ8", "BZ9", "PZ1", "PZ2", "PZ3", "PZ4", "PZ5", "PZ6", "PZ7", "PZ8", "PZ9", "BZ1FB", "BZ2FB", "BZ3FB", "BZ4FB", "BZ5FB", "BZ6FB", "BZ7FB", "BZ8FB", "BZ9FB", "PZ1FB", "PZ2FB", "PZ3FB", "PZ4FB", "PZ5FB", "PZ6FB", "PZ7FB", "PZ8FB", "PZ9FB", "BZ1BB", "BZ2BB", "BZ3BB", "BZ4BB", "BZ5BB", "BZ6BB", "BZ7BB", "BZ8BB", "BZ9BB", "PZ1BB", "PZ2BB", "PZ3BB", "PZ4BB", "PZ5BB", "PZ6BB", "PZ7BB", "PZ8BB", "PZ9BB", "BZ1BR", "BZ2BR", "BZ3BR", "BZ4BR", "BZ5BR", "BZ6BR", "BZ7BR", "BZ8BR", "BZ9BR", "PZ1BR", "PZ2BR", "PZ3BR", "PZ4BR", "PZ5BR", "PZ6BR", "PZ7BR", "PZ8BR", "PZ9BR", "BZ1OS", "BZ2OS", "BZ3OS", "BZ4OS", "BZ5OS", "BZ6OS", "BZ7OS", "BZ8OS", "BZ9OS", "PZ1OS", "PZ2OS", "PZ3OS", "PZ4OS", "PZ5OS", "PZ6OS", "PZ7OS", "PZ8OS", "PZ9OS"];
+const STAT_MODEL_SHEETS = ["WEATHER", "PITCHER14", "BARRELL", "SS", "SCASTL", "SCASTR", "PAL", "PAR", "RHPBB", "LHPBB", "ISO", "ISOR", "ISOL", "ISOX", "PXHR", "PITCHERBB", "PSS", "PITCHMAX", "PITCHER", "PITCHERR", "PITCHERL", "PITCHERFB", "PITCHERBBL", "PITCHERBBR", "LASTST", "BULLPEN", "BULLPENEV", "BULLPENL7", "BULLPENEVL7", "LINEUPS", "PA", "PARKFACTOR", "PARKFACTORL", "PARKFACTORR", "RZ", "BZ1", "BZ2", "BZ3", "BZ4", "BZ5", "BZ6", "BZ7", "BZ8", "BZ9", "PZ1", "PZ2", "PZ3", "PZ4", "PZ5", "PZ6", "PZ7", "PZ8", "PZ9", "BZ1FB", "BZ2FB", "BZ3FB", "BZ4FB", "BZ5FB", "BZ6FB", "BZ7FB", "BZ8FB", "BZ9FB", "PZ1FB", "PZ2FB", "PZ3FB", "PZ4FB", "PZ5FB", "PZ6FB", "PZ7FB", "PZ8FB", "PZ9FB", "BZ1BB", "BZ2BB", "BZ3BB", "BZ4BB", "BZ5BB", "BZ6BB", "BZ7BB", "BZ8BB", "BZ9BB", "PZ1BB", "PZ2BB", "PZ3BB", "PZ4BB", "PZ5BB", "PZ6BB", "PZ7BB", "PZ8BB", "PZ9BB", "BZ1BR", "BZ2BR", "BZ3BR", "BZ4BR", "BZ5BR", "BZ6BR", "BZ7BR", "BZ8BR", "BZ9BR", "PZ1BR", "PZ2BR", "PZ3BR", "PZ4BR", "PZ5BR", "PZ6BR", "PZ7BR", "PZ8BR", "PZ9BR", "BZ1OS", "BZ2OS", "BZ3OS", "BZ4OS", "BZ5OS", "BZ6OS", "BZ7OS", "BZ8OS", "BZ9OS", "PZ1OS", "PZ2OS", "PZ3OS", "PZ4OS", "PZ5OS", "PZ6OS", "PZ7OS", "PZ8OS", "PZ9OS", "BZ11FB", "BZ12FB", "BZ13FB", "BZ14FB", "BZ16FB", "BZ11BB", "BZ12BB", "BZ13BB", "BZ14BB", "BZ16BB", "BZ11BR", "BZ12BR", "BZ13BR", "BZ14BR", "BZ16BR", "BZ11OS", "BZ12OS", "BZ13OS", "BZ14OS", "BZ16OS", "PZ11FB", "PZ12FB", "PZ13FB", "PZ14FB", "PZ16FB", "PZ11BB", "PZ12BB", "PZ13BB", "PZ14BB", "PZ16BB", "PZ11BR", "PZ12BR", "PZ13BR", "PZ14BR", "PZ16BR", "PZ11OS", "PZ12OS", "PZ13OS", "PZ14OS", "PZ16OS"];
 function normalizedKey(k) { return String(k || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function lookupStat(sheetKey, name) { return lookupNameMap(statSheetMaps[String(sheetKey || '').toUpperCase()] || {}, name) || {}; }
 function findByTeam(sheetKey, team) {
@@ -14070,6 +14122,19 @@ function zoneMergeDisplayStatsFromPieces(pieces, statKey, preferredStats) {
   });
   return out;
 }
+function zoneSumCountStatFromPieces(pieces, statKey, field) {
+  let total = 0;
+  let found = false;
+  for (const piece of (pieces || [])) {
+    const stats = piece && piece.z && piece.z[statKey] ? piece.z[statKey] : {};
+    const value = Number(stats[field]);
+    if (Number.isFinite(value)) {
+      total += value;
+      found = true;
+    }
+  }
+  return found ? total : null;
+}
 function zoneNameFallbackRow(sheetKey, name) {
   return lookupStat(sheetKey, name) || {};
 }
@@ -14262,7 +14327,7 @@ function zonePitchBucketMix(player) {
 }
 function canonicalZoneSheetKey(sheetKey) {
   const raw = String(sheetKey || '').toUpperCase();
-  const m = raw.match(/^(BPZ|BZ|PZ)([1-9])(.*)$/);
+  const m = raw.match(/^(BPZ|BZ|PZ)(11|12|13|14|16|[1-9])(.*)$/);
   if (!m) return raw;
   let suf = String(m[3] || '').toUpperCase();
   if (suf === 'BB' || suf === 'BREAKING' || suf === 'BK') suf = 'BR';
@@ -14272,7 +14337,7 @@ function canonicalZoneSheetKey(sheetKey) {
 function zoneSheetHasData(sheetKey, name) {
   const key = canonicalZoneSheetKey(sheetKey);
   const candidates = [key];
-  const m = key.match(/^(BPZ|BZ|PZ)([1-9])(.*)$/);
+  const m = key.match(/^(BPZ|BZ|PZ)(11|12|13|14|16|[1-9])(.*)$/);
   if (m && m[3]) {
     const base = `${m[1]}${m[2]}`;
     if (m[3] === 'BR') candidates.push(base + 'BB', base + 'BREAKING', base + 'BK');
@@ -14286,8 +14351,13 @@ function zoneSheetHasData(sheetKey, name) {
 }
 const ATTACK_ZONE_STARTER_WEIGHT = 0.75;
 const ATTACK_ZONE_BULLPEN_WEIGHT = 0.25;
-// No fixed location bonus: actual opposing-pitcher usage supplies all location weighting.
-const ATTACK_ZONE_HR_MATRIX = Object.freeze({1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1});
+const ATTACK_ZONE_CORE_ZONES = Object.freeze([1,2,3,4,5,6,7,8,9]);
+const ATTACK_ZONE_SHADOW_ZONES = Object.freeze([11,12,13,14,16]);
+const ATTACK_ZONE_PHYSICAL_ZONES = Object.freeze([1,2,3,4,5,6,7,8,9,11,12,13,14,16]);
+const ATTACK_ZONE_DISPLAY_ORDER = Object.freeze([11,12,13,14,1,2,3,16,4,5,6,7,8,9]);
+const ATTACK_ZONE_SHADOW_LOCATION_WEIGHT = 0.50;
+// No fixed core-location bonus: actual opposing-pitcher usage supplies location weighting. Shadow zones are deliberately reduced.
+const ATTACK_ZONE_HR_MATRIX = Object.freeze({1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,11:0.5,12:0.5,13:0.5,14:0.5,16:0.5});
 function zoneSampleConfidence(batterStats, pitcherStats) {
   const b = drlZoneExposure(batterStats || {});
   const p = drlZoneExposure(pitcherStats || {});
@@ -14349,10 +14419,16 @@ function attackZonePhysicalIndex(zone, batSide) {
 }
 function attackZoneLogicalIndex(physicalZone, batSide) {
   const z = Number(physicalZone);
-  // RHH physical orientation already matches the model's logical geometry:
-  // 1/4/7 away and 3/6/9 inside. LHH interpretation mirrors horizontally.
+  // Physical cells never move. LHH interpretation mirrors horizontally, including shadow cells.
   if (String(batSide).toUpperCase() !== 'L') return z;
-  return ({1:3,2:2,3:1,4:6,5:5,6:4,7:9,8:8,9:7})[z] || z;
+  return ({1:3,2:2,3:1,4:6,5:5,6:4,7:9,8:8,9:7,11:13,12:12,13:11,14:16,16:14})[z] || z;
+}
+function attackZoneLogicalAnchorIndex(physicalZone, batSide) {
+  const logical = attackZoneLogicalIndex(physicalZone, batSide);
+  return ({11:1,12:2,13:3,14:4,16:6})[logical] || logical;
+}
+function attackZoneLocationContribution(physicalZone) {
+  return ATTACK_ZONE_SHADOW_ZONES.includes(Number(physicalZone)) ? ATTACK_ZONE_SHADOW_LOCATION_WEIGHT : 1.00;
 }
 function attackZoneZ(v, mean, sd) {
   const n=Number(v); return Number.isFinite(n) && Number.isFinite(sd) && sd>0 ? (n-mean)/sd : 0;
@@ -14390,6 +14466,13 @@ function attackZonePositiveFactor(z) {
 // Controlled handedness context layered onto the exact physical pitch-zone matchup.
 // Convert the fixed physical cell to a batter-relative logical cell only for scoring.
 function attackZoneHandednessFactor(physicalZone, batSide, bucket='GENERIC') {
+  const physical=Number(physicalZone);
+  const side=String(batSide).toUpperCase()==='L'?'L':'R';
+  if (ATTACK_ZONE_SHADOW_ZONES.includes(physical)) {
+    if (physical===12) return 1.00;
+    const favored = side==='L' ? [11,14] : [13,16];
+    return favored.includes(physical) ? 1.08 : 0.96;
+  }
   const z=attackZoneLogicalIndex(physicalZone, batSide);
   const family=String(bucket||'GENERIC').toUpperCase();
   const pullBoost = family==='FB' ? 1.08 : family==='BR' ? 1.05 : family==='OS' ? 1.03 : 1.05;
@@ -14398,13 +14481,16 @@ function attackZoneHandednessFactor(physicalZone, batSide, bucket='GENERIC') {
   return 1.00;
 }
 function attackZoneHRGeometryMultiplier(physicalZone, bucket='GENERIC', batSide='R') {
-  const z=attackZoneLogicalIndex(physicalZone, batSide);
+  const physical=Number(physicalZone);
+  const z=attackZoneLogicalAnchorIndex(physicalZone, batSide);
   const family=String(bucket||'GENERIC').toUpperCase();
+  let coreMultiplier;
   // Fastball-specific HR calibration: logical Zone 3 is high-inside after handedness conversion.
-  if (family==='FB' && z===3) return 0.95;
+  if (family==='FB' && z===3) coreMultiplier = 0.95;
   // High, floating BR/OS mistakes in either high corner retain full HR danger.
-  if ((family==='BR' || family==='OS') && (z===1 || z===3)) return 1.15;
-  return Number(ATTACK_ZONE_LOGICAL_HR_MULTIPLIER[z]) || 1.00;
+  else if ((family==='BR' || family==='OS') && (z===1 || z===3)) coreMultiplier = 1.15;
+  else coreMultiplier = Number(ATTACK_ZONE_LOGICAL_HR_MULTIPLIER[z]) || 1.00;
+  return coreMultiplier * attackZoneLocationContribution(physical);
 }
 function attackZonePitcherZoneQualified(stats) {
   const pitches=Number(stats&&stats.pitches);
@@ -14504,15 +14590,15 @@ function calculateAttackZoneBucketProfile(player, bucket, mixWeight) {
   // which previously caused the cell to fail qualification and render NO DATA.
   const pitcherRowsByPhysicalZone = {};
   let familyPitchCountTotal = 0;
-  for (let physicalZone = 1; physicalZone <= 9; physicalZone++) {
+  for (const physicalZone of ATTACK_ZONE_PHYSICAL_ZONES) {
     const row = zoneSheetHasData('PZ' + physicalZone + suffix, pitcherName);
     pitcherRowsByPhysicalZone[physicalZone] = row;
     const count = row ? zoneFirstNumber(row, ['pitches','Pitches','pitch_count','pitch_count_zone']) : null;
     if (Number.isFinite(Number(count)) && Number(count) > 0) familyPitchCountTotal += Number(count);
   }
 
-  for (let logicalZone = 1; logicalZone <= 9; logicalZone++) {
-    const physicalZone = attackZonePhysicalIndex(logicalZone,batSide);
+  for (const physicalZone of ATTACK_ZONE_PHYSICAL_ZONES) {
+    const logicalZone = physicalZone;
     const batterRelativeZone = attackZoneLogicalIndex(physicalZone, batSide);
     // Family views must use the exact family sheets only. Falling back to generic
     // BZ/PZ rows inside every family duplicates the same pitcher usage three times.
@@ -14700,13 +14786,20 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
     }
   }
 
-  for (let i=1;i<=9;i++) {
+  for (const i of ATTACK_ZONE_PHYSICAL_ZONES) {
     const pieces=cells.filter(c=>c.zone===i);
     if (!pieces.length) continue;
     const exposureTotal=pieces.reduce((sum,c)=>sum+c.exposure,0);
     const conditionalWeight=c=>exposureTotal>0?c.exposure/exposureTotal:1/pieces.length;
     const wavg=fn=>pieces.reduce((sum,c)=>sum+(Number(fn(c))||0)*conditionalWeight(c),0);
     const best=pieces.slice().sort((a,b)=>b.expectedValue-a.expectedValue)[0];
+    const displayPieces = pieces.map(c=>({bucket:c.bucket,z:c.source,w:conditionalWeight(c)}));
+    const mergedBatterStats = zoneMergeDisplayStatsFromPieces(displayPieces,'batterStats',best.batterStats);
+    const mergedPitcherStats = zoneMergeDisplayStatsFromPieces(displayPieces,'pitcherStats',best.pitcherStats);
+    const totalBatterHr = zoneSumCountStatFromPieces(displayPieces,'batterStats','hr');
+    const totalPitcherHr = zoneSumCountStatFromPieces(displayPieces,'pitcherStats','hr');
+    if (Number.isFinite(Number(totalBatterHr))) mergedBatterStats.hr = totalBatterHr;
+    if (Number.isFinite(Number(totalPitcherHr))) mergedPitcherStats.hr = totalPitcherHr;
     zones.push({
       zone:i,bucket:'WEIGHTED',bucketLabel:'Weighted All',
       bestBucket:best.bucket,bestBucketLabel:best.label,
@@ -14718,8 +14811,8 @@ function combineWeightedZoneProfiles(player, bucketProfiles, mix) {
       pitchFrequencyScore:attackZoneScaleScore('freq',exposureTotal||1/9),
       edge:wavg(c=>c.edge),hrSpecificEdge:wavg(c=>c.hrSpecificEdge ?? c.edge),weightedEdge:wavg(c=>c.edge),
       blastContribution:pieces.reduce((sum,c)=>sum+c.expectedValue,0),
-      batterStats:zoneMergeDisplayStatsFromPieces(pieces.map(c=>({bucket:c.bucket,z:c.source,w:conditionalWeight(c)})),'batterStats',best.batterStats),
-      pitcherStats:zoneMergeDisplayStatsFromPieces(pieces.map(c=>({bucket:c.bucket,z:c.source,w:conditionalWeight(c)})),'pitcherStats',best.pitcherStats),
+      batterStats:mergedBatterStats,
+      pitcherStats:mergedPitcherStats,
       bucketPieces:pieces.map(c=>({
         bucket:c.bucket,label:c.label,familyMix:c.familyMix,rawFamilyMix:c.rawFamilyMix,
         familyZonePct:c.familyZonePct,exposure:c.exposure,edge:c.edge,
@@ -14757,7 +14850,7 @@ function zoneBuildPitcherOnlyBucketProfile(pitcherName, bucket, mixWeight, bullp
   const suffix = bucket && bucket !== 'GENERIC' ? bucket : '';
   const zones = [];
   const baseline = buildAttackZoneDamageScore(attackZoneOverallPitcherRow(pitcherName),'pitcher') ?? 50;
-  for (let i = 1; i <= 9; i++) {
+  for (const i of ATTACK_ZONE_PHYSICAL_ZONES) {
     const pRow = zoneSheetHasData('PZ' + i + suffix, pitcherName) || (!suffix ? null : zoneSheetHasData('PZ' + i, pitcherName));
     const hasP = pRow && Object.keys(pRow).length;
     if (!hasP) continue;
@@ -14790,7 +14883,7 @@ function zoneBuildPitcherOnlyProfile(pitcherName, mix, bullpenTeam) {
     OS: zoneBuildPitcherOnlyBucketProfile(pitcherName, 'OS', mix.OS, bullpenTeam)
   };
   const zones = [];
-  for (let i = 1; i <= 9; i++) {
+  for (const i of ATTACK_ZONE_PHYSICAL_ZONES) {
     const pieces = ['FB','BR','OS'].map(bucket => {
       const prof = bucketProfiles[bucket];
       const z = prof && prof.zones ? prof.zones.find(x => Number(x.zone) === i) : null;
@@ -14809,12 +14902,15 @@ function zoneBuildPitcherOnlyProfile(pitcherName, mix, bullpenTeam) {
     const exposure = pieces.reduce((s,x)=>s+((Number(x.z.pitchPct) || 0) * (Number(mix[x.bucket]) || 0)),0);
     const bestPiece = pieces.slice().sort((a,b)=>(Number(b.z.pitcherVulnerability)||0)-(Number(a.z.pitcherVulnerability)||0))[0];
     const pitchPct = exposure || wavg(z=>z.pitchPct);
+    const mergedPitcherStats = zoneMergeDisplayStatsFromPieces(pieces, 'pitcherStats', bestPiece && bestPiece.z ? (bestPiece.z.pitcherStats || {}) : {});
+    const totalPitcherHr = zoneSumCountStatFromPieces(pieces, 'pitcherStats', 'hr');
+    if (Number.isFinite(Number(totalPitcherHr))) mergedPitcherStats.hr = totalPitcherHr;
     zones.push({
       zone:i,
       pitcherVulnerability: wavg(z=>z.pitcherVulnerability),
       pitchPct,
       pitchFrequencyScore: attackZoneScaleScore('freq', pitchPct === null ? 1/9 : pitchPct),
-      pitcherStats: zoneMergeDisplayStatsFromPieces(pieces, 'pitcherStats', bestPiece && bestPiece.z ? (bestPiece.z.pitcherStats || {}) : {}),
+      pitcherStats: mergedPitcherStats,
       pitcherPitches: bestPiece && bestPiece.z ? bestPiece.z.pitcherPitches : null,
       pitcherXSLG: bestPiece && bestPiece.z ? bestPiece.z.pitcherXSLG : null,
       pitcherBucketPieces: pieces.map(x=>({bucket:x.bucket,label:zoneBucketLabel(x.bucket),mix:x.w,pitchPct:x.z.pitchPct,pitcherVulnerability:x.z.pitcherVulnerability}))
@@ -15218,7 +15314,7 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
       zoneByNumber[logical] = z;
     });
     const conditionalFreq = {};
-    for (let zone=1; zone<=9; zone++) {
+    for (const zone of ATTACK_ZONE_PHYSICAL_ZONES) {
       const row = zoneByNumber[zone];
       conditionalFreq[zone] = row ? Math.max(0, Number(row.conditionalZonePct) || 0) : 0;
     }
@@ -15230,14 +15326,18 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
       // model as a controlled 25% penalty instead of being erased at zero.
       return hrEdge >= 0 ? hrEdge / 100 : (hrEdge * 0.25) / 100;
     };
-    const zoneMatch = Array.from({length:9},(_,i)=>i+1)
+    const zoneMatch = ATTACK_ZONE_PHYSICAL_ZONES
       .reduce((sum,zone)=>sum + (conditionalFreq[zone] * matchupHRForZone(zone)), 0);
 
     const mistakeWeights = familyDefs[bucket].mistakeWeight || {};
-    const locationMistakeRate = familyDefs[bucket].mistake.reduce(
-      (sum,zone)=>sum + ((conditionalFreq[zone] || 0) * (Number(mistakeWeights[zone]) || 0)), 0
-    );
-    const hangRate = familyDefs[bucket].hang.reduce((sum,zone)=>sum + (conditionalFreq[zone] || 0), 0);
+    const mistakeZoneSet = new Set(familyDefs[bucket].mistake);
+    const hangZoneSet = new Set(familyDefs[bucket].hang);
+    const anchorForZone = zone => attackZoneLogicalAnchorIndex(zone, attackZoneExpectedBatSide(player, String(safeGet(player,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name')||'')));
+    const locationMistakeRate = ATTACK_ZONE_PHYSICAL_ZONES.reduce((sum,zone)=>{
+      const anchor=anchorForZone(zone);
+      return sum + ((conditionalFreq[zone] || 0) * (mistakeZoneSet.has(anchor) ? (Number(mistakeWeights[anchor]) || 0) : 0));
+    },0);
+    const hangRate = ATTACK_ZONE_PHYSICAL_ZONES.reduce((sum,zone)=>sum + ((conditionalFreq[zone] || 0) * (hangZoneSet.has(anchorForZone(zone)) ? 1 : 0)),0);
     const shapeMistakeRate = Math.max(0,Math.min(1,Number(shapeMistakes[bucket]&&shapeMistakes[bucket].shapeMistakeRate)||0));
     const damageOnMistakes = Math.max(0,Math.min(1,Number(shapeMistakes[bucket]&&shapeMistakes[bucket].damageOnMistakes)||0));
     const familyMistakeScore = (0.45 * locationMistakeRate) + (0.35 * shapeMistakeRate) + (0.20 * damageOnMistakes);
@@ -15247,13 +15347,12 @@ function attackZoneDailyHRProbability(player, bucketProfiles, mix) {
     // damage in those exact pitch-family zones. A normal mistake zone receives
     // 65% danger weight; a true hang zone adds the remaining 35%. Overlapping
     // mistake+hang zones therefore receive the full 1.00 weight.
-    const mistakeZoneSet = new Set(familyDefs[bucket].mistake);
-    const hangZoneSet = new Set(familyDefs[bucket].hang);
     let alignedMistakeDamage = 0; // retained field name; value is now HR-specific overlap
     let alignedMistakeExposure = 0;
-    for (let zone=1; zone<=9; zone++) {
-      const partialMistakeWeight = mistakeZoneSet.has(zone) ? (Number(mistakeWeights[zone]) || 0) : 0;
-      const dangerWeight = (0.65 * partialMistakeWeight) + (hangZoneSet.has(zone) ? 0.35 : 0);
+    for (const zone of ATTACK_ZONE_PHYSICAL_ZONES) {
+      const anchor=anchorForZone(zone);
+      const partialMistakeWeight = mistakeZoneSet.has(anchor) ? (Number(mistakeWeights[anchor]) || 0) : 0;
+      const dangerWeight = (0.65 * partialMistakeWeight) + (hangZoneSet.has(anchor) ? 0.35 : 0);
       if (dangerWeight <= 0) continue;
       const exposure = (conditionalFreq[zone] || 0) * dangerWeight;
       alignedMistakeExposure += exposure;
@@ -15433,7 +15532,7 @@ function zoneProfileHeatStyle(score) {
 function zoneProfileOrderedZones(profile) {
   const map = {};
   (profile && Array.isArray(profile.zones) ? profile.zones : []).forEach(z => { map[String(z.zone)] = z; });
-  return [1,2,3,4,5,6,7,8,9].map(i => map[String(i)] || { zone:i, missing:true });
+  return ATTACK_ZONE_DISPLAY_ORDER.map(i => map[String(i)] || { zone:i, missing:true });
 }
 function zoneStars(edge) {
   const n = Number(edge);
@@ -15462,9 +15561,7 @@ function zoneProfileCell(zone, mode, playerIndex, isBest) {
   const b = zone && zone.batterStats ? zone.batterStats : {};
   const ps = zone && zone.pitcherStats ? zone.pitcherStats : {};
   const hrValue = isPitcher ? ps.hr : b.hr;
-  const evValue = isPitcher ? ps.ev : b.ev;
   const hrText = zoneProfileFmtStat('HR', hrValue);
-  const evText = zoneProfileFmtStat('EV', evValue);
   const bucketBreakdown = zone && Array.isArray(zone.bucketPieces) ? zone.bucketPieces.map(x => zoneHoverStat(`${x.label} Mix`, `${zoneProfileFmtPct(x.mix)} / ${isPitcher ? 'Vuln' : 'Edge'} ${zoneProfileFmtNum(isPitcher ? x.pitcherVulnerability : x.edge,0)}`, x.bucket === zone.bestBucket ? 'gold' : '')).join('') : '';
   const batterHoverStats = `
       ${zoneHoverStat('Zone Matchup Score', zoneProfileFmtNum(zone.edge,0), 'hot')}
@@ -15498,8 +15595,8 @@ function zoneProfileCell(zone, mode, playerIndex, isBest) {
     ${hoverStats}
   </div>`;
   const click = missing ? '' : ` onclick="openZoneProfileModal(${playerIndex}, ${zone.zone}, '${isPitcher ? 'pitcher' : 'batter'}')"`;
-  const context = missing ? '' : `<div class="zone-cell-context"><span class="zone-hr-chip">${isPitcher ? 'HR A' : 'HR'} ${hrText}</span><span class="zone-ev-chip">${isPitcher ? 'EV A' : 'EV'} ${evText}</span></div>`;
-  return `<div class="zone-cell ${missing?'missing':''} ${isBest?'best-zone':''}" data-zone-mode="${isPitcher ? 'pitcher' : 'batter'}" style="${zoneProfileHeatStyle(score)}"${click}><div class="zone-cell-num">Z${zone.zone}${!missing ? `<span class="zone-bucket-label">${zoneProfileEscape(zone.bucket === 'WEIGHTED' ? 'WTD' : zone.bucket)}</span>` : ''}</div><div class="zone-cell-main">${main}</div><div class="zone-cell-sub">${sub}</div>${context}${hover}</div>`;
+  const context = missing ? '' : `<div class="zone-cell-context"><span class="zone-hr-chip zone-total-hr-chip">${isPitcher ? 'HR A' : 'HR'} ${hrText}</span></div>`;
+  return `<div class="zone-cell zone-z${zone.zone} ${missing?'missing':''} ${isBest?'best-zone':''}" data-zone-mode="${isPitcher ? 'pitcher' : 'batter'}" style="${zoneProfileHeatStyle(score)}"${click}><div class="zone-cell-num">Z${zone.zone}${!missing ? `<span class="zone-bucket-label">${zoneProfileEscape(zone.bucket === 'WEIGHTED' ? 'WTD' : zone.bucket)}</span>` : ''}</div><div class="zone-cell-main">${main}</div><div class="zone-cell-sub">${sub}</div>${context}${hover}</div>`;
 }
 
 function zoneReportStat(label, value, kind='') { return `<div class="zone-report-stat"><div class="zone-report-label">${zoneProfileEscape(label)}</div><div class="zone-report-value">${zoneProfileEscape(kind === 'pct' ? zoneProfileFmtPct(value) : zoneProfileFmtStat(label, value))}</div></div>`; }
@@ -15548,8 +15645,29 @@ function zonePitchMixHtml(mix, activeView) {
   const maxKey = ['FB','BR','OS'].sort((a,b)=>(Number(mix[b])||0)-(Number(mix[a])||0))[0];
   return `<div class="zone-pitch-mix-strip"><button type="button" class="zone-pitch-mix-pill ${activeView==='WEIGHTED'?'hot':''}" onclick="event.stopPropagation(); setZoneProfileView('WEIGHTED')">Weighted <b>All</b></button>${['FB','BR','OS'].map(k => `<button type="button" class="zone-pitch-mix-pill ${(activeView===k || (activeView==='WEIGHTED' && maxKey===k))?'hot':''}" onclick="event.stopPropagation(); setZoneProfileView('${k}')">${zoneBucketLabel(k)} <b>${zoneProfileFmtPct(mix[k])}</b></button>`).join('')}</div>`;
 }
+function attackZonePhysicalLayoutHtml(zones, cellRenderer) {
+  const map = {};
+  (Array.isArray(zones) ? zones : []).forEach(z => { if (z && z.zone !== undefined) map[Number(z.zone)] = z; });
+  const getZone = z => map[z] || { zone:z, missing:true };
+  const cell = z => cellRenderer(getZone(z));
+  return `<div class="attack-zone-physical-layout">
+    <div class="attack-zone-top-row">
+      <div class="attack-zone-rail-spacer"></div>
+      <div class="attack-shadow-top-grid">${[11,12,13].map(cell).join('')}</div>
+      <div class="attack-zone-rail-spacer"></div>
+    </div>
+    <div class="attack-zone-main-row">
+      <div class="attack-shadow-side-rail attack-shadow-left"><div></div>${cell(14)}<div></div></div>
+      <div class="attack-strike-zone-shell">
+        <div class="attack-strike-zone-grid">${[1,2,3,4,5,6,7,8,9].map(cell).join('')}</div>
+      </div>
+      <div class="attack-shadow-side-rail attack-shadow-right"><div></div>${cell(16)}<div></div></div>
+    </div>
+    <div class="attack-shadow-legend"><span class="attack-core-key"></span> Zones 1–9 = strike zone <span class="attack-shadow-key"></span> Zones 11/12/13/14/16 = shadow zones (0.50 weight)</div>
+  </div>`;
+}
 function renderZoneMap(zones, mode, playerIndex, topZoneNum) {
-  return `<div class="zone-grid">${zones.map(z => zoneProfileCell(z, mode, playerIndex, !z.missing && Number(z.zone) === Number(topZoneNum))).join('')}</div>`;
+  return attackZonePhysicalLayoutHtml(zones, z => zoneProfileCell(z, mode, playerIndex, !z.missing && Number(z.zone) === Number(topZoneNum)));
 }
 window.zoneProfileModalData = [];
 function zoneAttackIntelHtml(profile) {
@@ -15564,14 +15682,14 @@ function zoneAttackIntelHtml(profile) {
       <div><span>Offspeed</span><b>${zoneProfileFmtPct(mix.OS)}</b></div>
     </div>
     <div class="attack-danger-title">Top HR Cells</div>${rows}
-    <div class="attack-engine-note">27 cells feed this one map and one 25% BBI bucket.</div>
+    <div class="attack-engine-note">Core + shadow family-zone cells feed the same Attack Zone scoring pipeline; shadow location contribution is 50%.</div>
   </div>`;
 }
 
 let zoneDamageSortNumber = null;
 function setZoneDamageSort(value) {
   const zone = Number(value);
-  zoneDamageSortNumber = Number.isInteger(zone) && zone >= 1 && zone <= 9 ? zone : null;
+  zoneDamageSortNumber = Number.isInteger(zone) && ATTACK_ZONE_PHYSICAL_ZONES.includes(zone) ? zone : null;
   const select = document.getElementById('zoneDamageSortSelect');
   if (select) select.value = zoneDamageSortNumber ? String(zoneDamageSortNumber) : '';
   if (typeof window.scheduleZoneProfileRender === 'function') window.scheduleZoneProfileRender(0);
@@ -15730,6 +15848,9 @@ function pitcherAttackProfileView(profile, view) {
   const denom=valid.reduce((s,z)=>s+(Number(z.pitchPct)||0),0);
   const damage=valid.length ? (denom>0 ? valid.reduce((s,z)=>s+(Number(z.pitcherVulnerability)||0)*(Number(z.pitchPct)||0),0)/denom : valid.reduce((s,z)=>s+(Number(z.pitcherVulnerability)||0),0)/valid.length) : null;
   const top=valid.slice().sort((a,b)=>(Number(b.pitcherVulnerability)||-1)-(Number(a.pitcherVulnerability)||-1))[0]||null;
+  const shadowRows=valid.filter(z=>ATTACK_ZONE_SHADOW_ZONES.includes(Number(z.zone)));
+  const shadowDenom=shadowRows.reduce((s,z)=>s+(Number(z.pitchPct)||0),0);
+  const shadowDamage=shadowRows.length ? (shadowDenom>0 ? shadowRows.reduce((s,z)=>s+(Number(z.pitcherVulnerability)||0)*(Number(z.pitchPct)||0),0)/shadowDenom : shadowRows.reduce((s,z)=>s+(Number(z.pitcherVulnerability)||0),0)/shadowRows.length) : null;
   const weightedStat=(key)=>{
     const rows=valid.filter(z=>z.pitcherStats&&Number.isFinite(Number(z.pitcherStats[key])));
     if(!rows.length)return null;
@@ -15737,7 +15858,7 @@ function pitcherAttackProfileView(profile, view) {
     return d>0?rows.reduce((s,z)=>s+Number(z.pitcherStats[key])*(Number(z.pitchPct)||0),0)/d:rows.reduce((s,z)=>s+Number(z.pitcherStats[key]),0)/rows.length;
   };
   const summedStat=(key)=>{const rows=valid.filter(z=>z.pitcherStats&&Number.isFinite(Number(z.pitcherStats[key])));return rows.length?rows.reduce((sum,z)=>sum+Number(z.pitcherStats[key]),0):null;};
-  return {zones,damage,top,hr:summedStat('hr'),ev:weightedStat('ev'),view:v};
+  return {zones,damage,shadowDamage,top,hr:summedStat('hr'),ev:weightedStat('ev'),view:v};
 }
 function pitcherAttackBuildRows(){
   const unique={};
@@ -15762,18 +15883,18 @@ function setPitcherAttackView(view){
   renderPitcherAttackMapTab();
 }
 function setPitcherAttackZoneSort(value){
-  const n=Number(value); window.pitcherAttackZoneSortNumber=Number.isInteger(n)&&n>=1&&n<=9?n:null; renderPitcherAttackMapTab();
+  const n=Number(value); window.pitcherAttackZoneSortNumber=Number.isInteger(n)&&ATTACK_ZONE_PHYSICAL_ZONES.includes(n)?n:null; renderPitcherAttackMapTab();
 }
 function pitcherAttackCell(zone,rowIndex,isBest){
-  if(!zone||zone.missing)return `<div class="zone-cell missing" data-zone-mode="pitcher" style="${zoneProfileHeatStyle(null)}"><div class="zone-cell-num">Z${zone&&zone.zone||'-'}</div><div class="zone-cell-main">--</div><div class="zone-cell-sub">No Data</div></div>`;
+  if(!zone||zone.missing)return `<div class="zone-cell zone-z${zone&&zone.zone||'unknown'} missing" data-zone-mode="pitcher" style="${zoneProfileHeatStyle(null)}"><div class="zone-cell-num">Z${zone&&zone.zone||'-'}</div><div class="zone-cell-main">--</div><div class="zone-cell-sub">No Data</div></div>`;
   const ps=zone.pitcherStats||{}, score=Number(zone.pitcherVulnerability), main=Number.isFinite(score)?Math.round(score):'--';
   const bucket=String(window.pitcherAttackView||'WEIGHTED').toUpperCase();
   const hover=`<div class="zone-hover-card" data-zone-hover-mode="pitcher"><div class="zone-hover-title"><div>Pitcher Attack Map // Zone ${zone.zone}<small> ${zoneProfileEscape(zoneBucketLabel(bucket))}</small></div><span>${zoneProfileFmtNum(score,0)}</span></div><div class="zone-hover-fighter"><div class="zone-hover-side pitcher" style="grid-column:1/-1"><div class="zone-hover-side-title">PITCHER ONLY</div><div class="zone-hover-grid">${zoneHoverStat('Pitcher Damage',zoneProfileFmtNum(score,0),'hot')}${zoneHoverStat('Pitch Usage',zoneProfileFmtPct(zone.pitchPct),'blue')}${zoneHoverStat('HR Allowed',zoneProfileFmtStat('HR',ps.hr),'gold')}${zoneHoverStat('Average EV Allowed',zoneProfileFmtStat('EV',ps.ev))}${zoneHoverStat('Max EV Allowed',zoneProfileFmtStat('EV',ps.maxev))}${zoneHoverStat('xSLG Allowed',zoneProfileFmtStat('xSLG',ps.xslg))}${zoneHoverStat('Barrel Allowed',zoneProfileFmtPct(ps.barrel))}${zoneHoverStat('Hard Hit Allowed',zoneProfileFmtPct(ps.hardhit))}${zoneHoverStat('Pull Allowed',zoneProfileFmtPct(ps.pull))}${zoneHoverStat('Sweet Spot Allowed',zoneProfileFmtPct(ps.sweetspot))}</div></div></div></div>`;
-  return `<div class="zone-cell ${isBest?'best-zone':''}" data-zone-mode="pitcher" style="${zoneProfileHeatStyle(score)}" onclick="openPitcherAttackModal(${rowIndex},${zone.zone})"><div class="zone-cell-num">Z${zone.zone}<span class="zone-bucket-label">${bucket==='WEIGHTED'?'WTD':bucket}</span></div><div class="zone-cell-main">${main}</div><div class="zone-cell-sub">${zoneProfileFmtPct(zone.pitchPct)} Use</div><div class="zone-cell-context"><span class="zone-hr-chip">HR A ${zoneProfileFmtStat('HR',ps.hr)}</span><span class="zone-ev-chip">EV A ${zoneProfileFmtStat('EV',ps.ev)}</span></div>${hover}</div>`;
+  return `<div class="zone-cell zone-z${zone.zone} ${isBest?'best-zone':''}" data-zone-mode="pitcher" style="${zoneProfileHeatStyle(score)}" onclick="openPitcherAttackModal(${rowIndex},${zone.zone})"><div class="zone-cell-num">Z${zone.zone}<span class="zone-bucket-label">${bucket==='WEIGHTED'?'WTD':bucket}</span></div><div class="zone-cell-main">${main}</div><div class="zone-cell-sub">${zoneProfileFmtPct(zone.pitchPct)} Use</div><div class="zone-cell-context"><span class="zone-hr-chip">HR A ${zoneProfileFmtStat('HR',ps.hr)}</span><span class="zone-ev-chip">EV A ${zoneProfileFmtStat('EV',ps.ev)}</span></div>${hover}</div>`;
 }
 function pitcherAttackIntelHtml(viewData){
   const top=(viewData.zones||[]).filter(z=>Number.isFinite(Number(z.pitcherVulnerability))).sort((a,b)=>(Number(b.pitcherVulnerability)||0)-(Number(a.pitcherVulnerability)||0)).slice(0,3);
-  return `<div class="attack-intel-panel"><div class="attack-intel-title">Pitcher Damage Blueprint</div><div class="attack-mix-grid"><div><span>Overall Damage</span><b>${zoneProfileFmtNum(viewData.damage,0)}</b></div><div><span>HR Allowed</span><b>${zoneProfileFmtStat('HR',viewData.hr)}</b></div><div><span>EV Allowed</span><b>${zoneProfileFmtStat('EV',viewData.ev)}</b></div></div><div class="attack-danger-title">Most Vulnerable Zones</div>${top.length?top.map((z,i)=>`<div class="attack-danger-row"><span class="attack-danger-rank">${i+1}</span><div><b>Zone ${z.zone}</b><small>${zoneProfileFmtPct(z.pitchPct)} usage</small></div><strong>${Math.round(Number(z.pitcherVulnerability)||0)}</strong></div>`).join(''):'<div class="attack-danger-empty">No pitcher zone cells available.</div>'}<div class="attack-engine-note">Pitcher-only PZ data. Hitter damage is excluded.</div></div>`;
+  return `<div class="attack-intel-panel"><div class="attack-intel-title">Pitcher Damage Blueprint</div><div class="attack-mix-grid"><div><span>Overall Damage</span><b>${zoneProfileFmtNum(viewData.damage,0)}</b></div><div><span>HR Allowed</span><b>${zoneProfileFmtStat('HR',viewData.hr)}</b></div><div><span>EV Allowed</span><b>${zoneProfileFmtStat('EV',viewData.ev)}</b></div></div><div class="attack-danger-title">Most Vulnerable Zones</div>${top.length?top.map((z,i)=>`<div class="attack-danger-row"><span class="attack-danger-rank">${i+1}</span><div><b>Zone ${z.zone}</b><small>${zoneProfileFmtPct(z.pitchPct)} usage</small></div><strong>${Math.round(Number(z.pitcherVulnerability)||0)}</strong></div>`).join(''):'<div class="attack-danger-empty">No pitcher zone cells available.</div>'}<div class="attack-engine-note">Pitcher-only PZ data. Hitter damage is excluded. Shadow Damage: ${zoneProfileFmtNum(viewData.shadowDamage,0)}.</div></div>`;
 }
 function renderPitcherAttackMapTab(){
   const grid=document.getElementById('pitcherAttackGrid'); if(!grid)return;
@@ -15790,6 +15911,7 @@ function renderPitcherAttackMapTab(){
   rows.sort((a,b)=>{
     if(Number.isInteger(zn)){const az=(a.viewData.zones||[]).find(z=>Number(z.zone)===zn),bz=(b.viewData.zones||[]).find(z=>Number(z.zone)===zn),av=az?Number(az.pitcherVulnerability):NaN,bv=bz?Number(bz.pitcherVulnerability):NaN;if(Number.isFinite(av)!==Number.isFinite(bv))return Number.isFinite(bv)?1:-1;if(Number.isFinite(av)&&bv!==av)return bv-av;}
     if(sort==='TOPZONE')return (Number(b.viewData.top&&b.viewData.top.pitcherVulnerability)||-1)-(Number(a.viewData.top&&a.viewData.top.pitcherVulnerability)||-1);
+    if(sort==='SHADOW')return (Number(b.viewData.shadowDamage)||-1)-(Number(a.viewData.shadowDamage)||-1);
     if(sort==='USAGE')return (Number(b.viewData.top&&b.viewData.top.pitchPct)||-1)-(Number(a.viewData.top&&a.viewData.top.pitchPct)||-1);
     if(sort==='HR')return (Number(b.viewData.hr)||-1)-(Number(a.viewData.hr)||-1);
     if(sort==='EV')return (Number(b.viewData.ev)||-1)-(Number(a.viewData.ev)||-1);
@@ -15800,7 +15922,7 @@ function renderPitcherAttackMapTab(){
   document.querySelectorAll('.pitcher-zone-view-btn').forEach(b=>b.classList.toggle('active',String(b.dataset.pitcherZoneView||'').toUpperCase()===String(window.pitcherAttackView).toUpperCase()));
   const pill=document.getElementById('pitcherAttackSummary');if(pill)pill.innerHTML=`Pitchers: <b>${rows.length}</b> &nbsp; View: <b>${zoneBucketLabel(window.pitcherAttackView)}</b>${Number.isInteger(zn)?` &nbsp; Sorted: <b>Zone ${zn} Pitcher Damage</b>`:''} &nbsp; Source: <b>Pitcher-only PZ cache</b>`;
   if(!rows.length){grid.innerHTML='<div class="zone-empty">No pitchers match the current Pitcher Attack Map filters.</div>';return;}
-  grid.innerHTML=rows.map((r,idx)=>{const vd=r.viewData,zones=zoneProfileOrderedZones({zones:vd.zones}),top=vd.top,topNum=top?top.zone:null;return `<div class="zone-player-card" style="${teamVisualStyle(r.team||'')}"><div class="zone-card-top">${createHeadshotHtml(r.name,'sm',r.team)}<div style="min-width:0;"><div class="zone-player-name" title="${zoneProfileEscape(r.name)}">${zoneProfileEscape(r.name)}</div><div class="zone-player-meta">${zoneProfileEscape(r.team||'-')} // MLB ID ${zoneProfileEscape(r.id||'--')} // vs ${zoneProfileEscape(r.opp||'-')}</div></div><div class="zone-score-badge"><div class="zone-score-label">Pitcher Damage</div><div class="zone-score-value">${zoneProfileFmtNum(vd.damage,0)}</div></div></div>${zonePitchMixHtmlPitcher(r.mix,window.pitcherAttackView)}<div class="zone-card-body unified-attack-body"><div class="zone-map-panel unified-zone-map"><div class="zone-map-title">Pitcher Attack Map</div><div class="zone-map-subtitle">Pitcher vulnerability × pitch family × exact physical zone usage</div><div class="zone-grid">${zones.map(z=>pitcherAttackCell(z,idx,!z.missing&&Number(z.zone)===Number(topNum))).join('')}</div></div>${pitcherAttackIntelHtml(vd)}</div><div class="zone-card-footer"><div class="zone-mini-stat"><div class="zone-mini-label">Worst Zone</div><div class="zone-mini-value hot">${top?'Z'+top.zone:'--'}</div></div><div class="zone-mini-stat"><div class="zone-mini-label">Top Damage</div><div class="zone-mini-value gold">${top?zoneProfileFmtNum(top.pitcherVulnerability,0):'--'}</div></div><div class="zone-mini-stat"><div class="zone-mini-label">Zone Usage</div><div class="zone-mini-value blue">${top?zoneProfileFmtPct(top.pitchPct):'--'}</div></div></div><div class="zone-scout-summary">Pitcher-only vulnerability map. Higher red scores identify zones where ${zoneProfileEscape(r.name)} has allowed more HR-quality damage in the uploaded PZ data.</div></div>`;}).join('');
+  grid.innerHTML=rows.map((r,idx)=>{const vd=r.viewData,zones=zoneProfileOrderedZones({zones:vd.zones}),top=vd.top,topNum=top?top.zone:null;return `<div class="zone-player-card" style="${teamVisualStyle(r.team||'')}"><div class="zone-card-top">${createHeadshotHtml(r.name,'sm',r.team)}<div style="min-width:0;"><div class="zone-player-name" title="${zoneProfileEscape(r.name)}">${zoneProfileEscape(r.name)}</div><div class="zone-player-meta">${zoneProfileEscape(r.team||'-')} // MLB ID ${zoneProfileEscape(r.id||'--')} // vs ${zoneProfileEscape(r.opp||'-')}</div></div><div class="zone-score-badge"><div class="zone-score-label">Pitcher Damage</div><div class="zone-score-value">${zoneProfileFmtNum(vd.damage,0)}</div></div></div>${zonePitchMixHtmlPitcher(r.mix,window.pitcherAttackView)}<div class="zone-card-body unified-attack-body"><div class="zone-map-panel unified-zone-map"><div class="zone-map-title">Pitcher Attack Map</div><div class="zone-map-subtitle">Pitcher vulnerability × pitch family × exact physical zone usage</div>${attackZonePhysicalLayoutHtml(zones, z=>pitcherAttackCell(z,idx,!z.missing&&Number(z.zone)===Number(topNum)))}</div>${pitcherAttackIntelHtml(vd)}</div><div class="zone-card-footer"><div class="zone-mini-stat"><div class="zone-mini-label">Worst Zone</div><div class="zone-mini-value hot">${top?'Z'+top.zone:'--'}</div></div><div class="zone-mini-stat"><div class="zone-mini-label">Top Damage</div><div class="zone-mini-value gold">${top?zoneProfileFmtNum(top.pitcherVulnerability,0):'--'}</div></div><div class="zone-mini-stat"><div class="zone-mini-label">Zone Usage</div><div class="zone-mini-value blue">${top?zoneProfileFmtPct(top.pitchPct):'--'}</div></div></div><div class="zone-scout-summary">Pitcher-only vulnerability map. Higher red scores identify zones where ${zoneProfileEscape(r.name)} has allowed more HR-quality damage in the uploaded PZ data.</div></div>`;}).join('');
 }
 function zonePitchMixHtmlPitcher(mix,activeView){mix=mix||{FB:0,BR:0,OS:0};activeView=String(activeView||'WEIGHTED').toUpperCase();return `<div class="zone-pitch-mix-strip"><button type="button" class="zone-pitch-mix-pill ${activeView==='WEIGHTED'?'hot':''}" onclick="event.stopPropagation();setPitcherAttackView('WEIGHTED')">Weighted <b>All</b></button>${['FB','BR','OS'].map(k=>`<button type="button" class="zone-pitch-mix-pill ${activeView===k?'hot':''}" onclick="event.stopPropagation();setPitcherAttackView('${k}')">${zoneBucketLabel(k)} <b>${zoneProfileFmtPct(mix[k])}</b></button>`).join('')}</div>`;}
 function openPitcherAttackModal(rowIndex,zoneNum){
@@ -22894,7 +23016,7 @@ drlOnReady( () => {
     if(!force && azLeagueCache && fp===azLeagueFingerprint) return azLeagueCache;
     const cells=[];
     for(const family of AZ_FAMILIES){
-      for(let zone=1;zone<=9;zone++){
+      for(const zone of ATTACK_ZONE_PHYSICAL_ZONES){
         const rows=azRows(`BZ${zone}${family}`);
         let num=0,den=0,hrs=0,samples=0,basis='';
         rows.forEach(r=>{ const x=azRateFromRow(r); if(!x)return; num+=x.rate*x.weight; den+=x.weight; hrs+=x.hr; samples+=x.denom; basis=x.basis||basis; });
@@ -22948,8 +23070,8 @@ drlOnReady( () => {
     window.snapshotBacktestPlayer=function(p,rank,slateId,finalizedAt){
       const row=oldSnapshot.apply(this,arguments);
       const profile=p && p.attackZoneProfile;
-      for(let z=1;z<=9;z++) row[`AttackZone_Zone${z}`]=azZoneValue(profile,z);
-      for(const f of AZ_FAMILIES) for(let z=1;z<=9;z++) row[`AttackZone_${f}_Zone${z}`]=azCellValue(profile,f,z);
+      for(const z of ATTACK_ZONE_PHYSICAL_ZONES) row[`AttackZone_Zone${z}`]=azZoneValue(profile,z);
+      for(const f of AZ_FAMILIES) for(const z of ATTACK_ZONE_PHYSICAL_ZONES) row[`AttackZone_${f}_Zone${z}`]=azCellValue(profile,f,z);
       if(profile && profile.topCell){ row.AttackZone_TopFamily=profile.topCell.bucket||profile.topCell.family||''; }
       const base=buildAttackZoneLeagueBaselines(false);
       row.AttackZone_BaselineVersion='EMPIRICAL_27_CELL_V1';
@@ -23018,10 +23140,10 @@ drlOnReady( () => {
     }
 
     const zoneStats=[];
-    for(let z=1;z<=9;z++) zoneStats.push({label:`Zone ${z}`,...azStats(rows,`AttackZone_Zone${z}`,r=>Number(r.BBI_Rank||r.Rank)>30)});
+    for(const z of ATTACK_ZONE_PHYSICAL_ZONES) zoneStats.push({label:`Zone ${z}`,...azStats(rows,`AttackZone_Zone${z}`,r=>Number(r.BBI_Rank||r.Rank)>30)});
 
     const famStats=AZ_FAMILIES.map(f=>{
-      const keys=Array.from({length:9},(_,i)=>`AttackZone_${f}_Zone${i+1}`);
+      const keys=ATTACK_ZONE_PHYSICAL_ZONES.map(z=>`AttackZone_${f}_Zone${z}`);
       const synthetic=rows.map(r=>{
         const vals=keys.map(k=>Number(r[k])).filter(Number.isFinite);
         return {...r,__fam:vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null};
@@ -23030,7 +23152,7 @@ drlOnReady( () => {
     });
 
     const cellStats=[];
-    for(const f of AZ_FAMILIES)for(let z=1;z<=9;z++){
+    for(const f of AZ_FAMILIES)for(const z of ATTACK_ZONE_PHYSICAL_ZONES){
       const st=azStats(rows,`AttackZone_${f}_Zone${z}`,r=>Number(r.BBI_Rank||r.Rank)>30);
       cellStats.push({label:`${AZ_LABELS[f]} Z${z}`,...st});
     }
@@ -24533,6 +24655,8 @@ drlOnReady(()=>{setTimeout(window.renderLongestHRCenter,500);let n=-1;setInterva
 #tab-hits .hits-player-line .player-headshot{display:block!important;width:46px!important;height:46px!important;min-width:46px!important;object-fit:cover!important;margin:0!important}
 #tab-hits .hits-headshot-fallback{width:46px;height:46px;min-width:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#1a1d22;border:2px solid var(--team-color,var(--accent));color:#fff;font-size:12px;font-weight:1000}
 #tab-hits .hits-table{min-width:1450px!important}
+
+
 </style>
 <script id="drl-hits-projection-engine">
 (function(){
@@ -24633,5 +24757,550 @@ window.renderHitsTab=function(){
 const oldSwitch=window.switchTab;window.switchTab=function(name,btn){const result=oldSwitch.apply(this,arguments);if(name==='hits')requestAnimationFrame(()=>setTimeout(window.renderHitsTab,0));return result};
 })();
 </script>
-</div></body>
+</div>
+<style id="drl-v12534-clean-reference-map-layout">
+/* ===== V12.5.34 CLEAN REFERENCE MAP LAYOUT =====
+   UI ONLY. This replaces the previous competing map CSS.
+   Scoring, zone data, usage, handedness, HR, EV and 0.50 shadow weighting are untouched. */
+
+/* One player/pitcher card per row; two equal map panels like the approved reference. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-card-grid{
+  grid-template-columns:minmax(0,1fr) !important;
+  gap:18px !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-player-card{
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-card-body:not(.unified-attack-body){
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:22px !important;
+  align-items:start !important;
+  padding:18px !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-map-panel{
+  min-width:0 !important;
+  padding:16px 14px 14px !important;
+  overflow:hidden !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-map-title{
+  justify-content:center !important;
+  text-align:center !important;
+  margin:0 0 14px !important;
+  font-size:18px !important;
+  line-height:1.1 !important;
+  letter-spacing:1px !important;
+}
+
+/* Entire physical map uses ONE layout system. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout{
+  --az-gap:8px;
+  --az-side:86px;
+  --az-cell-h:104px;
+  display:block !important;
+  width:min(100%, 620px) !important;
+  max-width:620px !important;
+  min-width:0 !important;
+  margin:0 auto !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  overflow:visible !important;
+  box-sizing:border-box !important;
+}
+
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-top-row,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-main-row{
+  display:grid !important;
+  grid-template-columns:var(--az-side) minmax(0,1fr) var(--az-side) !important;
+  gap:var(--az-gap) !important;
+  width:100% !important;
+  min-width:0 !important;
+  align-items:stretch !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-top-row{
+  margin:0 0 8px !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-rail-spacer{
+  min-width:0 !important;
+}
+
+/* IMPORTANT: reset the old named grid-area rules. They were creating implicit tracks
+   and are the reason zones were flying outside the red box. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell{
+  grid-area:auto !important;
+}
+
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-top-grid,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-strike-zone-grid{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  grid-auto-flow:row !important;
+  gap:var(--az-gap) !important;
+  width:100% !important;
+  min-width:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-top-grid{
+  grid-template-rows:var(--az-cell-h) !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-strike-zone-grid{
+  grid-template-rows:repeat(3,var(--az-cell-h)) !important;
+}
+
+/* Red frame encloses exactly Zones 1-9 and nothing else. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-strike-zone-shell{
+  position:relative !important;
+  min-width:0 !important;
+  padding:6px !important;
+  border:4px solid #e10600 !important;
+  border-radius:12px !important;
+  background:rgba(225,6,0,.025) !important;
+  box-shadow:0 0 18px rgba(225,6,0,.10), inset 0 0 14px rgba(225,6,0,.025) !important;
+  overflow:visible !important;
+  box-sizing:border-box !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-strike-zone-tag{
+  display:none !important;
+}
+
+/* Zone 14 and 16 occupy the middle row beside the strike zone. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-side-rail{
+  display:grid !important;
+  grid-template-rows:repeat(3,var(--az-cell-h)) !important;
+  gap:var(--az-gap) !important;
+  min-width:0 !important;
+  margin:0 !important;
+  padding:6px 0 !important;
+  align-items:stretch !important;
+  box-sizing:border-box !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-side-rail > div:not(.zone-cell){
+  min-height:0 !important;
+}
+
+/* Every map card uses the same predictable box model. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell{
+  position:relative !important;
+  display:block !important;
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+  height:100% !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:8px 7px 7px !important;
+  border-radius:10px !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-top-grid .zone-cell,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-side-rail .zone-cell{
+  opacity:1 !important;
+  border-style:solid !important;
+  border-color:rgba(255,255,255,.20) !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-top-grid .zone-cell::before,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-side-rail .zone-cell::before{
+  content:none !important;
+  display:none !important;
+}
+
+/* Zone number top-left; WTD/best badge remains top-right. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-num{
+  position:absolute !important;
+  top:8px !important;
+  left:9px !important;
+  z-index:6 !important;
+  margin:0 !important;
+  font-size:12px !important;
+  line-height:1 !important;
+  font-weight:1000 !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-best-badge,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-weight-badge,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-wtd-badge{
+  z-index:7 !important;
+  top:7px !important;
+  right:7px !important;
+}
+
+/* Score sits clearly above the HR/usage and EV rows. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-main{
+  position:absolute !important;
+  z-index:5 !important;
+  left:4px !important;
+  right:4px !important;
+  top:30px !important;
+  margin:0 !important;
+  text-align:center !important;
+  font-size:30px !important;
+  line-height:.92 !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  pointer-events:none !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-sub{
+  position:absolute !important;
+  z-index:5 !important;
+  left:6px !important;
+  right:6px !important;
+  top:58px !important;
+  margin:0 !important;
+  text-align:center !important;
+  font-size:8px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell[data-zone-mode="batter"] .zone-cell-sub{
+  display:none !important;
+}
+
+/* Bottom two rows: HR/usage and EV. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-context{
+  position:absolute !important;
+  z-index:6 !important;
+  left:7px !important;
+  right:7px !important;
+  bottom:6px !important;
+  width:auto !important;
+  min-width:0 !important;
+  margin:0 !important;
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  gap:3px !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-hr-chip,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-ev-chip{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  min-height:17px !important;
+  margin:0 !important;
+  padding:2px 4px !important;
+  box-sizing:border-box !important;
+  font-size:8px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+}
+
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-legend{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  flex-wrap:wrap !important;
+  gap:6px !important;
+  margin:10px 0 0 !important;
+  color:#8d97a8 !important;
+  font-size:7px !important;
+  font-weight:900 !important;
+  line-height:1.25 !important;
+  text-transform:uppercase !important;
+  text-align:center !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-core-key{
+  width:12px !important;
+  height:8px !important;
+  display:inline-block !important;
+  border:2px solid #e10600 !important;
+  border-radius:2px !important;
+  background:transparent !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-key{
+  width:12px !important;
+  height:8px !important;
+  display:inline-block !important;
+  border:1px dashed rgba(255,255,255,.42) !important;
+  border-radius:2px !important;
+  background:transparent !important;
+}
+
+/* On narrower screens, stack the two maps and preserve the exact same geometry. */
+@media (max-width:1260px){
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-card-body:not(.unified-attack-body){
+    grid-template-columns:1fr !important;
+  }
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout{
+    width:min(100%,620px) !important;
+  }
+}
+@media (max-width:700px){
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout{
+    --az-gap:4px;
+    --az-side:54px;
+    --az-cell-h:84px;
+    width:100% !important;
+    max-width:100% !important;
+  }
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-strike-zone-shell{
+    padding:4px !important;
+    border-width:3px !important;
+  }
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-side-rail{
+    padding:4px 0 !important;
+  }
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-main{
+    top:24px !important;
+    font-size:23px !important;
+  }
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-num{
+    top:6px !important;
+    left:6px !important;
+    font-size:10px !important;
+  }
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-sub{
+    top:47px !important;
+    font-size:7px !important;
+  }
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-context{
+    left:5px !important;
+    right:5px !important;
+    bottom:5px !important;
+    gap:2px !important;
+  }
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-hr-chip,
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-ev-chip{
+    min-height:14px !important;
+    padding:2px 3px !important;
+    font-size:6.5px !important;
+  }
+}
+</style>
+
+
+<style id="drl-v12534-two-player-map-fit">
+/* ===== TWO PLAYERS PER ROW + CENTERED ZONE SCORES =====
+   UI ONLY. No scoring/data logic changed. */
+
+/* Desktop: two complete player/pitcher cards per row. */
+@media (min-width: 1380px){
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-card-grid{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:16px !important;
+    align-items:start !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-player-card{
+    min-width:0 !important;
+    width:100% !important;
+  }
+
+  /* Keep both maps beside each other inside each player card. */
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-card-body:not(.unified-attack-body){
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:12px !important;
+    padding:12px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-map-panel{
+    min-width:0 !important;
+    padding:12px 9px 10px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-map-title{
+    margin:0 0 10px !important;
+    font-size:14px !important;
+    line-height:1.05 !important;
+    letter-spacing:.7px !important;
+  }
+
+  /* Scale the whole physical map together — still large/readable, just compact enough
+     for two player cards across a normal desktop width. */
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout{
+    --az-gap:5px !important;
+    --az-side:52px !important;
+    --az-cell-h:76px !important;
+    width:100% !important;
+    max-width:350px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-top-row{
+    margin-bottom:5px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-strike-zone-shell{
+    padding:4px !important;
+    border-width:3px !important;
+    border-radius:9px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-side-rail{
+    padding:4px 0 !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell{
+    padding:6px 5px 5px !important;
+    border-radius:8px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-num{
+    top:6px !important;
+    left:6px !important;
+    font-size:10px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-best-badge,
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-weight-badge,
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-wtd-badge{
+    top:5px !important;
+    right:5px !important;
+    transform:scale(.82) !important;
+    transform-origin:top right !important;
+  }
+
+  /* Score: force the number to the exact horizontal center of every card. */
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-main{
+    position:absolute !important;
+    left:0 !important;
+    right:0 !important;
+    top:23px !important;
+    width:100% !important;
+    height:25px !important;
+    margin:0 !important;
+    padding:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    text-align:center !important;
+    text-indent:0 !important;
+    transform:none !important;
+    font-size:23px !important;
+    line-height:1 !important;
+    box-sizing:border-box !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-sub{
+    left:4px !important;
+    right:4px !important;
+    top:46px !important;
+    width:auto !important;
+    text-align:center !important;
+    font-size:6.5px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-context{
+    left:5px !important;
+    right:5px !important;
+    bottom:4px !important;
+    gap:2px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-hr-chip,
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-ev-chip{
+    min-height:13px !important;
+    padding:1px 3px !important;
+    font-size:6.5px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-legend{
+    margin-top:7px !important;
+    gap:4px !important;
+    font-size:5.8px !important;
+  }
+}
+
+/* Mid-size desktop: one player per row so maps never become microscopic. */
+@media (min-width: 701px) and (max-width: 1379px){
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .zone-card-grid{
+    grid-template-columns:1fr !important;
+  }
+}
+
+/* Center score at every size, including stacked/mobile views. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-main{
+  box-sizing:border-box !important;
+  text-align:center !important;
+  text-indent:0 !important;
+  transform:none !important;
+  justify-content:center !important;
+}
+</style>
+
+<style id="drl-v12534-score-hr-clean-final">
+/* ===== FINAL SCORE + HR CARD LAYOUT =====
+   UI only: one centered score + one HR row. EV is intentionally hidden from map cards. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell{
+  position:relative !important;
+  overflow:hidden !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-main{
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  top:26px !important;
+  width:100% !important;
+  height:28px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin:0 !important;
+  padding:0 !important;
+  text-align:center !important;
+  line-height:1 !important;
+  z-index:4 !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-context{
+  position:absolute !important;
+  left:6px !important;
+  right:6px !important;
+  bottom:5px !important;
+  height:15px !important;
+  display:block !important;
+  margin:0 !important;
+  padding:0 !important;
+  z-index:5 !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-total-hr-chip{
+  width:100% !important;
+  height:15px !important;
+  min-height:15px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin:0 !important;
+  padding:1px 3px !important;
+  box-sizing:border-box !important;
+  font-size:7px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-ev-chip{
+  display:none !important;
+}
+/* Pitcher usage is useful in hover/details, but not between the score and HR on these compact cards. */
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-sub{
+  display:none !important;
+}
+@media (min-width:1380px){
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-main{
+    top:22px !important;
+    height:27px !important;
+    font-size:23px !important;
+  }
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-cell-context{
+    bottom:4px !important;
+    height:14px !important;
+  }
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-physical-layout .zone-total-hr-chip{
+    height:14px !important;
+    min-height:14px !important;
+    font-size:6.5px !important;
+  }
+}
+</style>
+</body>
 </html>
