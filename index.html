@@ -2,6 +2,7 @@
 
 <html lang="en">
 <head>
+<!-- MOBILE ATTACK MAP STABILITY FIX: progressive rendering, reduced mobile effects, cached HR Attack profiles, and debounced pitcher-map search. Scoring formulas/data unchanged. -->
 <!-- V12.5.34 PITCHER TOTAL USAGE DISPLAY: pitcher squares show total combined FB/BR/OS zone usage; batter squares and scoring unchanged. -->
 
 <!-- V12.5.34 APPROVED MAP LAYOUT: isolated physical map UI matching approved mockup; 1-9 boxed in red, 11/12/13 above, 14 left, 16 right; scoring/data unchanged. -->
@@ -8060,6 +8061,28 @@ body::after,
 .value-edge-pill.strong{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.42);color:#86efac}
 .value-edge-pill.elite{background:rgba(250,204,21,.15);border-color:rgba(250,204,21,.48);color:#fde047}
 .value-edge-context{font-size:10px;color:var(--text-muted);margin-top:3px;font-family:inherit;font-weight:700}
+
+/* ===== MOBILE ATTACK MAP STABILITY FIX ===== */
+.zone-load-more-wrap{grid-column:1/-1;display:flex;justify-content:center;padding:8px 0 18px;}
+.zone-load-more-btn{width:auto!important;min-width:210px!important;}
+@media(max-width:760px){
+  #tab-zoneprofile .zone-player-card,
+  #tab-pitcherattackmap .zone-player-card{content-visibility:auto;contain:layout paint style;contain-intrinsic-size:620px;}
+  #tab-zoneprofile .zone-hover-card,
+  #tab-pitcherattackmap .zone-hover-card{display:none!important;}
+  #tab-zoneprofile .zone-player-card,
+  #tab-zoneprofile .zone-map-panel,
+  #tab-zoneprofile .zone-cell,
+  #tab-pitcherattackmap .zone-player-card,
+  #tab-pitcherattackmap .zone-map-panel,
+  #tab-pitcherattackmap .zone-cell{animation:none!important;transition:none!important;box-shadow:none!important;}
+  #tab-zoneprofile .panel,
+  #tab-pitcherattackmap .panel,
+  #tab-zoneprofile .zone-player-card,
+  #tab-pitcherattackmap .zone-player-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+  #tab-zoneprofile .zone-player-card:has(.zone-cell:hover),
+  #tab-pitcherattackmap .zone-player-card:has(.zone-cell:hover){z-index:auto!important;}
+}
 </style>
 <script id="drl-espn-red-premium-theme-js-v414">
 (function(){
@@ -9198,7 +9221,7 @@ tbody tr{contain:layout paint style;}
 <h2>Pitcher Attack Board Controls</h2>
 <div class="zone-tools">
 <div class="zone-tools-left">
-<div class="filter-group"><label>Search Pitcher / ID</label><input class="search-input" id="pitcherAttackSearch" oninput="renderPitcherAttackMapTab()" placeholder="Pitcher name or MLB ID..." type="text"/></div>
+<div class="filter-group"><label>Search Pitcher / ID</label><input class="search-input" id="pitcherAttackSearch" oninput="clearTimeout(window.__pitcherAttackSearchTimer);window.__pitcherAttackSearchTimer=setTimeout(()=>{window.pitcherAttackRenderLimit=0;renderPitcherAttackMapTab();},180)" placeholder="Pitcher name or MLB ID..." type="text"/></div>
 <div class="filter-group"><label>Team</label><select class="select-input-sm" id="pitcherAttackTeam" onchange="renderPitcherAttackMapTab()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
 <div class="filter-group"><label>Sort</label><select class="select-input-sm" id="pitcherAttackSort" onchange="renderPitcherAttackMapTab()" style="width:190px;"><option value="DAMAGE">Pitcher Damage</option><option value="TOPZONE">Top Zone Damage</option><option value="SHADOW">Overall Shadow Damage</option><option value="USAGE">Top Zone Usage</option><option value="HR">HR Allowed</option><option value="EV">EV Allowed</option><option value="ALPHA">Pitcher A-Z</option></select></div>
 <div class="filter-group"><label>Zone Damage Sort</label><select class="select-input-sm" id="pitcherAttackZoneSort" onchange="setPitcherAttackZoneSort(this.value)" style="width:170px;"><option value="">Off</option><option value="1">Zone 1</option><option value="2">Zone 2</option><option value="3">Zone 3</option><option value="4">Zone 4</option><option value="5">Zone 5</option><option value="6">Zone 6</option><option value="7">Zone 7</option><option value="8">Zone 8</option><option value="9">Zone 9</option><option value="11">Zone 11</option><option value="12">Zone 12</option><option value="13">Zone 13</option><option value="14">Zone 14</option><option value="16">Zone 16</option></select></div>
@@ -15722,7 +15745,7 @@ function renderZoneProfileTab() {
   const sort = document.getElementById('zoneSortFilter')?.value || 'RANK';
   const ranked = [...(playerData || [])].sort((a,b)=>cleanNumber(b.calculatedBBI)-cleanNumber(a.calculatedBBI));
   const rankMap = {}; ranked.forEach((p,i)=>rankMap[normalizeName(p.Name)] = i+1);
-  let data = base.map(p => ({ player:p, profile: calculateAttackZoneProfile(p) }));
+  let data = base.map(p => ({ player:p, profile: p.attackZoneProfile || calculateAttackZoneProfile(p) }));
   data.forEach(x => { x.player.attackZoneProfile = x.profile; x.player.calculatedAttackZoneScore = x.profile && x.profile.score !== null ? x.profile.score : null; x.player.attackZoneSummary = x.profile && x.profile.summary ? x.profile.summary : ''; });
   if (search) data = data.filter(x => String(x.player.Name||'').toLowerCase().includes(search));
   if (team !== 'ALL') data = data.filter(x => String(x.player.Team||'') === team);
@@ -15751,7 +15774,11 @@ function renderZoneProfileTab() {
     pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(window.zoneProfileView || 'WEIGHTED')}</b> &nbsp; Formula: <b>Family Mix → Within-Family Zone Usage</b>`;
   }
   if (!data.length) { grid.innerHTML = `<div class="zone-empty">No players match the current HR Attack Map filters.</div>`; return; }
-  grid.innerHTML = data.map(({player:p, profile}, idx) => {
+  const mobileMap = window.matchMedia && window.matchMedia('(max-width: 760px)').matches;
+  const defaultLimit = mobileMap ? 10 : 40;
+  const renderLimit = Math.max(defaultLimit, Number(window.zoneProfileRenderLimit) || defaultLimit);
+  const visibleData = data.slice(0, renderLimit);
+  grid.innerHTML = visibleData.map(({player:p, profile}, idx) => {
     const displayProfile = zoneProfileDisplayProfile(profile, window.zoneProfileView);
     const zones = zoneProfileOrderedZones(displayProfile);
     const top = displayProfile && displayProfile.topZone ? displayProfile.topZone : null;
@@ -15783,6 +15810,9 @@ function renderZoneProfileTab() {
       <div class="zone-scout-summary">${zoneProfileEscape(summary)}</div>
     </div>`;
   }).join('');
+  if (visibleData.length < data.length) {
+    grid.insertAdjacentHTML('beforeend', `<div class="zone-load-more-wrap"><button type="button" class="btn-blue zone-load-more-btn" onclick="window.zoneProfileRenderLimit=${renderLimit}+${mobileMap ? 10 : 40}; renderZoneProfileTab();">Load More (${visibleData.length}/${data.length})</button></div>`);
+  }
 }
 function openZoneProfileModal(playerIndex, zoneNum, mode='batter') {
   const item = (window.zoneProfileModalData || [])[playerIndex];
@@ -15933,7 +15963,12 @@ function renderPitcherAttackMapTab(){
   document.querySelectorAll('.pitcher-zone-view-btn').forEach(b=>b.classList.toggle('active',String(b.dataset.pitcherZoneView||'').toUpperCase()===String(window.pitcherAttackView).toUpperCase()));
   const pill=document.getElementById('pitcherAttackSummary');if(pill)pill.innerHTML=`Pitchers: <b>${rows.length}</b> &nbsp; View: <b>${zoneBucketLabel(window.pitcherAttackView)}</b>${Number.isInteger(zn)?` &nbsp; Sorted: <b>Zone ${zn} Pitcher Damage</b>`:''} &nbsp; Source: <b>Pitcher-only PZ cache</b>`;
   if(!rows.length){grid.innerHTML='<div class="zone-empty">No pitchers match the current Pitcher Attack Map filters.</div>';return;}
-  grid.innerHTML=rows.map((r,idx)=>{const vd=r.viewData,zones=zoneProfileOrderedZones({zones:vd.zones}),top=vd.top,topNum=top?top.zone:null;return `<div class="zone-player-card" style="${teamVisualStyle(r.team||'')}"><div class="zone-card-top">${createHeadshotHtml(r.name,'sm',r.team)}<div style="min-width:0;"><div class="zone-player-name" title="${zoneProfileEscape(r.name)}">${zoneProfileEscape(r.name)}</div><div class="zone-player-meta">${zoneProfileEscape(r.team||'-')} // MLB ID ${zoneProfileEscape(r.id||'--')} // vs ${zoneProfileEscape(r.opp||'-')}</div></div><div class="zone-score-badge"><div class="zone-score-label">Pitcher Damage</div><div class="zone-score-value">${zoneProfileFmtNum(vd.damage,0)}</div></div></div>${zonePitchMixHtmlPitcher(r.mix,window.pitcherAttackView)}<div class="zone-card-body unified-attack-body"><div class="zone-map-panel unified-zone-map"><div class="zone-map-title">Pitcher Attack Map</div><div class="zone-map-subtitle">Pitcher vulnerability × pitch family × exact physical zone usage</div>${attackZonePhysicalLayoutHtml(zones, z=>pitcherAttackCell(z,idx,!z.missing&&Number(z.zone)===Number(topNum)))}</div>${pitcherAttackIntelHtml(vd)}</div><div class="zone-card-footer"><div class="zone-mini-stat"><div class="zone-mini-label">Worst Zone</div><div class="zone-mini-value hot">${top?'Z'+top.zone:'--'}</div></div><div class="zone-mini-stat"><div class="zone-mini-label">Top Damage</div><div class="zone-mini-value gold">${top?zoneProfileFmtNum(top.pitcherVulnerability,0):'--'}</div></div><div class="zone-mini-stat"><div class="zone-mini-label">Zone Usage</div><div class="zone-mini-value blue">${top?zoneProfileFmtPct(top.pitchPct):'--'}</div></div></div><div class="zone-scout-summary">Pitcher-only vulnerability map. Higher red scores identify zones where ${zoneProfileEscape(r.name)} has allowed more HR-quality damage in the uploaded PZ data.</div></div>`;}).join('');
+  const mobileMap=window.matchMedia&&window.matchMedia('(max-width: 760px)').matches;
+  const defaultLimit=mobileMap?10:40;
+  const renderLimit=Math.max(defaultLimit,Number(window.pitcherAttackRenderLimit)||defaultLimit);
+  const visibleRows=rows.slice(0,renderLimit);
+  grid.innerHTML=visibleRows.map((r,idx)=>{const vd=r.viewData,zones=zoneProfileOrderedZones({zones:vd.zones}),top=vd.top,topNum=top?top.zone:null;return `<div class="zone-player-card" style="${teamVisualStyle(r.team||'')}"><div class="zone-card-top">${createHeadshotHtml(r.name,'sm',r.team)}<div style="min-width:0;"><div class="zone-player-name" title="${zoneProfileEscape(r.name)}">${zoneProfileEscape(r.name)}</div><div class="zone-player-meta">${zoneProfileEscape(r.team||'-')} // MLB ID ${zoneProfileEscape(r.id||'--')} // vs ${zoneProfileEscape(r.opp||'-')}</div></div><div class="zone-score-badge"><div class="zone-score-label">Pitcher Damage</div><div class="zone-score-value">${zoneProfileFmtNum(vd.damage,0)}</div></div></div>${zonePitchMixHtmlPitcher(r.mix,window.pitcherAttackView)}<div class="zone-card-body unified-attack-body"><div class="zone-map-panel unified-zone-map"><div class="zone-map-title">Pitcher Attack Map</div><div class="zone-map-subtitle">Pitcher vulnerability × pitch family × exact physical zone usage</div>${attackZonePhysicalLayoutHtml(zones, z=>pitcherAttackCell(z,idx,!z.missing&&Number(z.zone)===Number(topNum)))}</div>${pitcherAttackIntelHtml(vd)}</div><div class="zone-card-footer"><div class="zone-mini-stat"><div class="zone-mini-label">Worst Zone</div><div class="zone-mini-value hot">${top?'Z'+top.zone:'--'}</div></div><div class="zone-mini-stat"><div class="zone-mini-label">Top Damage</div><div class="zone-mini-value gold">${top?zoneProfileFmtNum(top.pitcherVulnerability,0):'--'}</div></div><div class="zone-mini-stat"><div class="zone-mini-label">Zone Usage</div><div class="zone-mini-value blue">${top?zoneProfileFmtPct(top.pitchPct):'--'}</div></div></div><div class="zone-scout-summary">Pitcher-only vulnerability map. Higher red scores identify zones where ${zoneProfileEscape(r.name)} has allowed more HR-quality damage in the uploaded PZ data.</div></div>`;}).join('');
+  if(visibleRows.length<rows.length){grid.insertAdjacentHTML('beforeend',`<div class="zone-load-more-wrap"><button type="button" class="btn-blue zone-load-more-btn" onclick="window.pitcherAttackRenderLimit=${renderLimit}+${mobileMap?10:40}; renderPitcherAttackMapTab();">Load More (${visibleRows.length}/${rows.length})</button></div>`);}
 }
 function zonePitchMixHtmlPitcher(mix,activeView){mix=mix||{FB:0,BR:0,OS:0};activeView=String(activeView||'WEIGHTED').toUpperCase();return `<div class="zone-pitch-mix-strip"><button type="button" class="zone-pitch-mix-pill ${activeView==='WEIGHTED'?'hot':''}" onclick="event.stopPropagation();setPitcherAttackView('WEIGHTED')">Weighted <b>All</b></button>${['FB','BR','OS'].map(k=>`<button type="button" class="zone-pitch-mix-pill ${activeView===k?'hot':''}" onclick="event.stopPropagation();setPitcherAttackView('${k}')">${zoneBucketLabel(k)} <b>${zoneProfileFmtPct(mix[k])}</b></button>`).join('')}</div>`;}
 function openPitcherAttackModal(rowIndex,zoneNum){
