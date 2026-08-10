@@ -2,6 +2,7 @@
 
 <html lang="en">
 <head>
+<!-- ZONE BETTOR SORTS FIX: repaired undefined activeSort/bettorStat runtime references that prevented HR Attack Map cards from rendering. Scoring/layout unchanged. -->
 <!-- ZONE BETTOR SORTS V1: adds Zone Threat, Dangerous Attack %, HR Paths, and Best Zone sorting as a display/research layer only. Default map appearance/sort and Attack Zone scoring are unchanged. -->
 <!-- MOBILE ATTACK MAP HARDENED V3: phone/tablet detection widened, mobile hover DOM is not created, HR map profiles are calculated only for visible cards in normal mobile sorts, map batches reduced to 4, inactive map DOM released. Scoring/data unchanged. -->
 <!-- MOBILE ATTACK MAP STABILITY FIX: progressive rendering, reduced mobile effects, cached HR Attack profiles, and debounced pitcher-map search. Scoring formulas/data unchanged. -->
@@ -15816,12 +15817,12 @@ function renderZoneProfileTab() {
     const topUse = top ? zoneProfileFmtPct(top.pitchPct) : '--';
     const summary = displayProfile && displayProfile.summary ? displayProfile.summary : 'No BZ/PZ zone data found.';
     const topZoneNum = top ? top.zone : null;
-    const intel = zoneBettorIntel(profile);
+    const intel = (typeof window.zoneBettorIntel === 'function') ? window.zoneBettorIntel(profile) : {zoneThreat:0,dangerousAttack:0,hrPaths:0,bestZoneScore:0};
     let bettorStat = '';
-    if (activeSort === 'ZONETHREAT') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Zone Threat</div><div class="zone-mini-value hot">${Math.round(intel.zoneThreat)}</div></div>`;
-    else if (activeSort === 'DANGER') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Dangerous Attack</div><div class="zone-mini-value hot">${zoneProfileFmtPct(intel.dangerousAttack)}</div></div>`;
-    else if (activeSort === 'HRPATHS') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">HR Paths</div><div class="zone-mini-value hot">${intel.hrPaths}</div></div>`;
-    else if (activeSort === 'BESTZONE') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Best Zone Score</div><div class="zone-mini-value hot">${Math.round(intel.bestZoneScore)}</div></div>`;
+    if (sort === 'ZONETHREAT') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Zone Threat</div><div class="zone-mini-value hot">${Math.round(intel.zoneThreat)}</div></div>`;
+    else if (sort === 'DANGER') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Dangerous Attack</div><div class="zone-mini-value hot">${zoneProfileFmtPct(intel.dangerousAttack)}</div></div>`;
+    else if (sort === 'HRPATHS') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">HR Paths</div><div class="zone-mini-value hot">${intel.hrPaths}</div></div>`;
+    else if (sort === 'BESTZONE') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Best Zone Score</div><div class="zone-mini-value hot">${Math.round(intel.bestZoneScore)}</div></div>`;
     return `<div class="zone-player-card" style="${teamVisualStyle(p.Team || '')}">
       <div class="zone-card-top">
         ${createHeadshotHtml(p.Name,'sm',p.Team)}
@@ -22306,6 +22307,12 @@ window.zoneBettorIntel=zoneBettorIntel;
     const topUse = top ? zoneProfileFmtPct(top.pitchPct) : '--';
     const summary = displayProfile && displayProfile.summary ? displayProfile.summary : 'No BZ/PZ zone data found.';
     const topZoneNum = top ? top.zone : null;
+    const intel = (typeof window.zoneBettorIntel === 'function') ? window.zoneBettorIntel(profile) : {zoneThreat:0,dangerousAttack:0,hrPaths:0,bestZoneScore:0};
+    let bettorStat = '';
+    if (activeSort === 'ZONETHREAT') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Zone Threat</div><div class="zone-mini-value hot">${Math.round(intel.zoneThreat)}</div></div>`;
+    else if (activeSort === 'DANGER') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Dangerous Attack</div><div class="zone-mini-value hot">${zoneProfileFmtPct(intel.dangerousAttack)}</div></div>`;
+    else if (activeSort === 'HRPATHS') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">HR Paths</div><div class="zone-mini-value hot">${intel.hrPaths}</div></div>`;
+    else if (activeSort === 'BESTZONE') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Best Zone Score</div><div class="zone-mini-value hot">${Math.round(intel.bestZoneScore)}</div></div>`;
     return `<div class="zone-player-card" style="${teamVisualStyle(p.Team || '')}">
       <div class="zone-card-top">
         ${createHeadshotHtml(p.Name,'sm',p.Team)}
