@@ -2,6 +2,7 @@
 
 <html lang="en">
 <head>
+<!-- ZONE BETTOR SORTS V1: adds Zone Threat, Dangerous Attack %, HR Paths, and Best Zone sorting as a display/research layer only. Default map appearance/sort and Attack Zone scoring are unchanged. -->
 <!-- MOBILE ATTACK MAP HARDENED V3: phone/tablet detection widened, mobile hover DOM is not created, HR map profiles are calculated only for visible cards in normal mobile sorts, map batches reduced to 4, inactive map DOM released. Scoring/data unchanged. -->
 <!-- MOBILE ATTACK MAP STABILITY FIX: progressive rendering, reduced mobile effects, cached HR Attack profiles, and debounced pitcher-map search. Scoring formulas/data unchanged. -->
 <!-- V12.5.34 PITCHER TOTAL USAGE DISPLAY: pitcher squares show total combined FB/BR/OS zone usage; batter squares and scoring unchanged. -->
@@ -9190,7 +9191,7 @@ tbody tr{contain:layout paint style;}
 <div class="filter-group"><label>Search Player</label><input class="search-input" id="zoneSearch" oninput="renderZoneProfileTab()" placeholder="Type player name..." type="text"/></div>
 <div class="filter-group"><label>Team</label><select class="select-input-sm" id="zoneTeamFilter" onchange="renderZoneProfileTab()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
 <div class="filter-group"><label>Pitcher</label><select class="select-input-sm" id="zonePitcherFilter" onchange="renderZoneProfileTab()" style="width:190px;"><option value="ALL">All Pitchers</option></select></div>
-<div class="filter-group"><label>Sort</label><select class="select-input-sm" id="zoneSortFilter" onchange="renderZoneProfileTab()" style="width:170px;"><option value="RANK">Model Rank</option><option value="ZONE">Zone Score</option><option value="TOPEDGE">Best Zone Edge</option><option value="USAGE">Pitcher Usage</option><option value="ALPHA">Player A-Z</option></select></div>
+<div class="filter-group"><label>Sort</label><select class="select-input-sm" id="zoneSortFilter" onchange="renderZoneProfileTab()" style="width:190px;"><option value="RANK">Model Rank</option><option value="ZONE">Zone Score</option><option value="ZONETHREAT">Zone Threat</option><option value="DANGER">Dangerous Attack %</option><option value="HRPATHS">HR Paths</option><option value="BESTZONE">Best Zone</option><option value="TOPEDGE">Best Zone Edge</option><option value="USAGE">Pitcher Usage</option><option value="ALPHA">Player A-Z</option></select></div>
 <div class="filter-group"><label>Zone Damage Sort</label><select aria-label="Sort HR Attack Map by hitter zone damage" class="select-input-sm home-zone-sort-select" id="zoneDamageSortSelect" onchange="setZoneDamageSort(this.value)" style="width:170px;"><option value="">Off</option><option value="1">Zone 1</option><option value="2">Zone 2</option><option value="3">Zone 3</option><option value="4">Zone 4</option><option value="5">Zone 5</option><option value="6">Zone 6</option><option value="7">Zone 7</option><option value="8">Zone 8</option><option value="9">Zone 9</option><option value="11">Zone 11</option><option value="12">Zone 12</option><option value="13">Zone 13</option><option value="14">Zone 14</option><option value="16">Zone 16</option></select></div>
 <div class="filter-group"><label>Zone View</label><div class="zone-view-toggle"><button class="zone-view-btn active" data-zone-view="WEIGHTED" onclick="setZoneProfileView('WEIGHTED')" type="button">Weighted</button><button class="zone-view-btn" data-zone-view="FB" onclick="setZoneProfileView('FB')" type="button">Fastball</button><button class="zone-view-btn" data-zone-view="BR" onclick="setZoneProfileView('BR')" type="button">Breaking</button><button class="zone-view-btn" data-zone-view="OS" onclick="setZoneProfileView('OS')" type="button">Offspeed</button></div></div>
 </div>
@@ -15815,6 +15816,12 @@ function renderZoneProfileTab() {
     const topUse = top ? zoneProfileFmtPct(top.pitchPct) : '--';
     const summary = displayProfile && displayProfile.summary ? displayProfile.summary : 'No BZ/PZ zone data found.';
     const topZoneNum = top ? top.zone : null;
+    const intel = zoneBettorIntel(profile);
+    let bettorStat = '';
+    if (activeSort === 'ZONETHREAT') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Zone Threat</div><div class="zone-mini-value hot">${Math.round(intel.zoneThreat)}</div></div>`;
+    else if (activeSort === 'DANGER') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Dangerous Attack</div><div class="zone-mini-value hot">${zoneProfileFmtPct(intel.dangerousAttack)}</div></div>`;
+    else if (activeSort === 'HRPATHS') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">HR Paths</div><div class="zone-mini-value hot">${intel.hrPaths}</div></div>`;
+    else if (activeSort === 'BESTZONE') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Best Zone Score</div><div class="zone-mini-value hot">${Math.round(intel.bestZoneScore)}</div></div>`;
     return `<div class="zone-player-card" style="${teamVisualStyle(p.Team || '')}">
       <div class="zone-card-top">
         ${createHeadshotHtml(p.Name,'sm',p.Team)}
@@ -22173,6 +22180,60 @@ drlOnReady( initBetFinder);
   window.addEventListener('load', function(){ setTimeout(rebuildBucketAnalyticsFromLoadedData, 500); });
 })();
 </script>
+<script id="zone-bettor-intel-script">
+/* BETTOR ZONE INTEL V1
+   Display/sort layer only. Does NOT change Attack Zone scoring.
+   It reads the already-calculated weighted family-zone cells:
+   - Zone Threat: top three realistic family-zone threats, weighted 50/30/20.
+   - Dangerous Attack %: share of the pitcher's modeled attack entering qualifying dangerous cells.
+   - HR Paths: count of qualifying family-zone intersections.
+   - Best Zone: strongest weighted physical-zone matchup score.
+   Screening thresholds are intentionally separate from model scoring and can be backtested later. */
+function zoneBettorIntel(profile){
+  const empty={zoneThreat:0,dangerousAttack:0,hrPaths:0,bestZoneScore:0,bestZone:null,paths:[]};
+  if(!profile) return empty;
+  const rawCells=Array.isArray(profile.cells)?profile.cells:[];
+  const cells=rawCells.map(c=>{
+    const edge=Number(c&&c.edge);
+    const exposure=Number(c&&c.exposure);
+    if(!Number.isFinite(edge)||!Number.isFinite(exposure)||exposure<=0) return null;
+    // Exposure matters, but does not erase a legitimate concentrated HR matchup.
+    // 6% total family-zone exposure receives full opportunity credit.
+    const exposureCredit=Math.min(1,Math.sqrt(Math.max(0,exposure)/0.06));
+    const threat=Math.max(0,edge)*(0.65+(0.35*exposureCredit));
+    return {...c,edge,exposure,threat};
+  }).filter(Boolean);
+  if(!cells.length){
+    const zones=Array.isArray(profile.zones)?profile.zones:[];
+    const best=zones.filter(z=>Number.isFinite(Number(z&&z.edge))).sort((a,b)=>Number(b.edge)-Number(a.edge))[0]||null;
+    return {...empty,bestZoneScore:best?Math.max(0,Number(best.edge)||0):0,bestZone:best?Number(best.zone):null};
+  }
+  const ranked=cells.slice().sort((a,b)=>b.threat-a.threat);
+  const top=ranked.slice(0,3);
+  const weights=[0.50,0.30,0.20];
+  const weightUsed=top.reduce((sum,_,i)=>sum+weights[i],0)||1;
+  const zoneThreat=top.reduce((sum,c,i)=>sum+(c.threat*weights[i]),0)/weightUsed;
+
+  // A path must be a strong matchup AND receive meaningful actual attack exposure.
+  // 60 is above the map's neutral band; 1.5% removes tiny arsenal/location artifacts.
+  const paths=cells.filter(c=>c.edge>=60 && c.exposure>=0.015)
+    .sort((a,b)=>(b.threat-a.threat));
+  const dangerousAttack=Math.min(1,paths.reduce((sum,c)=>sum+c.exposure,0));
+
+  const zones=Array.isArray(profile.zones)?profile.zones:[];
+  const best=zones.filter(z=>Number.isFinite(Number(z&&z.edge)))
+    .sort((a,b)=>Number(b.edge)-Number(a.edge))[0]||null;
+  return {
+    zoneThreat:Math.max(0,zoneThreat),
+    dangerousAttack,
+    hrPaths:paths.length,
+    bestZoneScore:best?Math.max(0,Number(best.edge)||0):0,
+    bestZone:best?Number(best.zone):null,
+    paths
+  };
+}
+window.zoneBettorIntel=zoneBettorIntel;
+</script>
 <script id="zone-performance-fix-script">
 (function(){
   'use strict';
@@ -22231,7 +22292,7 @@ drlOnReady( initBetFinder);
     }
   }
 
-  function cardHtml(item, idx, rankMap, view) {
+  function cardHtml(item, idx, rankMap, view, activeSort) {
     const p = item.player, profile = item.profile;
     const displayProfile = zoneProfileDisplayProfile(profile, view);
     const zones = zoneProfileOrderedZones(displayProfile);
@@ -22260,6 +22321,7 @@ drlOnReady( initBetFinder);
         <div class="zone-mini-stat"><div class="zone-mini-label">Best Zone</div><div class="zone-mini-value hot">${topText}</div></div>
         <div class="zone-mini-stat"><div class="zone-mini-label">Top Blast</div><div class="zone-mini-value gold">${topEdge}</div></div>
         <div class="zone-mini-stat"><div class="zone-mini-label">Cell Exposure</div><div class="zone-mini-value blue">${topUse}</div></div>
+        ${bettorStat}
       </div>
       <div class="zone-scout-summary">${zoneProfileEscape(summary)}</div>
     </div>`;
@@ -22299,8 +22361,19 @@ drlOnReady( initBetFinder);
     if (team !== 'ALL') players = players.filter(p => String(p.Team||'') === team);
     if (pitcherFilter !== 'ALL') players = players.filter(p => String(safeGet(p,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '').trim() === pitcherFilter);
 
-    let data = players.map(p => ({ player:p, profile:getProfile(p) }));
+    const mobileMap = drlMobileAttackMapMode();
+    const profileSorts = ['ZONE','TOPEDGE','USAGE','ZONETHREAT','DANGER','HRPATHS','BESTZONE'];
+    const needsAllProfiles = Number.isInteger(zoneDamageSortNumber) || profileSorts.includes(sort);
+    let data = players.map(p => ({ player:p, profile:(p.attackZoneProfile && Array.isArray(p.attackZoneProfile.zones)) ? p.attackZoneProfile : null }));
+    if (!mobileMap || needsAllProfiles) {
+      data.forEach(x=>{ if(!x.profile) x.profile=getProfile(x.player); });
+    }
     data.sort((a,b) => {
+      // Default/alpha sorts do not need zone profiles on mobile, preserving the lightweight first load.
+      if (sort === 'ALPHA') return String(a.player.Name||'').localeCompare(String(b.player.Name||''));
+      if (sort === 'RANK' && !Number.isInteger(zoneDamageSortNumber)) return (rankMap[normalizeName(a.player.Name)] || 9999) - (rankMap[normalizeName(b.player.Name)] || 9999);
+      if (!a.profile) a.profile=getProfile(a.player);
+      if (!b.profile) b.profile=getProfile(b.player);
       const ap = zoneProfileDisplayProfile(a.profile, view), bp = zoneProfileDisplayProfile(b.profile, view);
       if (Number.isInteger(zoneDamageSortNumber)) {
         const az = ap && Array.isArray(ap.zones) ? ap.zones.find(z => Number(z.zone) === zoneDamageSortNumber) : null;
@@ -22313,38 +22386,37 @@ drlOnReady( initBetFinder);
       }
       const at = ap && ap.topZone ? ap.topZone : {}, bt = bp && bp.topZone ? bp.topZone : {};
       if (sort === 'ZONE') return (Number(bp && bp.score) || -1) - (Number(ap && ap.score) || -1);
+      if (sort === 'ZONETHREAT') return zoneBettorIntel(b.profile).zoneThreat - zoneBettorIntel(a.profile).zoneThreat;
+      if (sort === 'DANGER') return zoneBettorIntel(b.profile).dangerousAttack - zoneBettorIntel(a.profile).dangerousAttack;
+      if (sort === 'HRPATHS') {
+        const ai=zoneBettorIntel(a.profile), bi=zoneBettorIntel(b.profile);
+        return (bi.hrPaths-ai.hrPaths) || (bi.zoneThreat-ai.zoneThreat);
+      }
+      if (sort === 'BESTZONE') return zoneBettorIntel(b.profile).bestZoneScore - zoneBettorIntel(a.profile).bestZoneScore;
       if (sort === 'TOPEDGE') return (Number(bt.edge) || -1) - (Number(at.edge) || -1);
       if (sort === 'USAGE') return (Number(bt.pitchPct) || -1) - (Number(at.pitchPct) || -1);
-      if (sort === 'ALPHA') return String(a.player.Name||'').localeCompare(String(b.player.Name||''));
       return (rankMap[normalizeName(a.player.Name)] || 9999) - (rankMap[normalizeName(b.player.Name)] || 9999);
     });
-    window.zoneProfileModalData = data;
     document.querySelectorAll('.zone-view-btn').forEach(btn => btn.classList.toggle('active', String(btn.dataset.zoneView || '').toUpperCase() === view));
     const pill = document.getElementById('zoneSummaryPill');
     if (pill) {
       const withData = data.reduce((n,x)=>n + (x.profile && x.profile.zones && x.profile.zones.length ? 1 : 0), 0);
-      pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(view)}</b>${Number.isInteger(zoneDamageSortNumber) ? ` &nbsp; Sorted: <b>Zone ${zoneDamageSortNumber} Damage</b>` : ''} &nbsp; Formula: <b>Family Mix → Within-Family Zone Usage</b>`;
+      const bettorSortLabel = ({ZONETHREAT:'Zone Threat',DANGER:'Dangerous Attack %',HRPATHS:'HR Paths',BESTZONE:'Best Zone'})[sort] || '';
+      pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(view)}</b>${Number.isInteger(zoneDamageSortNumber) ? ` &nbsp; Sorted: <b>Zone ${zoneDamageSortNumber} Damage</b>` : bettorSortLabel ? ` &nbsp; Sorted: <b>${bettorSortLabel}</b>` : ''} &nbsp; Formula: <b>Family Mix → Within-Family Zone Usage</b>`;
     }
-    if (!data.length) { grid.classList.remove('zone-rendering'); grid.innerHTML = '<div class="zone-empty">No players match the current HR Attack Map filters.</div>'; return; }
+    if (!data.length) { grid.classList.remove('zone-rendering'); grid.innerHTML = '<div class="zone-empty">No players match the current HR Attack Map filters.</div>'; window.zoneProfileModalData=[]; return; }
 
+    const defaultLimit = mobileMap ? 4 : 40;
+    const renderLimit = Math.max(defaultLimit, Number(window.zoneProfileRenderLimit) || defaultLimit);
+    const visibleData = data.slice(0, renderLimit);
+    visibleData.forEach(x=>{ if(!x.profile) x.profile=getProfile(x.player); });
+    window.zoneProfileModalData = visibleData;
     grid.classList.add('zone-rendering');
-    grid.innerHTML = '';
-    const chunkSize = window.matchMedia && window.matchMedia('(max-width: 650px)').matches ? 12 : 30;
-    let pos = 0;
-    function appendChunk(deadline) {
-      if (token !== zoneRenderToken) return;
-      const end = Math.min(pos + chunkSize, data.length);
-      let html = '';
-      for (; pos < end; pos++) html += cardHtml(data[pos], pos, rankMap, view);
-      grid.insertAdjacentHTML('beforeend', html);
-      if (pos < data.length) {
-        if ('requestIdleCallback' in window) requestIdleCallback(appendChunk, {timeout: 80});
-        else setTimeout(appendChunk, 0);
-      } else {
-        grid.classList.remove('zone-rendering');
-      }
+    grid.innerHTML = visibleData.map((item,idx)=>cardHtml(item,idx,rankMap,view,sort)).join('');
+    if (visibleData.length < data.length) {
+      grid.insertAdjacentHTML('beforeend', `<div class="zone-load-more-wrap"><button type="button" class="btn-blue zone-load-more-btn" onclick="window.zoneProfileRenderLimit=${renderLimit}+${mobileMap?4:40}; window.renderZoneProfileTab();">Load More (${visibleData.length}/${data.length})</button></div>`);
     }
-    appendChunk();
+    grid.classList.remove('zone-rendering');
   };
 
   drlOnReady( function(){
@@ -22353,7 +22425,7 @@ drlOnReady( initBetFinder);
     const pitcher = document.getElementById('zonePitcherFilter');
     const sort = document.getElementById('zoneSortFilter');
     if (search) { search.removeAttribute('oninput'); search.addEventListener('input', ()=>window.scheduleZoneProfileRender(120), {passive:true}); }
-    [team,pitcher,sort].forEach(el => { if (el) { el.removeAttribute('onchange'); el.addEventListener('change', ()=>window.scheduleZoneProfileRender(0), {passive:true}); } });
+    [team,pitcher,sort].forEach(el => { if (el) { el.removeAttribute('onchange'); el.addEventListener('change', ()=>{ window.zoneProfileRenderLimit=0; window.scheduleZoneProfileRender(0); }, {passive:true}); } });
   });
 })();
 </script>
