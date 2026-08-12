@@ -2,6 +2,7 @@
 
 <html lang="en">
 <head>
+<!-- HR ATTACK MAP BOMB SORTS: adds Total Bombs and Zone Bomb display/research sorts. A zone counts only when hitter HR >= 1 AND pitcher HR allowed >= 1. Total Bombs sums hitter+pitcher HR across every qualifying physical zone; Zone Bomb uses the largest single qualifying zone total. Scoring is unchanged. -->
 <!-- ATTACK MAP SEASON-PA CONFIDENCE: hitter Attack Map display/ranking score is smoothly reduced for small season samples; 25 PA=55%, 50=70%, 75=82%, 100=90%, 150+=100%. Underlying zone cells, matchup engine, pitcher map, and main BBI scoring are unchanged. -->
 <!-- ZONE BETTOR SORTS FIX: repaired undefined activeSort/bettorStat runtime references that prevented HR Attack Map cards from rendering. Scoring/layout unchanged. -->
 <!-- ZONE BETTOR SORTS V1: adds Zone Threat, Dangerous Attack %, HR Paths, and Best Zone sorting as a display/research layer only. Default map appearance/sort and Attack Zone scoring are unchanged. -->
@@ -9193,7 +9194,7 @@ tbody tr{contain:layout paint style;}
 <div class="filter-group"><label>Search Player</label><input class="search-input" id="zoneSearch" oninput="renderZoneProfileTab()" placeholder="Type player name..." type="text"/></div>
 <div class="filter-group"><label>Team</label><select class="select-input-sm" id="zoneTeamFilter" onchange="renderZoneProfileTab()" style="width:150px;"><option value="ALL">All Teams</option></select></div>
 <div class="filter-group"><label>Pitcher</label><select class="select-input-sm" id="zonePitcherFilter" onchange="renderZoneProfileTab()" style="width:190px;"><option value="ALL">All Pitchers</option></select></div>
-<div class="filter-group"><label>Sort</label><select class="select-input-sm" id="zoneSortFilter" onchange="renderZoneProfileTab()" style="width:190px;"><option value="RANK">Model Rank</option><option value="ZONE">Zone Score</option><option value="ZONETHREAT">Zone Threat</option><option value="DANGER">Dangerous Attack %</option><option value="HRPATHS">HR Paths</option><option value="BESTZONE">Best Zone</option><option value="TOPEDGE">Best Zone Edge</option><option value="USAGE">Pitcher Usage</option><option value="ALPHA">Player A-Z</option></select></div>
+<div class="filter-group"><label>Sort</label><select class="select-input-sm" id="zoneSortFilter" onchange="renderZoneProfileTab()" style="width:190px;"><option value="RANK">Model Rank</option><option value="ZONE">Zone Score</option><option value="ZONETHREAT">Zone Threat</option><option value="DANGER">Dangerous Attack %</option><option value="HRPATHS">HR Paths</option><option value="TOTALBOMBS">Total Bombs</option><option value="ZONEBOMB">Zone Bomb</option><option value="BESTZONE">Best Zone</option><option value="TOPEDGE">Best Zone Edge</option><option value="USAGE">Pitcher Usage</option><option value="ALPHA">Player A-Z</option></select></div>
 <div class="filter-group"><label>Zone Damage Sort</label><select aria-label="Sort HR Attack Map by hitter zone damage" class="select-input-sm home-zone-sort-select" id="zoneDamageSortSelect" onchange="setZoneDamageSort(this.value)" style="width:170px;"><option value="">Off</option><option value="1">Zone 1</option><option value="2">Zone 2</option><option value="3">Zone 3</option><option value="4">Zone 4</option><option value="5">Zone 5</option><option value="6">Zone 6</option><option value="7">Zone 7</option><option value="8">Zone 8</option><option value="9">Zone 9</option><option value="11">Zone 11</option><option value="12">Zone 12</option><option value="13">Zone 13</option><option value="14">Zone 14</option><option value="16">Zone 16</option></select></div>
 <div class="filter-group"><label>Zone View</label><div class="zone-view-toggle"><button class="zone-view-btn active" data-zone-view="WEIGHTED" onclick="setZoneProfileView('WEIGHTED')" type="button">Weighted</button><button class="zone-view-btn" data-zone-view="FB" onclick="setZoneProfileView('FB')" type="button">Fastball</button><button class="zone-view-btn" data-zone-view="BR" onclick="setZoneProfileView('BR')" type="button">Breaking</button><button class="zone-view-btn" data-zone-view="OS" onclick="setZoneProfileView('OS')" type="button">Offspeed</button></div></div>
 </div>
@@ -22235,6 +22236,29 @@ function zoneBettorIntel(profile){
   };
 }
 window.zoneBettorIntel=zoneBettorIntel;
+
+/* HR overlap research only; never feeds Attack Zone scoring. Weighted zones are used so
+   batter/pitcher HR counts represent the combined FB + BR + OS totals shown on the map. */
+function zoneBombIntel(profile){
+  const empty={totalBombs:0,zoneBomb:0,zoneBombZone:null,qualifyingZones:0,zones:[]};
+  if(!profile || !Array.isArray(profile.zones)) return empty;
+  const rows=profile.zones.map(z=>{
+    const hitterHR=Number(z && z.batterStats && z.batterStats.hr);
+    const pitcherHR=Number(z && z.pitcherStats && z.pitcherStats.hr);
+    if(!Number.isFinite(hitterHR) || !Number.isFinite(pitcherHR) || hitterHR < 1 || pitcherHR < 1) return null;
+    return {zone:Number(z.zone),hitterHR,pitcherHR,bombs:hitterHR+pitcherHR};
+  }).filter(Boolean);
+  if(!rows.length) return empty;
+  const ranked=rows.slice().sort((a,b)=>(b.bombs-a.bombs)||(a.zone-b.zone));
+  return {
+    totalBombs:rows.reduce((sum,z)=>sum+z.bombs,0),
+    zoneBomb:ranked[0].bombs,
+    zoneBombZone:ranked[0].zone,
+    qualifyingZones:rows.length,
+    zones:ranked
+  };
+}
+window.zoneBombIntel=zoneBombIntel;
 </script>
 <script id="zone-performance-fix-script">
 (function(){
@@ -22346,6 +22370,8 @@ window.zoneBettorIntel=zoneBettorIntel;
     if (activeSort === 'ZONETHREAT') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Zone Threat</div><div class="zone-mini-value hot">${Math.round(intel.zoneThreat)}</div></div>`;
     else if (activeSort === 'DANGER') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Dangerous Attack</div><div class="zone-mini-value hot">${zoneProfileFmtPct(intel.dangerousAttack)}</div></div>`;
     else if (activeSort === 'HRPATHS') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">HR Paths</div><div class="zone-mini-value hot">${intel.hrPaths}</div></div>`;
+    else if (activeSort === 'TOTALBOMBS') { const bombs=zoneBombIntel(profile); bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Total Bombs</div><div class="zone-mini-value hot">${zoneProfileFmtStat('HR', bombs.totalBombs)}</div></div>`; }
+    else if (activeSort === 'ZONEBOMB') { const bombs=zoneBombIntel(profile); bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Zone Bomb</div><div class="zone-mini-value hot">${zoneProfileFmtStat('HR', bombs.zoneBomb)}${bombs.zoneBombZone ? ` <span style="font-size:.72em;color:#f6c343">Z${bombs.zoneBombZone}</span>` : ''}</div></div>`; }
     else if (activeSort === 'BESTZONE') bettorStat = `<div class="zone-mini-stat"><div class="zone-mini-label">Best Zone Score</div><div class="zone-mini-value hot">${Math.round(intel.bestZoneScore)}</div></div>`;
     return `<div class="zone-player-card" style="${teamVisualStyle(p.Team || '')}">
       <div class="zone-card-top">
@@ -22403,7 +22429,7 @@ window.zoneBettorIntel=zoneBettorIntel;
     if (pitcherFilter !== 'ALL') players = players.filter(p => String(safeGet(p,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '').trim() === pitcherFilter);
 
     const mobileMap = drlMobileAttackMapMode();
-    const profileSorts = ['ZONE','TOPEDGE','USAGE','ZONETHREAT','DANGER','HRPATHS','BESTZONE'];
+    const profileSorts = ['ZONE','TOPEDGE','USAGE','ZONETHREAT','DANGER','HRPATHS','TOTALBOMBS','ZONEBOMB','BESTZONE'];
     const needsAllProfiles = Number.isInteger(zoneDamageSortNumber) || profileSorts.includes(sort);
     let data = players.map(p => ({ player:p, profile:(p.attackZoneProfile && Array.isArray(p.attackZoneProfile.zones)) ? p.attackZoneProfile : null }));
     if (!mobileMap || needsAllProfiles) {
@@ -22437,6 +22463,14 @@ window.zoneBettorIntel=zoneBettorIntel;
         const ai=zoneBettorIntel(a.profile), bi=zoneBettorIntel(b.profile);
         return (bi.hrPaths-ai.hrPaths) || (bi.zoneThreat-ai.zoneThreat);
       }
+      if (sort === 'TOTALBOMBS') {
+        const ai=zoneBombIntel(a.profile), bi=zoneBombIntel(b.profile);
+        return (bi.totalBombs-ai.totalBombs) || (bi.zoneBomb-ai.zoneBomb) || ((rankMap[normalizeName(a.player.Name)] || 9999) - (rankMap[normalizeName(b.player.Name)] || 9999));
+      }
+      if (sort === 'ZONEBOMB') {
+        const ai=zoneBombIntel(a.profile), bi=zoneBombIntel(b.profile);
+        return (bi.zoneBomb-ai.zoneBomb) || (bi.totalBombs-ai.totalBombs) || ((rankMap[normalizeName(a.player.Name)] || 9999) - (rankMap[normalizeName(b.player.Name)] || 9999));
+      }
       if (sort === 'BESTZONE') return zoneBettorIntel(b.profile).bestZoneScore - zoneBettorIntel(a.profile).bestZoneScore;
       if (sort === 'TOPEDGE') return (Number(bt.edge) || -1) - (Number(at.edge) || -1);
       if (sort === 'USAGE') return (Number(bt.pitchPct) || -1) - (Number(at.pitchPct) || -1);
@@ -22446,7 +22480,7 @@ window.zoneBettorIntel=zoneBettorIntel;
     const pill = document.getElementById('zoneSummaryPill');
     if (pill) {
       const withData = data.reduce((n,x)=>n + (x.profile && x.profile.zones && x.profile.zones.length ? 1 : 0), 0);
-      const bettorSortLabel = ({ZONETHREAT:'Zone Threat',DANGER:'Dangerous Attack %',HRPATHS:'HR Paths',BESTZONE:'Best Zone'})[sort] || '';
+      const bettorSortLabel = ({ZONETHREAT:'Zone Threat',DANGER:'Dangerous Attack %',HRPATHS:'HR Paths',TOTALBOMBS:'Total Bombs',ZONEBOMB:'Zone Bomb',BESTZONE:'Best Zone'})[sort] || '';
       pill.innerHTML = `Players: <b>${data.length}</b> &nbsp; With Zone Data: <b>${withData}</b> &nbsp; View: <b>${zoneBucketLabel(view)}</b>${Number.isInteger(zoneDamageSortNumber) ? ` &nbsp; Sorted: <b>Zone ${zoneDamageSortNumber} Damage</b>` : bettorSortLabel ? ` &nbsp; Sorted: <b>${bettorSortLabel}</b>` : ''} &nbsp; Formula: <b>Family Mix → Within-Family Zone Usage</b>`;
     }
     if (!data.length) { grid.classList.remove('zone-rendering'); grid.innerHTML = '<div class="zone-empty">No players match the current HR Attack Map filters.</div>'; window.zoneProfileModalData=[]; return; }
