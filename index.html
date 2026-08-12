@@ -2,6 +2,7 @@
 
 <html lang="en">
 <head>
+<!-- ATTACK MAP SEASON-PA CONFIDENCE: hitter Attack Map display/ranking score is smoothly reduced for small season samples; 25 PA=55%, 50=70%, 75=82%, 100=90%, 150+=100%. Underlying zone cells, matchup engine, pitcher map, and main BBI scoring are unchanged. -->
 <!-- ZONE BETTOR SORTS FIX: repaired undefined activeSort/bettorStat runtime references that prevented HR Attack Map cards from rendering. Scoring/layout unchanged. -->
 <!-- ZONE BETTOR SORTS V1: adds Zone Threat, Dangerous Attack %, HR Paths, and Best Zone sorting as a display/research layer only. Default map appearance/sort and Attack Zone scoring are unchanged. -->
 <!-- MOBILE ATTACK MAP HARDENED V3: phone/tablet detection widened, mobile hover DOM is not created, HR map profiles are calculated only for visible cards in normal mobile sorts, map batches reduced to 4, inactive map DOM released. Scoring/data unchanged. -->
@@ -22246,6 +22247,37 @@ window.zoneBettorIntel=zoneBettorIntel;
   let rankCacheSignature = '';
   let rankCacheMap = Object.create(null);
 
+  // Attack Map display/ranking confidence only. Do not mutate the underlying profile score.
+  // Smooth season-PA ramp: 25=55%, 50=70%, 75=82%, 100=90%, 150+=100%.
+  function attackZoneSeasonPA(player) {
+    const paRow = player && player.Name && typeof lookupStat === 'function' ? (lookupStat('PA', player.Name) || {}) : {};
+    const raw = firstNumber(
+      safeGet(paRow, 'PA', 'PAs', 'Plate Appearances', 'Total PA', 'TotalPA', 'Season PA'),
+      safeGet(player || {}, 'PA', 'pa', 'PAs', 'Plate Appearances', 'Total PA', 'TotalPA', 'Season PA')
+    );
+    return Math.max(0, Number(raw) || 0);
+  }
+
+  function attackZoneSeasonPAConfidence(player) {
+    const pa = attackZoneSeasonPA(player);
+    const points = [[0,0.40],[25,0.55],[50,0.70],[75,0.82],[100,0.90],[150,1.00]];
+    if (pa >= 150) return 1;
+    for (let i=1; i<points.length; i++) {
+      const [x1,y1] = points[i-1], [x2,y2] = points[i];
+      if (pa <= x2) {
+        const t = x2 === x1 ? 0 : (pa - x1) / (x2 - x1);
+        return Math.max(0.40, Math.min(1, y1 + ((y2 - y1) * t)));
+      }
+    }
+    return 1;
+  }
+
+  function attackZoneSampleAdjustedScore(player, rawScore) {
+    const raw = Number(rawScore);
+    if (!Number.isFinite(raw)) return null;
+    return raw * attackZoneSeasonPAConfidence(player);
+  }
+
   function getProfile(player) {
     if (!player || typeof player !== 'object') return null;
     if (player.attackZoneProfile && Array.isArray(player.attackZoneProfile.zones)) {
@@ -22301,7 +22333,9 @@ window.zoneBettorIntel=zoneBettorIntel;
     const pitcher = String(safeGet(p,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || 'Opp Starter').trim();
     const hand = String(safeGet(p,'Bats','Bat Side','Hand') || '-').toUpperCase().slice(0,1);
     const rank = rankMap[normalizeName(p.Name)] || '-';
-    const zoneScore = displayProfile && displayProfile.score != null ? Math.round(displayProfile.score) : '--';
+    const rawZoneScore = displayProfile && displayProfile.score != null ? Number(displayProfile.score) : null;
+    const adjustedZoneScore = attackZoneSampleAdjustedScore(p, rawZoneScore);
+    const zoneScore = adjustedZoneScore != null ? Math.round(adjustedZoneScore) : '--';
     const topText = top ? `Z${top.zone}` : '--';
     const topEdge = top ? Math.round(Number(top.edge)||0) : '--';
     const topUse = top ? zoneProfileFmtPct(top.pitchPct) : '--';
@@ -22392,7 +22426,11 @@ window.zoneBettorIntel=zoneBettorIntel;
         if (aValid && bValid && bv !== av) return bv - av;
       }
       const at = ap && ap.topZone ? ap.topZone : {}, bt = bp && bp.topZone ? bp.topZone : {};
-      if (sort === 'ZONE') return (Number(bp && bp.score) || -1) - (Number(ap && ap.score) || -1);
+      if (sort === 'ZONE') {
+        const av = attackZoneSampleAdjustedScore(a.player, ap && ap.score);
+        const bv = attackZoneSampleAdjustedScore(b.player, bp && bp.score);
+        return (Number.isFinite(bv) ? bv : -1) - (Number.isFinite(av) ? av : -1);
+      }
       if (sort === 'ZONETHREAT') return zoneBettorIntel(b.profile).zoneThreat - zoneBettorIntel(a.profile).zoneThreat;
       if (sort === 'DANGER') return zoneBettorIntel(b.profile).dangerousAttack - zoneBettorIntel(a.profile).dangerousAttack;
       if (sort === 'HRPATHS') {
