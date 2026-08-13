@@ -2,6 +2,7 @@
 
 <html lang="en">
 <head>
+<!-- PITCHER ATTACK MAP MISTAKE INTEL: display-only Mistake Risk, Hang Rate, and Mistake Hotspots added to Pitcher Damage Blueprint. Uses existing Attack Zone family mistake/hang diagnostics; scoring and rankings unchanged. -->
 <!-- ZONE EXPORT V2: two-sheet hitter/pitcher detailed physical-zone export with total score, zone score, HRs, and pitcher usage. Export only; scoring unchanged. -->
 <!-- HR ATTACK MAP BOMB SORTS: adds Total Bombs and Zone Bomb display/research sorts. A zone counts only when hitter HR >= 1 AND pitcher HR allowed >= 1. Total Bombs sums hitter+pitcher HR across every qualifying physical zone; Zone Bomb uses the largest single qualifying zone total. Scoring is unchanged. -->
 <!-- ATTACK MAP SEASON-PA CONFIDENCE: hitter Attack Map display/ranking score is smoothly reduced for small season samples; 25 PA=55%, 50=70%, 75=82%, 100=90%, 150+=100%. Underlying zone cells, matchup engine, pitcher map, and main BBI scoring are unchanged. -->
@@ -7058,6 +7059,24 @@ body::after{display:none!important;}
 .attack-mix-grid>div{border:1px solid #2a2d31;border-radius:10px;padding:8px 6px;background:#0b0d10;text-align:center;}
 .attack-mix-grid span{display:block;color:#8f949c;font-size:8px;font-weight:1000;text-transform:uppercase;}
 .attack-mix-grid b{display:block;margin-top:4px;color:#fff;font-family:monospace;font-size:14px;}
+
+.pitcher-intel-kpis{grid-template-columns:repeat(4,1fr)!important;}
+.pitcher-intel-kpis .mistake-kpi{border-color:rgba(249,115,22,.42);background:linear-gradient(145deg,rgba(249,115,22,.09),#0b0d10);}
+.pitcher-intel-kpis .mistake-kpi span{color:#fb923c;}
+.pitcher-intel-kpis .mistake-kpi b{color:#fdba74;text-shadow:0 0 12px rgba(249,115,22,.22);}
+.attack-execution-strip{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 13px;}
+.attack-execution-chip{border:1px solid #2a2d31;border-radius:10px;padding:8px 9px;background:#0b0d10;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.attack-execution-chip span{color:#8f949c;font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.55px;}
+.attack-execution-chip b{font-family:monospace;font-size:14px;font-weight:1000;color:#fff;}
+.attack-execution-chip.hang{border-color:rgba(234,179,8,.35);background:rgba(234,179,8,.05);}
+.attack-execution-chip.hang span,.attack-execution-chip.hang b{color:#facc15;}
+.attack-mistake-title{color:#fb923c!important;margin-top:12px!important;}
+.attack-mistake-row{border-left:2px solid rgba(249,115,22,.72);}
+.attack-mistake-row .attack-danger-rank{background:linear-gradient(135deg,#f97316,#c2410c)!important;color:#fff!important;}
+.attack-mistake-row strong{color:#fb923c!important;}
+.attack-mistake-row small em{font-style:normal;color:#facc15;font-weight:1000;}
+.attack-risk-note{margin-top:9px;padding:8px 9px;border-radius:9px;border:1px solid rgba(249,115,22,.20);background:rgba(249,115,22,.045);color:#9ca3af;font-size:8px;font-weight:850;line-height:1.35;}
+@media(max-width:700px){.pitcher-intel-kpis{grid-template-columns:repeat(2,1fr)!important;}.attack-execution-strip{grid-template-columns:1fr;}}
 .attack-danger-title{color:#e10600;font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:1px;margin:4px 0 7px;}
 .attack-danger-row{display:grid;grid-template-columns:27px minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid #2a2d31;border-radius:11px;padding:8px;margin-top:7px;background:#0b0d10;}
 .attack-danger-rank{width:25px;height:25px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#e10600;color:#fff;font-family:monospace;font-weight:1000;}
@@ -15910,7 +15929,64 @@ function closeZoneProfileModal() {
 window.pitcherAttackView = window.pitcherAttackView || 'WEIGHTED';
 window.pitcherAttackZoneSortNumber = window.pitcherAttackZoneSortNumber || null;
 window.pitcherAttackModalData = [];
-function pitcherAttackProfileView(profile, view) {
+function pitcherAttackExecutionIntel(executionData, view, mix, batSide) {
+  const fams=(executionData&&executionData.families)||{};
+  const requested=String(view||'WEIGHTED').toUpperCase();
+  const selected=['FB','BR','OS'].includes(requested)?[requested]:['FB','BR','OS'];
+  const weights={FB:Math.max(0,Number(mix&&mix.FB)||0),BR:Math.max(0,Number(mix&&mix.BR)||0),OS:Math.max(0,Number(mix&&mix.OS)||0)};
+  const usable=selected.filter(f=>fams[f]);
+  let denom=0,mistake=0,hang=0,shape=0;
+  usable.forEach(f=>{
+    const r=fams[f]||{};
+    const w=requested==='WEIGHTED' ? weights[f] : 1;
+    if(w<=0&&requested==='WEIGHTED')return;
+    denom+=w;
+    mistake+=w*Math.max(0,Math.min(1,Number(r.mistakeRate)||0));
+    hang+=w*Math.max(0,Math.min(1,Number(r.hangRate)||0));
+    shape+=w*Math.max(0,Math.min(1,Number(r.shapeMistakeRate)||0));
+  });
+  if(denom<=0&&usable.length){
+    denom=usable.length;
+    usable.forEach(f=>{
+      const r=fams[f]||{};
+      mistake+=Math.max(0,Math.min(1,Number(r.mistakeRate)||0));
+      hang+=Math.max(0,Math.min(1,Number(r.hangRate)||0));
+      shape+=Math.max(0,Math.min(1,Number(r.shapeMistakeRate)||0));
+    });
+  }
+  const mistakeRisk=denom>0?mistake/denom:null;
+  const hangRate=denom>0?hang/denom:null;
+  const shapeRate=denom>0?shape/denom:null;
+
+  const hotspots=[];
+  ATTACK_ZONE_PHYSICAL_ZONES.forEach(zone=>{
+    let zoneWeight=0, exposure=0, gradeNum=0, gradeDen=0;
+    usable.forEach(f=>{
+      const r=fams[f]||{};
+      const defs=ATTACK_ZONE_FAMILY_LOCATION_DEFS[f]||{};
+      const mistakeSet=new Set(defs.mistake||[]), hangSet=new Set(defs.hang||[]), mw=defs.mistakeWeight||{};
+      const anchor=attackZoneLogicalAnchorIndex(zone,batSide||'R');
+      const partial=mistakeSet.has(anchor)?(Number(mw[anchor])||0):0;
+      const isHang=hangSet.has(anchor);
+      const danger=(0.65*partial)+(isHang?0.35:0);
+      if(danger<=0)return;
+      const cf=Math.max(0,Number(r.conditionalFreq&&r.conditionalFreq[zone])||0);
+      const famWeight=requested==='WEIGHTED' ? Math.max(0,weights[f]) : 1;
+      const localGrade=Math.max(0,Math.min(1,(0.45*danger)+(0.35*Math.max(0,Math.min(1,Number(r.shapeMistakeRate)||0)))+(0.20*Math.max(0,Math.min(1,Number(r.damageOnMistakes)||0)))));
+      exposure += famWeight*cf*danger;
+      zoneWeight += famWeight*cf;
+      gradeNum += famWeight*cf*localGrade;
+      gradeDen += famWeight*cf;
+    });
+    if(exposure>0){
+      hotspots.push({zone,exposure,usage:zoneWeight,risk:gradeDen>0?gradeNum/gradeDen:0});
+    }
+  });
+  hotspots.sort((a,b)=>(b.exposure-a.exposure)||(b.risk-a.risk));
+  return {mistakeRisk,hangRate,shapeRate,hotspots:hotspots.slice(0,3),view:requested};
+}
+
+function pitcherAttackProfileView(profile, view, executionData, batSide, mix) {
   const v=String(view||window.pitcherAttackView||'WEIGHTED').toUpperCase();
   const weightedZones=Array.isArray(profile&&profile.zones)?profile.zones:[];
   let zones=[];
@@ -15934,7 +16010,8 @@ function pitcherAttackProfileView(profile, view) {
     return d>0?rows.reduce((s,z)=>s+Number(z.pitcherStats[key])*(Number(z.pitchPct)||0),0)/d:rows.reduce((s,z)=>s+Number(z.pitcherStats[key]),0)/rows.length;
   };
   const summedStat=(key)=>{const rows=valid.filter(z=>z.pitcherStats&&Number.isFinite(Number(z.pitcherStats[key])));return rows.length?rows.reduce((sum,z)=>sum+Number(z.pitcherStats[key]),0):null;};
-  return {zones,damage,shadowDamage,top,hr:summedStat('hr'),ev:weightedStat('ev'),view:v};
+  const execution=pitcherAttackExecutionIntel(executionData,v,mix,batSide);
+  return {zones,damage,shadowDamage,top,hr:summedStat('hr'),ev:weightedStat('ev'),view:v,execution};
 }
 function pitcherAttackBuildRows(){
   const unique={};
@@ -15944,12 +16021,15 @@ function pitcherAttackBuildRows(){
     const key=normalizeName(name); if(unique[key])return;
     let matchupProfile=null; try{ matchupProfile=calculateAttackZoneProfile(p); }catch(e){}
     const mix=(matchupProfile&&matchupProfile.mix)||{FB:0,BR:0,OS:0};
+    let executionData=null;
+    try{ if(matchupProfile&&matchupProfile.bucketProfiles) executionData=attackZoneDailyHRProbability(p,matchupProfile.bucketProfiles,mix); }catch(e){}
+    const batSide=attackZoneExpectedBatSide(p,name);
     const team=resolvePitcherOwnTeam(name,'');
     const opp=String(p.Team||'').trim().toUpperCase();
     const id=String((playerIdMap&&playerIdMap[key])||'');
     const bullpenTeam=opp;
     const profile=zoneGetPitcherOnlyProfile(name,mix,bullpenTeam);
-    unique[key]={name,team,opp,id,mix,profile,representative:p};
+    unique[key]={name,team,opp,id,mix,profile,representative:p,executionData,batSide};
   });
   return Object.values(unique);
 }
@@ -15974,7 +16054,31 @@ function pitcherAttackCell(zone,rowIndex,isBest){
 
 function pitcherAttackIntelHtml(viewData){
   const top=(viewData.zones||[]).filter(z=>Number.isFinite(Number(z.pitcherVulnerability))).sort((a,b)=>(Number(b.pitcherVulnerability)||0)-(Number(a.pitcherVulnerability)||0)).slice(0,3);
-  return `<div class="attack-intel-panel"><div class="attack-intel-title">Pitcher Damage Blueprint</div><div class="attack-mix-grid"><div><span>Overall Damage</span><b>${zoneProfileFmtNum(viewData.damage,0)}</b></div><div><span>HR Allowed</span><b>${zoneProfileFmtStat('HR',viewData.hr)}</b></div><div><span>EV Allowed</span><b>${zoneProfileFmtStat('EV',viewData.ev)}</b></div></div><div class="attack-danger-title">Most Vulnerable Zones</div>${top.length?top.map((z,i)=>`<div class="attack-danger-row"><span class="attack-danger-rank">${i+1}</span><div><b>Zone ${z.zone}</b><small>${zoneProfileFmtPct(z.pitchPct)} usage</small></div><strong>${Math.round(Number(z.pitcherVulnerability)||0)}</strong></div>`).join(''):'<div class="attack-danger-empty">No pitcher zone cells available.</div>'}<div class="attack-engine-note">Pitcher-only PZ data. Hitter damage is excluded. Shadow Damage: ${zoneProfileFmtNum(viewData.shadowDamage,0)}.</div></div>`;
+  const ex=viewData.execution||{};
+  const mistakeRisk=Number.isFinite(Number(ex.mistakeRisk))?Math.round(Number(ex.mistakeRisk)*100):null;
+  const hangPct=Number.isFinite(Number(ex.hangRate))?Math.round(Number(ex.hangRate)*100):null;
+  const mistakeLabel=viewData.view==='BR'?'BR Mistake Risk':viewData.view==='FB'?'FB Mistake Risk':viewData.view==='OS'?'OS Mistake Risk':'Mistake Risk';
+  const hangLabel=viewData.view==='BR'?'BR Hang Rate':viewData.view==='FB'?'FB Hang Rate':viewData.view==='OS'?'OS Hang Rate':'Hang Rate';
+  const hotspots=Array.isArray(ex.hotspots)?ex.hotspots:[];
+  return `<div class="attack-intel-panel">
+    <div class="attack-intel-title">Pitcher Damage Blueprint</div>
+    <div class="attack-mix-grid pitcher-intel-kpis">
+      <div><span>Overall Damage</span><b>${zoneProfileFmtNum(viewData.damage,0)}</b></div>
+      <div><span>HR Allowed</span><b>${zoneProfileFmtStat('HR',viewData.hr)}</b></div>
+      <div><span>EV Allowed</span><b>${zoneProfileFmtStat('EV',viewData.ev)}</b></div>
+      <div class="mistake-kpi"><span>${mistakeLabel}</span><b>${mistakeRisk===null?'--':mistakeRisk}</b></div>
+    </div>
+    <div class="attack-execution-strip">
+      <div class="attack-execution-chip hang"><span>${hangLabel}</span><b>${hangPct===null?'--':hangPct+'%'}</b></div>
+      <div class="attack-execution-chip"><span>Shape Mistake Rate</span><b>${Number.isFinite(Number(ex.shapeRate))?Math.round(Number(ex.shapeRate)*100)+'%':'--'}</b></div>
+    </div>
+    <div class="attack-danger-title">Most Vulnerable Zones</div>
+    ${top.length?top.map((z,i)=>`<div class="attack-danger-row"><span class="attack-danger-rank">${i+1}</span><div><b>Zone ${z.zone}</b><small>${zoneProfileFmtPct(z.pitchPct)} usage</small></div><strong>${Math.round(Number(z.pitcherVulnerability)||0)}</strong></div>`).join(''):'<div class="attack-danger-empty">No pitcher zone cells available.</div>'}
+    <div class="attack-danger-title attack-mistake-title">Mistake Hotspots</div>
+    ${hotspots.length?hotspots.map((z,i)=>`<div class="attack-danger-row attack-mistake-row"><span class="attack-danger-rank">${i+1}</span><div><b>Zone ${z.zone}</b><small>${zoneProfileFmtPct(z.usage)} family usage · <em>${zoneProfileFmtPct(z.exposure)} danger exposure</em></small></div><strong>${Math.round((Number(z.risk)||0)*100)}</strong></div>`).join(''):'<div class="attack-danger-empty">No mistake-location exposure available for this view.</div>'}
+    <div class="attack-risk-note">Display-only execution intel. Mistake Risk uses the existing 45% location + 35% degraded shape + 20% damage-on-mistakes logic. Hang Rate uses the existing family hang-zone exposure. No Attack Zone scoring is changed.</div>
+    <div class="attack-engine-note">Pitcher-only PZ damage remains hitter-independent. Execution risk uses the existing matchup-side orientation for the representative opposing hitter. Shadow Damage: ${zoneProfileFmtNum(viewData.shadowDamage,0)}.</div>
+  </div>`;
 }
 function renderPitcherAttackMapTab(){
   const grid=document.getElementById('pitcherAttackGrid'); if(!grid)return;
@@ -15984,7 +16088,7 @@ function renderPitcherAttackMapTab(){
   const q=String(document.getElementById('pitcherAttackSearch')?.value||'').toLowerCase().trim();
   const team=document.getElementById('pitcherAttackTeam')?.value||'ALL';
   const sort=document.getElementById('pitcherAttackSort')?.value||'DAMAGE';
-  rows=rows.map(r=>({...r,viewData:pitcherAttackProfileView(r.profile,window.pitcherAttackView)}));
+  rows=rows.map(r=>({...r,viewData:pitcherAttackProfileView(r.profile,window.pitcherAttackView,r.executionData,r.batSide,r.mix)}));
   if(q)rows=rows.filter(r=>r.name.toLowerCase().includes(q)||r.id.toLowerCase().includes(q));
   if(team!=='ALL')rows=rows.filter(r=>r.team===team);
   const zn=window.pitcherAttackZoneSortNumber;
@@ -16011,7 +16115,7 @@ function renderPitcherAttackMapTab(){
 }
 function zonePitchMixHtmlPitcher(mix,activeView){mix=mix||{FB:0,BR:0,OS:0};activeView=String(activeView||'WEIGHTED').toUpperCase();return `<div class="zone-pitch-mix-strip"><button type="button" class="zone-pitch-mix-pill ${activeView==='WEIGHTED'?'hot':''}" onclick="event.stopPropagation();setPitcherAttackView('WEIGHTED')">Weighted <b>All</b></button>${['FB','BR','OS'].map(k=>`<button type="button" class="zone-pitch-mix-pill ${activeView===k?'hot':''}" onclick="event.stopPropagation();setPitcherAttackView('${k}')">${zoneBucketLabel(k)} <b>${zoneProfileFmtPct(mix[k])}</b></button>`).join('')}</div>`;}
 function openPitcherAttackModal(rowIndex,zoneNum){
-  const r=(window.pitcherAttackModalData||[])[rowIndex];if(!r)return;const vd=pitcherAttackProfileView(r.profile,window.pitcherAttackView),z=(vd.zones||[]).find(x=>Number(x.zone)===Number(zoneNum));if(!z)return;const ps=z.pitcherStats||{},content=document.getElementById('zoneProfileModalContent');if(!content)return;
+  const r=(window.pitcherAttackModalData||[])[rowIndex];if(!r)return;const vd=pitcherAttackProfileView(r.profile,window.pitcherAttackView,r.executionData,r.batSide,r.mix),z=(vd.zones||[]).find(x=>Number(x.zone)===Number(zoneNum));if(!z)return;const ps=z.pitcherStats||{},content=document.getElementById('zoneProfileModalContent');if(!content)return;
   content.innerHTML=`<div class="zone-modal-header"><div class="zone-modal-kicker">Pitcher Attack Map Scouting Report</div><div class="zone-modal-title">${zoneProfileEscape(r.name)} // Zone ${z.zone} // ${zoneProfileEscape(zoneBucketLabel(window.pitcherAttackView))}</div><div class="zone-modal-sub">Pitcher-only physical-zone data. MLB ID ${zoneProfileEscape(r.id||'--')}.</div></div><div class="zone-modal-body"><div class="zone-modal-layout" style="grid-template-columns:1fr;"><div class="zone-report-panel"><div class="zone-report-top">${createHeadshotHtml(r.name,'lg',r.team)}<div><div class="zone-report-name">${zoneProfileEscape(r.name)}</div><div class="zone-report-meta">${zoneProfileEscape(r.team||'-')} // Pitcher Damage ${zoneProfileFmtNum(z.pitcherVulnerability,0)} // Usage ${zoneProfileFmtPct(z.pitchPct)}</div></div></div><div class="zone-report-stats"><div class="zone-report-title" style="grid-column:1/-1;">Pitcher Results Allowed In Zone ${z.zone}</div>${zoneReportStat('Pitcher Damage',z.pitcherVulnerability)}${zoneReportStat('Usage %',z.pitchPct,'pct')}${zoneReportStat('Pitches',ps.pitches)}${zoneReportStat('HR Allowed',ps.hr)}${zoneReportStat('Average EV Allowed',ps.ev)}${zoneReportStat('Max EV Allowed',ps.maxev)}${zoneReportStat('xSLG Allowed',ps.xslg)}${zoneReportStat('Barrel Allowed',ps.barrel,'pct')}${zoneReportStat('Hard Hit Allowed',ps.hardhit,'pct')}${zoneReportStat('Pull Allowed %',ps.pull,'pct')}${zoneReportStat('Sweet Spot Allowed %',ps.sweetspot,'pct')}</div></div></div></div>`;
   document.getElementById('zoneProfileModal')?.classList.add('active');document.body.classList.add('modal-open');
 }
