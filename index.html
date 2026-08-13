@@ -2,6 +2,7 @@
 
 <html lang="en">
 <head>
+<!-- ZONE EXPORT V2: two-sheet hitter/pitcher detailed physical-zone export with total score, zone score, HRs, and pitcher usage. Export only; scoring unchanged. -->
 <!-- HR ATTACK MAP BOMB SORTS: adds Total Bombs and Zone Bomb display/research sorts. A zone counts only when hitter HR >= 1 AND pitcher HR allowed >= 1. Total Bombs sums hitter+pitcher HR across every qualifying physical zone; Zone Bomb uses the largest single qualifying zone total. Scoring is unchanged. -->
 <!-- ATTACK MAP SEASON-PA CONFIDENCE: hitter Attack Map display/ranking score is smoothly reduced for small season samples; 25 PA=55%, 50=70%, 75=82%, 100=90%, 150+=100%. Underlying zone cells, matchup engine, pitcher map, and main BBI scoring are unchanged. -->
 <!-- ZONE BETTOR SORTS FIX: repaired undefined activeSort/bettorStat runtime references that prevented HR Attack Map cards from rendering. Scoring/layout unchanged. -->
@@ -9203,7 +9204,7 @@ tbody tr{contain:layout paint style;}
 </div>
 <div class="zone-card-grid" id="zoneProfileGrid"><div class="zone-empty">Upload workbook with BZ/PZ Zones 1-9 plus shadow Zones 11/12/13/14/16 to load zone profiles...</div></div>
 <div style="display:flex;justify-content:center;margin:22px 0 4px;">
-<button class="btn-blue" onclick="exportZoneScoresToExcel()" style="width:auto;min-width:240px;" type="button">Export Player Zone Scores</button>
+<button class="btn-blue" onclick="exportZoneScoresToExcel()" style="width:auto;min-width:240px;" type="button">Export Hitter + Pitcher Zone Data</button>
 </div>
 </div>
 </div>
@@ -24229,49 +24230,140 @@ drlOnReady(init);window.renderTeamEdgeCenter=renderTeam;window.renderNrfiCenter=
 })();
 </script>
 <script id="drl-zone-score-export">
+/* ZONE EXPORT V2: export-only enhancement. No Attack Zone scoring/map logic is changed.
+   Sheet 1 = every hitter x every physical zone. Sheet 2 = every pitcher x every physical zone.
+   Hitter rows include opposing-pitcher combined zone usage so exported research matches the map. */
 function exportZoneScoresToExcel() {
   try {
     if (typeof XLSX === 'undefined') {
       alert('Excel export library is not available.');
       return;
     }
-    const players = (Array.isArray(playerData) ? playerData : []).filter(p => p && !p.isRemoved && String(p.Name || '').trim());
+
+    const physicalZones = (typeof ATTACK_ZONE_PHYSICAL_ZONES !== 'undefined' && Array.isArray(ATTACK_ZONE_PHYSICAL_ZONES))
+      ? ATTACK_ZONE_PHYSICAL_ZONES.slice()
+      : [1,2,3,4,5,6,7,8,9,11,12,13,14,16];
+
+    const finiteOrBlank = (value, decimals=2) => {
+      const n = Number(value);
+      return Number.isFinite(n) ? Number(n.toFixed(decimals)) : '';
+    };
+    const hrOrZero = value => {
+      const n = Number(value);
+      return Number.isFinite(n) ? Number(n.toFixed(0)) : 0;
+    };
+    const usageOrBlank = value => {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : '';
+    };
+    const zoneMap = profile => {
+      const map = Object.create(null);
+      (profile && Array.isArray(profile.zones) ? profile.zones : []).forEach(z => {
+        if (z && Number.isFinite(Number(z.zone))) map[Number(z.zone)] = z;
+      });
+      return map;
+    };
+
+    const players = (Array.isArray(playerData) ? playerData : [])
+      .filter(p => p && !p.isRemoved && String(p.Name || '').trim());
     if (!players.length) {
       alert('No player data is loaded yet.');
       return;
     }
 
-    const rows = players.map(player => {
+    // Sheet 1: all hitters, one row per physical zone.
+    const hitterRows = [];
+    players.forEach(player => {
       let profile = player.attackZoneProfile;
       if (!profile || !Array.isArray(profile.zones)) {
         profile = calculateAttackZoneProfile(player);
         player.attackZoneProfile = profile;
       }
-      const score = profile && profile.score !== null && profile.score !== undefined && Number.isFinite(Number(profile.score))
-        ? Number(Number(profile.score).toFixed(2))
-        : '';
-      return {
-        'Player Name': String(player.Name || '').trim(),
-        'Zone Score': score
-      };
-    }).sort((a, b) => {
-      const av = Number(a['Zone Score']);
-      const bv = Number(b['Zone Score']);
-      if (Number.isFinite(av) && Number.isFinite(bv)) return bv - av;
-      if (Number.isFinite(av)) return -1;
-      if (Number.isFinite(bv)) return 1;
-      return a['Player Name'].localeCompare(b['Player Name']);
-    });
+      const rawTotal = profile && Number.isFinite(Number(profile.score)) ? Number(profile.score) : null;
+      // Match the HR Attack Map displayed/ranking total when PA-confidence is available.
+      const displayTotal = (typeof attackZoneSampleAdjustedScore === 'function')
+        ? attackZoneSampleAdjustedScore(player, rawTotal)
+        : rawTotal;
+      const zMap = zoneMap(profile);
+      const pitcherName = String(safeGet(player,'Opp Pitcher','Opp Pitcher Name','Pitcher','Pitcher Name') || '').trim();
+      const team = String(player.Team || '').trim().toUpperCase();
 
-    const ws = XLSX.utils.json_to_sheet(rows, { header: ['Player Name', 'Zone Score'] });
-    ws['!cols'] = [{ wch: 28 }, { wch: 14 }];
+      physicalZones.forEach(zoneNum => {
+        const z = zMap[zoneNum] || null;
+        const usage = z ? (Number.isFinite(Number(z.totalPitchPct)) ? z.totalPitchPct : z.pitchPct) : null;
+        hitterRows.push({
+          'Player': String(player.Name || '').trim(),
+          'Team': team,
+          'Opp Pitcher': pitcherName,
+          'Total Score': finiteOrBlank(displayTotal, 2),
+          'Zone': zoneNum,
+          'Zone Score': z ? finiteOrBlank(z.edge, 2) : '',
+          'HRs': z && z.batterStats ? hrOrZero(z.batterStats.hr) : 0,
+          'Pitcher Usage': usageOrBlank(usage)
+        });
+      });
+    });
+    hitterRows.sort((a,b) => String(a.Player).localeCompare(String(b.Player)) || Number(a.Zone)-Number(b.Zone));
+
+    // Sheet 2: unique opposing pitchers, one row per physical zone.
+    const pitcherRows = [];
+    const builtPitchers = (typeof pitcherAttackBuildRows === 'function') ? pitcherAttackBuildRows() : [];
+    builtPitchers.forEach(row => {
+      const vd = (typeof pitcherAttackProfileView === 'function')
+        ? pitcherAttackProfileView(row.profile, 'WEIGHTED')
+        : { zones:(row.profile && row.profile.zones) || [], damage:null };
+      const zMap = zoneMap(vd);
+      physicalZones.forEach(zoneNum => {
+        const z = zMap[zoneNum] || null;
+        const usage = z ? (Number.isFinite(Number(z.totalPitchPct)) ? z.totalPitchPct : z.pitchPct) : null;
+        pitcherRows.push({
+          'Player': String(row.name || '').trim(),
+          'Team': String(row.team || '').trim().toUpperCase(),
+          'Opponent': String(row.opp || '').trim().toUpperCase(),
+          'Total Score': finiteOrBlank(vd.damage, 2),
+          'Zone': zoneNum,
+          'Zone Score': z ? finiteOrBlank(z.pitcherVulnerability, 2) : '',
+          'HRs': z && z.pitcherStats ? hrOrZero(z.pitcherStats.hr) : 0,
+          'Pitcher Usage': usageOrBlank(usage)
+        });
+      });
+    });
+    pitcherRows.sort((a,b) => String(a.Player).localeCompare(String(b.Player)) || Number(a.Zone)-Number(b.Zone));
+
+    const hitterHeaders = ['Player','Team','Opp Pitcher','Total Score','Zone','Zone Score','HRs','Pitcher Usage'];
+    const pitcherHeaders = ['Player','Team','Opponent','Total Score','Zone','Zone Score','HRs','Pitcher Usage'];
+    const hitterWs = XLSX.utils.json_to_sheet(hitterRows, { header:hitterHeaders });
+    const pitcherWs = XLSX.utils.json_to_sheet(pitcherRows, { header:pitcherHeaders });
+
+    hitterWs['!cols'] = [
+      {wch:28},{wch:9},{wch:25},{wch:13},{wch:8},{wch:13},{wch:8},{wch:15}
+    ];
+    pitcherWs['!cols'] = [
+      {wch:28},{wch:9},{wch:10},{wch:13},{wch:8},{wch:13},{wch:8},{wch:15}
+    ];
+    hitterWs['!freeze'] = { xSplit:0, ySplit:1 };
+    pitcherWs['!freeze'] = { xSplit:0, ySplit:1 };
+    hitterWs['!autofilter'] = { ref:`A1:H${Math.max(1,hitterRows.length+1)}` };
+    pitcherWs['!autofilter'] = { ref:`A1:H${Math.max(1,pitcherRows.length+1)}` };
+
+    // Store usage as numeric Excel percentages (e.g. 0.08 displays as 8.0%).
+    const formatUsageColumn = (ws, rowCount) => {
+      for (let r=2; r<=rowCount+1; r++) {
+        const cell = ws[`H${r}`];
+        if (cell && typeof cell.v === 'number' && Number.isFinite(cell.v)) cell.z = '0.0%';
+      }
+    };
+    formatUsageColumn(hitterWs, hitterRows.length);
+    formatUsageColumn(pitcherWs, pitcherRows.length);
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Zone Scores');
-    const stamp = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `DRL_Zone_Scores_${stamp}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, hitterWs, 'Hitters');
+    XLSX.utils.book_append_sheet(wb, pitcherWs, 'Pitchers');
+    const stamp = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, `DRL_Zone_Detail_${stamp}.xlsx`);
   } catch (error) {
-    console.error('Zone score export failed:', error);
-    alert('Unable to export zone scores. Check the browser console for details.');
+    console.error('Zone detail export failed:', error);
+    alert('Unable to export zone data. Check the browser console for details.');
   }
 }
 </script>
