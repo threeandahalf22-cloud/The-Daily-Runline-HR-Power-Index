@@ -2,6 +2,7 @@
 
 <html lang="en">
 <head>
+<!-- ZONES 17/18/19 WORKBOOK LOADER FIX: multi-digit BZ/PZ loader corrected so 11/12/13/14/16/17/18/19 are recognized during workbook import. ZONES 17/18/19 SAFE UI: adds bottom shadow row 17/18/19 to hitter and pitcher Attack Maps, exact BZ/PZ sheet lookup, 0.50 shadow weight, handedness mirror 17↔19, and exports. Separate bottom row prevents overlap; existing map width/UI preserved. -->
 <!-- PITCHER ATTACK MAP MISTAKE INTEL: display-only Mistake Risk, Hang Rate, and Mistake Hotspots added to Pitcher Damage Blueprint. Uses existing Attack Zone family mistake/hang diagnostics; scoring and rankings unchanged. -->
 <!-- ZONE EXPORT V2: two-sheet hitter/pitcher detailed physical-zone export with total score, zone score, HRs, and pitcher usage. Export only; scoring unchanged. -->
 <!-- HR ATTACK MAP BOMB SORTS: adds Total Bombs and Zone Bomb display/research sorts. A zone counts only when hitter HR >= 1 AND pitcher HR allowed >= 1. Total Bombs sums hitter+pitcher HR across every qualifying physical zone; Zone Bomb uses the largest single qualifying zone total. Scoring is unchanged. -->
@@ -9713,7 +9714,7 @@ let kProjections = [];
 let pitchLabData = [];
 let pitcherHR9SideMap = {}; statSheetMaps = {}; oddsMap = {}; oddsBookColumns = [];
 let pitcherTeamMap = {};
-const STAT_MODEL_SHEETS = ["WEATHER", "PITCHER14", "BARRELL", "SS", "SCASTL", "SCASTR", "PAL", "PAR", "RHPBB", "LHPBB", "ISO", "ISOR", "ISOL", "ISOX", "PXHR", "PITCHERBB", "PSS", "PITCHMAX", "PITCHER", "PITCHERR", "PITCHERL", "PITCHERFB", "PITCHERBBL", "PITCHERBBR", "LASTST", "BULLPEN", "BULLPENEV", "BULLPENL7", "BULLPENEVL7", "LINEUPS", "PA", "PARKFACTOR", "PARKFACTORL", "PARKFACTORR", "RZ", "BZ1", "BZ2", "BZ3", "BZ4", "BZ5", "BZ6", "BZ7", "BZ8", "BZ9", "PZ1", "PZ2", "PZ3", "PZ4", "PZ5", "PZ6", "PZ7", "PZ8", "PZ9", "BZ1FB", "BZ2FB", "BZ3FB", "BZ4FB", "BZ5FB", "BZ6FB", "BZ7FB", "BZ8FB", "BZ9FB", "PZ1FB", "PZ2FB", "PZ3FB", "PZ4FB", "PZ5FB", "PZ6FB", "PZ7FB", "PZ8FB", "PZ9FB", "BZ1BB", "BZ2BB", "BZ3BB", "BZ4BB", "BZ5BB", "BZ6BB", "BZ7BB", "BZ8BB", "BZ9BB", "PZ1BB", "PZ2BB", "PZ3BB", "PZ4BB", "PZ5BB", "PZ6BB", "PZ7BB", "PZ8BB", "PZ9BB", "BZ1BR", "BZ2BR", "BZ3BR", "BZ4BR", "BZ5BR", "BZ6BR", "BZ7BR", "BZ8BR", "BZ9BR", "PZ1BR", "PZ2BR", "PZ3BR", "PZ4BR", "PZ5BR", "PZ6BR", "PZ7BR", "PZ8BR", "PZ9BR", "BZ1OS", "BZ2OS", "BZ3OS", "BZ4OS", "BZ5OS", "BZ6OS", "BZ7OS", "BZ8OS", "BZ9OS", "PZ1OS", "PZ2OS", "PZ3OS", "PZ4OS", "PZ5OS", "PZ6OS", "PZ7OS", "PZ8OS", "PZ9OS", "BZ11FB", "BZ12FB", "BZ13FB", "BZ14FB", "BZ16FB", "BZ11BB", "BZ12BB", "BZ13BB", "BZ14BB", "BZ16BB", "BZ11BR", "BZ12BR", "BZ13BR", "BZ14BR", "BZ16BR", "BZ11OS", "BZ12OS", "BZ13OS", "BZ14OS", "BZ16OS", "PZ11FB", "PZ12FB", "PZ13FB", "PZ14FB", "PZ16FB", "PZ11BB", "PZ12BB", "PZ13BB", "PZ14BB", "PZ16BB", "PZ11BR", "PZ12BR", "PZ13BR", "PZ14BR", "PZ16BR", "PZ11OS", "PZ12OS", "PZ13OS", "PZ14OS", "PZ16OS"];
+const STAT_MODEL_SHEETS = ["WEATHER", "PITCHER14", "BARRELL", "SS", "SCASTL", "SCASTR", "PAL", "PAR", "RHPBB", "LHPBB", "ISO", "ISOR", "ISOL", "ISOX", "PXHR", "PITCHERBB", "PSS", "PITCHMAX", "PITCHER", "PITCHERR", "PITCHERL", "PITCHERFB", "PITCHERBBL", "PITCHERBBR", "LASTST", "BULLPEN", "BULLPENEV", "BULLPENL7", "BULLPENEVL7", "LINEUPS", "PA", "PARKFACTOR", "PARKFACTORL", "PARKFACTORR", "RZ", "BZ1", "BZ2", "BZ3", "BZ4", "BZ5", "BZ6", "BZ7", "BZ8", "BZ9", "PZ1", "PZ2", "PZ3", "PZ4", "PZ5", "PZ6", "PZ7", "PZ8", "PZ9", "BZ1FB", "BZ2FB", "BZ3FB", "BZ4FB", "BZ5FB", "BZ6FB", "BZ7FB", "BZ8FB", "BZ9FB", "PZ1FB", "PZ2FB", "PZ3FB", "PZ4FB", "PZ5FB", "PZ6FB", "PZ7FB", "PZ8FB", "PZ9FB", "BZ1BB", "BZ2BB", "BZ3BB", "BZ4BB", "BZ5BB", "BZ6BB", "BZ7BB", "BZ8BB", "BZ9BB", "PZ1BB", "PZ2BB", "PZ3BB", "PZ4BB", "PZ5BB", "PZ6BB", "PZ7BB", "PZ8BB", "PZ9BB", "BZ1BR", "BZ2BR", "BZ3BR", "BZ4BR", "BZ5BR", "BZ6BR", "BZ7BR", "BZ8BR", "BZ9BR", "PZ1BR", "PZ2BR", "PZ3BR", "PZ4BR", "PZ5BR", "PZ6BR", "PZ7BR", "PZ8BR", "PZ9BR", "BZ1OS", "BZ2OS", "BZ3OS", "BZ4OS", "BZ5OS", "BZ6OS", "BZ7OS", "BZ8OS", "BZ9OS", "PZ1OS", "PZ2OS", "PZ3OS", "PZ4OS", "PZ5OS", "PZ6OS", "PZ7OS", "PZ8OS", "PZ9OS", "BZ11FB", "BZ12FB", "BZ13FB", "BZ14FB", "BZ16FB", "BZ11BB", "BZ12BB", "BZ13BB", "BZ14BB", "BZ16BB", "BZ11BR", "BZ12BR", "BZ13BR", "BZ14BR", "BZ16BR", "BZ11OS", "BZ12OS", "BZ13OS", "BZ14OS", "BZ16OS", "PZ11FB", "PZ12FB", "PZ13FB", "PZ14FB", "PZ16FB", "PZ11BB", "PZ12BB", "PZ13BB", "PZ14BB", "PZ16BB", "PZ11BR", "PZ12BR", "PZ13BR", "PZ14BR", "PZ16BR", "PZ11OS", "PZ12OS", "PZ13OS", "PZ14OS", "PZ16OS", "BZ17FB", "BZ18FB", "BZ19FB", "BZ17BB", "BZ18BB", "BZ19BB", "BZ17BR", "BZ18BR", "BZ19BR", "BZ17OS", "BZ18OS", "BZ19OS", "PZ17FB", "PZ18FB", "PZ19FB", "PZ17BB", "PZ18BB", "PZ19BB", "PZ17BR", "PZ18BR", "PZ19BR", "PZ17OS", "PZ18OS", "PZ19OS"];
 function normalizedKey(k) { return String(k || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function lookupStat(sheetKey, name) { return lookupNameMap(statSheetMaps[String(sheetKey || '').toUpperCase()] || {}, name) || {}; }
 function findByTeam(sheetKey, team) {
@@ -11114,10 +11115,10 @@ if (__drlSheetIndex > 0 && (__drlSheetIndex % 6) === 0) await drlYieldToBrowser(
 if (STAT_MODEL_SHEETS.includes(nameClean)) statSheetMaps[nameClean] = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
 // Zone pitch-bucket sheets can arrive with a few real-world names (BR or BB for breaking, OS/OFF for offspeed).
 // Canonicalize every alias so the Zone Profile buttons never blank/freeze when the workbook uses a different suffix.
-if (/^[BP]Z[1-9](FB|BR|BB|BREAKING|BK|OS|OFF|OFFSPEED)?$/.test(nameClean)) {
+if (/^[BP]Z(11|12|13|14|16|17|18|19|[1-9])(FB|BR|BB|BREAKING|BK|OS|OFF|OFFSPEED)?$/.test(nameClean)) {
   const zMap = mapRowsByName(sheetToJsonSmart(workbook, sheetName, ['Player','Name','Pitcher']));
   statSheetMaps[nameClean] = zMap;
-  const m = nameClean.match(/^([BP]Z)([1-9])(.*)$/);
+  const m = nameClean.match(/^([BP]Z)(11|12|13|14|16|17|18|19|[1-9])(.*)$/);
   if (m) {
     let suf = String(m[3] || '').toUpperCase();
     if (suf === 'BB' || suf === 'BREAKING' || suf === 'BK') suf = 'BR';
@@ -14390,7 +14391,7 @@ function zonePitchBucketMix(player) {
 }
 function canonicalZoneSheetKey(sheetKey) {
   const raw = String(sheetKey || '').toUpperCase();
-  const m = raw.match(/^(BPZ|BZ|PZ)(11|12|13|14|16|[1-9])(.*)$/);
+  const m = raw.match(/^(BPZ|BZ|PZ)(11|12|13|14|16|17|18|19|[1-9])(.*)$/);
   if (!m) return raw;
   let suf = String(m[3] || '').toUpperCase();
   if (suf === 'BB' || suf === 'BREAKING' || suf === 'BK') suf = 'BR';
@@ -14400,7 +14401,7 @@ function canonicalZoneSheetKey(sheetKey) {
 function zoneSheetHasData(sheetKey, name) {
   const key = canonicalZoneSheetKey(sheetKey);
   const candidates = [key];
-  const m = key.match(/^(BPZ|BZ|PZ)(11|12|13|14|16|[1-9])(.*)$/);
+  const m = key.match(/^(BPZ|BZ|PZ)(11|12|13|14|16|17|18|19|[1-9])(.*)$/);
   if (m && m[3]) {
     const base = `${m[1]}${m[2]}`;
     if (m[3] === 'BR') candidates.push(base + 'BB', base + 'BREAKING', base + 'BK');
@@ -14415,12 +14416,12 @@ function zoneSheetHasData(sheetKey, name) {
 const ATTACK_ZONE_STARTER_WEIGHT = 0.75;
 const ATTACK_ZONE_BULLPEN_WEIGHT = 0.25;
 const ATTACK_ZONE_CORE_ZONES = Object.freeze([1,2,3,4,5,6,7,8,9]);
-const ATTACK_ZONE_SHADOW_ZONES = Object.freeze([11,12,13,14,16]);
-const ATTACK_ZONE_PHYSICAL_ZONES = Object.freeze([1,2,3,4,5,6,7,8,9,11,12,13,14,16]);
-const ATTACK_ZONE_DISPLAY_ORDER = Object.freeze([11,12,13,14,1,2,3,16,4,5,6,7,8,9]);
+const ATTACK_ZONE_SHADOW_ZONES = Object.freeze([11,12,13,14,16,17,18,19]);
+const ATTACK_ZONE_PHYSICAL_ZONES = Object.freeze([1,2,3,4,5,6,7,8,9,11,12,13,14,16,17,18,19]);
+const ATTACK_ZONE_DISPLAY_ORDER = Object.freeze([11,12,13,14,1,2,3,16,4,5,6,7,8,9,17,18,19]);
 const ATTACK_ZONE_SHADOW_LOCATION_WEIGHT = 0.50;
 // No fixed core-location bonus: actual opposing-pitcher usage supplies location weighting. Shadow zones are deliberately reduced.
-const ATTACK_ZONE_HR_MATRIX = Object.freeze({1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,11:0.5,12:0.5,13:0.5,14:0.5,16:0.5});
+const ATTACK_ZONE_HR_MATRIX = Object.freeze({1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,11:0.5,12:0.5,13:0.5,14:0.5,16:0.5,17:0.5,18:0.5,19:0.5});
 function zoneSampleConfidence(batterStats, pitcherStats) {
   const b = drlZoneExposure(batterStats || {});
   const p = drlZoneExposure(pitcherStats || {});
@@ -14484,11 +14485,11 @@ function attackZoneLogicalIndex(physicalZone, batSide) {
   const z = Number(physicalZone);
   // Physical cells never move. LHH interpretation mirrors horizontally, including shadow cells.
   if (String(batSide).toUpperCase() !== 'L') return z;
-  return ({1:3,2:2,3:1,4:6,5:5,6:4,7:9,8:8,9:7,11:13,12:12,13:11,14:16,16:14})[z] || z;
+  return ({1:3,2:2,3:1,4:6,5:5,6:4,7:9,8:8,9:7,11:13,12:12,13:11,14:16,16:14,17:19,18:18,19:17})[z] || z;
 }
 function attackZoneLogicalAnchorIndex(physicalZone, batSide) {
   const logical = attackZoneLogicalIndex(physicalZone, batSide);
-  return ({11:1,12:2,13:3,14:4,16:6})[logical] || logical;
+  return ({11:1,12:2,13:3,14:4,16:6,17:7,18:8,19:9})[logical] || logical;
 }
 function attackZoneLocationContribution(physicalZone) {
   return ATTACK_ZONE_SHADOW_ZONES.includes(Number(physicalZone)) ? ATTACK_ZONE_SHADOW_LOCATION_WEIGHT : 1.00;
@@ -14532,8 +14533,8 @@ function attackZoneHandednessFactor(physicalZone, batSide, bucket='GENERIC') {
   const physical=Number(physicalZone);
   const side=String(batSide).toUpperCase()==='L'?'L':'R';
   if (ATTACK_ZONE_SHADOW_ZONES.includes(physical)) {
-    if (physical===12) return 1.00;
-    const favored = side==='L' ? [11,14] : [13,16];
+    if (physical===12 || physical===18) return 1.00;
+    const favored = side==='L' ? [11,14,17] : [13,16,19];
     return favored.includes(physical) ? 1.08 : 0.96;
   }
   const z=attackZoneLogicalIndex(physicalZone, batSide);
@@ -15711,7 +15712,12 @@ function attackZonePhysicalLayoutHtml(zones, cellRenderer) {
       </div>
       <div class="attack-shadow-side-rail attack-shadow-right"><div></div>${cell(16)}<div></div></div>
     </div>
-    <div class="attack-shadow-legend"><span class="attack-core-key"></span> Zones 1–9 = strike zone <span class="attack-shadow-key"></span> Zones 11/12/13/14/16 = shadow zones (0.50 weight)</div>
+    <div class="attack-zone-bottom-row">
+      <div class="attack-zone-rail-spacer"></div>
+      <div class="attack-shadow-bottom-grid">${[17,18,19].map(cell).join('')}</div>
+      <div class="attack-zone-rail-spacer"></div>
+    </div>
+    <div class="attack-shadow-legend"><span class="attack-core-key"></span> Zones 1–9 = strike zone <span class="attack-shadow-key"></span> Zones 11/12/13/14/16/17/18/19 = shadow zones (0.50 weight)</div>
   </div>`;
 }
 function renderZoneMap(zones, mode, playerIndex, topZoneNum) {
@@ -24334,9 +24340,10 @@ drlOnReady(init);window.renderTeamEdgeCenter=renderTeam;window.renderNrfiCenter=
 })();
 </script>
 <script id="drl-zone-score-export">
-/* ZONE EXPORT V2: export-only enhancement. No Attack Zone scoring/map logic is changed.
+/* ZONE EXPORT V3 AVG EV: export-only enhancement. No Attack Zone scoring/map logic is changed.
    Sheet 1 = every hitter x every physical zone. Sheet 2 = every pitcher x every physical zone.
-   Hitter rows include opposing-pitcher combined zone usage so exported research matches the map. */
+   Hitter rows include opposing-pitcher combined zone usage so exported research matches the map.
+   Both sheets also export usage-weighted average EV for each physical zone across FB/BR/OS. */
 function exportZoneScoresToExcel() {
   try {
     if (typeof XLSX === 'undefined') {
@@ -24346,7 +24353,7 @@ function exportZoneScoresToExcel() {
 
     const physicalZones = (typeof ATTACK_ZONE_PHYSICAL_ZONES !== 'undefined' && Array.isArray(ATTACK_ZONE_PHYSICAL_ZONES))
       ? ATTACK_ZONE_PHYSICAL_ZONES.slice()
-      : [1,2,3,4,5,6,7,8,9,11,12,13,14,16];
+      : [1,2,3,4,5,6,7,8,9,11,12,13,14,16,17,18,19];
 
     const finiteOrBlank = (value, decimals=2) => {
       const n = Number(value);
@@ -24366,6 +24373,51 @@ function exportZoneScoresToExcel() {
         if (z && Number.isFinite(Number(z.zone))) map[Number(z.zone)] = z;
       });
       return map;
+    };
+    // Average EV for a physical zone across Fastball / Breaking / Offspeed.
+    // Weight by that family's actual exposure in the zone so the exported EV matches
+    // the same arsenal/location context used by the weighted Attack Map.
+    const zoneAverageEV = (profile, zoneNum, statKey, explicitMix=null) => {
+      if (!profile) return '';
+      const families = ['FB','BR','OS'];
+      const familyProfiles = profile.bucketProfiles || {};
+      const mixSource = explicitMix || profile.normalizedMix || profile.mix || {};
+      const pieces = [];
+
+      families.forEach(bucket => {
+        const familyProfile = familyProfiles[bucket];
+        const z = familyProfile && Array.isArray(familyProfile.zones)
+          ? familyProfile.zones.find(x => Number(x.zone) === Number(zoneNum))
+          : null;
+        const stats = z && z[statKey] ? z[statKey] : null;
+        const ev = stats ? Number(stats.ev) : NaN;
+        if (!Number.isFinite(ev)) return;
+
+        let familyMix = Number(mixSource && mixSource[bucket]);
+        if (!Number.isFinite(familyMix) || familyMix < 0) familyMix = 0;
+
+        // Family-zone share is preferred for hitter matchup profiles; pitcher-only
+        // profiles use pitchPct. Either way, multiply by family mix for total exposure.
+        let zoneShare = Number(z.familyZonePct);
+        if (!Number.isFinite(zoneShare) || zoneShare <= 0) zoneShare = Number(z.pitchPct);
+        if (!Number.isFinite(zoneShare) || zoneShare <= 0) zoneShare = 1;
+
+        const weight = familyMix > 0 ? familyMix * zoneShare : zoneShare;
+        pieces.push({ ev, weight: Number.isFinite(weight) && weight > 0 ? weight : 1 });
+      });
+
+      if (pieces.length) {
+        const denom = pieces.reduce((sum,p) => sum + p.weight, 0);
+        const avg = denom > 0
+          ? pieces.reduce((sum,p) => sum + p.ev * p.weight, 0) / denom
+          : pieces.reduce((sum,p) => sum + p.ev, 0) / pieces.length;
+        return finiteOrBlank(avg, 1);
+      }
+
+      // Generic/fallback profile: use the weighted zone's own EV when family rows are unavailable.
+      const z = (profile.zones || []).find(x => Number(x.zone) === Number(zoneNum));
+      const fallback = z && z[statKey] ? Number(z[statKey].ev) : NaN;
+      return Number.isFinite(fallback) ? finiteOrBlank(fallback, 1) : '';
     };
 
     const players = (Array.isArray(playerData) ? playerData : [])
@@ -24403,6 +24455,7 @@ function exportZoneScoresToExcel() {
           'Zone': zoneNum,
           'Zone Score': z ? finiteOrBlank(z.edge, 2) : '',
           'HRs': z && z.batterStats ? hrOrZero(z.batterStats.hr) : 0,
+          'Average EV': zoneAverageEV(profile, zoneNum, 'batterStats'),
           'Pitcher Usage': usageOrBlank(usage)
         });
       });
@@ -24428,32 +24481,33 @@ function exportZoneScoresToExcel() {
           'Zone': zoneNum,
           'Zone Score': z ? finiteOrBlank(z.pitcherVulnerability, 2) : '',
           'HRs': z && z.pitcherStats ? hrOrZero(z.pitcherStats.hr) : 0,
+          'Average EV': zoneAverageEV(row.profile, zoneNum, 'pitcherStats', row.mix),
           'Pitcher Usage': usageOrBlank(usage)
         });
       });
     });
     pitcherRows.sort((a,b) => String(a.Player).localeCompare(String(b.Player)) || Number(a.Zone)-Number(b.Zone));
 
-    const hitterHeaders = ['Player','Team','Opp Pitcher','Total Score','Zone','Zone Score','HRs','Pitcher Usage'];
-    const pitcherHeaders = ['Player','Team','Opponent','Total Score','Zone','Zone Score','HRs','Pitcher Usage'];
+    const hitterHeaders = ['Player','Team','Opp Pitcher','Total Score','Zone','Zone Score','HRs','Average EV','Pitcher Usage'];
+    const pitcherHeaders = ['Player','Team','Opponent','Total Score','Zone','Zone Score','HRs','Average EV','Pitcher Usage'];
     const hitterWs = XLSX.utils.json_to_sheet(hitterRows, { header:hitterHeaders });
     const pitcherWs = XLSX.utils.json_to_sheet(pitcherRows, { header:pitcherHeaders });
 
     hitterWs['!cols'] = [
-      {wch:28},{wch:9},{wch:25},{wch:13},{wch:8},{wch:13},{wch:8},{wch:15}
+      {wch:28},{wch:9},{wch:25},{wch:13},{wch:8},{wch:13},{wch:8},{wch:12},{wch:15}
     ];
     pitcherWs['!cols'] = [
-      {wch:28},{wch:9},{wch:10},{wch:13},{wch:8},{wch:13},{wch:8},{wch:15}
+      {wch:28},{wch:9},{wch:10},{wch:13},{wch:8},{wch:13},{wch:8},{wch:12},{wch:15}
     ];
     hitterWs['!freeze'] = { xSplit:0, ySplit:1 };
     pitcherWs['!freeze'] = { xSplit:0, ySplit:1 };
-    hitterWs['!autofilter'] = { ref:`A1:H${Math.max(1,hitterRows.length+1)}` };
-    pitcherWs['!autofilter'] = { ref:`A1:H${Math.max(1,pitcherRows.length+1)}` };
+    hitterWs['!autofilter'] = { ref:`A1:I${Math.max(1,hitterRows.length+1)}` };
+    pitcherWs['!autofilter'] = { ref:`A1:I${Math.max(1,pitcherRows.length+1)}` };
 
     // Store usage as numeric Excel percentages (e.g. 0.08 displays as 8.0%).
     const formatUsageColumn = (ws, rowCount) => {
       for (let r=2; r<=rowCount+1; r++) {
-        const cell = ws[`H${r}`];
+        const cell = ws[`I${r}`];
         if (cell && typeof cell.v === 'number' && Number.isFinite(cell.v)) cell.z = '0.0%';
       }
     };
@@ -25235,7 +25289,8 @@ const oldSwitch=window.switchTab;window.switchTab=function(name,btn){const resul
 }
 
 :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-top-row,
-:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-main-row{
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-main-row,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-bottom-row{
   display:grid !important;
   grid-template-columns:var(--az-side) minmax(0,1fr) var(--az-side) !important;
   gap:var(--az-gap) !important;
@@ -25245,6 +25300,9 @@ const oldSwitch=window.switchTab;window.switchTab=function(name,btn){const resul
 }
 :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-top-row{
   margin:0 0 8px !important;
+}
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-bottom-row{
+  margin:8px 0 0 !important;
 }
 :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-rail-spacer{
   min-width:0 !important;
@@ -25257,6 +25315,7 @@ const oldSwitch=window.switchTab;window.switchTab=function(name,btn){const resul
 }
 
 :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-top-grid,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-bottom-grid,
 :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-strike-zone-grid{
   display:grid !important;
   grid-template-columns:repeat(3,minmax(0,1fr)) !important;
@@ -25270,7 +25329,8 @@ const oldSwitch=window.switchTab;window.switchTab=function(name,btn){const resul
   background:transparent !important;
   box-shadow:none !important;
 }
-:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-top-grid{
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-top-grid,
+:is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-shadow-bottom-grid{
   grid-template-rows:var(--az-cell-h) !important;
 }
 :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-strike-zone-grid{
@@ -25551,6 +25611,10 @@ const oldSwitch=window.switchTab;window.switchTab=function(name,btn){const resul
 
   :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-top-row{
     margin-bottom:5px !important;
+  }
+
+  :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-zone-bottom-row{
+    margin-top:5px !important;
   }
 
   :is(#tab-zoneprofile,#tab-pitcherattackmap) .attack-strike-zone-shell{
