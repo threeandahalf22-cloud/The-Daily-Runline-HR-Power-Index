@@ -2,6 +2,10 @@
 
 <html lang="en">
 <head>
+<!-- SIMULATOR HEADSHOT FIX V2: simulator resolves MLB IDs directly from the uploaded ID sheet as a fallback, with normalized headers/names and comma-name support; simulation scoring unchanged. -->
+<!-- HR FLIGHT SIMULATOR V1.2 HEADSHOT + RESULTS REVEAL: simulator player identity now resolves MLB ID from the loaded ID map/player fields before falling back to initials; simulation metrics, landing cloud, and results remain hidden until representative ball-tracker flights finish. Replay keeps the same delayed reveal behavior. -->
+<!-- HR FLIGHT SIMULATOR V1.1 CLEARANCE FIX: home-run flight generation now produces realistic visible wall clearance instead of clustering conditional HR landings at wall+2 ft; landing dots and ESPN-style trails extend clearly beyond the fence. Simulation remains research/display only and does not alter BBI or rankings. -->
+<!-- HR FLIGHT SIMULATOR V1: adds a model-driven Monte Carlo simulator tab. Select a slate hitter and simulation count; uses the player's current model HR probability, handedness/pull tendency, current park dimensions/weather context, MLB headshot, and animated ESPN-style flight traces. Simulation is research/display only and does not alter BBI or rankings. -->
 <!-- WEATHER PARK DIMENSIONS V1: Weather cards now render park-specific LF/CF/RF wall geometry from supplied dimensions, print distances on the outfield wall, and use actual pull-side/CF fence distances in handedness weather benefit calculations. User-supplied dimensions are used as provided; no external corrections. -->
 <!-- WEATHER FIELD V2: Dome games keep the park-specific field visible with a DOME • NO WIND treatment, and every Weather field places the true home-team logo in center field. Weather scoring is unchanged beyond the existing park-dimension inputs. -->
 <!-- ZONES 17/18/19 WORKBOOK LOADER FIX: multi-digit BZ/PZ loader corrected so 11/12/13/14/16/17/18/19 are recognized during workbook import. ZONES 17/18/19 SAFE UI: adds bottom shadow row 17/18/19 to hitter and pitcher Attack Maps, exact BZ/PZ sheet lookup, 0.50 shadow weight, handedness mirror 17↔19, and exports. Separate bottom row prevents overlap; existing map width/UI preserved. -->
@@ -8868,6 +8872,12 @@ tbody tr{contain:layout paint style;}
 
 
 
+
+<style id="drl-hr-flight-simulator-v1">
+#tab-simulator{padding-bottom:28px}.sim-hero{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:24px;margin-bottom:18px;border:1px solid rgba(225,6,0,.28);border-radius:18px;background:radial-gradient(circle at 8% 20%,rgba(225,6,0,.16),transparent 34%),linear-gradient(145deg,rgba(17,31,53,.78),rgba(5,11,20,.9));box-shadow:0 18px 50px rgba(0,0,0,.36)}.sim-kicker{font-size:9px;font-weight:1000;letter-spacing:1.6px;color:var(--accent);margin-bottom:7px}.sim-title{font-size:22px!important;margin:0!important;border:0!important;padding:0!important}.sim-title:before{display:none!important}.sim-sub{margin-top:8px;color:var(--text-muted);font-size:12px;max-width:800px;line-height:1.5}.sim-badge{flex:0 0 auto;border:1px solid rgba(56,189,248,.28);background:rgba(56,189,248,.08);color:#7dd3fc;border-radius:999px;padding:9px 12px;font-size:9px;font-weight:1000;letter-spacing:.8px}.sim-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:18px}.sim-controls label{display:block;color:var(--text-muted);font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}.sim-control-main{flex:1 1 320px}.sim-control-small{flex:0 0 140px}.sim-player-input{width:100%;box-sizing:border-box}.sim-control-small .select-input-sm{width:100%}.sim-run-btn,.sim-replay-btn{min-height:40px;border-radius:9px;padding:0 16px;font-size:10px;font-weight:1000;letter-spacing:.7px;cursor:pointer}.sim-run-btn{border:1px solid #ff3b30;background:linear-gradient(135deg,#e10600,#b70400);color:#fff;box-shadow:0 8px 22px rgba(225,6,0,.22)}.sim-replay-btn{border:1px solid rgba(56,189,248,.28);background:rgba(56,189,248,.08);color:#7dd3fc}.sim-replay-btn:disabled{opacity:.4;cursor:not-allowed}.sim-empty{border:1px dashed rgba(255,255,255,.13);border-radius:16px;padding:45px 20px;text-align:center;color:var(--text-muted);font-weight:700}.sim-workspace{display:flex;flex-direction:column;gap:18px}.sim-player-bar{display:grid;grid-template-columns:minmax(260px,1fr) repeat(3,minmax(100px,150px));align-items:center;gap:12px}.sim-player-identity{display:flex;align-items:center;gap:12px;min-width:0}.sim-player-face{width:62px;height:62px;border-radius:50%;object-fit:cover;border:2px solid var(--team-color,var(--accent));background:#050b14;box-shadow:0 0 0 5px var(--team-glow-soft,rgba(225,6,0,.08))}.sim-player-fallback{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--team-color,var(--accent));font-weight:1000;font-size:18px;background:#050b14}.sim-player-copy{min-width:0}.sim-player-name{font-size:18px;font-weight:1000;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sim-player-meta{font-size:10px;color:var(--stadium-lights);font-weight:800;margin-top:4px;text-transform:uppercase}.sim-player-model{text-align:center;border-left:1px solid rgba(255,255,255,.08);padding:8px}.sim-player-model span{display:block;font-size:8px;color:var(--text-muted);font-weight:1000;letter-spacing:.7px}.sim-player-model b{display:block;margin-top:5px;font-family:monospace;font-size:21px;color:#fff}.sim-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,.65fr);gap:18px}.sim-field-card,.sim-results{min-width:0}.sim-field-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.sim-field-head b{font-size:13px;letter-spacing:.8px}.sim-field-head span{display:block;color:var(--text-muted);font-size:9px;margin-top:3px}.sim-flight-readout{font-family:monospace;font-size:11px;font-weight:1000;color:#facc15;border:1px solid rgba(250,204,21,.22);background:rgba(250,204,21,.07);padding:7px 9px;border-radius:8px;white-space:nowrap}.sim-field-stage{position:relative;width:100%;aspect-ratio:420/245;min-height:300px;overflow:hidden;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:linear-gradient(180deg,#050a0f,#030609)}.sim-base-field{position:absolute;inset:0}.sim-base-field .weather-park-svg{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}.sim-base-field .weather-park-center-logo{z-index:2!important}.sim-base-field .weather-park-dim,.sim-base-field .weather-park-nameplate{z-index:6!important}.sim-flight-svg{position:absolute;inset:0;width:100%;height:100%;z-index:7;pointer-events:none;overflow:visible}.sim-flight-svg #simTrail{fill:none;stroke:#f8fafc;stroke-width:2.6;stroke-linecap:round;filter:drop-shadow(0 0 5px rgba(255,255,255,.8));opacity:0}.sim-flight-svg #simBall{fill:#fff;stroke:#ef4444;stroke-width:1.5;filter:drop-shadow(0 0 8px rgba(255,255,255,1));opacity:0}.sim-land{stroke-width:1;vector-effect:non-scaling-stroke}.sim-land.hr{fill:#facc15;stroke:#fff}.sim-land.out{fill:#64748b;stroke:#cbd5e1;opacity:.55}.sim-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px;color:var(--text-muted);font-size:9px}.sim-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}.sim-dot.hr{background:#facc15}.sim-dot.out{background:#64748b}.sim-note{margin-left:auto;font-style:italic}.sim-results h2{margin-bottom:14px}.sim-metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.sim-metric{border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:11px;background:rgba(5,11,20,.48)}.sim-metric span{display:block;font-size:8px;color:var(--text-muted);font-weight:1000;text-transform:uppercase;letter-spacing:.6px}.sim-metric b{display:block;margin-top:5px;font-family:monospace;font-size:18px;color:#fff}.sim-direction-title{margin-top:17px;font-size:9px;color:var(--text-muted);font-weight:1000;letter-spacing:.8px}.sim-direction-bars{display:flex;flex-direction:column;gap:7px;margin-top:9px}.sim-dir-row{display:grid;grid-template-columns:34px 1fr 42px;gap:8px;align-items:center;font-size:9px;font-weight:900}.sim-dir-track{height:7px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden}.sim-dir-fill{height:100%;background:linear-gradient(90deg,#e10600,#facc15);border-radius:999px}.sim-dir-pct{text-align:right;font-family:monospace}.sim-last-flight{margin-top:16px;border-top:1px solid rgba(255,255,255,.08);padding-top:13px;color:var(--stadium-lights);font-size:10px;line-height:1.55}.sim-flash{animation:simResultFlash .5s ease}@keyframes simResultFlash{0%{box-shadow:0 0 0 rgba(250,204,21,0)}50%{box-shadow:inset 0 0 45px rgba(250,204,21,.12)}100%{box-shadow:0 0 0 rgba(250,204,21,0)}}
+@media(max-width:900px){.sim-grid{grid-template-columns:1fr}.sim-player-bar{grid-template-columns:1fr 1fr 1fr}.sim-player-identity{grid-column:1/-1}.sim-player-model{border-left:0;border-top:1px solid rgba(255,255,255,.08)}.sim-field-stage{min-height:240px}.sim-note{margin-left:0}}
+@media(max-width:560px){.sim-hero{align-items:flex-start;flex-direction:column}.sim-control-small{flex:1 1 120px}.sim-run-btn,.sim-replay-btn{flex:1 1 150px}.sim-player-bar{grid-template-columns:1fr}.sim-player-identity{grid-column:auto}.sim-player-model{display:flex;justify-content:space-between;align-items:center;text-align:left}.sim-player-model b{margin:0}.sim-metric-grid{grid-template-columns:1fr}.sim-field-stage{min-height:210px}.sim-field-readout{font-size:9px}.sim-title{font-size:18px!important}}
+</style>
 </head>
 <body class="drl-splash-active">
 <div aria-label="Loading live workbook" aria-live="polite" id="drlWorkbookSplash" role="status">
@@ -8960,6 +8970,7 @@ tbody tr{contain:layout paint style;}
 <button class="nav-tab" onclick="switchTab('zoneprofile', this)">🎯 HR Attack Map</button>
 <button class="nav-tab" onclick="switchTab('pitcherattackmap', this); renderPitcherAttackMapTab()">🔥 Pitcher Attack Map</button>
 <button class="nav-tab" onclick="switchTab('goldenmatchups', this)">💎 Golden Matchups</button>
+<button class="nav-tab" onclick="switchTab('simulator', this)">🎮 Simulator</button>
 <button class="nav-tab" onclick="switchTab('tools', this)">☀️ Weather</button>
 
 <button class="nav-tab" onclick="switchTab('backtest', this)">📊 Backtest Lab</button>
@@ -9446,6 +9457,70 @@ tbody tr{contain:layout paint style;}
 </div>
 </div>
 
+
+<div class="tab-content" id="tab-simulator">
+  <div class="sim-hero">
+    <div>
+      <div class="sim-kicker">MODEL-DRIVEN MONTE CARLO</div>
+      <h2 class="sim-title">🎮 HOME RUN FLIGHT SIMULATOR</h2>
+      <div class="sim-sub">Pick a hitter from today’s slate, choose a simulation count, and watch representative model outcomes fly through today’s park. Research/display only — this does not change BBI.</div>
+    </div>
+    <div class="sim-badge">LIVE SLATE INPUTS</div>
+  </div>
+  <div class="sim-controls panel">
+    <div class="sim-control-main">
+      <label for="simPlayerSearch">Player</label>
+      <input id="simPlayerSearch" class="search-input sim-player-input" list="simPlayerList" placeholder="Type a player name..." autocomplete="off">
+      <datalist id="simPlayerList"></datalist>
+    </div>
+    <div class="sim-control-small">
+      <label for="simCount">Simulations</label>
+      <select id="simCount" class="select-input-sm">
+        <option value="100">100</option><option value="500">500</option><option value="1000" selected>1,000</option><option value="5000">5,000</option><option value="10000">10,000</option>
+      </select>
+    </div>
+    <button type="button" class="sim-run-btn" id="simRunBtn">▶ RUN SIMULATION</button>
+    <button type="button" class="sim-replay-btn" id="simReplayBtn" disabled>↻ REPLAY FLIGHTS</button>
+  </div>
+  <div id="simEmpty" class="sim-empty">Upload today’s workbook, then type a hitter’s name to begin.</div>
+  <div id="simWorkspace" class="sim-workspace" style="display:none;">
+    <div class="sim-player-bar panel">
+      <div id="simPlayerIdentity" class="sim-player-identity"></div>
+      <div class="sim-player-model"><span>MODEL HR%</span><b id="simModelProb">--</b></div>
+      <div class="sim-player-model"><span>SIM HR%</span><b id="simObservedProb">--</b></div>
+      <div class="sim-player-model"><span>HR / SIMS</span><b id="simHrCount">--</b></div>
+    </div>
+    <div class="sim-grid">
+      <div class="sim-field-card panel">
+        <div class="sim-field-head"><div><b id="simParkTitle">BALLPARK</b><span id="simWeatherText">Current environment</span></div><div id="simFlightReadout" class="sim-flight-readout">READY</div></div>
+        <div class="sim-field-stage" id="simFieldStage">
+          <div id="simBaseField" class="sim-base-field"></div>
+          <svg id="simFlightSvg" class="sim-flight-svg" viewBox="0 0 420 245" preserveAspectRatio="none" aria-label="Simulated batted-ball flight visualization">
+            <g id="simLandingLayer"></g>
+            <path id="simTrail" d="" pathLength="1"></path>
+            <circle id="simBall" cx="210" cy="229" r="4"></circle>
+          </svg>
+        </div>
+        <div class="sim-legend"><span><i class="sim-dot hr"></i> HR landing</span><span><i class="sim-dot out"></i> non-HR representative</span><span class="sim-note">Flight paths are visualized from model outcomes; not Statcast trajectory reconstruction.</span></div>
+      </div>
+      <div class="sim-results panel">
+        <h2>Simulation Results</h2>
+        <div class="sim-metric-grid">
+          <div class="sim-metric"><span>Home Runs</span><b id="simMetricHr">--</b></div>
+          <div class="sim-metric"><span>HR Rate</span><b id="simMetricRate">--</b></div>
+          <div class="sim-metric"><span>Avg HR Distance</span><b id="simMetricDist">--</b></div>
+          <div class="sim-metric"><span>Longest HR</span><b id="simMetricMax">--</b></div>
+          <div class="sim-metric"><span>Pull-Side HR</span><b id="simMetricPull">--</b></div>
+          <div class="sim-metric"><span>Avg Wall Margin</span><b id="simMetricMargin">--</b></div>
+        </div>
+        <div class="sim-direction-title">HR DIRECTION</div>
+        <div class="sim-direction-bars" id="simDirectionBars"></div>
+        <div class="sim-last-flight" id="simLastFlight">Run the simulator to generate flights.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="tab-content" id="tab-backtest">
 <div class="panel">
 <h2>📊 Backtest / Model Research Lab</h2>
@@ -9578,6 +9653,7 @@ const run = () => {
   if (tabName === 'zoneprofile') renderZoneProfileTab();
   if (tabName === 'goldenmatchups') renderGoldenMatchupsTab();
   if (tabName === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
+  if (tabName === 'simulator' && window.renderSimulatorTab) window.renderSimulatorTab();
   if (tabName === 'backtest') {
     const c = document.getElementById('backtestLabContainer');
     if (c) c.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic;">Loading Backtest Lab...</div>`;
@@ -25915,5 +25991,162 @@ const oldSwitch=window.switchTab;window.switchTab=function(name,btn){const resul
   }
 }
 </style>
+
+<script id="drl-hr-flight-simulator-v1-js">
+(function(){
+'use strict';
+const simState={results:null,flights:[],player:null,animToken:0};
+function n(v,d=0){const x=Number(v);return Number.isFinite(x)?x:d}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+function normName(s){try{return normalizeName(s)}catch(e){return String(s||'').trim().toLowerCase().replace(/[^a-z0-9]/g,'')}}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function gaussian(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function fieldVal(p,...keys){for(const k of keys){if(p&&p[k]!==undefined&&p[k]!==null&&p[k]!=='')return p[k];try{const v=safeGet(p,k);if(v!==undefined&&v!==null&&v!=='')return v}catch(e){}}return null}
+function playerHand(p){const h=String(fieldVal(p,'Bats','Bat','Hand','Hitter Hand','Batter Hand')||'R').toUpperCase();return h.startsWith('L')?'L':h.startsWith('S')?'S':'R'}
+function pullRate(p){let v=n(fieldVal(p,'Pull%','Pull %','Pull','Pulled Air%','Pulled Air'),43);if(v<=1.2)v*=100;return clamp(v,25,70)}
+function baseEV(p){let v=n(fieldVal(p,'Average EV','Avg EV','EV','Exit Velocity','Season EV'),0);if(v<70){const max=n(fieldVal(p,'maxEV','Max EV','MaxEV'),0);v=max>95?max-8:94}return clamp(v,88,108)}
+function baseLA(p){let v=n(fieldVal(p,'Launch Angle','LA','Avg LA','Average LA'),0);if(!v||Math.abs(v)>50)v=24;return clamp(v,12,34)}
+function homeTeam(p){try{return getHomeTeamForPlayer(p)}catch(e){return String(p.Team||'').toUpperCase()}}
+function weatherFor(p){return (p&&p.gameId&&weatherSettings&&weatherSettings[p.gameId])?weatherSettings[p.gameId]:{}}
+function probFor(p){try{return clamp(n(modelHRProbability(p.calculatedBBI||0,p),0)/100,.001,.75)}catch(e){return clamp(n(p.calculatedHRProbability,10)/100,.001,.75)}}
+function wallAt(team,angle){const d=weatherParkDimensions(team);const a=clamp(angle,-43,43);if(a<=0){const f=(a+43)/43;return d.lf+(d.cf-d.lf)*f}const f=a/43;return d.cf+(d.rf-d.cf)*f}
+function directionBucket(angle){if(angle<-25)return'LF';if(angle<-8)return'LCF';if(angle<=8)return'CF';if(angle<=25)return'RCF';return'RF'}
+function chooseAngle(p){const hand=playerHand(p);const pull=pullRate(p)/100;const r=Math.random();let center;if(hand==='L'){center=r<pull?30:(r<pull+.34?5:-25)}else if(hand==='R'){center=r<pull?-30:(r<pull+.34?-5:25)}else center=(Math.random()<.5?-1:1)*(r<pull?30:8);return clamp(center+gaussian()*8,-42,42)}
+function weatherCarry(p,angle){const w=weatherFor(p);if(w&&w.isDome)return 0;const eff=n(w.effectiveWind,w.windSpeed||0);const z=directionBucket(angle).toLowerCase();const target=String(w.windFieldZone||'').toLowerCase();const type=String(w.windType||'').toLowerCase();let align=(target===z)?1:((target==='lcf'&&(z==='lf'||z==='cf'))||(target==='rcf'&&(z==='rf'||z==='cf'))?.65:.15);if(type==='in')align*=-1;if(type==='cross')align*=.35;return eff*align*.65}
+function flightPoint(distance,angle){const a=angle*Math.PI/180,scale=.44;return{x:210+Math.sin(a)*distance*scale,y:229-Math.cos(a)*distance*scale}}
+function generateFlight(p,isHr){const team=homeTeam(p);const angle=chooseAngle(p);const wall=wallAt(team,angle);const ev=clamp(baseEV(p)+(isHr?7:0)+gaussian()*4.2,78,119);const la=clamp(baseLA(p)+(isHr?3:0)+gaussian()*6,4,44);const carry=weatherCarry(p,angle);let distance;if(isHr){const raw=305+(ev-92)*5.2-(Math.abs(28-la)*2.0)+carry+gaussian()*16;const clearance=clamp(14+(ev-100)*1.9-Math.abs(28-la)*0.45+Math.max(-5,carry)*0.35+gaussian()*10,5,72);distance=Math.max(raw,wall+clearance)}else{distance=Math.min(wall-3,210+(ev-82)*4.0-(Math.abs(24-la)*1.8)+carry+gaussian()*22);distance=clamp(distance,120,wall-3)}const pt=flightPoint(distance,angle);return{isHr,angle,dir:directionBucket(angle),wall,ev,la,distance,margin:distance-wall,x:pt.x,y:pt.y,team}}
+function currentPlayers(){return (Array.isArray(playerData)?playerData:[]).filter(p=>p&&!p.isRemoved&&p.Name)}
+function populatePlayers(){const dl=document.getElementById('simPlayerList');if(!dl)return;dl.innerHTML=currentPlayers().slice().sort((a,b)=>String(a.Name).localeCompare(String(b.Name))).map(p=>`<option value="${esc(p.Name)}">${esc(p.Team||'')}</option>`).join('')}
+function findPlayer(q){const key=normName(q);const arr=currentPlayers();return arr.find(p=>normName(p.Name)===key)||arr.find(p=>normName(p.Name).includes(key))||null}
+function simPlayerId(p){
+  const name=String((p&&p.Name)||'').trim();
+  const aliases=[];
+  function addAlias(v){
+    v=String(v||'').trim(); if(!v)return;
+    aliases.push(v);
+    if(v.includes(',')){
+      const parts=v.split(',').map(x=>x.trim()).filter(Boolean);
+      if(parts.length>1) aliases.push(parts.slice(1).join(' ')+' '+parts[0]);
+    }
+  }
+  addAlias(name);
+  addAlias(fieldVal(p,'Player','Player Name','PlayerName','Batter','Hitter'));
+  const keys=[];
+  aliases.forEach(a=>{
+    try{ if(typeof normalizeName==='function') keys.push(normalizeName(a)); }catch(e){}
+    keys.push(normName(a));
+    keys.push(String(a).toLowerCase().replace(/[^a-z0-9]/g,''));
+  });
+  let id='';
+  if(window.playerIdMap){
+    for(const k of keys){ if(k&&playerIdMap[k]){ id=playerIdMap[k]; break; } }
+  }
+  if(!id) id=fieldVal(p,'ID','PlayerID','Player ID','MLBID','MLB ID','MLBAM','MLBAMID','MLBAM ID','mlbId','player_id','playerId','playerid')||'';
+
+  // Simulator hard fallback: read the uploaded workbook's ID sheet directly.
+  // This avoids depending on the global ID map/header assumptions used elsewhere.
+  if(!id && window.drlCurrentWorkbook && window.XLSX){
+    try{
+      const wb=window.drlCurrentWorkbook;
+      const sheetName=(wb.SheetNames||[]).find(s=>String(s).trim().toUpperCase()==='ID');
+      if(sheetName){
+        const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{defval:null,raw:true});
+        const cleanKey=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+        const wanted=new Set(keys.filter(Boolean));
+        for(const row of rows){
+          const headerMap={}; Object.keys(row||{}).forEach(k=>headerMap[cleanKey(k)]=k);
+          const get=(...names)=>{for(const nm of names){const hk=headerMap[cleanKey(nm)]; if(hk!==undefined&&row[hk]!==null&&row[hk]!==undefined&&row[hk]!=='')return row[hk];} return ''};
+          let rn=String(get('Player','Name','Player Name','PlayerName','Batter','Hitter','last_name, first_name')||'').trim();
+          if(!rn)continue;
+          const rowAliases=[rn];
+          if(rn.includes(',')){const ps=rn.split(',').map(x=>x.trim()).filter(Boolean);if(ps.length>1)rowAliases.push(ps.slice(1).join(' ')+' '+ps[0]);}
+          let matched=false;
+          for(const a of rowAliases){
+            const rk1=normName(a),rk2=cleanKey(a); let rk3=''; try{rk3=typeof normalizeName==='function'?normalizeName(a):''}catch(e){}
+            if(wanted.has(rk1)||wanted.has(rk2)||(rk3&&wanted.has(rk3))){matched=true;break;}
+          }
+          if(!matched)continue;
+          const rawId=get('ID','PlayerID','Player ID','MLBID','MLB ID','MLBAM','MLBAMID','MLBAM ID','player_id','playerId','playerid');
+          if(rawId!==''&&rawId!==null&&rawId!==undefined){id=String(rawId).trim();break;}
+        }
+      }
+    }catch(e){ console.warn('Simulator ID-sheet direct lookup failed',e); }
+  }
+  return String(id||'').replace(/\.0$/,'').trim();
+}
+function identityHTML(p){const name=String(p.Name||'Player'),team=String(p.Team||'').toUpperCase(),id=simPlayerId(p);const initials=name.split(/\s+/).filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase();const face=id?`<img class="sim-player-face" src="https://img.mlbstatic.com/mlb-photos/image/upload/v1/people/${esc(id)}/headshot/67/current" alt="${esc(name)}" loading="eager" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/${esc(id)}/headshot/67/current';this.addEventListener('error',()=>{this.outerHTML='<div class=&quot;sim-player-fallback&quot;>${esc(initials)}</div>'},{once:true})">`:`<div class="sim-player-fallback">${esc(initials)}</div>`;return `${face}<div class="sim-player-copy"><div class="sim-player-name">${esc(name)}</div><div class="sim-player-meta">${esc(team)} • ${esc(playerHand(p))}HH • MLB ID ${esc(id||'--')} • vs ${esc(fieldVal(p,'Opp Pitcher','Opp Pitcher Name','Pitcher')||'Opponent')}</div></div>`}
+function renderField(p){const team=homeTeam(p),w=weatherFor(p),dims=weatherParkDimensions(team),base=document.getElementById('simBaseField');if(base)base.innerHTML=weatherParkFieldHTML(team,w);const title=document.getElementById('simParkTitle');if(title)title.textContent=dims.name+' • '+team;const wt=document.getElementById('simWeatherText');if(wt){if(w.isDome)wt.textContent='DOME • NO WIND';else wt.textContent=`${Math.round(n(w.temp,72))}°F • ${n(w.effectiveWind,w.windSpeed||0).toFixed(0)} MPH ${String(w.windDir||'neutral').toUpperCase()}`}}
+function setSimResultsVisible(show){
+  document.querySelectorAll('#tab-simulator .sim-player-model').forEach(el=>{el.style.visibility=show?'visible':'hidden';el.style.opacity=show?'1':'0'});
+  const panel=document.querySelector('#tab-simulator .sim-results');
+  if(panel){panel.style.visibility=show?'visible':'hidden';panel.style.opacity=show?'1':'0';panel.style.transition='opacity .28s ease'}
+}
+function clearSimVisualResults(){
+  const layer=document.getElementById('simLandingLayer'); if(layer) layer.innerHTML='';
+  const last=document.getElementById('simLastFlight'); if(last) last.textContent='Ball tracker running…';
+  const read=document.getElementById('simFlightReadout'); if(read) read.textContent='TRACKING';
+  ['simModelProb','simObservedProb','simHrCount','simMetricHr','simMetricRate','simMetricDist','simMetricMax','simMetricPull','simMetricMargin'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='--'});
+  const bars=document.getElementById('simDirectionBars'); if(bars) bars.innerHTML='';
+  setSimResultsVisible(false);
+}
+function setMetrics(res,p){const pct=(res.hrs/res.count*100);document.getElementById('simModelProb').textContent=(res.target*100).toFixed(1)+'%';document.getElementById('simObservedProb').textContent=pct.toFixed(1)+'%';document.getElementById('simHrCount').textContent=res.hrs+' / '+res.count;document.getElementById('simMetricHr').textContent=res.hrs;document.getElementById('simMetricRate').textContent=pct.toFixed(2)+'%';document.getElementById('simMetricDist').textContent=res.hrs?res.avgDist.toFixed(0)+"'":'--';document.getElementById('simMetricMax').textContent=res.hrs?res.maxDist.toFixed(0)+"'":'--';document.getElementById('simMetricPull').textContent=res.hrs?res.pullPct.toFixed(0)+'%':'--';document.getElementById('simMetricMargin').textContent=res.hrs?(res.avgMargin>=0?'+':'')+res.avgMargin.toFixed(0)+"'":'--';const bars=document.getElementById('simDirectionBars');bars.innerHTML=['LF','LCF','CF','RCF','RF'].map(k=>{const v=res.hrs?(res.dirs[k]||0)/res.hrs*100:0;return `<div class="sim-dir-row"><span>${k}</span><div class="sim-dir-track"><div class="sim-dir-fill" style="width:${v.toFixed(1)}%"></div></div><span class="sim-dir-pct">${v.toFixed(0)}%</span></div>`}).join('')}
+function plotLandings(flights){const layer=document.getElementById('simLandingLayer');if(!layer)return;const show=flights.length>300?flights.filter((_,i)=>i%Math.ceil(flights.length/300)===0):flights;layer.innerHTML=show.map(f=>`<circle class="sim-land ${f.isHr?'hr':'out'}" cx="${f.x.toFixed(1)}" cy="${f.y.toFixed(1)}" r="${f.isHr?2.7:1.8}"/>`).join('')}
+function pathFor(f){const sx=210,sy=229,ex=f.x,ey=f.y;const dx=ex-sx,dy=ey-sy;const c1x=sx+dx*.30,c1y=sy+dy*.35-32;const c2x=sx+dx*.68,c2y=sy+dy*.78-26;return `M ${sx} ${sy} C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`}
+function animateOne(f,token){
+  return new Promise(resolve=>{
+    if(token!==simState.animToken){ resolve(); return; }
+    const trail=document.getElementById('simTrail');
+    const ball=document.getElementById('simBall');
+    const read=document.getElementById('simFlightReadout');
+    const last=document.getElementById('simLastFlight');
+    const stage=document.getElementById('simFieldStage');
+    if(!trail||!ball){ resolve(); return; }
+    const d=pathFor(f);
+    trail.setAttribute('d',d);
+    trail.style.opacity='1';
+    ball.style.opacity='1';
+    let len=220;
+    try{ len=trail.getTotalLength(); }catch(e){}
+    trail.style.stroke=f.isHr?'#f8fafc':'#94a3b8';
+    trail.style.strokeDasharray=String(len);
+    trail.style.strokeDashoffset=String(len);
+    const dur=700;
+    const start=performance.now();
+    if(read) read.textContent=(f.isHr?'HR ':'OUT ')+f.dir+' • '+Math.round(f.distance)+"'";
+    function tick(now){
+      if(token!==simState.animToken){ resolve(); return; }
+      const q=clamp((now-start)/dur,0,1);
+      trail.style.strokeDashoffset=String(len*(1-q));
+      try{
+        const pt=trail.getPointAtLength(len*q);
+        ball.setAttribute('cx',pt.x);
+        ball.setAttribute('cy',pt.y);
+      }catch(e){}
+      if(q<1){
+        requestAnimationFrame(tick);
+      } else {
+        if(last) last.innerHTML=`<b>${f.isHr?'HOME RUN':'NO HR'}</b> • ${f.dir} • ${f.ev.toFixed(1)} MPH EV • ${f.la.toFixed(0)}° LA • ${f.distance.toFixed(0)} FT • wall ${f.wall.toFixed(0)} FT • margin ${f.margin>=0?'+':''}${f.margin.toFixed(0)} FT`;
+        if(stage){
+          stage.classList.remove('sim-flash');
+          void stage.offsetWidth;
+          stage.classList.add('sim-flash');
+        }
+        setTimeout(()=>{
+          trail.style.opacity='0';
+          ball.style.opacity='0';
+          resolve();
+        },170);
+      }
+    }
+    requestAnimationFrame(tick);
+  });
+}
+async function replayFlights(){if(!simState.flights.length)return;simState.animToken++;const token=simState.animToken;const reps=[];const hrs=simState.flights.filter(f=>f.isHr),outs=simState.flights.filter(f=>!f.isHr);for(let i=0;i<Math.min(8,hrs.length);i++)reps.push(hrs[Math.floor(i*hrs.length/Math.min(8,hrs.length))]);for(let i=0;i<Math.min(4,outs.length);i++)reps.splice(Math.min(reps.length,i*2+1),0,outs[Math.floor(i*outs.length/Math.min(4,outs.length))]);for(const f of reps.slice(0,12)){if(token!==simState.animToken)break;await animateOne(f,token)}}
+async function runSimulation(){populatePlayers();const inp=document.getElementById('simPlayerSearch'),p=findPlayer(inp&&inp.value);if(!p){const e=document.getElementById('simEmpty');if(e){e.style.display='block';e.textContent='Player not found on today’s loaded slate. Start typing and select a name from the list.'}return}const count=clamp(parseInt(document.getElementById('simCount').value||'1000',10),100,10000);const target=probFor(p),flights=[];let hrs=0,sumDist=0,maxDist=0,sumMargin=0,pullHrs=0;const dirs={LF:0,LCF:0,CF:0,RCF:0,RF:0};const hand=playerHand(p);for(let i=0;i<count;i++){const isHr=Math.random()<target;const f=generateFlight(p,isHr);flights.push(f);if(isHr){hrs++;sumDist+=f.distance;maxDist=Math.max(maxDist,f.distance);sumMargin+=f.margin;dirs[f.dir]=(dirs[f.dir]||0)+1;if((hand==='R'&&(f.dir==='LF'||f.dir==='LCF'))||(hand==='L'&&(f.dir==='RF'||f.dir==='RCF')))pullHrs++}}const res={count,target,hrs,avgDist:hrs?sumDist/hrs:0,maxDist,avgMargin:hrs?sumMargin/hrs:0,pullPct:hrs?pullHrs/hrs*100:0,dirs};simState.results=res;simState.flights=flights;simState.player=p;document.getElementById('simEmpty').style.display='none';document.getElementById('simWorkspace').style.display='flex';document.getElementById('simPlayerIdentity').innerHTML=identityHTML(p);renderField(p);clearSimVisualResults();document.getElementById('simReplayBtn').disabled=true;await replayFlights();if(simState.player!==p)return;setMetrics(res,p);plotLandings(flights);setSimResultsVisible(true);const read=document.getElementById('simFlightReadout');if(read)read.textContent='COMPLETE';document.getElementById('simReplayBtn').disabled=false;}
+window.renderSimulatorTab=function(){populatePlayers();const empty=document.getElementById('simEmpty');if(empty&&currentPlayers().length===0){empty.style.display='block';empty.textContent='Upload today’s workbook to load simulator hitters.'}}
+function init(){const run=document.getElementById('simRunBtn'),rep=document.getElementById('simReplayBtn'),inp=document.getElementById('simPlayerSearch');if(run&&!run.dataset.bound){run.dataset.bound='1';run.addEventListener('click',runSimulation)}if(rep&&!rep.dataset.bound){rep.dataset.bound='1';rep.addEventListener('click',async()=>{if(!simState.flights.length)return;clearSimVisualResults();rep.disabled=true;await replayFlights();if(simState.results&&simState.player){setMetrics(simState.results,simState.player);plotLandings(simState.flights);setSimResultsVisible(true);const read=document.getElementById('simFlightReadout');if(read)read.textContent='COMPLETE'}rep.disabled=false})}if(inp&&!inp.dataset.bound){inp.dataset.bound='1';inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSimulation()}})}populatePlayers()}
+if(typeof window.drlOnReady==='function')window.drlOnReady(init);else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
 </body>
 </html>
