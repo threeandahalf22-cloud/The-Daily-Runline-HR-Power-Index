@@ -2,6 +2,10 @@
 
 <html lang="en">
 <head>
+<!-- HR COLLISION FACE CENTER FIX: removes extra headshot zoom and centers MLB face IDs like the rest of the model; rankings/scoring unchanged. -->
+<!-- HR COLLISION BOARD V1.1: player headshot crop/ID presentation corrected and default/ranking order changed to highest Collision Usage down to lowest. Threat remains available as an optional research sort. -->
+<!-- HR COLLISION BOARD V1: adds an HR Collision Board tab immediately beside HR Attack Map. Reads HRZone / HR Zone Filters from the uploaded workbook, resolves MLB headshots from the ID sheet/player map, and provides collision usage, overlap/strong-zone signals, zone 9/12 flags, search/team/sort controls, and a display-only Collision Threat score. Existing model scoring is unchanged. -->
+
 <!-- SIMULATOR HEADSHOT FIX V2: simulator resolves MLB IDs directly from the uploaded ID sheet as a fallback, with normalized headers/names and comma-name support; simulation scoring unchanged. -->
 <!-- HR FLIGHT SIMULATOR V1.2 HEADSHOT + RESULTS REVEAL: simulator player identity now resolves MLB ID from the loaded ID map/player fields before falling back to initials; simulation metrics, landing cloud, and results remain hidden until representative ball-tracker flights finish. Replay keeps the same delayed reveal behavior. -->
 <!-- HR FLIGHT SIMULATOR V1.1 CLEARANCE FIX: home-run flight generation now produces realistic visible wall clearance instead of clustering conditional HR landings at wall+2 ft; landing dots and ESPN-style trails extend clearly beyond the fence. Simulation remains research/display only and does not alter BBI or rankings. -->
@@ -8878,6 +8882,13 @@ tbody tr{contain:layout paint style;}
 @media(max-width:900px){.sim-grid{grid-template-columns:1fr}.sim-player-bar{grid-template-columns:1fr 1fr 1fr}.sim-player-identity{grid-column:1/-1}.sim-player-model{border-left:0;border-top:1px solid rgba(255,255,255,.08)}.sim-field-stage{min-height:240px}.sim-note{margin-left:0}}
 @media(max-width:560px){.sim-hero{align-items:flex-start;flex-direction:column}.sim-control-small{flex:1 1 120px}.sim-run-btn,.sim-replay-btn{flex:1 1 150px}.sim-player-bar{grid-template-columns:1fr}.sim-player-identity{grid-column:auto}.sim-player-model{display:flex;justify-content:space-between;align-items:center;text-align:left}.sim-player-model b{margin:0}.sim-metric-grid{grid-template-columns:1fr}.sim-field-stage{min-height:210px}.sim-field-readout{font-size:9px}.sim-title{font-size:18px!important}}
 </style>
+
+<style id="drl-hr-collision-board-v1">
+#tab-hrcollision{padding-bottom:30px}.hrc-shell{max-width:1600px;margin:0 auto}.hrc-hero{position:relative;overflow:hidden;display:flex;justify-content:space-between;gap:20px;align-items:center;padding:24px 26px;margin-bottom:18px;border:1px solid rgba(225,6,0,.28);border-radius:18px;background:radial-gradient(circle at 10% 20%,rgba(225,6,0,.17),transparent 34%),linear-gradient(145deg,rgba(17,31,53,.80),rgba(5,11,20,.92));box-shadow:0 18px 48px rgba(0,0,0,.35)}.hrc-hero:after{content:"";position:absolute;inset:-80% 35% -80% -30%;background:linear-gradient(110deg,transparent 42%,rgba(255,255,255,.055) 50%,transparent 58%);transform:rotate(5deg);pointer-events:none}.hrc-kicker{font-size:9px;font-weight:1000;letter-spacing:1.6px;color:#ff4b45;text-transform:uppercase}.hrc-title{font-size:24px!important;margin:5px 0 0!important;padding:0!important;border:0!important}.hrc-title:before{display:none!important}.hrc-sub{margin-top:8px;color:var(--text-muted);font-size:12px;line-height:1.55;max-width:820px}.hrc-hero-badge{flex:0 0 auto;border:1px solid rgba(250,204,21,.30);background:rgba(250,204,21,.08);color:#fde68a;border-radius:999px;padding:9px 12px;font-size:9px;font-weight:1000;letter-spacing:.8px;text-transform:uppercase}.hrc-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.hrc-summary-card{padding:15px 16px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:linear-gradient(145deg,rgba(17,31,53,.72),rgba(5,11,20,.80));box-shadow:0 10px 28px rgba(0,0,0,.24)}.hrc-summary-label{font-size:8px;font-weight:1000;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase}.hrc-summary-value{font:1000 24px/1 monospace;color:#fff;margin-top:7px}.hrc-summary-sub{font-size:9px;color:var(--stadium-lights);font-weight:800;margin-top:5px}.hrc-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:18px}.hrc-controls .filter-group{min-width:140px}.hrc-controls .hrc-search-wrap{flex:1 1 280px}.hrc-controls .search-input{width:100%;box-sizing:border-box}.hrc-controls .select-input-sm{width:100%;min-width:150px}.hrc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.hrc-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.085);border-left:4px solid var(--hrc-team,#e10600);border-radius:17px;padding:18px;background:radial-gradient(circle at 0% 0%,color-mix(in srgb,var(--hrc-team,#e10600) 14%,transparent),transparent 34%),linear-gradient(145deg,rgba(17,31,53,.82),rgba(5,11,20,.90));box-shadow:0 14px 34px rgba(0,0,0,.30);transition:transform .2s,border-color .2s,box-shadow .2s}.hrc-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--hrc-team,#e10600) 52%,rgba(255,255,255,.08));box-shadow:0 18px 42px rgba(0,0,0,.38)}.hrc-card-top{display:grid;grid-template-columns:74px 1fr auto;gap:13px;align-items:center}.hrc-face-wrap{width:70px;height:70px;border-radius:50%;overflow:hidden;border:2px solid var(--hrc-team,#e10600);background:#070b11;box-shadow:0 0 0 5px color-mix(in srgb,var(--hrc-team,#e10600) 10%,transparent),0 10px 24px rgba(0,0,0,.38)}.hrc-face{width:100%;height:100%;object-fit:cover;object-position:50% 50%;transform:none;transform-origin:center center}.hrc-face-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font:1000 19px/1 monospace;color:#fff}.hrc-face-col{width:74px;display:flex;flex-direction:column;align-items:center;gap:7px}.hrc-id-pill{max-width:74px;padding:4px 6px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(5,11,20,.72);color:#94a3b8;font:900 7px/1 monospace;letter-spacing:.25px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}.hrc-rank{font:1000 10px/1 monospace;color:var(--text-muted);margin-bottom:5px}.hrc-name{font-size:17px;font-weight:1000;color:#fff;line-height:1.12}.hrc-meta{font-size:10px;color:var(--stadium-lights);font-weight:900;margin-top:5px;text-transform:uppercase;letter-spacing:.45px}.hrc-pitcher{margin-top:3px;color:var(--text-muted);font-size:10px;font-weight:800}.hrc-big{text-align:right}.hrc-big-value{font:1000 30px/1 monospace;color:#facc15;text-shadow:0 0 18px rgba(250,204,21,.15)}.hrc-big-label{margin-top:4px;font-size:8px;color:var(--text-muted);font-weight:1000;letter-spacing:.9px;text-transform:uppercase}.hrc-tier{display:inline-flex;margin-top:6px;padding:5px 8px;border-radius:999px;font-size:8px;font-weight:1000;letter-spacing:.65px;text-transform:uppercase}.hrc-tier.elite{background:linear-gradient(135deg,#facc15,#f97316);color:#06111d}.hrc-tier.strong{background:rgba(225,6,0,.15);border:1px solid rgba(225,6,0,.32);color:#ff8b87}.hrc-tier.watch{background:rgba(56,189,248,.10);border:1px solid rgba(56,189,248,.25);color:#7dd3fc}.hrc-tier.light{background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.16);color:#cbd5e1}.hrc-meter-wrap{margin-top:15px}.hrc-meter-head{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:9px;font-weight:1000;text-transform:uppercase;letter-spacing:.55px}.hrc-meter-head span:first-child{color:var(--text-muted)}.hrc-meter-head b{color:#fff;font-family:monospace}.hrc-meter{height:11px;margin-top:7px;border-radius:999px;overflow:hidden;background:rgba(107,124,150,.17);border:1px solid rgba(255,255,255,.045)}.hrc-meter-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--hrc-team,#e10600),#facc15);box-shadow:0 0 16px color-mix(in srgb,var(--hrc-team,#e10600) 28%,transparent)}.hrc-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}.hrc-stat{padding:10px 8px;text-align:center;border:1px solid rgba(255,255,255,.065);border-radius:10px;background:rgba(5,11,20,.48)}.hrc-stat b{display:block;font:1000 17px/1 monospace;color:#fff}.hrc-stat span{display:block;margin-top:4px;font-size:7px;font-weight:1000;color:var(--text-muted);text-transform:uppercase;letter-spacing:.45px}.hrc-chip-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}.hrc-chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:1000;text-transform:uppercase;letter-spacing:.5px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);color:#e2e8f0}.hrc-chip.hot{border-color:rgba(250,204,21,.26);background:rgba(250,204,21,.07);color:#fde68a}.hrc-chip.zone{border-color:rgba(225,6,0,.28);background:rgba(225,6,0,.08);color:#ff9a96}.hrc-why{margin-top:13px;padding:10px 12px;border-radius:10px;border-left:3px solid var(--hrc-team,#e10600);background:rgba(5,11,20,.46);color:#d7e0ed;font-size:10px;font-weight:750;line-height:1.45}.hrc-why b{color:#fff}.hrc-empty{grid-column:1/-1;padding:38px;text-align:center;border:1px dashed rgba(255,255,255,.14);border-radius:14px;color:var(--text-muted);font-size:12px}.hrc-mini-leaders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 18px}.hrc-mini-leader{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(5,11,20,.52)}.hrc-mini-rank{font:1000 12px/1 monospace;color:#facc15}.hrc-mini-name{font-size:10px;font-weight:1000;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hrc-mini-meta{font-size:8px;color:var(--text-muted);font-weight:800;margin-top:2px}.hrc-mini-score{font:1000 18px/1 monospace;color:#fff}.hrc-mini-score small{display:block;font-size:7px;color:var(--text-muted);margin-top:3px;text-align:right}.hrc-footnote{margin:15px 0 0;color:var(--text-muted);font-size:9px;text-align:center;font-weight:700}.hrc-hidden{display:none!important}
+@media(max-width:1000px){.hrc-grid{grid-template-columns:1fr}.hrc-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hrc-mini-leaders{grid-template-columns:1fr}}
+@media(max-width:620px){.hrc-hero{padding:18px;align-items:flex-start}.hrc-hero-badge{display:none}.hrc-summary-grid{grid-template-columns:1fr 1fr}.hrc-card{padding:14px}.hrc-card-top{grid-template-columns:58px 1fr}.hrc-face-wrap{width:54px;height:54px}.hrc-big{grid-column:1/-1;display:flex;align-items:center;gap:10px;text-align:left;padding-top:4px}.hrc-big-value{font-size:24px}.hrc-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+
 </head>
 <body class="drl-splash-active">
 <div aria-label="Loading live workbook" aria-live="polite" id="drlWorkbookSplash" role="status">
@@ -8968,6 +8979,7 @@ tbody tr{contain:layout paint style;}
 
 <button class="nav-tab" onclick="switchTab('h2h', this)">⚔️ H2H Matchups</button>
 <button class="nav-tab" onclick="switchTab('zoneprofile', this)">🎯 HR Attack Map</button>
+<button class="nav-tab" onclick="switchTab('hrcollision', this)">💥 HR Collision Board</button>
 <button class="nav-tab" onclick="switchTab('pitcherattackmap', this); renderPitcherAttackMapTab()">🔥 Pitcher Attack Map</button>
 <button class="nav-tab" onclick="switchTab('goldenmatchups', this)">💎 Golden Matchups</button>
 <button class="nav-tab" onclick="switchTab('simulator', this)">🎮 Simulator</button>
@@ -9269,6 +9281,35 @@ tbody tr{contain:layout paint style;}
 <button class="btn-blue" onclick="exportZoneScoresToExcel()" style="width:auto;min-width:240px;" type="button">Export Hitter + Pitcher Zone Data</button>
 </div>
 </div>
+</div>
+
+
+<div class="tab-content" id="tab-hrcollision">
+  <div class="hrc-shell">
+    <div class="hrc-hero">
+      <div>
+        <div class="hrc-kicker">HITTER HR ZONES × PITCHER USAGE</div>
+        <h2 class="hrc-title">💥 HR COLLISION BOARD</h2>
+        <div class="hrc-sub">A research board built from the HRZone sheet. It surfaces hitters whose proven HR-producing zones overlap where today’s opposing pitcher actually works. Collision Usage is the main read; stronger overlap count, 5%+ overlap zones, and Zone 9/12 matches add context.</div>
+      </div>
+      <div class="hrc-hero-badge">DISPLAY / RESEARCH ONLY</div>
+    </div>
+    <div class="hrc-summary-grid">
+      <div class="hrc-summary-card"><div class="hrc-summary-label">Hitters Loaded</div><div class="hrc-summary-value" id="hrcLoaded">0</div><div class="hrc-summary-sub">from HRZone</div></div>
+      <div class="hrc-summary-card"><div class="hrc-summary-label">Elite Collisions</div><div class="hrc-summary-value" id="hrcElite">0</div><div class="hrc-summary-sub">40%+ usage • 6+ overlaps • 3+ strong zones</div></div>
+      <div class="hrc-summary-card"><div class="hrc-summary-label">Top Collision Usage</div><div class="hrc-summary-value" id="hrcTopUsage">--</div><div class="hrc-summary-sub" id="hrcTopUsageName">Waiting for data</div></div>
+      <div class="hrc-summary-card"><div class="hrc-summary-label">Zone 9 / 12 Signals</div><div class="hrc-summary-value" id="hrcSpecialCount">0</div><div class="hrc-summary-sub">hitters with at least one flagged match</div></div>
+    </div>
+    <div id="hrcMiniLeaders" class="hrc-mini-leaders"></div>
+    <div class="panel hrc-controls">
+      <div class="filter-group hrc-search-wrap"><label>Search Player / Pitcher</label><input class="search-input" id="hrcSearch" placeholder="Type player or opposing pitcher..." type="text"/></div>
+      <div class="filter-group"><label>Team</label><select class="select-input-sm" id="hrcTeam"><option value="ALL">All Teams</option></select></div>
+      <div class="filter-group"><label>Tier</label><select class="select-input-sm" id="hrcTier"><option value="ALL">All Tiers</option><option value="ELITE">Elite Collision</option><option value="STRONG">Strong Collision</option><option value="WATCH">Watch</option><option value="LIGHT">Light</option></select></div>
+      <div class="filter-group"><label>Sort</label><select class="select-input-sm" id="hrcSort"><option value="USAGE">Collision Usage — High to Low</option><option value="THREAT">Collision Threat</option><option value="OVERLAP">Overlap Zones</option><option value="STRONGZONES">5%+ Zones</option><option value="HRS">Batter HRs</option><option value="HRZONES">Batter HR Zones</option><option value="ALPHA">Player A-Z</option></select></div>
+    </div>
+    <div id="hrcGrid" class="hrc-grid"><div class="hrc-empty">Add an <b>HRZone</b> sheet to the workbook and upload it to populate this board.</div></div>
+    <div class="hrc-footnote">Collision Threat is a display-only research score built from the HRZone fields. It does not change BBI, Attack Zone, or model rankings.</div>
+  </div>
 </div>
 
 <div class="tab-content" id="tab-pitcherattackmap">
@@ -9651,6 +9692,7 @@ const run = () => {
   if (tabName === 'h2h') renderH2HFullTable();
   if (tabName === 'pitchlab') renderPitchLabTable();
   if (tabName === 'zoneprofile') renderZoneProfileTab();
+  if (tabName === 'hrcollision' && window.renderHRCollisionBoard) window.renderHRCollisionBoard();
   if (tabName === 'goldenmatchups') renderGoldenMatchupsTab();
   if (tabName === 'tools') { renderWeatherRankings(); renderStadiumOrientationAudit(); }
   if (tabName === 'simulator' && window.renderSimulatorTab) window.renderSimulatorTab();
@@ -26148,5 +26190,76 @@ function init(){const run=document.getElementById('simRunBtn'),rep=document.getE
 if(typeof window.drlOnReady==='function')window.drlOnReady(init);else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+
+<script id="drl-hr-collision-board-script-v1">
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const yes=v=>/^(yes|y|true|1)$/i.test(String(v??'').trim());
+function initials(name){const p=String(name||'?').trim().split(/\s+/).filter(Boolean);return ((p[0]?.[0]||'?')+(p.length>1?p[p.length-1][0]:'')).toUpperCase();}
+function color(team){try{const m=String(teamVisualStyle(String(team||'').toUpperCase())).match(/--team-color:\s*([^;]+)/);return m?m[1]:'#e10600'}catch(e){return'#e10600'}}
+function readRows(){
+  const wb=window.drlCurrentWorkbook;if(!wb||!wb.Sheets)return[];
+  const name=wb.SheetNames.find(n=>['HRZONE','HR ZONE FILTERS','HRZONEFILTERS','HR ZONE'].includes(String(n).toUpperCase().trim()));
+  if(!name)return[];
+  try{return typeof sheetToJsonSmart==='function'?sheetToJsonSmart(wb,name,['Player']):XLSX.utils.sheet_to_json(wb.Sheets[name],{defval:'',raw:true});}catch(e){console.warn('HR Collision read failed',e);return[]}
+}
+function idLookup(name){
+  const n=norm(name);
+  if(window.playerIdMap){
+    const direct=playerIdMap[n]||playerIdMap[String(name||'').trim()]||playerIdMap[String(name||'').toLowerCase()];
+    if(direct&&Number(direct)>0)return String(Math.trunc(Number(direct)));
+    for(const [k,v] of Object.entries(playerIdMap)){if(norm(k)===n&&Number(v)>0)return String(Math.trunc(Number(v)));}
+  }
+  const wb=window.drlCurrentWorkbook;if(!wb||!wb.Sheets)return'';
+  const idName=wb.SheetNames.find(x=>['ID','IDS','PLAYERID','PLAYERIDS'].includes(String(x).toUpperCase().trim()));
+  if(!idName)return'';
+  let rows=[];try{rows=typeof sheetToJsonSmart==='function'?sheetToJsonSmart(wb,idName,['Player','Name']):XLSX.utils.sheet_to_json(wb.Sheets[idName],{defval:'',raw:true})}catch(e){return''}
+  for(const r of rows){
+    let rn=String((typeof safeGet==='function'?safeGet(r,'Player','Name','PlayerName','PLAYER','NAME','last_name, first_name'):(r.Player||r.Name||r.PlayerName||r['last_name, first_name']))||'').trim();
+    if(rn.includes(',')){const a=rn.split(',').map(x=>x.trim());rn=(a.slice(1).join(' ')+' '+a[0]).trim()}
+    if(norm(rn)!==n)continue;
+    let id=typeof safeGet==='function'?safeGet(r,'ID','PlayerID','MLBID','mlbid','player_id','MLB ID'):(r.ID||r.PlayerID||r.MLBID||r.player_id||r['MLB ID']);
+    id=String(id??'').replace(/\.0+$/,'').replace(/[^0-9]/g,'');if(id)return id;
+  }
+  return'';
+}
+function tier(r){if(r.usage>=.40&&r.overlap>=6&&r.strong>=3)return'ELITE';if(r.usage>=.30&&r.overlap>=5)return'STRONG';if(r.usage>=.20&&r.overlap>=4)return'WATCH';return'LIGHT'}
+function threat(r){
+  const usage=Math.min(1,Math.max(0,r.usage));
+  const overlap=Math.min(1,r.overlap/9);
+  const strong=Math.min(1,r.strong/4);
+  const hrZones=Math.min(1,r.hrZones/12);
+  const hrPower=Math.min(1,r.hrs/35);
+  const special=(r.z9?0.035:0)+(r.z12?0.035:0);
+  return Math.max(0,Math.min(100,100*(usage*.48+overlap*.19+strong*.16+hrZones*.08+hrPower*.09+special)));
+}
+function build(){return readRows().map((r,i)=>{
+  const get=(...keys)=>{for(const k of keys){if(r[k]!==undefined&&r[k]!==null&&r[k]!=='')return r[k]}return''};
+  const x={name:String(get('Player','Name')).trim(),team:String(get('Team','TEAM')).trim().toUpperCase(),pitcher:String(get('Opp Pitcher','Opp Pitcher Name','Pitcher')).trim(),hrs:num(get('Batter HRs','HRs')),hrZones:num(get('Batter HR Zones','HR Zones')),overlap:num(get('Overlap Zones')),usage:num(get('Collision Usage')),strong:num(get('5%+ Overlap Zones','5% Overlap Zones')),z12:yes(get('Zone 12 Match')),z9:yes(get('Zone 9 Match')),result:String(get('HR Y/N')).trim(),sourceIndex:i};
+  if(x.usage>1)x.usage/=100;x.tier=tier(x);x.threat=threat(x);x.id=idLookup(x.name);return x;
+}).filter(x=>x.name)}
+function headshot(r){const idText=r.id?`MLB ${esc(r.id)}`:'MLB ID --';const face=r.id?`<div class="hrc-face-wrap"><img class="hrc-face" src="https://img.mlbstatic.com/mlb-photos/image/upload/v1/people/${esc(r.id)}/headshot/67/current" alt="${esc(r.name)}" loading="lazy" decoding="async" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="hrc-face-fallback" style="display:none">${esc(initials(r.name))}</div></div>`:`<div class="hrc-face-wrap"><div class="hrc-face-fallback">${esc(initials(r.name))}</div></div>`;return`<div class="hrc-face-col">${face}<div class="hrc-id-pill">${idText}</div></div>`}
+function why(r){const pct=(r.usage*100).toFixed(1);let s=`<b>${r.overlap}</b> of this hitter’s HR-producing zones overlap today’s pitcher usage, covering <b>${pct}%</b> of the collision map.`;if(r.strong>0)s+=` <b>${r.strong}</b> overlap zone${r.strong===1?'':'s'} carry at least 5% pitcher usage.`;if(r.z9||r.z12)s+=` Special match: ${[r.z9?'Zone 9':'',r.z12?'Zone 12':''].filter(Boolean).join(' + ')}.`;return s}
+function card(r,rank){const c=color(r.team),pct=Math.max(0,Math.min(100,r.usage*100));const chips=[];if(r.strong)chips.push(`<span class="hrc-chip hot">🔥 ${r.strong} zones ≥5%</span>`);if(r.z9)chips.push(`<span class="hrc-chip zone">🎯 Zone 9 Match</span>`);if(r.z12)chips.push(`<span class="hrc-chip zone">🎯 Zone 12 Match</span>`);if(!chips.length)chips.push(`<span class="hrc-chip">Overlap profile only</span>`);return`<article class="hrc-card" style="--hrc-team:${c}"><div class="hrc-card-top">${headshot(r)}<div><div class="hrc-rank">#${rank} • ${esc(r.team)}</div><div class="hrc-name">${esc(r.name)}</div><div class="hrc-meta">${esc(r.team)} HITTER</div><div class="hrc-pitcher">vs ${esc(r.pitcher||'Opposing Pitcher')}</div></div><div class="hrc-big"><div><div class="hrc-big-value">${pct.toFixed(1)}%</div><div class="hrc-big-label">Collision Usage</div></div><span class="hrc-tier ${r.tier.toLowerCase()}">${r.tier==='ELITE'?'🔥 ELITE COLLISION':r.tier==='STRONG'?'STRONG COLLISION':r.tier==='WATCH'?'WATCH':'LIGHT'}</span></div></div><div class="hrc-meter-wrap"><div class="hrc-meter-head"><span>Pitcher Usage Into Hitter HR Zones</span><b>${pct.toFixed(1)}%</b></div><div class="hrc-meter"><div class="hrc-meter-fill" style="width:${pct}%"></div></div></div><div class="hrc-stat-grid"><div class="hrc-stat"><b>${r.overlap}</b><span>Overlap Zones</span></div><div class="hrc-stat"><b>${r.strong}</b><span>Zones ≥5%</span></div><div class="hrc-stat"><b>${r.hrs}</b><span>Batter HRs</span></div><div class="hrc-stat"><b>${r.hrZones}</b><span>HR Zones</span></div></div><div class="hrc-chip-row">${chips.join('')}</div><div class="hrc-why">${why(r)}</div></article>`}
+let initialized=false;
+window.renderHRCollisionBoard=function(){
+  const grid=$('hrcGrid');if(!grid)return;let rows=build();
+  const teamEl=$('hrcTeam');if(teamEl&&(!teamEl.dataset.ready||teamEl.dataset.count!==String(rows.length))){const cur=teamEl.value||'ALL',teams=[...new Set(rows.map(r=>r.team).filter(Boolean))].sort();teamEl.innerHTML='<option value="ALL">All Teams</option>'+teams.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');if(teams.includes(cur))teamEl.value=cur;teamEl.dataset.ready='1';teamEl.dataset.count=String(rows.length)}
+  $('hrcLoaded').textContent=rows.length;const elites=rows.filter(r=>r.tier==='ELITE');$('hrcElite').textContent=elites.length;const top=[...rows].sort((a,b)=>b.usage-a.usage)[0];$('hrcTopUsage').textContent=top?(top.usage*100).toFixed(1)+'%':'--';$('hrcTopUsageName').textContent=top?top.name:'Waiting for data';$('hrcSpecialCount').textContent=rows.filter(r=>r.z9||r.z12).length;
+  const leaders=[...rows].sort((a,b)=>b.usage-a.usage||b.overlap-a.overlap||b.strong-a.strong).slice(0,3);$('hrcMiniLeaders').innerHTML=leaders.map((r,i)=>`<div class="hrc-mini-leader"><div class="hrc-mini-rank">#${i+1}</div><div><div class="hrc-mini-name">${esc(r.name)}</div><div class="hrc-mini-meta">${esc(r.team)} • ${(r.usage*100).toFixed(1)}% usage • ${r.overlap} overlaps</div></div><div class="hrc-mini-score">${(r.usage*100).toFixed(1)}%<small>COLLISION</small></div></div>`).join('');
+  const q=norm($('hrcSearch')?.value||''),team=$('hrcTeam')?.value||'ALL',tierFilter=$('hrcTier')?.value||'ALL',sort=$('hrcSort')?.value||'USAGE';
+  rows=rows.filter(r=>(!q||norm(r.name).includes(q)||norm(r.pitcher).includes(q))&&(team==='ALL'||r.team===team)&&(tierFilter==='ALL'||r.tier===tierFilter));
+  const sorts={THREAT:(a,b)=>b.threat-a.threat||b.usage-a.usage,USAGE:(a,b)=>b.usage-a.usage||b.overlap-a.overlap,OVERLAP:(a,b)=>b.overlap-a.overlap||b.usage-a.usage,STRONGZONES:(a,b)=>b.strong-a.strong||b.usage-a.usage,HRS:(a,b)=>b.hrs-a.hrs||b.usage-a.usage,HRZONES:(a,b)=>b.hrZones-a.hrZones||b.usage-a.usage,ALPHA:(a,b)=>a.name.localeCompare(b.name)};rows.sort(sorts[sort]||sorts.USAGE);
+  grid.innerHTML=rows.length?rows.map((r,i)=>card(r,i+1)).join(''):`<div class="hrc-empty">${readRows().length?'No hitters match the current filters.':'No HRZone data found. Add a sheet named <b>HRZone</b> (or <b>HR Zone Filters</b>) to the workbook and upload it.'}</div>`;
+};
+function bind(){if(initialized)return;initialized=true;['hrcSearch','hrcTeam','hrcTier','hrcSort'].forEach(id=>{const el=$(id);if(!el)return;el.addEventListener(id==='hrcSearch'?'input':'change',()=>{clearTimeout(window.__hrcTimer);window.__hrcTimer=setTimeout(()=>window.renderHRCollisionBoard(),id==='hrcSearch'?90:0)})})}
+if(typeof window.drlOnReady==='function')window.drlOnReady(bind);else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>
+
 </body>
 </html>
